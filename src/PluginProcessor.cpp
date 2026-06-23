@@ -26,7 +26,7 @@ background:#5b8cff;cursor:pointer;box-shadow:0 0 10px rgba(91,140,255,.6)}
 .knob{display:flex;flex-direction:column;align-items:center;gap:8px}
 label{font-size:11px;letter-spacing:.1em;color:#8ea2c6;text-transform:uppercase}
 .rack{display:flex;gap:40px}.val{font-size:12px;color:#c4d2ea;font-variant-numeric:tabular-nums}</style>
-</head><body><h1>VST3&middot;AI</h1>
+</head><body><h1>VibePlugin</h1>
 <div class="rack">
 <div class="knob"><label>Gain</label><input id="g" type="range" min="0" max="2" step="0.01" value="1"/><span class="val" id="gv">1.00</span></div>
 <div class="knob"><label>Tone</label><input id="c" type="range" min="0" max="1" step="0.001" value="1"/><span class="val" id="cv">1.00</span></div>
