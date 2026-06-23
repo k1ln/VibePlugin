@@ -1,0 +1,14 @@
+{
+  "name": "vstai-wasm-template",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AssemblyScript DSP template compiled to WASM for the VibePlugin plugin.",
+  "scripts": {
+    "build": "asc assembly/index.ts --config asconfig.json --target release",
+    "build:debug": "asc assembly/index.ts --config asconfig.json --target debug"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.27.30"
+  }
+}

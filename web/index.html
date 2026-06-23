@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+  Default GUI shown before the user generates anything. It exercises the
+  same window.vstai bridge that generated GUIs use, and matches the indices
+  of the AssemblyScript template (0 = gain, 1 = cutoff).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VibePlugin</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 22px;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(120% 120% at 50% 0%, #1b2230 0%, #0c0f16 70%);
+    color: #e7ecf4;
+  }
+  h1 { margin: 0; font-size: 18px; letter-spacing: .14em; font-weight: 600; color: #9fb4d8; }
+  .hint { font-size: 12px; color: #6c7a93; max-width: 320px; text-align: center; line-height: 1.5; }
+  .rack { display: flex; gap: 40px; }
+  .knob { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .knob label { font-size: 11px; letter-spacing: .1em; color: #8ea2c6; text-transform: uppercase; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 150px; height: 5px;
+    border-radius: 3px; background: #2a3344; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: #5b8cff; cursor: pointer; box-shadow: 0 0 10px rgba(91,140,255,.6);
+  }
+  .val { font-variant-numeric: tabular-nums; font-size: 12px; color: #c4d2ea; }
+</style>
+</head>
+<body>
+  <h1>VST3&middot;AI</h1>
+  <div class="rack">
+    <div class="knob">
+      <label>Gain</label>
+      <input id="gain" type="range" min="0" max="2" step="0.01" value="1" />
+      <span class="val" id="gainVal">1.00</span>
+    </div>
+    <div class="knob">
+      <label>Tone</label>
+      <input id="cutoff" type="range" min="0" max="1" step="0.001" value="1" />
+      <span class="val" id="cutoffVal">1.00</span>
+    </div>
+  </div>
+  <div class="hint">This is the starter plugin. Type a prompt above
+    (e.g. &ldquo;a warm tape saturator with drive and tone&rdquo;) and hit Generate.</div>
+
+<script>
+  // Wait for the host to inject window.vstai, then wire up the controls.
+  function withBridge(fn) {
+    if (window.vstai && typeof window.vstai.setParam === "function") return fn();
+    if (window.vstai && typeof window.vstai.onReady === "function")
+      return window.vstai.onReady(fn);
+    setTimeout(() => withBridge(fn), 50);
+  }
+
+  function bind(id, index, labelEl) {
+    const el = document.getElementById(id);
+    const out = document.getElementById(labelEl);
+    const push = () => {
+      const v = parseFloat(el.value);
+      out.textContent = v.toFixed(2);
+      if (window.vstai) window.vstai.setParam(index, v);
+    };
+    el.addEventListener("input", push);
+    push(); // sync engine + UI on load
+  }
+
+  withBridge(() => {
+    bind("gain", 0, "gainVal");
+    bind("cutoff", 1, "cutoffVal");
+  });
+</script>
+</body>
+</html>

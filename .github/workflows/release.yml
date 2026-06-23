@@ -1,0 +1,144 @@
+# =====================================================================
+#  Build VibePlugin for macOS, Windows and Linux and publish the bundles to
+#  the GitHub Release, so the downloads page (docs/releases.html) can pull
+#  them live. Triggers on a version tag (v1.2.3) or manual dispatch.
+#
+#  NOTE: the macOS job mirrors the verified local build. The Windows and
+#  Linux jobs are a best-effort starting point — wasmtime c-api layout and
+#  linking differ per platform, so expect to tune paths on the first run.
+# =====================================================================
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach artifacts to (e.g. v1.0.0)"
+        required: false
+
+permissions:
+  contents: write   # needed to create/update releases
+
+env:
+  WASMTIME_VERSION: "v27.0.0"   # pin the wasmtime c-api release used for builds
+
+jobs:
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos
+            runner: macos-14
+            wasmtime_asset: aarch64-macos-c-api.tar.xz
+            wasmtime_lib: lib/libwasmtime.a
+          - os: linux
+            runner: ubuntu-22.04
+            wasmtime_asset: x86_64-linux-c-api.tar.xz
+            wasmtime_lib: lib/libwasmtime.a
+          - os: windows
+            runner: windows-2022
+            wasmtime_asset: x86_64-windows-c-api.zip
+            wasmtime_lib: lib/wasmtime.dll.lib
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Linux: JUCE networking needs libcurl; ALSA/GTK/webkit for the plugin + WebView.
+      - name: Install Linux deps
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libasound2-dev \
+            libgtk-3-dev libwebkit2gtk-4.1-dev libfreetype6-dev \
+            libfontconfig1-dev ninja-build
+
+      # --- bundled AssemblyScript compiler (downloads a portable node + asc) ---
+      - name: Build bundled compiler
+        shell: bash
+        working-directory: compiler
+        run: ./build.sh
+
+      # --- wasmtime c-api for this platform ---
+      - name: Fetch wasmtime c-api
+        shell: bash
+        run: |
+          set -e
+          base="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          asset="wasmtime-${WASMTIME_VERSION}-${{ matrix.wasmtime_asset }}"
+          mkdir -p "$RUNNER_TEMP/wasmtime"
+          echo "downloading $asset"
+          curl -fSL "$base/$asset" -o "$RUNNER_TEMP/$asset"
+          case "$asset" in
+            *.zip)    unzip -q "$RUNNER_TEMP/$asset" -d "$RUNNER_TEMP/wasmtime" ;;
+            *.tar.xz) tar -xf "$RUNNER_TEMP/$asset" -C "$RUNNER_TEMP/wasmtime" --strip-components=1 ;;
+          esac
+          # zip archives keep the top-level folder; normalise to $RUNNER_TEMP/wasmtime
+          inner=$(find "$RUNNER_TEMP/wasmtime" -maxdepth 1 -type d -name 'wasmtime-*-c-api' | head -1)
+          if [ -n "$inner" ]; then cp -R "$inner"/. "$RUNNER_TEMP/wasmtime"/; fi
+          echo "WASMTIME_DIR=$RUNNER_TEMP/wasmtime" >> "$GITHUB_ENV"
+
+      # --- configure + build ---
+      - name: Configure
+        shell: bash
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release \
+            -DWASMTIME_DIR="$WASMTIME_DIR" \
+            -DWASMTIME_LIB="$WASMTIME_DIR/${{ matrix.wasmtime_lib }}"
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --config Release -j
+
+      # --- ad-hoc sign on macOS so Gatekeeper has something to verify ---
+      # (Real Developer ID signing + notarization needs cert secrets — add later.)
+      - name: Ad-hoc sign (macOS)
+        if: matrix.os == 'macos'
+        shell: bash
+        run: |
+          for p in "VibePlugin FX" "VibePlugin Synth"; do
+            b=$(find build -name "$p.vst3" -type d | head -1)
+            [ -n "$b" ] && codesign --force --deep -s - "$b" || true
+          done
+
+      # --- package both .vst3 bundles into one zip per platform ---
+      - name: Package
+        shell: bash
+        run: |
+          set -e
+          tag="${GITHUB_REF_NAME:-${{ github.event.inputs.tag }}}"
+          [ -z "$tag" ] && tag="dev"
+          out="VibePlugin-${tag}-${{ matrix.os }}"
+          mkdir -p "stage/$out"
+          find build -name "*.vst3" -maxdepth 6 -type d -prune -exec cp -R {} "stage/$out/" \;
+          cp README.md "stage/$out/" 2>/dev/null || true
+          cd stage
+          if command -v zip >/dev/null 2>&1; then
+            zip -q-r "$out.zip" "$out"
+          else
+            7z a -tzip "$out.zip" "$out" >/dev/null   # windows runners ship 7z, not zip
+          fi
+          echo "ASSET=stage/$out.zip" >> "$GITHUB_ENV"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VibePlugin-${{ matrix.os }}
+          path: ${{ env.ASSET }}
+
+      # --- attach to the GitHub Release (tag pushes / dispatch with a tag) ---
+      - name: Publish to release
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: ${{ env.ASSET }}
+          fail_on_unmatched_files: true
