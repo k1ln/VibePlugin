@@ -98,7 +98,10 @@ jobs:
           ver="1.0.1901.177"
           dest="$RUNNER_TEMP/nuget/Microsoft.Web.WebView2.$ver"
           mkdir -p "$dest"
-          curl -fSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/$ver" -o "$RUNNER_TEMP/webview2.nupkg"
+          # Canonical direct download (lowercase id+version), no redirect dance.
+          url="https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/$ver/microsoft.web.webview2.$ver.nupkg"
+          curl -fSL --retry 3 "$url" -o "$RUNNER_TEMP/webview2.nupkg"
+          ls -l "$RUNNER_TEMP/webview2.nupkg"
           unzip -q "$RUNNER_TEMP/webview2.nupkg" -d "$dest"
           test -f "$dest/build/native/include/WebView2.h" || { echo "WebView2.h missing"; exit 1; }
           echo "JUCE_WEBVIEW2_PACKAGE_LOCATION=$RUNNER_TEMP/nuget" >> "$GITHUB_ENV"
