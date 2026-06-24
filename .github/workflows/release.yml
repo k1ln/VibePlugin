@@ -14,8 +14,13 @@ on:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
+      os:
+        description: "Which OS to build"
+        type: choice
+        options: [all, macos, linux, windows]
+        default: all
       tag:
-        description: "Release tag to attach artifacts to (e.g. v1.0.0)"
+        description: "Release tag to attach artifacts to (optional; empty = artifacts only)"
         required: false
 
 permissions:
@@ -25,25 +30,34 @@ env:
   WASMTIME_VERSION: "v27.0.0"   # pin the wasmtime c-api release used for builds
 
 jobs:
+  # Pick which OS rows to build. Tag pushes build all three; a manual dispatch can
+  # target one OS, so you can iterate on e.g. Windows without rebuilding the rest.
+  # (matrix.* isn't available in a job-level if:, so we filter the matrix here.)
+  setup:
+    name: select build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - id: pick
+        shell: bash
+        run: |
+          all='[{"os":"macos","runner":"macos-14","wasmtime_asset":"aarch64-macos-c-api.tar.xz","wasmtime_lib":"lib/libwasmtime.a"},{"os":"linux","runner":"ubuntu-22.04","wasmtime_asset":"x86_64-linux-c-api.tar.xz","wasmtime_lib":"lib/libwasmtime.a"},{"os":"windows","runner":"windows-2022","wasmtime_asset":"x86_64-windows-c-api.zip","wasmtime_lib":"lib/wasmtime.dll.lib"}]'
+          sel="${{ github.event_name == 'workflow_dispatch' && inputs.os || 'all' }}"
+          if [ "$sel" = "all" ] || [ -z "$sel" ]; then
+            inc="$all"
+          else
+            inc=$(printf '%s' "$all" | jq -c --arg os "$sel" '[.[]|select(.os==$os)]')
+          fi
+          echo "matrix={\"include\":$inc}" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: setup
     name: build (${{ matrix.os }})
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: macos
-            runner: macos-14
-            wasmtime_asset: aarch64-macos-c-api.tar.xz
-            wasmtime_lib: lib/libwasmtime.a
-          - os: linux
-            runner: ubuntu-22.04
-            wasmtime_asset: x86_64-linux-c-api.tar.xz
-            wasmtime_lib: lib/libwasmtime.a
-          - os: windows
-            runner: windows-2022
-            wasmtime_asset: x86_64-windows-c-api.zip
-            wasmtime_lib: lib/wasmtime.dll.lib
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v4
