@@ -134,7 +134,12 @@ jobs:
       # file ("Error renaming BinaryData1.cpp"). -j is fine on macOS/Windows.
       - name: Build
         shell: bash
-        run: cmake --build build --config Release ${{ matrix.os == 'linux' && '-j 1' || '-j' }}
+        run: |
+          # Windows: JUCE's VST3 manifest helper LoadLibrary's the just-built plugin
+          # to write moduleinfo.json, and the plugin links wasmtime.dll dynamically —
+          # put the DLL on PATH so that load resolves (else "module could not be found").
+          if [ "${{ matrix.os }}" = "windows" ]; then export PATH="$WASMTIME_DIR/lib:$PATH"; fi
+          cmake --build build --config Release ${{ matrix.os == 'linux' && '-j 1' || '-j' }}
 
       # --- ad-hoc sign on macOS so Gatekeeper has something to verify ---
       # (Real Developer ID signing + notarization needs cert secrets — add later.)
