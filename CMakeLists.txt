@@ -87,6 +87,12 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         IS_SYNTH                 ${IS_SYNTH}
         NEEDS_MIDI_INPUT         ${IS_SYNTH}
         NEEDS_WEB_BROWSER        TRUE
+        # Windows: link the Edge/Chromium WebView2 backend statically. Without it
+        # the legacy IWebBrowser2 backend is used, which lacks resource providers
+        # (build error C2039 'withResourceProvider'). No-op on macOS/Linux (JUCE
+        # reads this only inside its WIN32 branch). Needs the WebView2 SDK at
+        # configure time via JUCE_WEBVIEW2_PACKAGE_LOCATION (CI fetches the NuGet).
+        NEEDS_WEBVIEW2           TRUE
         COPY_PLUGIN_AFTER_BUILD  TRUE)
 
     target_sources(${TARGET} PRIVATE ${VSTAI_SOURCES})

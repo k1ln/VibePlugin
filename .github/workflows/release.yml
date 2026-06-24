@@ -86,17 +86,38 @@ jobs:
           if [ -n "$inner" ]; then cp -R "$inner"/. "$RUNNER_TEMP/wasmtime"/; fi
           echo "WASMTIME_DIR=$RUNNER_TEMP/wasmtime" >> "$GITHUB_ENV"
 
+      # --- WebView2 SDK (Windows): the plugin GUI is a WebView, and the modern
+      #     WebView2 backend (resource providers) needs this NuGet package's
+      #     headers + static loader lib. FindWebView2.cmake globs the parent dir
+      #     for a *Microsoft.Web.WebView2* folder, so extract into one. ---
+      - name: Fetch WebView2 SDK (Windows)
+        if: matrix.os == 'windows'
+        shell: bash
+        run: |
+          set -e
+          ver="1.0.1901.177"
+          dest="$RUNNER_TEMP/nuget/Microsoft.Web.WebView2.$ver"
+          mkdir -p "$dest"
+          curl -fSL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/$ver" -o "$RUNNER_TEMP/webview2.nupkg"
+          unzip -q "$RUNNER_TEMP/webview2.nupkg" -d "$dest"
+          test -f "$dest/build/native/include/WebView2.h" || { echo "WebView2.h missing"; exit 1; }
+          echo "JUCE_WEBVIEW2_PACKAGE_LOCATION=$RUNNER_TEMP/nuget" >> "$GITHUB_ENV"
+
       # --- configure + build ---
       - name: Configure
         shell: bash
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release \
             -DWASMTIME_DIR="$WASMTIME_DIR" \
-            -DWASMTIME_LIB="$WASMTIME_DIR/${{ matrix.wasmtime_lib }}"
+            -DWASMTIME_LIB="$WASMTIME_DIR/${{ matrix.wasmtime_lib }}" \
+            ${JUCE_WEBVIEW2_PACKAGE_LOCATION:+-DJUCE_WEBVIEW2_PACKAGE_LOCATION="$JUCE_WEBVIEW2_PACKAGE_LOCATION"}
 
+      # Linux serializes the build: JUCE generates the shared LinuxSubprocessHelper
+      # binary-data for both plugin targets, and a parallel build races on its temp
+      # file ("Error renaming BinaryData1.cpp"). -j is fine on macOS/Windows.
       - name: Build
         shell: bash
-        run: cmake --build build --config Release -j
+        run: cmake --build build --config Release ${{ matrix.os == 'linux' && '-j 1' || '-j' }}
 
       # --- ad-hoc sign on macOS so Gatekeeper has something to verify ---
       # (Real Developer ID signing + notarization needs cert secrets — add later.)
@@ -122,7 +143,7 @@ jobs:
           cp README.md "stage/$out/" 2>/dev/null || true
           cd stage
           if command -v zip >/dev/null 2>&1; then
-            zip -q-r "$out.zip" "$out"
+            zip -qr "$out.zip" "$out"
           else
             7z a -tzip "$out.zip" "$out" >/dev/null   # windows runners ship 7z, not zip
           fi

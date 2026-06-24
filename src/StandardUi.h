@@ -203,7 +203,8 @@ namespace vstai
   .pbrow input:focus{outline:none;border-color:var(--accent)}
   .plist{margin-top:6px;max-height:128px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--track)}
   .plist .it{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;border-bottom:1px solid var(--line)}
-  .plist .it:hover{background:var(--panel)}
+  .plist .it:hover{)HTML"
+        R"HTML(background:var(--panel)}
   .plist .it.on{background:var(--panel-2);color:#fff}
   .plist .it .fav{color:var(--muted);width:12px;text-align:center}
   .plist .it .fav.y{color:var(--accent)}
@@ -416,7 +417,8 @@ const svgEl=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e
  *  click any continuous control for reset / fine / MIDI-learn / assign.  *
  * ===================================================================== */
 const tip=document.createElement("div"); tip.className="tip"; document.body.append(tip);
-function showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
+functi)HTML"
+        R"HTML(on showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
 function hideTip(){ tip.classList.remove("show"); }
 function bindTip(el,text){
   el.addEventListener("pointerenter",e=>showTip(typeof text==="function"?text():text,e.clientX,e.clientY));
@@ -632,7 +634,8 @@ function makeNumEditable(num){
  *  XY PAD — two params, crosshair, draggable point.                      *
  * ===================================================================== */
 function makeXY(host){
-  const ix=+host.dataset.x, iy=+host.dataset.y;
+  const ix=+host.dataset.x, iy=+host.datase)HTML"
+        R"HTML(t.y;
   host.classList.add("xy");
   const vline=document.createElement("div"); vline.className="ch"; vline.style.cssText+="top:0;bottom:0;width:1px";
   const hline=document.createElement("div"); hline.className="ch"; hline.style.cssText+="left:0;right:0;height:1px";
@@ -818,7 +821,8 @@ function makeADSR(host){
  * ===================================================================== */
 function makeModMatrix(host){
   const sources=host.dataset.sources.split(","), dests=host.dataset.dests.split(",");
-  const base=host.dataset.base?+host.dataset.base:50;
+  const base=host.dataset.base?+host.dataset.base:5)HTML"
+        R"HTML(0;
   const tbl=document.createElement("table"); tbl.className="mtx";
   const thead=document.createElement("tr"); thead.append(document.createElement("th"));
   dests.forEach(d=>{ const th=document.createElement("th"); th.textContent=d; thead.append(th); });

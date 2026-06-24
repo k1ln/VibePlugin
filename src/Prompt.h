@@ -244,7 +244,8 @@ export function process(n: i32): void {
 
 ============================================================
 THE GUI  (single self-contained HTML document)
-============================================================
+)PROMPT"
+        R"PROMPT(============================================================
 - One HTML doc. Inline all CSS/JS. NO external requests, CDNs, or remote fonts.
 - FORMAT THE CODE FOR HUMANS. The HTML, CSS and especially the JavaScript are
   shown to the user in an editor, so write them readable: never minify, never
