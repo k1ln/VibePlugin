@@ -35,6 +35,18 @@ endif()
 find_path(WASMTIME_INCLUDE_DIR wasmtime.h PATHS "${WASMTIME_DIR}/include" REQUIRED)
 find_library(WASMTIME_LIB NAMES wasmtime libwasmtime PATHS "${WASMTIME_DIR}/lib" REQUIRED)
 
+# On Windows the c-api links dynamically (wasmtime.dll.lib is an import lib for
+# wasmtime.dll). The DLL must sit next to the plugin binary at runtime or the
+# plugin loads but the DSP engine can't start. macOS/Linux link the static .a,
+# so this is Windows-only. Located here, copied per-format in add_vstai_plugin.
+if(WIN32)
+    find_file(WASMTIME_DLL NAMES wasmtime.dll PATHS "${WASMTIME_DIR}/lib" "${WASMTIME_DIR}/bin" NO_DEFAULT_PATH)
+    if(NOT WASMTIME_DLL)
+        message(WARNING "wasmtime.dll not found under ${WASMTIME_DIR} (lib/ or bin/) — "
+                        "the Windows plugin will fail to load until it's shipped beside the binary.")
+    endif()
+endif()
+
 # The plugin calls https://api.anthropic.com directly. macOS/Windows use native
 # TLS; Linux's JUCE networking needs libcurl for HTTPS.
 if(UNIX AND NOT APPLE)
@@ -134,6 +146,15 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
                         ${CMAKE_CURRENT_SOURCE_DIR}/ui
                         $<TARGET_FILE_DIR:${TARGET}_${FMT}>/../Resources/ui
                 VERBATIM)
+
+            # Windows: ship wasmtime.dll beside the plugin binary (Contents/x86_64-win/)
+            # so the dynamically-linked DSP engine resolves at load time.
+            if(WIN32 AND WASMTIME_DLL)
+                add_custom_command(TARGET ${TARGET}_${FMT} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            "${WASMTIME_DLL}" "$<TARGET_FILE_DIR:${TARGET}_${FMT}>"
+                    VERBATIM)
+            endif()
         endif()
     endforeach()
 

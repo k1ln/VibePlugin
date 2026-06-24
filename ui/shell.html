@@ -34,7 +34,7 @@ window.addEventListener("unhandledrejection", function (e) {
       <span class="plugin-name" id="pluginName" hidden></span></div>
     <div class="spacer"></div>
     <div class="group" id="headerBtns">
-      <button class="btn ghost" id="keysBtn"    title="API keys & local models">Keys</button>
+      <button class="btn ghost" id="keysBtn"    title="API keys, design &amp; settings">Settings</button>
       <button class="btn ghost" id="accountBtn" title="Cloud credits">Account</button>
       <button class="btn ghost" id="licenseBtn" title="License">Unlicensed</button>
     </div>
@@ -91,6 +91,7 @@ window.addEventListener("unhandledrejection", function (e) {
     <button class="tab" data-tab="notes">Notes</button>
     <button class="tab" data-tab="history">History</button>
     <button class="tab" data-tab="standard">Standard UI</button>
+    <button class="tab" data-tab="settings">Settings</button>
   </nav>
 
   <main class="panes">
@@ -102,6 +103,31 @@ window.addEventListener("unhandledrejection", function (e) {
     <div class="pane" data-pane="notes"><pre class="notes" id="notesView">Edit the DSP or GUI, then Save &amp; Compile. Compiler output and the AI's notes show up here.</pre></div>
     <div class="pane" data-pane="history"><div class="history" id="historyList"></div></div>
     <div class="pane" data-pane="standard"><div class="editor" id="stdEditor"></div></div>
+    <div class="pane" data-pane="settings">
+      <div class="settings" id="settingsPane">
+        <section class="set-block">
+          <h3>API &amp; Services</h3>
+          <p class="muted">Stored locally on this machine. Leave blank to fall back to a compiled-in / environment value.</p>
+          <label class="field">Anthropic API key
+            <input id="setAnthropic" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"/></label>
+          <label class="field">Publish server URL
+            <input id="setPublish" type="text" autocomplete="off" spellcheck="false" placeholder="http://localhost:8787"/></label>
+          <div class="row"><button class="btn primary" id="setSaveBtn">Save settings</button>
+            <span id="setStatus" class="muted"></span></div>
+        </section>
+        <section class="set-block">
+          <h3>Design school</h3>
+          <p class="muted">Sets the house style for the live GUI <em>and</em> is described to the AI in every build prompt,
+            so generated plugins follow the look. Pick one, or import your own.</p>
+          <div class="design-grid" id="designGrid"></div>
+          <div class="row">
+            <button class="btn" id="importDesignBtn" title="Load a design .html exported from here">Import design…</button>
+            <button class="btn" id="exportDesignBtn" title="Save the selected design to a file you can share or re-import">Export selected…</button>
+            <span id="designStatus" class="muted"></span>
+          </div>
+        </section>
+      </div>
+    </div>
   </main>
 
   <!-- ===== Code action bar ========================================= -->

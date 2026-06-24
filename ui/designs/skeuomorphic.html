@@ -1,195 +1,322 @@
+<!--VSTAI-DESIGN
+{"theme":{"bg":"#303338","surface":"#43464c","surface2":"#52555b","surface3":"#5c6068","line":"rgba(255,255,255,.08)","line2":"rgba(255,255,255,.13)","line3":"rgba(0,0,0,.5)","ink":"#d8d3c8","ink2":"#a39d90","muted":"#736d62","accent":"#ffb74d","accentPress":"#ff9800","accentInk":"#2a1c05","accent2":"#cc2a1e","ok":"#ffb74d","danger":"#cc2a1e","radius":"4px","radiusLg":"7px"},"id":"skeuomorphic","name":"Skeuomorphic Hardware","blurb":"Photoreal vintage synth: brushed metal, screws, knurled knobs, amber LED rings.","principles":"Heavy photoreal vintage-hardware skeuomorphism (u-he Diva / Arturia V). Surfaces are brushed-metal panels: a subtle repeating vertical linear-gradient #46494f->#34373c plus a faint inline-SVG fractalNoise grain overlay at ~3% opacity; warm metal palette (#3a3d42 body, #2b2d31 shadow, #d7d2c8 engraved ink). Optional oxblood #5a2a2a sub-panels and a wood end-cheek (#7a4a28 gradient) accent. Inset wells are BEVELED with inset box-shadows (dark top-left, light bottom-right). Knobs: round caps with a radial-gradient shaded body (top-lit white highlight, cast drop-shadow beneath the cap), a knurled rim (repeating-conic-gradient), a painted indicator notch, and a user-tinted glowing amber #ffb74d LED ring around the cap (the ONE glowing element). Visible corner screws on every panel (radial-gradient circles with a rotated slot line). Labels engraved/embossed via dual text-shadow (light below #ffffff22, dark above #00000099), condensed UPPERCASE silkscreen, ~9px tracking 1.5px. Numeric readouts are small red 7-seg-ish #cc2a1e on black wells. Faders are metal slider caps in recessed cast-shadow tracks; small radius (2-4px), real soft drop shadows under every raised element. Motion is minimal and mechanical. Layout is dense, panelized, tactile. DO bevels, screws, baked radial shading, warm metal. DON'T flat minimalism or neon; commit FULLY to realism."}
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>VibePlugin Standard Kit</title>
+<title>VibePlugin Skeuomorphic Hardware Kit</title>
 <style>
-  /* ---- THEME TOKENS -------------------------------------------------------
-     House style: "minimal utilitarian" — the look of stock DAW devices
-     (Ableton / Bitwig) and tools like FabFilter. Flat matte surfaces, thin
-     hairline borders, small dense controls, NO neon bloom / drop-shadow glow /
-     film grain. Depth comes from a 1px lighter top edge + darker recessed
-     wells, never from blur. One muted amber accent, one muted blue for
-     modulation. Re-skin everything from here. */
+  /* ============================================================== *
+   *  DESIGN LANGUAGE: "Skeuomorphic Hardware"                       *
+   *  Photoreal vintage synth — brushed metal, screws, knurled       *
+   *  knobs, beveled wells, engraved silkscreen, amber LED rings.    *
+   * ============================================================== */
   :root{
-    --bg:#171717;            /* app base                 */
-    --panel:#1f1f1f;         /* module surface           */
-    --panel-2:#262626;       /* raised / hover           */
-    --track:#0d0d0d;         /* recessed wells, displays */
-    --line:rgba(255,255,255,.06);   /* hairline divider  */
-    --line-2:rgba(255,255,255,.11);  /* control border   */
-    --line-3:rgba(255,255,255,.20);  /* emphasis / hover */
-    --edge:rgba(255,255,255,.05);    /* 1px top highlight (fake bevel) */
-    --ink:#d7d7d9; --ink-2:#9a9b9e; --muted:#67696e;
-    --accent:#c8923a;        /* muted amber (values, fills)   */
-    --accent-2:#3fa98c;      /* muted teal  (modulation)      */
-    --warn:#c75d52;          /* clip / danger                 */
-    --ok:#5fae7e;            /* signal present                */
-    --radius:3px; --radius-sm:2px;
-  }
-  body.light{
-    --bg:#dfe0e2; --panel:#ececee; --panel-2:#f6f6f7; --track:#cfd0d3;
-    --line:rgba(0,0,0,.07); --line-2:rgba(0,0,0,.14); --line-3:rgba(0,0,0,.26);
-    --edge:rgba(255,255,255,.55);
-    --ink:#1c1d20; --ink-2:#4a4c50; --muted:#7a7c80;
-    --accent:#b07820; --accent-2:#2f8f73;
+    --metal-hi:#52555b; --metal:#43464c; --metal-lo:#34373c; --metal-shadow:#26282c;
+    --well:#1a1b1e; --well-deep:#101113;
+    --ink:#d8d3c8;            /* engraved silkscreen ink */
+    --ink-2:#a39d90;
+    --muted:#736d62;
+    --led:#ffb74d;           /* the ONE glow — amber LED        */
+    --led-deep:#ff9800;
+    --seg:#cc2a1e;           /* red 7-seg readout               */
+    --oxblood:#5a2a2a;
+    --wood-hi:#9a6238; --wood-lo:#5e3415;
+    --screw:#9a9690;
+    --emboss-dark:rgba(0,0,0,.6);
+    --emboss-light:rgba(255,255,255,.13);
+    --bevel-in:inset 2px 2px 5px rgba(0,0,0,.75), inset -2px -2px 4px rgba(255,255,255,.06);
+    --bevel-out:0 1px 0 rgba(255,255,255,.10), 0 2px 5px rgba(0,0,0,.55);
+    --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
   body{
-    background:var(--bg); color:var(--ink); padding:0;
-    font:11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      var(--grain),
+      repeating-linear-gradient(90deg,#3c3f44 0,#3c3f44 2px,#383b40 3px,#3c3f44 5px),
+      linear-gradient(180deg,#3f4248,#303338);
+    background-blend-mode:overlay,normal,normal;
+    font:11px/1.4 "Helvetica Neue",Arial,system-ui,sans-serif;
     -webkit-font-smoothing:antialiased; -webkit-user-select:none;user-select:none;
   }
-  /* ---- structural chrome -------------------------------------------------- */
+  /* brushed-metal surface helper (used by panels + chrome) */
+  .brushed{
+    background:
+      var(--grain),
+      repeating-linear-gradient(90deg,#494c52 0,#494c52 2px,#42454b 3px,#494c52 5px),
+      linear-gradient(180deg,var(--metal-hi),var(--metal-lo));
+    background-blend-mode:overlay,normal,normal;
+    background-size:120px 120px,auto,auto;
+  }
+  /* engraved silkscreen label */
+  .eng{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-2);
+       text-shadow:0 1px 0 var(--emboss-light),0 -1px 0 var(--emboss-dark)}
+
   .app{display:flex;flex-direction:column;min-height:100%}
-  .topbar{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;
-          background:var(--panel);border-bottom:1px solid var(--line)}
-  .topbar .brand{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-2)}
-  .topbar .sp{flex:1}
-  .tabs{display:flex;gap:1px;height:28px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line)}
-  .tab{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:10px;
-       letter-spacing:.8px;text-transform:uppercase;padding:0 12px;cursor:pointer;
-       border-bottom:2px solid transparent}
-  .tab:hover{color:var(--ink-2)}
-  .tab.on{color:var(--ink);border-bottom-color:var(--accent)}
-  .page{display:none;padding:12px}
+
+  /* ---- TOP CHROME RAIL --------------------------------------------------- */
+  .rail{display:flex;align-items:center;gap:10px;height:46px;padding:0 16px;position:relative;
+        border-bottom:2px solid var(--metal-shadow);box-shadow:0 3px 8px rgba(0,0,0,.55);}
+  .rail::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:rgba(255,255,255,.06)}
+  .badge{display:flex;flex-direction:column;line-height:1}
+  .badge .b1{font:700 15px/1 Georgia,"Times New Roman",serif;letter-spacing:.5px;color:#e7e2d6;
+       text-shadow:0 1px 0 #000,0 2px 3px rgba(0,0,0,.6),0 -1px 0 rgba(255,255,255,.15)}
+  .badge .b2{font-size:7.5px;letter-spacing:3px;color:var(--ink-2);text-transform:uppercase;margin-top:2px;
+       text-shadow:0 1px 0 var(--emboss-light)}
+  .rail .sp{flex:1}
+
+  /* visible corner screws */
+  .screw{position:absolute;width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%,#cdc9c1,#807c75 55%,#4b4843 100%);
+    box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(255,255,255,.18),0 1px 2px rgba(0,0,0,.6);}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,rgba(0,0,0,.55) 44%,rgba(0,0,0,.55) 56%,transparent 56%);
+    transform:rotate(35deg)}
+  .screw.tl{top:6px;left:6px}.screw.tr{top:6px;right:6px}
+  .screw.bl{bottom:6px;left:6px}.screw.br{bottom:6px;right:6px}
+
+  /* metal pushbutton (rail + generic) */
+  .pb{appearance:none;border:0;cursor:pointer;color:var(--ink);font:inherit;font-size:9px;font-weight:700;
+      letter-spacing:1px;text-transform:uppercase;padding:7px 12px;border-radius:4px;min-width:40px;
+      text-shadow:0 1px 0 var(--emboss-dark);
+      background:linear-gradient(180deg,#54575d,#3a3d42);
+      box-shadow:var(--bevel-out),inset 0 1px 0 rgba(255,255,255,.16);}
+  .pb:hover{background:linear-gradient(180deg,#5a5d64,#3e4146)}
+  .pb:active{box-shadow:var(--bevel-in);background:linear-gradient(180deg,#34373c,#3d4045)}
+  .pb.on{color:#1a140a;text-shadow:0 1px 0 rgba(255,255,255,.3);
+    background:linear-gradient(180deg,#ffcf80,var(--led-deep));
+    box-shadow:0 0 9px rgba(255,167,77,.65),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -2px 4px rgba(120,60,0,.5);}
+
+  /* engraved name-plate well for preset search */
+  .plate{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;
+    background:var(--well);box-shadow:var(--bevel-in);}
+  .plate input{appearance:none;border:0;background:transparent;width:160px;color:var(--seg);
+    font:12px/1 "Courier New",monospace;letter-spacing:1px;text-shadow:0 0 5px rgba(204,42,30,.5);}
+  .plate input::placeholder{color:#6a2c27}
+  .plate input:focus{outline:none}
+
+  /* ---- TAB STRIP (illuminated selector tabs) ----------------------------- */
+  .tabs{display:flex;gap:3px;padding:8px 16px 0;position:relative;
+        border-bottom:2px solid var(--metal-shadow);}
+  .tab{appearance:none;border:0;cursor:pointer;color:var(--ink-2);font:inherit;font-size:9px;font-weight:700;
+       letter-spacing:1.4px;text-transform:uppercase;padding:8px 16px 7px;border-radius:5px 5px 0 0;
+       text-shadow:0 1px 0 var(--emboss-dark);
+       background:linear-gradient(180deg,#3e4146,#303338);
+       box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 -1px 3px rgba(0,0,0,.4);}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:#fff2dc;
+    background:linear-gradient(180deg,#54575d,#43464c);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 8px rgba(255,167,77,.18);}
+  .tab.on::after{content:"";position:absolute;}
+  .tab .dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:6px;vertical-align:1px;
+    background:#211e1a;box-shadow:inset 0 0 2px #000;}
+  .tab.on .dot{background:var(--led);box-shadow:0 0 6px var(--led),0 0 2px #fff inset;}
+
+  .page{display:none;padding:16px}
   .page.on{display:block}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
-  /* ---- panel / section (collapsible) -------------------------------------- */
-  .panel{background:var(--panel);border:1px solid var(--line);border-top-color:var(--edge);
-         border-radius:var(--radius);min-width:0}
-  .panel>.head{display:flex;align-items:center;gap:6px;height:22px;padding:0 8px;
-       font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);
-       border-bottom:1px solid var(--line);cursor:default}
-  .panel>.head .caret{cursor:pointer;color:var(--ink-2);width:10px;text-align:center;transition:transform .12s}
+  .row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+
+  /* ---- PANEL (brushed metal plate w/ screws) ----------------------------- */
+  .panel{position:relative;border-radius:7px;min-width:0;
+    border:1px solid var(--metal-shadow);
+    box-shadow:0 2px 7px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -2px 6px rgba(0,0,0,.35);}
+  .panel.brushed{}
+  .panel.oxblood{background:
+      var(--grain),
+      repeating-linear-gradient(90deg,#5e2c2c 0,#5e2c2c 2px,#552727 3px,#5e2c2c 5px),
+      linear-gradient(180deg,#6a3232,#451f1f);
+    background-blend-mode:overlay,normal,normal;background-size:120px 120px,auto,auto;}
+  .panel.wood{background:
+      repeating-linear-gradient(92deg,rgba(0,0,0,.10) 0,rgba(0,0,0,.10) 2px,transparent 3px,transparent 7px),
+      linear-gradient(180deg,var(--wood-hi),var(--wood-lo));}
+  .panel>.head{display:flex;align-items:center;gap:7px;height:24px;padding:0 26px;margin:0 6px;
+       border-bottom:1px solid rgba(0,0,0,.4);box-shadow:0 1px 0 rgba(255,255,255,.08);}
+  .panel>.head .ttl{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink);
+       text-shadow:0 1px 0 var(--emboss-light),0 -1px 0 var(--emboss-dark)}
+  .panel>.head .caret{cursor:pointer;color:var(--ink-2);width:12px;text-align:center;font-size:8px;transition:transform .12s}
   .panel.collapsed>.head .caret{transform:rotate(-90deg)}
   .panel.collapsed>.body{display:none}
-  .panel>.body{padding:10px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
-  /* ---- control cell (label under control) --------------------------------- */
-  .cell{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
-  .cell .lbl{font-size:9px;letter-spacing:.4px;color:var(--ink-2);white-space:nowrap}
-  .cell .sub{font-size:8.5px;color:var(--muted)}
-  /* readout chip (also the editable numeric field) */
-  .num{font-size:10px;color:var(--ink);font-variant-numeric:tabular-nums;background:var(--track);
-       border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:1px 6px;min-width:44px;
-       text-align:center;cursor:text}
-  .num:focus{outline:none;border-color:var(--accent);color:#fff}
-  /* ---- knob — flat/minimal: the arc IS the scale, no skeuomorphic tick ring */
-  .knob{cursor:ns-resize;touch-action:none;display:block}
-  .knob .face{fill:var(--track);stroke:var(--line-2);stroke-width:1}
-  .knob .track{fill:none;stroke:var(--line-2);stroke-width:2.5}
-  .knob .arc{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:butt}
-  .knob .mod{fill:none;stroke:var(--accent-2);stroke-width:2.5;stroke-linecap:butt;opacity:.85}
-  .knob .ind{stroke:var(--ink);stroke-width:2;stroke-linecap:round}
-  .knob.endless .arc{stroke:var(--accent-2)}
-  /* ---- fader (vertical + horizontal) -------------------------------------- */
-  .fader{position:relative;background:var(--track);border:1px solid var(--line-2);
-         border-radius:var(--radius-sm);cursor:pointer;touch-action:none;overflow:hidden}
-  .fader.v{width:22px;height:108px}
-  .fader.h{width:140px;height:22px}
-  .fader .fill{position:absolute;background:var(--accent);opacity:.8}
-  .fader.v .fill{left:0;right:0;bottom:0}
-  .fader.h .fill{left:0;top:0;bottom:0}
-  .fader .cap{position:absolute;background:var(--ink-2)}
-  .fader.v .cap{left:0;right:0;height:3px}
-  .fader.h .cap{top:0;bottom:0;width:3px}
-  /* ---- buttons / toggles -------------------------------------------------- */
-  .btn{appearance:none;border:1px solid var(--line-2);border-top-color:var(--edge);
-       background:var(--panel-2);color:var(--ink-2);font:inherit;font-size:10px;font-weight:600;
-       letter-spacing:.3px;padding:5px 11px;border-radius:var(--radius-sm);cursor:pointer;min-width:54px}
-  .btn:hover{border-color:var(--line-3);color:var(--ink)}
-  .btn:active{background:var(--panel)}
-  .btn.on{background:var(--accent);border-color:var(--accent);color:#111}
-  /* segmented selector / radio group */
-  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--radius-sm);overflow:hidden}
-  .seg button{appearance:none;border:0;border-left:1px solid var(--line);background:var(--panel-2);
-       color:var(--ink-2);font:inherit;font-size:10px;padding:4px 9px;cursor:pointer}
-  .seg button:first-child{border-left:0}
+  .panel>.body{padding:14px 16px 16px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+
+  /* ---- CONTROL CELL ------------------------------------------------------ */
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+  .cell .lbl{font-size:8.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-2);
+       white-space:nowrap;text-shadow:0 1px 0 var(--emboss-light),0 -1px 0 var(--emboss-dark)}
+  .cell .sub{font-size:7.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+
+  /* red 7-seg-ish numeric readout on black well (also the editable field) */
+  .num{font:11px/1 "Courier New",monospace;letter-spacing:1px;color:var(--seg);
+       text-shadow:0 0 4px rgba(204,42,30,.55);background:var(--well-deep);
+       box-shadow:var(--bevel-in);border-radius:3px;padding:3px 8px;min-width:50px;
+       text-align:center;cursor:text;font-variant-numeric:tabular-nums}
+  .num:focus{outline:none;color:#ff5a4d;text-shadow:0 0 7px rgba(204,42,30,.85)}
+
+  /* ---- KNOB — knurled metal cap, baked radial shade, amber LED ring ------ */
+  .knob{cursor:ns-resize;touch-action:none;display:block;position:relative}
+  .knob .svg{display:block}
+  .knob .rim{fill:none;stroke-width:6;}     /* knurled rim drawn via SVG gradient on body group below */
+  .knob .cap{}
+  .knob .ledring{fill:none;stroke:var(--led);stroke-width:3;stroke-linecap:round;
+       filter:drop-shadow(0 0 3px rgba(255,167,77,.9));}
+  .knob .ledtrack{fill:none;stroke:#211e1a;stroke-width:3;stroke-linecap:round;}
+  .knob .mod{fill:none;stroke:#7fd4ff;stroke-width:3;stroke-linecap:round;opacity:.8;
+       filter:drop-shadow(0 0 2px rgba(127,212,255,.7));}
+  .knob .notch{stroke:#1a140a;stroke-width:3;stroke-linecap:round;}
+  .knob.endless .ledring{stroke:#9ad0ff;filter:drop-shadow(0 0 3px rgba(127,212,255,.9));}
+
+  /* ---- FADER — metal cap in recessed cast-shadow track ------------------- */
+  .fader{position:relative;cursor:pointer;touch-action:none;background:var(--well);
+         box-shadow:var(--bevel-in);border-radius:4px;}
+  .fader.v{width:30px;height:120px}
+  .fader.h{width:150px;height:30px}
+  .fader .slot{position:absolute;background:var(--well-deep);box-shadow:inset 0 0 3px #000;border-radius:2px;}
+  .fader.v .slot{left:50%;top:8px;bottom:8px;width:5px;transform:translateX(-50%)}
+  .fader.h .slot{top:50%;left:8px;right:8px;height:5px;transform:translateY(-50%)}
+  .fader .fill{position:absolute;background:linear-gradient(var(--led),var(--led-deep));opacity:.85;border-radius:2px;
+       box-shadow:0 0 5px rgba(255,167,77,.5);}
+  .fader.v .fill{left:50%;width:5px;bottom:8px;transform:translateX(-50%)}
+  .fader.h .fill{top:50%;height:5px;left:8px;transform:translateY(-50%)}
+  .fader .cap{position:absolute;border-radius:3px;
+       background:linear-gradient(180deg,#6a6d73,#3a3d42);
+       box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 2px rgba(0,0,0,.5);}
+  .fader.v .cap{left:3px;right:3px;height:16px;margin-bottom:-8px}
+  .fader.v .cap::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;transform:translateY(-50%);
+       background:repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 1px,transparent 1px 3px)}
+  .fader.h .cap{top:3px;bottom:3px;width:16px;margin-left:-8px}
+  .fader.h .cap::after{content:"";position:absolute;top:4px;bottom:4px;left:50%;width:2px;transform:translateX(-50%);
+       background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0 1px,transparent 1px 3px)}
+
+  /* ---- TOGGLE / MOMENTARY share .pb; .seg / .sel / .step ----------------- */
+  .seg{display:inline-flex;border-radius:5px;overflow:hidden;background:var(--well);
+       box-shadow:var(--bevel-in);padding:2px;gap:2px;}
+  .seg button{appearance:none;border:0;cursor:pointer;color:var(--ink-2);font:inherit;font-size:8.5px;font-weight:700;
+       letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:3px;
+       background:linear-gradient(180deg,#4c4f55,#383b40);text-shadow:0 1px 0 var(--emboss-dark);
+       box-shadow:inset 0 1px 0 rgba(255,255,255,.1);}
   .seg button:hover{color:var(--ink)}
-  .seg button.on{background:var(--accent);color:#111}
-  /* dropdown / combo */
-  .sel{appearance:none;background:var(--panel-2);color:var(--ink);font:inherit;font-size:10px;
-       border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:4px 22px 4px 8px;cursor:pointer;
-       background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(-45deg,transparent 50%,var(--ink-2) 50%);
-       background-position:calc(100% - 12px) 50%,calc(100% - 8px) 50%;background-size:4px 4px;background-repeat:no-repeat}
-  .sel:hover{border-color:var(--line-3)}
-  /* stepper */
-  .step{display:inline-flex;align-items:stretch;border:1px solid var(--line-2);border-radius:var(--radius-sm);overflow:hidden}
-  .step button{appearance:none;border:0;background:var(--panel-2);color:var(--ink-2);font:inherit;
-       width:20px;cursor:pointer;font-size:12px;line-height:1}
-  .step button:hover{color:var(--ink);background:var(--panel)}
-  .step .v{min-width:42px;text-align:center;align-self:center;font-variant-numeric:tabular-nums;
-       border-left:1px solid var(--line);border-right:1px solid var(--line);padding:3px 0}
-  /* LED */
-  .led{width:7px;height:7px;border-radius:50%;background:var(--track);border:1px solid var(--line-2)}
-  .led.on{background:var(--ok);border-color:var(--ok)}
-  .led.warn.on{background:var(--warn);border-color:var(--warn)}
-  /* ---- canvas displays (scope/spectrum/curve/wavetable/lfo/adsr/seq) ------ */
-  .disp{position:relative;background:var(--track);border:1px solid var(--line-2);border-radius:var(--radius-sm)}
+  .seg button.on{color:#1a140a;text-shadow:0 1px 0 rgba(255,255,255,.3);
+       background:linear-gradient(180deg,#ffcf80,var(--led-deep));
+       box-shadow:0 0 7px rgba(255,167,77,.6),inset 0 1px 0 rgba(255,255,255,.4);}
+
+  .sel{appearance:none;cursor:pointer;color:var(--ink);font:inherit;font-size:9px;font-weight:600;letter-spacing:.6px;
+       padding:6px 26px 6px 10px;border:0;border-radius:4px;text-shadow:0 1px 0 var(--emboss-dark);
+       background:
+         linear-gradient(45deg,transparent 50%,var(--led) 50%),
+         linear-gradient(-45deg,transparent 50%,var(--led) 50%),
+         linear-gradient(180deg,#54575d,#3a3d42);
+       background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%,0 0;
+       background-size:5px 5px,5px 5px,auto;background-repeat:no-repeat;
+       box-shadow:var(--bevel-out),inset 0 1px 0 rgba(255,255,255,.14);}
+  .sel:hover{background-image:linear-gradient(45deg,transparent 50%,var(--led) 50%),linear-gradient(-45deg,transparent 50%,var(--led) 50%),linear-gradient(180deg,#5a5d64,#3e4146)}
+  .sel option{background:#2b2d31;color:var(--ink)}
+
+  .step{display:inline-flex;align-items:stretch;border-radius:5px;overflow:hidden;background:var(--well);
+       box-shadow:var(--bevel-in);padding:2px;gap:2px;}
+  .step button{appearance:none;border:0;cursor:pointer;color:var(--ink);font-size:14px;line-height:1;width:24px;
+       border-radius:3px;text-shadow:0 1px 0 var(--emboss-dark);
+       background:linear-gradient(180deg,#54575d,#3a3d42);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);}
+  .step button:active{box-shadow:var(--bevel-in);background:linear-gradient(180deg,#34373c,#3d4045)}
+  .step .v{min-width:46px;text-align:center;align-self:center;color:var(--seg);
+       font:11px/1 "Courier New",monospace;letter-spacing:1px;text-shadow:0 0 4px rgba(204,42,30,.5)}
+
+  /* ---- LED indicator ----------------------------------------------------- */
+  .led{width:9px;height:9px;border-radius:50%;background:#211e1a;
+       box-shadow:inset 0 1px 2px #000,0 1px 0 rgba(255,255,255,.1);}
+  .led.on{background:radial-gradient(circle at 38% 35%,#ffe0a8,var(--led-deep));
+       box-shadow:0 0 8px rgba(255,167,77,.85),inset 0 0 2px rgba(255,255,255,.6);}
+  .led.warn.on{background:radial-gradient(circle at 38% 35%,#ffb3aa,#cc2a1e);box-shadow:0 0 8px rgba(204,42,30,.85)}
+
+  /* ---- CANVAS DISPLAYS (recessed glass well) ----------------------------- */
+  .disp{position:relative;border-radius:5px;background:var(--well-deep);
+        box-shadow:var(--bevel-in);overflow:hidden;}
+  .disp::before{content:"";position:absolute;inset:0;pointer-events:none;
+        background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 40%);}
   .disp canvas{display:block;width:100%;height:100%}
-  .disp .tag{position:absolute;top:4px;left:6px;font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
-  .disp .rd{position:absolute;top:4px;right:6px;font-size:9px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-  /* ---- XY pad ------------------------------------------------------------- */
-  .xy{position:relative;background:
-        linear-gradient(var(--line),transparent 1px) 0 0/100% 25%,
-        linear-gradient(90deg,var(--line),transparent 1px) 0 0/25% 100%,
-        var(--track);
-      border:1px solid var(--line-2);border-radius:var(--radius-sm);cursor:crosshair;touch-action:none}
-  .xy .pt{position:absolute;width:10px;height:10px;margin:-5px;border-radius:50%;background:var(--accent);border:1px solid #111}
-  .xy .ch{position:absolute;background:var(--line);pointer-events:none}
-  /* ---- meter -------------------------------------------------------------- */
-  .meter{display:flex;gap:3px;height:108px;padding:3px;background:var(--track);
-         border:1px solid var(--line-2);border-radius:var(--radius-sm)}
-  .meter .ch{width:9px;align-self:stretch;background:var(--bg);position:relative;overflow:hidden}
-  .meter .ch .fl{position:absolute;left:0;right:0;bottom:0;background:var(--ok)}
-  .meter .ch .pk{position:absolute;left:0;right:0;height:1px;background:var(--ink)}
-  /* ---- piano -------------------------------------------------------------- */
-  .piano{position:relative;height:74px;display:flex;border:1px solid var(--line-2);
-         border-radius:var(--radius-sm);overflow:hidden;background:#000}
-  .wk{flex:1;background:#cfd0d2;border-right:1px solid #2a2a2a;cursor:pointer}
-  .wk:active,.wk.down{background:var(--accent)}
-  .bk{position:absolute;top:0;width:5%;height:62%;background:#202022;z-index:2;cursor:pointer;
-      border:1px solid #000;border-top:0;border-radius:0 0 2px 2px}
-  .bk:active,.bk.down{background:var(--accent)}
-  /* ---- mod matrix --------------------------------------------------------- */
-  table.mtx{border-collapse:collapse;font-size:9px}
-  table.mtx th{color:var(--muted);font-weight:500;padding:3px 6px;text-align:center;
-       letter-spacing:.3px;border:1px solid var(--line)}
+  .disp .tag{position:absolute;top:6px;left:8px;font-size:7.5px;font-weight:700;letter-spacing:1.5px;
+        text-transform:uppercase;color:#6f6a5e;}
+  .disp .rd{position:absolute;top:6px;right:8px;font:9px "Courier New",monospace;color:var(--seg);
+        letter-spacing:1px;text-shadow:0 0 4px rgba(204,42,30,.5)}
+
+  /* ---- XY PAD ------------------------------------------------------------ */
+  .xy{position:relative;border-radius:5px;cursor:crosshair;touch-action:none;background:var(--well-deep);
+      box-shadow:var(--bevel-in);overflow:hidden;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+      background-size:25% 25%,25% 25%;}
+  .xy .pt{position:absolute;width:14px;height:14px;margin:-7px;border-radius:50%;
+      background:radial-gradient(circle at 38% 35%,#ffe0a8,var(--led-deep));
+      box-shadow:0 0 9px rgba(255,167,77,.8),inset 0 0 2px rgba(255,255,255,.6);}
+  .xy .ch{position:absolute;background:rgba(255,167,77,.25);pointer-events:none}
+
+  /* ---- METER (stereo, peak hold) ----------------------------------------- */
+  .meter{display:flex;gap:4px;height:120px;padding:6px;border-radius:5px;background:var(--well-deep);
+         box-shadow:var(--bevel-in);}
+  .meter .ch{width:11px;align-self:stretch;position:relative;overflow:hidden;border-radius:2px;
+         background:#0a0b0c;box-shadow:inset 0 0 3px #000;}
+  .meter .ch .fl{position:absolute;left:0;right:0;bottom:0;background:var(--led)}
+  .meter .ch .pk{position:absolute;left:0;right:0;height:2px;background:#fff;box-shadow:0 0 3px #fff}
+
+  /* ---- PIANO — ivory + ebony keys ---------------------------------------- */
+  .piano{position:relative;height:88px;display:flex;border-radius:4px;overflow:hidden;
+         background:#0a0b0c;box-shadow:var(--bevel-in);padding:3px 3px 0;}
+  .wk{flex:1;margin:0 1px;border-radius:0 0 3px 3px;cursor:pointer;
+      background:linear-gradient(180deg,#f4f1e8,#d6d2c5);
+      box-shadow:inset 0 -3px 5px rgba(0,0,0,.18),0 1px 0 rgba(0,0,0,.4);}
+  .wk:active,.wk.down{background:linear-gradient(180deg,#ffd896,var(--led));
+      box-shadow:inset 0 -3px 6px rgba(180,90,0,.4)}
+  .bk{position:absolute;top:3px;width:5%;height:58%;z-index:2;cursor:pointer;border-radius:0 0 3px 3px;
+      background:linear-gradient(180deg,#3a3a3e,#161618);
+      box-shadow:0 3px 4px rgba(0,0,0,.6),inset 0 -3px 3px rgba(255,255,255,.08);}
+  .bk:active,.bk.down{background:linear-gradient(180deg,#cc8a2e,#a86a14)}
+
+  /* ---- MOD MATRIX -------------------------------------------------------- */
+  table.mtx{border-collapse:separate;border-spacing:3px;font-size:8.5px}
+  table.mtx th{color:var(--ink-2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 6px;
+       text-align:center;text-shadow:0 1px 0 var(--emboss-dark)}
   table.mtx th.src{text-align:right}
-  table.mtx td{border:1px solid var(--line);width:34px;height:22px;padding:0;position:relative;cursor:ns-resize}
-  table.mtx td .fl{position:absolute;left:0;right:0;bottom:0;background:var(--accent-2);opacity:.85}
-  table.mtx td.neg .fl{background:var(--warn);opacity:.7}
-  /* ---- step sequencer ----------------------------------------------------- */
-  .seq{display:flex;gap:2px;align-items:flex-end;height:84px;padding:4px;background:var(--track);
-       border:1px solid var(--line-2);border-radius:var(--radius-sm)}
-  .seq .st{flex:1;background:var(--bg);position:relative;cursor:ns-resize;min-width:10px;align-self:stretch}
-  .seq .st .fl{position:absolute;left:0;right:0;bottom:0;background:var(--accent)}
-  .seq .st.cur{outline:1px solid var(--ink-2);outline-offset:-1px}
-  .seq .st.off .fl{background:var(--line-2)}
-  /* ---- preset browser ----------------------------------------------------- */
-  .pbrow{display:flex;align-items:center;gap:4px}
-  .pbrow input{background:var(--track);border:1px solid var(--line-2);border-radius:var(--radius-sm);
-       color:var(--ink);font:inherit;font-size:10px;padding:3px 7px;width:150px}
-  .pbrow input:focus{outline:none;border-color:var(--accent)}
-  .plist{margin-top:6px;max-height:128px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--track)}
-  .plist .it{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;border-bottom:1px solid var(--line)}
-  .plist .it:hover{background:var(--panel)}
-  .plist .it.on{background:var(--panel-2);color:#fff}
-  .plist .it .fav{color:var(--muted);width:12px;text-align:center}
-  .plist .it .fav.y{color:var(--accent)}
-  .plist .it .cat{margin-left:auto;font-size:8.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
-  /* ---- tooltip + context menu (shared, JS-driven) ------------------------- */
-  .tip{position:fixed;z-index:50;background:#000;color:var(--ink);border:1px solid var(--line-2);
-       border-radius:var(--radius-sm);padding:3px 7px;font-size:10px;pointer-events:none;
-       white-space:nowrap;opacity:0;transition:opacity .08s}
+  table.mtx td{width:38px;height:26px;padding:0;position:relative;cursor:ns-resize;border-radius:3px;
+       background:var(--well-deep);box-shadow:var(--bevel-in)}
+  table.mtx td .fl{position:absolute;left:0;right:0;bottom:0;background:var(--led);opacity:.9;border-radius:2px}
+  table.mtx td.neg .fl{background:#cc2a1e;opacity:.85}
+
+  /* ---- STEP SEQUENCER ---------------------------------------------------- */
+  .seq{display:flex;gap:3px;align-items:flex-end;height:96px;padding:6px;border-radius:5px;
+       background:var(--well-deep);box-shadow:var(--bevel-in)}
+  .seq .st{flex:1;position:relative;cursor:ns-resize;min-width:12px;align-self:stretch;border-radius:2px;
+       background:#0a0b0c;box-shadow:inset 0 0 2px #000}
+  .seq .st .fl{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(var(--led),var(--led-deep));
+       border-radius:2px;box-shadow:0 0 4px rgba(255,167,77,.4)}
+  .seq .st.cur{box-shadow:inset 0 0 0 2px var(--led),0 0 8px rgba(255,167,77,.5)}
+  .seq .st.off .fl{background:#34373c;box-shadow:none}
+
+  /* ---- PRESET BROWSER ---------------------------------------------------- */
+  .plist{border-radius:5px;overflow:hidden;background:var(--well);box-shadow:var(--bevel-in),0 6px 18px rgba(0,0,0,.6);
+       max-height:220px;overflow-y:auto}
+  .plist .it{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;
+       border-bottom:1px solid rgba(0,0,0,.4);box-shadow:0 1px 0 rgba(255,255,255,.04)}
+  .plist .it:hover{background:rgba(255,255,255,.04)}
+  .plist .it.on{background:linear-gradient(90deg,rgba(255,167,77,.18),transparent);color:#fff2dc}
+  .plist .it .fav{color:var(--muted);width:14px;text-align:center}
+  .plist .it .fav.y{color:var(--led);text-shadow:0 0 4px rgba(255,167,77,.7)}
+  .plist .it .cat{margin-left:auto;font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+  /* ---- TOOLTIP + CONTEXT MENU -------------------------------------------- */
+  .tip{position:fixed;z-index:50;color:var(--led);font:10px "Courier New",monospace;letter-spacing:1px;
+       background:var(--well-deep);box-shadow:var(--bevel-in);border-radius:3px;padding:4px 8px;
+       pointer-events:none;white-space:nowrap;opacity:0;transition:opacity .08s;text-shadow:0 0 5px rgba(255,167,77,.5)}
   .tip.show{opacity:1}
-  .menu{position:fixed;z-index:60;background:var(--panel);border:1px solid var(--line-3);
-        border-radius:var(--radius-sm);padding:3px;min-width:130px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
-  .menu .mi{padding:5px 10px;font-size:10px;color:var(--ink-2);cursor:pointer;border-radius:var(--radius-sm)}
-  .menu .mi:hover{background:var(--panel-2);color:var(--ink)}
-  .menu .sep{height:1px;background:var(--line);margin:3px 0}
+  .menu{position:fixed;z-index:60;border-radius:5px;padding:4px;min-width:150px;
+        box-shadow:var(--bevel-out),0 8px 22px rgba(0,0,0,.6);
+        background:linear-gradient(180deg,#4a4d53,#3a3d42)}
+  .menu .mi{padding:6px 11px;font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--ink);cursor:pointer;border-radius:3px;
+        text-shadow:0 1px 0 var(--emboss-dark)}
+  .menu .mi:hover{background:linear-gradient(180deg,#ffcf80,var(--led-deep));color:#1a140a;text-shadow:none}
+  .menu .sep{height:1px;background:rgba(0,0,0,.45);box-shadow:0 1px 0 rgba(255,255,255,.08);margin:4px 2px}
   /* showcase-onepage: every section on one page, no tabs — design showcase */
   .tabs{display:none!important}
   .page{display:block!important}
@@ -197,47 +324,52 @@
 </head>
 <body>
 <div class="app">
-  <!-- ====================== TOP BAR + PRESET BROWSER ====================== -->
-  <div class="topbar">
+
+  <!-- ====================== TOP CHROME RAIL + PRESETS ===================== -->
+  <div class="rail brushed">
+    <span class="screw tl"></span><span class="screw bl"></span>
     <span class="led on" id="sigLed" data-tip="Signal present"></span>
-    <span class="brand">VibePlugin</span>
-    <div class="pbrow" style="margin-left:8px">
-      <button class="btn preset-prev" style="min-width:24px;padding:5px 6px">‹</button>
-      <input id="presetSearch" placeholder="search presets…" autocomplete="off"/>
-      <button class="btn preset-next" style="min-width:24px;padding:5px 6px">›</button>
+    <div class="badge"><span class="b1">VibePlugin</span><span class="b2">Analogue Synthesizer</span></div>
+    <div class="plate" style="margin-left:14px">
+      <button class="pb preset-prev" style="min-width:26px;padding:7px 7px">‹</button>
+      <input id="presetSearch" placeholder="PRESET…" autocomplete="off"/>
+      <button class="pb preset-next" style="min-width:26px;padding:7px 7px">›</button>
     </div>
     <span class="sp"></span>
-    <button class="btn" id="abBtn" data-tip="A/B compare">A</button>
-    <button class="btn" id="themeBtn" data-tip="Toggle light / dark">◐</button>
+    <button class="pb" id="abBtn" data-tip="A/B compare">A</button>
+    <button class="pb" id="themeBtn" data-tip="Panel lamp">LAMP</button>
+    <span class="screw tr"></span><span class="screw br"></span>
   </div>
 
   <!-- =============================== TABS ================================= -->
   <div class="tabs" id="tabs">
-    <button class="tab on" data-page="osc">Osc</button>
-    <button class="tab" data-page="filter">Filter</button>
-    <button class="tab" data-page="mod">Env / Mod</button>
-    <button class="tab" data-page="fx">FX</button>
-    <button class="tab" data-page="seq">Seq / Keys</button>
+    <button class="tab on" data-page="osc"><span class="dot"></span>Osc</button>
+    <button class="tab" data-page="filter"><span class="dot"></span>Filter</button>
+    <button class="tab" data-page="mod"><span class="dot"></span>Env / Mod</button>
+    <button class="tab" data-page="fx"><span class="dot"></span>FX</button>
+    <button class="tab" data-page="seq"><span class="dot"></span>Seq / Keys</button>
   </div>
 
   <!-- =============================== OSC PAGE ============================= -->
   <div class="page on" id="page-osc">
     <div class="row">
-      <div class="panel"><div class="head"><span class="caret">▾</span>Oscillator</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="caret">▾</span><span class="ttl">Oscillator</span></div>
         <div class="body">
           <div class="cell"><div class="knob-host" data-index="0" data-min="0" data-max="1" data-def="0.5"></div>
             <div class="lbl">Shape</div><div class="num num-host"></div></div>
           <div class="cell"><div class="knob-host endless" data-index="1" data-endless="1" data-def="0"></div>
             <div class="lbl">Phase</div><div class="sub">endless</div></div>
-          <div class="cell"><div class="seg-host" data-index="2"
-                 data-options="Sine,Saw,Square,Tri"></div><div class="lbl">Waveform</div></div>
+          <div class="cell"><div class="seg-host" data-index="2" data-options="Sine,Saw,Square,Tri"></div>
+            <div class="lbl">Waveform</div></div>
           <div class="cell"><div class="step-host" data-index="3" data-min="-4" data-max="4" data-def="0" data-step="1" data-suffix=" oct"></div>
             <div class="lbl">Octave</div></div>
         </div>
       </div>
-      <div class="panel"><div class="head"><span class="caret">▾</span>Wavetable</div>
+      <div class="panel oxblood"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="caret">▾</span><span class="ttl">Wavetable</span></div>
         <div class="body">
-          <div class="disp wavetable-host" data-index="4" style="width:200px;height:120px"><span class="tag">Table</span></div>
+          <div class="disp wavetable-host" data-index="4" style="width:210px;height:130px"><span class="tag">Table</span></div>
           <div class="cell"><div class="fader-host" data-orient="v" data-index="5" data-min="0" data-max="1" data-def="0.3"></div>
             <div class="lbl">Position</div></div>
         </div>
@@ -248,9 +380,9 @@
   <!-- ============================= FILTER PAGE =========================== -->
   <div class="page" id="page-filter">
     <div class="row">
-      <div class="panel"><div class="head"><span class="caret">▾</span>Filter</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="caret">▾</span><span class="ttl">Filter</span></div>
         <div class="body">
-          <!-- knob with a modulation ring (data-mod = simulated modulated value) -->
           <div class="cell"><div class="knob-host" data-index="6" data-min="20" data-max="20000"
                  data-def="1200" data-log="1" data-mod="0.18" data-suffix=" Hz"></div>
             <div class="lbl">Cutoff</div><div class="num num-host"></div></div>
@@ -260,15 +392,17 @@
             <div class="lbl">Type</div></div>
         </div>
       </div>
-      <div class="panel"><div class="head">Response</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Response</span></div>
         <div class="body">
           <div class="disp curve-host" data-cutoff="6" data-reso="7" data-type="8"
-               style="width:230px;height:120px"><span class="tag">Filter</span><span class="rd"></span></div>
+               style="width:240px;height:130px"><span class="tag">Filter</span><span class="rd"></span></div>
         </div>
       </div>
-      <div class="panel"><div class="head">Performance</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Performance</span></div>
         <div class="body">
-          <div class="cell"><div class="xy-host" data-x="6" data-y="7" style="width:120px;height:120px"></div>
+          <div class="cell"><div class="xy-host" data-x="6" data-y="7" style="width:130px;height:130px"></div>
             <div class="lbl">Cutoff × Reso</div></div>
           <div class="cell"><select class="sel sel-host" data-index="9"
                data-options="LFO 1,LFO 2,Env 2,Velocity,Mod Wheel,Random"></select>
@@ -281,15 +415,17 @@
   <!-- ============================ ENV / MOD PAGE ========================= -->
   <div class="page" id="page-mod">
     <div class="row">
-      <div class="panel"><div class="head">Amp Envelope</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Amp Envelope</span></div>
         <div class="body">
           <div class="disp adsr-host" data-a="10" data-d="11" data-s="12" data-r="13"
-               style="width:260px;height:120px"><span class="tag">ADSR</span></div>
+               style="width:270px;height:130px"><span class="tag">ADSR</span></div>
         </div>
       </div>
-      <div class="panel"><div class="head">LFO 1</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">LFO 1</span></div>
         <div class="body">
-          <div class="disp lfo-host" data-shape="14" style="width:160px;height:90px"><span class="tag">LFO</span></div>
+          <div class="disp lfo-host" data-shape="14" style="width:170px;height:96px"><span class="tag">LFO</span></div>
           <div class="cell"><div class="seg-host" data-index="14" data-options="Sin,Tri,Saw,Sqr,S&amp;H"></div>
             <div class="lbl">Shape</div></div>
           <div class="cell"><div class="knob-host" data-index="15" data-min="0.01" data-max="20" data-def="2"
@@ -297,8 +433,9 @@
         </div>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div class="panel"><div class="head">Modulation Matrix</div>
+    <div class="row" style="margin-top:14px">
+      <div class="panel wood"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Modulation Matrix</span></div>
         <div class="body"><div class="mtx-host"
              data-sources="LFO 1,LFO 2,Env 2,Vel"
              data-dests="Cutoff,Reso,Pitch,Amp,Pan"></div></div>
@@ -309,17 +446,19 @@
   <!-- =============================== FX PAGE ============================= -->
   <div class="page" id="page-fx">
     <div class="row">
-      <div class="panel"><div class="head">Drive</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Drive</span></div>
         <div class="body">
           <div class="cell"><div class="knob-host" data-index="16" data-min="0" data-max="1" data-def="0.3"></div>
             <div class="lbl">Drive</div><div class="num num-host"></div></div>
           <div class="cell"><div class="knob-host" data-index="17" data-min="0" data-max="1" data-def="0.5"></div>
             <div class="lbl">Mix</div><div class="num num-host"></div></div>
-          <div class="cell"><button class="btn toggle-host" data-index="18">Bypass</button><div class="lbl">Toggle</div></div>
-          <div class="cell"><button class="btn momentary-host" data-index="19">Freeze</button><div class="lbl">Momentary</div></div>
+          <div class="cell"><button class="pb toggle-host" data-index="18">Bypass</button><div class="lbl">Toggle</div></div>
+          <div class="cell"><button class="pb momentary-host" data-index="19">Freeze</button><div class="lbl">Momentary</div></div>
         </div>
       </div>
-      <div class="panel"><div class="head">Output</div>
+      <div class="panel brushed"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Output</span></div>
         <div class="body">
           <div class="cell"><div class="fader-host" data-orient="h" data-index="20" data-min="0" data-max="1" data-def="0.7"></div>
             <div class="lbl">Level</div><div class="num num-host"></div></div>
@@ -327,41 +466,45 @@
         </div>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div class="panel" style="flex:1"><div class="head">Oscilloscope</div>
-        <div class="body"><div class="disp scope-host" style="width:100%;height:110px"></div></div></div>
-      <div class="panel" style="flex:1"><div class="head">Spectrum</div>
-        <div class="body"><div class="disp spectrum-host" style="width:100%;height:110px"></div></div></div>
+    <div class="row" style="margin-top:14px">
+      <div class="panel brushed" style="flex:1"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Oscilloscope</span></div>
+        <div class="body"><div class="disp scope-host" style="width:100%;height:120px"></div></div></div>
+      <div class="panel brushed" style="flex:1"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Spectrum</span></div>
+        <div class="body"><div class="disp spectrum-host" style="width:100%;height:120px"></div></div></div>
     </div>
   </div>
 
   <!-- ============================ SEQ / KEYS PAGE ======================== -->
   <div class="page" id="page-seq">
     <div class="row">
-      <div class="panel" style="flex:1"><div class="head">Step Sequencer</div>
+      <div class="panel brushed" style="flex:1"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Step Sequencer</span></div>
         <div class="body" style="display:block">
           <div class="seq-host" data-base="21" data-steps="16"></div>
-          <div class="row" style="margin-top:10px">
+          <div class="row" style="margin-top:14px">
             <div class="cell"><div class="seg-host" data-index="37" data-options="Up,Down,U/D,Rand"></div>
               <div class="lbl">Arp mode</div></div>
             <div class="cell"><select class="sel sel-host" data-index="38"
                  data-options="1/4,1/8,1/8T,1/16,1/16T,1/32"></select><div class="lbl">Rate</div></div>
             <div class="cell"><div class="step-host" data-index="39" data-min="1" data-max="4" data-def="1" data-step="1" data-suffix=" oct"></div>
               <div class="lbl">Range</div></div>
-            <div class="cell"><button class="btn toggle-host" data-index="40">Hold</button><div class="lbl">Latch</div></div>
+            <div class="cell"><button class="pb toggle-host" data-index="40">Hold</button><div class="lbl">Latch</div></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div class="panel" style="flex:1"><div class="head">Keyboard</div>
+    <div class="row" style="margin-top:14px">
+      <div class="panel wood" style="flex:1"><span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+        <div class="head"><span class="ttl">Keyboard</span></div>
         <div class="body" style="display:block"><div class="piano" id="kbd"></div></div></div>
     </div>
   </div>
 </div>
 
-<!-- preset list lives outside the bar so it can overlay; populated by JS -->
-<div class="plist" id="presetList" style="position:fixed;top:34px;left:60px;width:240px;display:none;z-index:40"></div>
+<!-- preset list overlay, populated by JS -->
+<div class="plist" id="presetList" style="position:fixed;top:46px;left:120px;width:260px;display:none;z-index:40"></div>
 
 <script>
 "use strict";
@@ -384,8 +527,6 @@ const svgEl=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e
 
 /* ===================================================================== *
  *  SHARED: tooltip + right-click context menu.                          *
- *  A real plugin's perceived quality leans heavily on these — right-     *
- *  click any continuous control for reset / fine / MIDI-learn / assign.  *
  * ===================================================================== */
 const tip=document.createElement("div"); tip.className="tip"; document.body.append(tip);
 function showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
@@ -415,7 +556,8 @@ function contextMenu(x,y,items){
 }
 
 /* ===================================================================== *
- *  KNOB — bounded + endless, fine-drag (shift), wheel, dbl-click reset,  *
+ *  KNOB — knurled metal cap, baked radial shade, amber LED ring.         *
+ *  Bounded + endless, fine-drag (shift), wheel, dbl-click reset,         *
  *  hover/drag readout, modulation ring, tooltip, right-click menu.       *
  * ===================================================================== */
 function makeKnob(host){
@@ -423,21 +565,48 @@ function makeKnob(host){
         endless=host.dataset.endless==="1",
         min=endless?0:+host.dataset.min, max=endless?1:+host.dataset.max,
         log=host.dataset.log==="1", suffix=host.dataset.suffix||"",
-        modDepth=host.dataset.mod!=null?+host.dataset.mod:null;   // demo modulation amount
+        modDepth=host.dataset.mod!=null?+host.dataset.mod:null;
   const num=host.parentElement.querySelector(".num-host");
-  const sz=host.dataset.size?+host.dataset.size:54;
+  const sz=host.dataset.size?+host.dataset.size:62;
   host.style.width=host.style.height=sz+"px";
-  const svg=svgEl("svg",{class:"knob"+(endless?" endless":""),viewBox:"0 0 100 100",width:sz,height:sz});
+  const svg=svgEl("svg",{class:"svg",viewBox:"0 0 100 100",width:sz,height:sz});
   if(endless) svg.style.cursor="ns-resize";
-  const a0=135,a1=405,R=38;
+  const a0=135,a1=405,Rled=44,Rcap=32;
   const polar=(deg,r)=>[50+r*Math.cos(deg*Math.PI/180),50+r*Math.sin(deg*Math.PI/180)];
   const arcPath=(from,to,r)=>{ const[sx,sy]=polar(from,r),[ex,ey]=polar(to,r);
     return `M ${sx} ${sy} A ${r} ${r} 0 ${to-from>180?1:0} 1 ${ex} ${ey}`; };
-  svg.append(svgEl("circle",{class:"face",cx:50,cy:50,r:R-6}));
-  svg.append(svgEl("path",{class:"track",d:arcPath(a0,a1,R)}));
+
+  /* --- SVG defs: baked radial shading + knurled rim --- */
+  const defs=svgEl("defs",{});
+  const uid="k"+i+"_"+Math.floor(Math.abs(Math.sin(i+1))*1e6);
+  const capGrad=svgEl("radialGradient",{id:uid+"cap",cx:"38%",cy:"30%",r:"75%"});
+  capGrad.append(svgEl("stop",{offset:"0%","stop-color":"#76797f"}));
+  capGrad.append(svgEl("stop",{offset:"55%","stop-color":"#4a4d53"}));
+  capGrad.append(svgEl("stop",{offset:"100%","stop-color":"#2c2e32"}));
+  const rimGrad=svgEl("radialGradient",{id:uid+"rim",cx:"50%",cy:"50%",r:"50%"});
+  rimGrad.append(svgEl("stop",{offset:"82%","stop-color":"#202225"}));
+  rimGrad.append(svgEl("stop",{offset:"100%","stop-color":"#55585e"}));
+  defs.append(capGrad,rimGrad); svg.append(defs);
+
+  /* cast drop-shadow beneath the cap */
+  svg.append(svgEl("ellipse",{cx:50,cy:55,rx:Rcap+3,ry:Rcap+1,fill:"#000","opacity":"0.45","filter":""}));
+  /* knurled rim: a dark ring with conic-like ticks (draw radial dashes) */
+  const rim=svgEl("circle",{cx:50,cy:50,r:Rcap+5,fill:"url(#"+uid+"rim)"});
+  svg.append(rim);
+  const knurl=svgEl("g",{}); const teeth=48;
+  for(let t=0;t<teeth;t++){ const ang=t/teeth*360, [x1,y1]=polar(ang,Rcap+2.5),[x2,y2]=polar(ang,Rcap+6);
+    knurl.append(svgEl("line",{x1,y1,x2,y2,stroke:t%2?"#1c1d20":"#5a5d63","stroke-width":"1.1"})); }
+  svg.append(knurl);
+  /* LED ring track + active LED ring */
+  svg.append(svgEl("path",{class:"ledtrack",d:arcPath(a0,a1,Rled)}));
   const modArc=svgEl("path",{class:"mod"}); if(modDepth!=null) svg.append(modArc);
-  const arc=svgEl("path",{class:"arc"}); const ind=svgEl("line",{class:"ind"});
-  svg.append(arc,ind); host.append(svg);
+  const led=svgEl("path",{class:"ledring"}); svg.append(led);
+  /* metal cap body (radial shaded, top-lit) */
+  svg.append(svgEl("circle",{class:"cap",cx:50,cy:50,r:Rcap,fill:"url(#"+uid+"cap)"}));
+  svg.append(svgEl("circle",{cx:50,cy:50,r:Rcap,fill:"none",stroke:"#1a1b1d","stroke-width":"1"}));
+  /* painted indicator notch */
+  const notch=svgEl("line",{class:"notch"}); svg.append(notch);
+  host.append(svg);
 
   const toNorm=v=>log?Math.log(v/min)/Math.log(max/min):(v-min)/(max-min);
   const fromNorm=n=>log?min*Math.pow(max/min,n):min+n*(max-min);
@@ -445,11 +614,11 @@ function makeKnob(host){
   const readout=()=>endless?"∞":(fmt(value)+suffix);
   function render(){
     const n=clamp(endless?(value%1+1)%1:toNorm(value),0,1), ang=a0+n*(a1-a0);
-    arc.setAttribute("d",arcPath(a0,ang,R));
-    const[ix,iy]=polar(ang,14),[ox,oy]=polar(ang,R-1);
-    ind.setAttribute("x1",ix);ind.setAttribute("y1",iy);ind.setAttribute("x2",ox);ind.setAttribute("y2",oy);
+    led.setAttribute("d",arcPath(a0,ang,Rled));
+    const[ix,iy]=polar(ang,12),[ox,oy]=polar(ang,Rcap-3);
+    notch.setAttribute("x1",ix);notch.setAttribute("y1",iy);notch.setAttribute("x2",ox);notch.setAttribute("y2",oy);
     if(modDepth!=null){ const m=clamp(n+modDepth,0,1), mang=a0+m*(a1-a0);
-      modArc.setAttribute("d",arcPath(Math.min(ang,mang),Math.max(ang,mang),R)); }
+      modArc.setAttribute("d",arcPath(Math.min(ang,mang),Math.max(ang,mang),Rled)); }
     if(num) num.textContent=readout();
   }
   function set(v){ value=endless?v:clamp(v,min,max); render(); setParam(i,endless?((value%1+1)%1):value); }
@@ -487,25 +656,26 @@ function makeKnob(host){
 }
 
 /* ===================================================================== *
- *  FADER — vertical or horizontal (data-orient="v"|"h").                 *
+ *  FADER — vertical or horizontal metal cap in recessed track.           *
  * ===================================================================== */
 function makeFader(host){
   const i=+host.dataset.index,min=+host.dataset.min,max=+host.dataset.max,def=+host.dataset.def,
         horiz=host.dataset.orient==="h", suffix=host.dataset.suffix||"";
   const num=host.parentElement.querySelector(".num-host");
   host.classList.add("fader",horiz?"h":"v");
+  const slot=document.createElement("div"); slot.className="slot";
   const fill=document.createElement("div"); fill.className="fill";
-  const cap=document.createElement("div"); cap.className="cap"; host.append(fill,cap);
+  const cap=document.createElement("div"); cap.className="cap"; host.append(slot,fill,cap);
   let value=def;
   function render(){ const n=clamp((value-min)/(max-min),0,1);
-    if(horiz){ fill.style.width=(n*100)+"%"; cap.style.left="calc("+(n*100)+"% - 1px)"; }
-    else     { fill.style.height=(n*100)+"%"; cap.style.bottom="calc("+(n*100)+"% - 1px)"; }
+    if(horiz){ fill.style.width="calc("+(n*100)+"% - "+(16-16*n)+"px + 8px)"; cap.style.left="calc(8px + "+n+" * (100% - 16px))"; }
+    else     { fill.style.height="calc("+(n*100)+"% - "+(16-16*n)+"px + 8px)"; cap.style.bottom="calc(8px + "+n+" * (100% - 16px))"; }
     if(num) num.textContent=fmt(value)+suffix; }
   function set(v){ value=clamp(v,min,max); render(); setParam(i,value); }
   let drag=false;
   const fromPt=e=>{ const r=host.getBoundingClientRect();
-    return horiz?min+(max-min)*clamp((e.clientX-r.left)/r.width,0,1)
-                :min+(max-min)*clamp(1-(e.clientY-r.top)/r.height,0,1); };
+    return horiz?min+(max-min)*clamp((e.clientX-r.left-8)/(r.width-16),0,1)
+                :min+(max-min)*clamp(1-(e.clientY-r.top-8)/(r.height-16),0,1); };
   host.addEventListener("pointerdown",e=>{ if(e.button!==0)return; drag=true; host.setPointerCapture(e.pointerId); set(fromPt(e)); });
   host.addEventListener("pointermove",e=>{ if(drag) set(fromPt(e)); });
   host.addEventListener("pointerup",()=>drag=false);
@@ -540,7 +710,7 @@ function makeMomentary(b){ const i=+b.dataset.index;
 }
 
 /* ===================================================================== *
- *  SEGMENTED SELECTOR / RADIO — small fixed option sets.                 *
+ *  SEGMENTED SELECTOR / RADIO — illuminated metal buttons.               *
  * ===================================================================== */
 function makeSegmented(host){
   const i=+host.dataset.index, opts=host.dataset.options.split(",");
@@ -555,7 +725,7 @@ function makeSegmented(host){
 }
 
 /* ===================================================================== *
- *  DROPDOWN / COMBO — longer lists (presets, mod destinations).          *
+ *  DROPDOWN / COMBO.                                                     *
  * ===================================================================== */
 function makeSelect(host){
   const i=+host.dataset.index, opts=host.dataset.options.split(",");
@@ -566,7 +736,7 @@ function makeSelect(host){
 }
 
 /* ===================================================================== *
- *  STEPPER — integer steps (octave, voice count, semitone).              *
+ *  STEPPER — integer steps with red 7-seg readout.                       *
  * ===================================================================== */
 function makeStepper(host){
   const i=+host.dataset.index,min=+host.dataset.min,max=+host.dataset.max,
@@ -587,8 +757,6 @@ function makeStepper(host){
 
 /* ===================================================================== *
  *  EDITABLE NUMERIC FIELD — type an exact value into a .num readout.     *
- *  Knobs/faders already write into their sibling .num-host; make those   *
- *  click-to-edit so a typed value feeds back to the control.            *
  * ===================================================================== */
 function makeNumEditable(num){
   num.contentEditable="true"; num.spellcheck=false;
@@ -601,7 +769,7 @@ function makeNumEditable(num){
 }
 
 /* ===================================================================== *
- *  XY PAD — two params, crosshair, draggable point.                      *
+ *  XY PAD — two params, glowing point + crosshair.                       *
  * ===================================================================== */
 function makeXY(host){
   const ix=+host.dataset.x, iy=+host.dataset.y;
@@ -634,13 +802,13 @@ function dispCanvas(host){
   fit(); new ResizeObserver(fit).observe(host);
   return c.getContext("2d");
 }
-const vcol=(n,f)=>(getComputedStyle(document.body).getPropertyValue(n).trim())||f;
+const LED="#ffb74d", LEDM="#7fd4ff", GRID="rgba(255,167,77,.10)", INK="#6f6a5e";
 const vfresh=o=>o._t&&(performance.now()-o._t)<250;
-function grid(ctx,W,H,cols,rows){ ctx.strokeStyle=vcol("--line","#222"); ctx.lineWidth=1; ctx.beginPath();
+function grid(ctx,W,H,cols,rows){ ctx.strokeStyle=GRID; ctx.lineWidth=1; ctx.beginPath();
   for(let k=1;k<cols;k++){ const x=Math.round(W*k/cols)+.5; ctx.moveTo(x,0); ctx.lineTo(x,H); }
   for(let k=1;k<rows;k++){ const y=Math.round(H*k/rows)+.5; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke(); }
 
-/* ---- OSCILLOSCOPE — thin line, no glow ---------------------------------- */
+/* ---- OSCILLOSCOPE — phosphor amber trace ------------------------------- */
 function makeScope(host){
   const ctx=dispCanvas(host); const c=ctx.canvas;
   const N=320; let data=new Float32Array(N),ph=0; const api={push(a){data=a;api._t=performance.now();}}; host.viz=api;
@@ -648,11 +816,11 @@ function makeScope(host){
     if(!vfresh(api)){ ph+=0.04; for(let k=0;k<N;k++){ const t=k/N*Math.PI*6+ph;
       data[k]=(Math.sin(t)*0.6+Math.sin(t*2+ph*1.3)*0.22+Math.sin(t*3)*0.12)*(0.8+0.2*Math.sin(ph)); } }
     ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
-    ctx.strokeStyle=vcol("--accent","#c8923a"); ctx.lineWidth=1.25; ctx.beginPath();
+    ctx.strokeStyle=LED; ctx.lineWidth=1.5; ctx.shadowColor=LED; ctx.shadowBlur=6; ctx.beginPath();
     for(let k=0;k<data.length;k++){ const x=k/(data.length-1)*W,y=H/2-data[k]*H*0.42; k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
-    ctx.stroke(); requestAnimationFrame(loop); })();
+    ctx.stroke(); ctx.shadowBlur=0; requestAnimationFrame(loop); })();
 }
-/* ---- SPECTRUM — thin bars, peak caps ------------------------------------ */
+/* ---- SPECTRUM — amber bars, white peak caps ---------------------------- */
 function makeSpectrum(host){
   const ctx=dispCanvas(host); const c=ctx.canvas;
   const N=48; let mags=new Float32Array(N),peaks=new Float32Array(N),ph=0;
@@ -661,13 +829,13 @@ function makeSpectrum(host){
     if(!vfresh(api)){ ph+=0.03; for(let k=0;k<N;k++){ const f=k/N;
       mags[k]=Math.max(0,Math.pow(1-f,0.7)*(0.45+0.45*Math.sin(ph*2+k*0.5))+0.02*Math.sin(k*12.9)); } }
     ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
-    ctx.fillStyle=vcol("--accent","#c8923a"); const bw=W/N;
-    for(let k=0;k<N;k++){ const v=Math.min(1,mags[k]),bh=v*(H-4); ctx.fillRect(k*bw+1,H-bh,bw-1.5,bh);
-      peaks[k]=Math.max(peaks[k]-0.8,bh); ctx.fillStyle=vcol("--ink-2","#9a9b9e");
-      ctx.fillRect(k*bw+1,H-peaks[k]-1,bw-1.5,1); ctx.fillStyle=vcol("--accent","#c8923a"); }
+    const bw=W/N;
+    for(let k=0;k<N;k++){ const v=Math.min(1,mags[k]),bh=v*(H-4);
+      ctx.fillStyle=LED; ctx.shadowColor=LED; ctx.shadowBlur=4; ctx.fillRect(k*bw+1,H-bh,bw-1.5,bh); ctx.shadowBlur=0;
+      peaks[k]=Math.max(peaks[k]-0.8,bh); ctx.fillStyle="#fff"; ctx.fillRect(k*bw+1,H-peaks[k]-1,bw-1.5,1); }
     requestAnimationFrame(loop); })();
 }
-/* ---- LEVEL METER — DOM, stereo, peak hold ------------------------------- */
+/* ---- LEVEL METER — DOM, stereo, peak hold ------------------------------ */
 function makeMeter(host){
   const stereo=host.dataset.stereo==="1"; host.classList.add("meter");
   const chans=[]; for(let k=0;k<(stereo?2:1);k++){ const ch=document.createElement("div"); ch.className="ch";
@@ -676,64 +844,60 @@ function makeMeter(host){
   let lv=[0,0],ph=0; const api={setLevel(l,r){lv=[l,r==null?l:r];api._t=performance.now();}}; host.viz=api;
   (function loop(){ if(!vfresh(api)){ ph+=0.05; lv=[0.4+0.5*Math.abs(Math.sin(ph)),0.4+0.5*Math.abs(Math.sin(ph*1.1+1))]; }
     chans.forEach((c,k)=>{ const v=clamp(lv[k]||0,0,1); c.fl.style.height=(v*100)+"%";
-      c.fl.style.background= v>0.92?vcol("--warn","#c75d52"):v>0.75?vcol("--accent","#c8923a"):vcol("--ok","#5fae7e");
+      c.fl.style.background= v>0.92?"#cc2a1e":v>0.75?"#ffcf80":LED;
       c.peak=Math.max(c.peak-0.012,v); c.pk.style.bottom=(c.peak*100)+"%"; });
     requestAnimationFrame(loop); })();
 }
 
-/* ---- FILTER RESPONSE CURVE — live from cutoff/reso/type params ---------- */
+/* ---- FILTER RESPONSE CURVE — live from cutoff/reso/type ----------------- */
 function makeFilterCurve(host){
   const ci=+host.dataset.cutoff, ri=+host.dataset.reso, ti=+host.dataset.type;
   const rd=host.querySelector(".rd"); const ctx=dispCanvas(host); const c=ctx.canvas;
   let cut=0.45,res=0.2,type=0;
   onParam((p,v)=>{ if(p===ci) cut=clamp((Math.log(+v/20)/Math.log(1000))*0.5+0.0,0,1); else if(p===ri) res=clamp(+v,0,1); else if(p===ti) type=Math.round(+v*3); });
-  // approximate biquad magnitude so the curve reads as real
-  function mag(f){ // f in 0..1 (log freq), fc cutoff in 0..1
-    const fc=cut, q=0.5+res*8, d=(f-fc)*6;
+  function mag(f){ const fc=cut, q=0.5+res*8, d=(f-fc)*6;
     let lp=1/Math.sqrt(1+Math.pow(Math.max(0,d)*2,4));
     let hp=1/Math.sqrt(1+Math.pow(Math.max(0,-d)*2,4));
     const peak=res*1.1/(1+Math.pow(d*q*0.7,2));
-    if(type===0) return clamp(lp+peak*0.6,0,1.3);          // LP
-    if(type===1) return clamp(hp+peak*0.6,0,1.3);          // HP
-    if(type===2) return clamp((1/(1+Math.pow(d*q,2)))+peak*0.3,0,1.3); // BP
-    return clamp(1-1/(1+Math.pow(d*q,2))*0.95,0,1.3);      // Notch
+    if(type===0) return clamp(lp+peak*0.6,0,1.3);
+    if(type===1) return clamp(hp+peak*0.6,0,1.3);
+    if(type===2) return clamp((1/(1+Math.pow(d*q,2)))+peak*0.3,0,1.3);
+    return clamp(1-1/(1+Math.pow(d*q,2))*0.95,0,1.3);
   }
   (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
-    ctx.strokeStyle=vcol("--accent","#c8923a"); ctx.lineWidth=1.5; ctx.beginPath();
+    ctx.strokeStyle=LED; ctx.lineWidth=1.75; ctx.shadowColor=LED; ctx.shadowBlur=5; ctx.beginPath();
     for(let x=0;x<=W;x++){ const m=mag(x/W),y=H-clamp(m/1.3,0,1)*(H-4)-2; x?ctx.lineTo(x,y):ctx.moveTo(x,y); }
-    ctx.stroke();
-    // soft fill under the curve
+    ctx.stroke(); ctx.shadowBlur=0;
     ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
-    ctx.fillStyle=vcol("--accent","#c8923a"); ctx.globalAlpha=0.10; ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=LED; ctx.globalAlpha=0.12; ctx.fill(); ctx.globalAlpha=1;
     if(rd){ const fHz=Math.round(20*Math.pow(1000,cut/0.5)); rd.textContent=(fHz>=1000?(fHz/1000).toFixed(1)+"k":fHz)+" Hz"; }
     requestAnimationFrame(loop); })();
 }
 
-/* ---- LFO SHAPE DISPLAY — redraws when the shape param changes ----------- */
+/* ---- LFO SHAPE DISPLAY ------------------------------------------------- */
 function makeLFO(host){
   const si=+host.dataset.shape; const ctx=dispCanvas(host); const c=ctx.canvas; let shape=0,ph=0;
   onParam((p,v)=>{ if(p===si) shape=Math.round(+v*4); });
   const wave=(t)=>{ t=(t%1+1)%1; switch(shape){
     case 0:return Math.sin(t*Math.PI*2);
-    case 1:return t<0.5?(t*4-1):(3-t*4);                  // tri
-    case 2:return t*2-1;                                   // saw
-    case 3:return t<0.5?1:-1;                              // sqr
-    default:return Math.sin(Math.floor(t*8)/8*Math.PI*2);  // S&H-ish
+    case 1:return t<0.5?(t*4-1):(3-t*4);
+    case 2:return t*2-1;
+    case 3:return t<0.5?1:-1;
+    default:return Math.sin(Math.floor(t*8)/8*Math.PI*2);
   }};
   (function loop(){ const W=c._w,H=c._h; ph+=0.01; ctx.clearRect(0,0,W,H); grid(ctx,W,H,4,2);
-    ctx.strokeStyle=vcol("--accent-2","#5d83a8"); ctx.lineWidth=1.5; ctx.beginPath();
-    for(let x=0;x<=W;x++){ const y=H/2-wave(x/W*2)*H*0.4; x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
-    // moving phosphor dot showing the playhead
+    ctx.strokeStyle=LEDM; ctx.lineWidth=1.75; ctx.shadowColor=LEDM; ctx.shadowBlur=5; ctx.beginPath();
+    for(let x=0;x<=W;x++){ const y=H/2-wave(x/W*2)*H*0.4; x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); ctx.shadowBlur=0;
     const px=((ph%1))*W, py=H/2-wave(ph*2)*H*0.4;
-    ctx.fillStyle=vcol("--accent","#c8923a"); ctx.beginPath(); ctx.arc(px,py,2,0,7); ctx.fill();
+    ctx.fillStyle=LED; ctx.shadowColor=LED; ctx.shadowBlur=6; ctx.beginPath(); ctx.arc(px,py,2.5,0,7); ctx.fill(); ctx.shadowBlur=0;
     requestAnimationFrame(loop); })();
 }
 
-/* ---- WAVETABLE — pseudo-3D stack of frames, scrubbed by position param -- */
+/* ---- WAVETABLE — pseudo-3D stack of frames, scrubbed by position -------- */
 function makeWavetable(host){
   const pi=+host.dataset.index; const ctx=dispCanvas(host); const c=ctx.canvas; let pos=0.3;
   onParam((p,v)=>{ if(p===pi) pos=clamp(+v,0,1); });
-  const frame=(z)=>{ // morph between a few waveshapes across the table
+  const frame=(z)=>{
     return (x)=>{ const a=Math.sin(x*Math.PI*2), b=(x*2-1), s=Math.sign(Math.sin(x*Math.PI*2));
       const seg=z*2; return seg<1?a*(1-seg)+b*seg : b*(2-seg)+s*(seg-1); }; };
   (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H);
@@ -742,8 +906,8 @@ function makeWavetable(host){
       const fn=frame(z); ctx.beginPath();
       for(let s=0;s<=60;s++){ const x=x0+f*dx+s/60*(W*0.58), y=y0-f*dy-fn(s/60)*H*0.16;
         s?ctx.lineTo(x,y):ctx.moveTo(x,y); }
-      ctx.strokeStyle=sel?vcol("--accent","#c8923a"):vcol("--line-2","#333");
-      ctx.lineWidth=sel?1.6:1; ctx.globalAlpha=sel?1:0.35+0.4*z; ctx.stroke(); }
+      ctx.strokeStyle=sel?LED:"#5a5d63"; ctx.lineWidth=sel?1.8:1;
+      if(sel){ ctx.shadowColor=LED; ctx.shadowBlur=5; } ctx.globalAlpha=sel?1:0.3+0.4*z; ctx.stroke(); ctx.shadowBlur=0; }
     ctx.globalAlpha=1; requestAnimationFrame(loop); })();
 }
 
@@ -751,7 +915,7 @@ function makeWavetable(host){
 function makeADSR(host){
   const ai=+host.dataset.a, di=+host.dataset.d, si=+host.dataset.s, ri=+host.dataset.r;
   const ctx=dispCanvas(host); const c=ctx.canvas;
-  let a=0.15,d=0.25,s=0.6,r=0.4;                            // all 0..1
+  let a=0.15,d=0.25,s=0.6,r=0.4;
   onParam((p,v)=>{ if(p===ai)a=+v; else if(p===di)d=+v; else if(p===si)s=+v; else if(p===ri)r=+v; });
   setParam(ai,a);setParam(di,d);setParam(si,s);setParam(ri,r);
   const pad=8;
@@ -775,18 +939,17 @@ function makeADSR(host){
   (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
     const P=pts(W,H);
     ctx.beginPath(); P.forEach((p,k)=>k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
-    ctx.strokeStyle=vcol("--accent","#c8923a"); ctx.lineWidth=1.5; ctx.stroke();
+    ctx.strokeStyle=LED; ctx.lineWidth=1.75; ctx.shadowColor=LED; ctx.shadowBlur=5; ctx.stroke(); ctx.shadowBlur=0;
     ctx.lineTo(P[4][0],H-pad); ctx.lineTo(pad,H-pad); ctx.closePath();
-    ctx.fillStyle=vcol("--accent","#c8923a"); ctx.globalAlpha=0.10; ctx.fill(); ctx.globalAlpha=1;
-    [1,2,4].forEach(k=>{ ctx.beginPath(); ctx.arc(P[k][0],P[k][1],3.2,0,7);
-      ctx.fillStyle=vcol("--track","#0d0d0d"); ctx.fill();
-      ctx.lineWidth=1.5; ctx.strokeStyle=vcol("--ink","#d7d7d9"); ctx.stroke(); });
+    ctx.fillStyle=LED; ctx.globalAlpha=0.12; ctx.fill(); ctx.globalAlpha=1;
+    [1,2,4].forEach(k=>{ ctx.beginPath(); ctx.arc(P[k][0],P[k][1],3.6,0,7);
+      ctx.fillStyle="#101113"; ctx.fill();
+      ctx.lineWidth=1.75; ctx.strokeStyle=LED; ctx.stroke(); });
     requestAnimationFrame(loop); })();
 }
 
 /* ===================================================================== *
- *  MODULATION MATRIX — sources × destinations grid, drag a cell up/down  *
- *  to set bipolar depth. Param index = base + row*nDest + col.           *
+ *  MODULATION MATRIX — sources × destinations, drag a cell for depth.    *
  * ===================================================================== */
 function makeModMatrix(host){
   const sources=host.dataset.sources.split(","), dests=host.dataset.dests.split(",");
@@ -813,8 +976,7 @@ function makeModMatrix(host){
 }
 
 /* ===================================================================== *
- *  STEP SEQUENCER — drag a step up/down for its value; right-click mutes. *
- *  Param index = base + step. A playhead sweeps for "alive" feedback.    *
+ *  STEP SEQUENCER — drag a step; right-click mutes; playhead sweeps.     *
  * ===================================================================== */
 function makeSequencer(host){
   const base=+host.dataset.base, steps=+host.dataset.steps; host.classList.add("seq");
@@ -831,7 +993,6 @@ function makeSequencer(host){
     st.addEventListener("pointerup",()=>drag=false);
     st.addEventListener("contextmenu",e=>{ e.preventDefault(); on=!on; render(); });
     render(); host.append(st); cells.push(st); }
-  // playhead
   let cur=0; setInterval(()=>{ cells[cur].classList.remove("cur"); cur=(cur+1)%steps; cells[cur].classList.add("cur"); },220);
 }
 
@@ -882,7 +1043,7 @@ function makeKeyboard(host){
   host.addEventListener("pointerdown",e=>{ const n=e.target.dataset.note; if(n){ down=+n; press(down); host.setPointerCapture(e.pointerId);} });
   host.addEventListener("pointerup",()=>{ if(down!=null){ release(down); down=null; } });
   host.addEventListener("pointerleave",()=>{ if(down!=null){ release(down); down=null; } });
-  onParam(()=>{});  // (real builds may light keys from engine note events)
+  onParam(()=>{});
 }
 
 /* ===================================================================== *
@@ -923,12 +1084,10 @@ whenReady(()=>{
   document.querySelectorAll(".mtx-host").forEach(makeModMatrix);
   document.querySelectorAll(".seq-host").forEach(makeSequencer);
   makePresetBrowser();
-  makeKeyboard(document.getElementById("kbd"));   // remove for an effect with no keyboard
+  makeKeyboard(document.getElementById("kbd"));
 
-  // numeric readouts under knobs/faders are click-to-edit; wire them to their control
   document.querySelectorAll(".num-host").forEach(num=>{ makeNumEditable(num); });
 
-  // header LED demo: blink to look alive; real builds drive from signal state
   const led=document.getElementById("sigLed"); let lp=0;
   setInterval(()=>{ lp+=0.1; led.classList.toggle("on",Math.sin(lp)>-0.3); },120);
   document.getElementById("themeBtn").onclick=()=>document.body.classList.toggle("light");

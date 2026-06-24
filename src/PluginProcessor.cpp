@@ -226,6 +226,8 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
     const juce::String genEffort   = document.effort;
     const bool         genThinking = document.thinking;
     const juce::String genStandardUi = vstai::appsettings::standardUi();   // house style for the prompt
+    const juce::String genDesignName       = vstai::appsettings::selectedDesignName();
+    const juce::String genDesignPrinciples = vstai::appsettings::selectedDesignPrinciples();
     auto               aliveToken  = alive;     // shared_ptr copy keeps the flag alive
     auto               comp        = compiler;  // shared_ptr: reused JIT'd asc module
 
@@ -298,6 +300,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
     };
 
     std::thread ([prompt, curAssembly, curHtml, maxFix, isSynth, genModel, genEffort, genThinking, genStandardUi,
+                  genDesignName, genDesignPrinciples,
                   provider, genKey, ollamaUrl, glmUrl, cloudUrl, genToken, comp, finishOnUi, reportProgress, streamThinking]
     {
         LlmClient llm;   // stack-local: configured per provider from settings
@@ -345,7 +348,8 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             m->setProperty ("content", content);
             messages.add (juce::var (m));
         };
-        addMsg ("user", vstai::buildUserMessage (prompt, curAssembly, curHtml, isSynth, genStandardUi));
+        addMsg ("user", vstai::buildUserMessage (prompt, curAssembly, curHtml, isSynth, genStandardUi,
+                                                 genDesignName, genDesignPrinciples));
 
         VSTAI_LOG ("calling " + LlmClient::providerToString (provider) + " (" + genModel + ")...");
         reportProgress ("Generating with AI...");
