@@ -60,7 +60,13 @@ const P_DLY_FB: i32 = 32;
 const P_REV_MIX: i32 = 33;   // reverb
 const P_REV_SIZE: i32 = 34;
 const P_REV_DAMP: i32 = 35;
-const NUM_PARAMS: i32 = 36;
+// ---- arpeggiator (DSP-level, so it follows DAW MIDI + keeps running with the GUI closed) ----
+const P_ARP_ON: i32 = 36;    // 0/1
+const P_ARP_RATE: i32 = 37;  // 0..1 -> ~2..18 steps/sec
+const P_ARP_OCT: i32 = 38;   // 1..4 octave span
+const P_ARP_GATE: i32 = 39;  // 0.1..1 note length (fraction of a step)
+const P_ARP_MODE: i32 = 40;  // 0 up, 1 down, 2 up-down, 3 random
+const NUM_PARAMS: i32 = 41;
 
 let sampleRate: f32 = 44100;
 
@@ -108,9 +114,18 @@ const stack: StaticArray<i32> = new StaticArray<i32>(16);
 const stackHz: StaticArray<f32> = new StaticArray<f32>(16);
 let stackN: i32 = 0;
 
+// ---- arpeggiator state ---------------------------------------------
+let arpClock: f32 = 0;     // samples until the next step fires
+let arpStep: i32 = 0;      // running pattern position
+let arpGate: f32 = 0;      // samples left before the current step releases
+let arpVoice: i32 = 0;     // 1 while an arp-triggered note is sounding
+let arpRand: i32 = 0x2f6e2b1;
+const arpSorted: StaticArray<f32> = new StaticArray<f32>(16);   // held freqs, ascending
+
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr;
   ph1 = 0; ph2 = 0; ph3 = 0; stackN = 0;
+  arpClock = 0; arpStep = 0; arpGate = 0; arpVoice = 0;
   aStage = 0; aLevel = 0; fStage = 0; fLevel = 0;
   s1f = 0; s2f = 0; s3f = 0; s4f = 0; fbk = 0;
 
@@ -138,6 +153,8 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   params[P_CHO_MIX] = 0.35; params[P_CHO_RATE] = 0.3; params[P_CHO_DEPTH] = 0.5;
   params[P_DLY_MIX] = 0.22; params[P_DLY_TIME] = 0.4; params[P_DLY_FB] = 0.4;
   params[P_REV_MIX] = 0.3; params[P_REV_SIZE] = 0.6; params[P_REV_DAMP] = 0.4;
+  params[P_ARP_ON] = 1; params[P_ARP_RATE] = 0.5; params[P_ARP_OCT] = 2;
+  params[P_ARP_GATE] = 0.5; params[P_ARP_MODE] = 0;
 }
 
 export function getInputPtr(): usize  { return changetype<usize>(inBuf); }
@@ -150,8 +167,10 @@ export function noteOn(id: i32, f: f32, v: f32): void {
   let i = 0; for (; i < stackN; i++) if (stack[i] == id) break;
   if (i == stackN && stackN < 16) stackN++;
   stack[i] = id; stackHz[i] = f;
+  vel = v;
+  if (params[P_ARP_ON] > 0.5) return;                     // arp plays the held stack itself
   const wasIdle = aStage == 0 || aStage == 4;
-  tgtFreq = f; vel = v;
+  tgtFreq = f;
   if (wasIdle) { curFreq = f; aStage = 1; fStage = 1; }   // retrigger from idle
 }
 
@@ -160,8 +179,24 @@ export function noteOff(id: i32): void {
   if (i == stackN) return;
   for (let j = i; j < stackN - 1; j++) { stack[j] = stack[j + 1]; stackHz[j] = stackHz[j + 1]; }
   stackN--;
+  if (params[P_ARP_ON] > 0.5) return;                     // arp manages the voice
   if (stackN == 0) { aStage = 4; fStage = 4; }            // release
   else tgtFreq = stackHz[stackN - 1];                     // glide to held note
+}
+
+// Pick the arpeggiated note frequency for sequence index `idx` across `octs` octaves:
+// the held notes sorted ascending, repeated up by octaves.
+function arpNoteFreq(idx: i32, octs: i32): f32 {
+  for (let i = 0; i < stackN; i++) {                      // insertion sort held freqs -> arpSorted
+    const x = stackHz[i]; let j = i - 1;
+    while (j >= 0 && arpSorted[j] > x) { arpSorted[j + 1] = arpSorted[j]; j--; }
+    arpSorted[j + 1] = x;
+  }
+  const within: i32 = idx % stackN;
+  const oct: i32 = idx / stackN;
+  let f: f32 = arpSorted[within];
+  for (let o = 0; o < oct; o++) f *= 2.0;
+  return f;
 }
 
 // ---- helpers -------------------------------------------------------
@@ -238,7 +273,46 @@ export function process(n: i32): void {
   const revFb: f32 = 0.7 + params[P_REV_SIZE] * 0.28;
   const revDamp: f32 = params[P_REV_DAMP] * 0.4;
 
+  const arpOn: bool = params[P_ARP_ON] > 0.5;
+
   for (let i = 0; i < n; i++) {
+    // --- arpeggiator: steps through the held-note stack, retriggering the voice.
+    //     Runs in the audio thread, so it follows DAW MIDI and survives a closed GUI.
+    if (arpOn) {
+      if (stackN == 0) {
+        if (arpVoice == 1) { aStage = 4; fStage = 4; arpVoice = 0; }   // no notes held -> release
+      } else {
+        const stepLen: f32 = sampleRate / (2.0 + params[P_ARP_RATE] * 16.0);   // ~2..18 steps/sec
+        if (arpVoice == 1) { arpGate -= 1.0; if (arpGate <= 0.0) { aStage = 4; fStage = 4; arpVoice = 0; } }
+        arpClock -= 1.0;
+        if (arpClock <= 0.0) {
+          arpClock += stepLen;
+          let octs: i32 = <i32>(params[P_ARP_OCT] + 0.5); if (octs < 1) octs = 1; if (octs > 4) octs = 4;
+          const seqN: i32 = stackN * octs;
+          const mode: i32 = <i32>(params[P_ARP_MODE] + 0.5);
+          let idx: i32;
+          if (mode == 1) {                                    // down
+            idx = seqN - 1 - (arpStep % seqN);
+          } else if (mode == 2) {                             // up-down (no doubled endpoints)
+            const period: i32 = seqN > 1 ? 2 * seqN - 2 : 1;
+            const p: i32 = arpStep % period;
+            idx = p < seqN ? p : period - p;
+          } else if (mode == 3) {                             // random
+            arpRand = (arpRand * 1103515245 + 12345) & 0x7fffffff;
+            idx = arpRand % seqN;
+          } else {                                            // up
+            idx = arpStep % seqN;
+          }
+          arpStep++;
+          const nf: f32 = arpNoteFreq(idx, octs);
+          tgtFreq = nf; curFreq = nf;                         // jump pitch (no glide between steps)
+          aStage = 1; fStage = 1;                             // retrigger both envelopes (pluck)
+          arpVoice = 1;
+          arpGate = stepLen * (0.1 + params[P_ARP_GATE] * 0.9);
+        }
+      }
+    }
+
     // pitch glide
     curFreq += (tgtFreq - curFreq) * glide;
     const base: f32 = curFreq * tuneRatio;

@@ -43,6 +43,9 @@ const params = [
   ["Chorus Mix", 27, 0, 1, 0.35], ["Chorus Rate", 28, 0, 1, 0.3], ["Chorus Depth", 29, 0, 1, 0.5],
   ["Delay Mix", 30, 0, 1, 0.22], ["Delay Time", 31, 0, 1, 0.4], ["Delay Feedback", 32, 0, 1, 0.4],
   ["Reverb Mix", 33, 0, 1, 0.3], ["Reverb Size", 34, 0, 1, 0.6], ["Reverb Damp", 35, 0, 1, 0.4],
+  // arpeggiator (lives in the WASM — follows DAW MIDI, runs with the GUI closed)
+  ["Arp", 36, 0, 1, 1], ["Arp Rate", 37, 0, 1, 0.5], ["Arp Octaves", 38, 1, 4, 2],
+  ["Arp Gate", 39, 0.1, 1, 0.5], ["Arp Mode", 40, 0, 3, 0],
 ].map(([name, index, min, max, def]) => ({ name, index, min, max, default: def, value: def }));
 
 const doc = {

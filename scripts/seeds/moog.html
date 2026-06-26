@@ -299,44 +299,11 @@ function buildMod(){
   return el;
 }
 
-/* ---- arpeggiator: latches to the LAST PLAYED note, arpeggiates a chord ---- */
-const CHORDS={ 'Major':[0,4,7], 'Minor':[0,3,7], 'Maj7':[0,4,7,11], 'Min7':[0,3,7,10],
-               'Sus4':[0,5,7], 'Power':[0,7], 'Octaves':[0] };
-const ARP={on:true, rate:0.5, up:3, down:0, gate:0.55, pattern:2, chordName:'Minor', root:48,
-           next:0, step:0, cur:null, curT:0};
-ARP.chord=CHORDS[ARP.chordName];
-let audioOn=false, nowT=0;
-const ARP_SPS=(t)=>2*Math.pow(9,t);                       // ~2 .. 18 steps/sec
-function postArp(){ try{ parent.postMessage({__vstai:1,type:'arpstate',on:(ARP.on&&audioOn)},'*'); }catch(_){ } }
-function arpSeq(){
-  // walk the chord tones as a ladder across octaves, take `up` notes from the root
-  // upward (incl. the root) and `down` notes below it. up=1 → just the root.
-  const ch=ARP.chord, offs=[];
-  for(let o=-5;o<=5;o++) for(const iv of ch) offs.push(iv+12*o);
-  offs.sort((a,b)=>a-b);
-  const ri=offs.indexOf(0);                                              // root sits at offset 0
-  const sel=offs.slice(Math.max(0,ri-(ARP.down|0)), ri+Math.max(1,ARP.up|0));
-  const up=[...new Set(sel.map(x=>ARP.root+x))].sort((a,b)=>a-b);
-  if(!up.length) return [ARP.root];
-  if(ARP.pattern===1) return up.slice().reverse();                       // down
-  if(ARP.pattern===2) return up.length>1? up.concat(up.slice(1,-1).reverse()) : up; // up-down
-  return up;                                                             // up / random pool
-}
-function arpOff(){ if(ARP.cur!=null){ if(window.vstai) window.vstai.noteOff(ARP.cur); ARP.cur=null; } }
-function arpTick(dt){
-  nowT+=dt;
-  if(!ARP.on || !audioOn){ arpOff(); ARP.next=nowT; return; }
-  const stepDur=1/ARP_SPS(ARP.rate);
-  if(ARP.cur!=null && nowT-ARP.curT>=stepDur*ARP.gate) arpOff();
-  if(nowT>=ARP.next){
-    ARP.next=nowT+stepDur;
-    const seq=arpSeq(); if(!seq.length) return;
-    const n = ARP.pattern===3 ? seq[(Math.random()*seq.length)|0] : seq[ARP.step%seq.length];
-    ARP.step++; arpOff();
-    if(window.vstai) window.vstai.noteOn(n,0.95);
-    ARP.cur=n; ARP.curT=nowT;
-  }
-}
+/* ---- arpeggiator UI — the arpeggiator itself lives in the WASM/DSP (moog.ts) so it
+   follows DAW MIDI and keeps running when this window is closed. Here we only set its
+   parameters; the on-screen keyboard and the DAW feed it the held notes to step. ---- */
+const P_ARP_ON=36, P_ARP_RATE=37, P_ARP_OCT=38, P_ARP_GATE=39, P_ARP_MODE=40;
+let arpOn=true;
 function segBtns(labels,def,onPick){
   const w=document.createElement('div'); w.className='seg';
   const bs=labels.map((t,i)=>{const b=document.createElement('button');b.textContent=t;b.title=['Up','Down','Up-Down','Random'][i]||'';
@@ -348,30 +315,21 @@ function arpField(label,node){
   const l=document.createElement('div'); l.className='arp-flabel'; l.textContent=label;
   f.append(l,node); return f;
 }
-function chordSelect(){
-  const sel=document.createElement('select'); sel.className='msel';
-  Object.keys(CHORDS).forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o);});
-  sel.value=ARP.chordName; sel.onchange=()=>{ ARP.chordName=sel.value; ARP.chord=CHORDS[sel.value]; };
-  return sel;
-}
 function buildArp(){
   const el=document.createElement('div'); el.className='sect arp';
   const h=document.createElement('h3'); h.textContent='Arpeggiator'; el.append(h);
   const row=document.createElement('div'); row.className='arp-row';
-  const onb=document.createElement('button'); onb.className='arp-on'+(ARP.on?' on':'');
-  onb.textContent=ARP.on?'ON':'OFF';
-  onb.onclick=()=>{ ARP.on=!ARP.on; onb.classList.toggle('on',ARP.on); onb.textContent=ARP.on?'ON':'OFF'; if(!ARP.on) arpOff(); postArp(); };
+  const onb=document.createElement('button'); onb.className='arp-on on'; onb.textContent='ON';
+  onb.onclick=()=>{ arpOn=!arpOn; onb.classList.toggle('on',arpOn); onb.textContent=arpOn?'ON':'OFF'; setP(P_ARP_ON,arpOn?1:0); };
   row.append(arpField('Arp',onb));
-  row.append(arpField('Chord', chordSelect()));
-  row.append(arpField('Direction', segBtns(['↑','↓','↑↓','✶'],ARP.pattern,(i)=>ARP.pattern=i)));
+  row.append(arpField('Direction', segBtns(['↑','↓','↑↓','✶'],0,(i)=>setP(P_ARP_MODE,i))));
   const knobs=document.createElement('div'); knobs.className='knobs arp-knobs';
-  knobs.append(knob({label:'Rate',min:0,max:1,def:ARP.rate,set:(v)=>ARP.rate=v}));
-  knobs.append(knob({label:'Notes Up',min:1,max:6,def:ARP.up,step:1,set:(v)=>ARP.up=v}));
-  knobs.append(knob({label:'Notes Dn',min:0,max:6,def:ARP.down,step:1,set:(v)=>ARP.down=v}));
-  knobs.append(knob({label:'Gate',min:0.1,max:1,def:ARP.gate,set:(v)=>ARP.gate=v}));
+  knobs.append(knob({label:'Rate',min:0,max:1,def:0.5,set:(v)=>setP(P_ARP_RATE,v)}));
+  knobs.append(knob({label:'Octaves',min:1,max:4,def:2,step:1,set:(v)=>setP(P_ARP_OCT,v)}));
+  knobs.append(knob({label:'Gate',min:0.1,max:1,def:0.5,set:(v)=>setP(P_ARP_GATE,v)}));
   row.append(knobs); el.append(row);
   const hint=document.createElement('div'); hint.className='arp-hint';
-  hint.textContent='ON: a key sets the root & arpeggiates a chord · OFF: play the keyboard freely';
+  hint.textContent='ON: hold notes (the keys or your DAW) and they arpeggiate · OFF: play normally · keeps running with this window closed';
   el.append(hint); return el;
 }
 
@@ -389,15 +347,7 @@ function modTick(now){
     const e=acc.get(d.idx)||{sum:0,d}; e.sum+=add; acc.set(d.idx,e);
   }
   for(const [idx,e] of acc){ const b=(idx in base)?base[idx]:0; raw(idx, Math.max(e.d.min,Math.min(e.d.max,b+e.sum))); }
-  arpTick(dt);
 }
-
-// audio lifecycle from the player: start the arp on audio-start; re-root it to
-// the last note the user plays (latch-style), so the arp follows your playing.
-window.addEventListener('message',function(e){ const m=e.data; if(!m||!m.__vstai) return;
-  if(m.type==='audiostart'){ audioOn=true; ARP.step=0; ARP.next=nowT; postArp(); }
-  else if(m.type==='userplay' && m.note!=null){ ARP.root=m.note|0; ARP.step=0; ARP.next=nowT; }
-});
 
 const rack=document.getElementById('rack');
 const sectionEls=[];
@@ -418,10 +368,8 @@ const KB_LOW=48, KB_OCTS=2, WHITE_IV=[0,2,4,5,7,9,11], BLACK_AT={1:1,3:2,6:4,8:5
 const KEY_ROW='awsedftgyhujk';                  // computer keys: chromatic up from KB_LOW
 const kbDown=new Set(), kbEls={};
 function kbPlay(note,on){
-  if(on){ audioOn=true;                          // a key activates audio + the arp in the plugin
-    if(ARP.on){ ARP.root=note; ARP.step=0; ARP.next=nowT; }
-    else if(window.vstai) window.vstai.noteOn(note,0.95);
-  } else if(!ARP.on && window.vstai){ window.vstai.noteOff(note); }
+  // Just send the note — the WASM arpeggiator (if on) steps the held notes itself.
+  if(window.vstai){ if(on) window.vstai.noteOn(note,0.95); else window.vstai.noteOff(note); }
 }
 function kbPress(n){ if(kbDown.has(n))return; kbDown.add(n); if(kbEls[n])kbEls[n].classList.add('dn'); kbPlay(n,true); }
 function kbRelease(n){ if(!kbDown.has(n))return; kbDown.delete(n); if(kbEls[n])kbEls[n].classList.remove('dn'); kbPlay(n,false); }

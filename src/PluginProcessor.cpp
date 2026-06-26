@@ -718,7 +718,19 @@ juce::String VstaiAudioProcessor::getDisplayHtml() const
     // No plugin yet: show the (editable) standard component kit live, so the user
     // can see and play the house style. Falls back to kDefaultHtml only if empty.
     auto std = vstai::appsettings::standardUi();
-    return std.isNotEmpty() ? std : juce::String (kDefaultHtml);
+    juce::String kit = std.isNotEmpty() ? std : juce::String (kDefaultHtml);
+
+    // This kit is just the house style — there's no DSP behind it, so make clear it
+    // isn't a working instrument (display only; the generation house-style seed and a
+    // real generated/exported plugin never get this banner).
+    const char* banner =
+        R"HTML(<div style="position:sticky;top:0;z-index:99;font:600 12px/1.45 system-ui,-apple-system,sans-serif;)"
+        R"HTML(color:#d3dcec;background:linear-gradient(180deg,#1b2435,#141a27);border-bottom:1px solid rgba(255,255,255,.1);)"
+        R"HTML(padding:9px 14px;text-align:center">Style preview — a GUI example, not a real synth (no sound). )HTML"
+        R"HTML(Type a prompt and press Generate, or Load a .vstai, to make a working plugin.</div>)HTML";
+    const int b = kit.indexOfIgnoreCase ("<body>");
+    return b >= 0 ? (kit.substring (0, b + 6) + banner + kit.substring (b + 6))
+                  : (juce::String (banner) + kit);
 }
 
 void VstaiAudioProcessor::newPlugin()
