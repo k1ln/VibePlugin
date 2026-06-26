@@ -146,7 +146,7 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   params[P_O2_WAVE] = 1; params[P_O2_OCT] = 0; params[P_O2_DET] = 7;
   params[P_O3_WAVE] = 2; params[P_O3_OCT] = -1; params[P_O3_DET] = -5;
   params[P_MIX1] = 0.9; params[P_MIX2] = 0.7; params[P_MIX3] = 0.5; params[P_NOISE] = 0.06;
-  params[P_CUTOFF] = 0.42; params[P_RESO] = 0.55; params[P_FENV] = 0.6;
+  params[P_CUTOFF] = 0.42; params[P_RESO] = 0.2; params[P_FENV] = 0.6;
   params[P_FA] = 0.04; params[P_FD] = 0.5; params[P_FS] = 0.25; params[P_FR] = 0.4;
   params[P_AA] = 0.02; params[P_AD] = 0.4; params[P_AS] = 0.8; params[P_AR] = 0.35;
   params[P_DRIVE] = 0.3; params[P_VOL] = 0.8;

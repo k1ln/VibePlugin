@@ -149,7 +149,7 @@ const OSC=(name,wIdx,octIdx,detIdx,defWave,defOct,defDet)=>({type:'osc',name,wId
 const SECTIONS=[
   {h:'Oscillator Bank',items:[ OSC('Osc 1',2,3,null,1,0,0), OSC('Osc 2',4,5,6,1,0,7), OSC('Osc 3',7,8,9,2,-1,-5) ]},
   {h:'Mixer',items:[ K('Osc 1',10,0,1,0.9), K('Osc 2',11,0,1,0.7), K('Osc 3',12,0,1,0.5), K('Noise',13,0,1,0.06) ]},
-  {h:'Ladder Filter',items:[ K('Cutoff',14,0,1,0.42), K('Reso',15,0,1,0.55), K('Env',16,0,1,0.6),
+  {h:'Ladder Filter',items:[ K('Cutoff',14,0,1,0.42), K('Reso',15,0,1,0.2), K('Env',16,0,1,0.6),
      K('Atk',17,0,1,0.04), K('Dec',18,0,1,0.5), K('Sus',19,0,1,0.25), K('Rel',20,0,1,0.4) ]},
   {h:'Loudness · Glide',items:[ K('Atk',21,0,1,0.02), K('Dec',22,0,1,0.4), K('Sus',23,0,1,0.8), K('Rel',24,0,1,0.35),
      K('Drive',25,0,1,0.3), K('Glide',1,0,1,0.05), K('Tune',0,-12,12,0,'st',1), K('Vol',26,0,1,0.8) ]},
