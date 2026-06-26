@@ -142,30 +142,57 @@ state, so reopening a project restores the exact plugin:
   "html": "…GUI document…",
   "wasmBase64": "AGFzbQ…",          // the compiled WASM, base64
   "params": [{ "name": "Drive", "index": 0, "min": 0, "max": 1, "default": 0.3, "value": 0.5 }],
-  "explanation": "…"
+  "explanation": "…",
+  "locked": false                   // true in an exported/whitelabel plugin (opens locked, no editor)
 }
 ```
 
 "Talking again" sends `assembly` + `html` back to Claude with the new prompt, so
 it edits in place.
 
+## Export & share a creation
+
+Three ways to get a creation out of the plugin:
+
+- **Save `.vstai`** — the portable JSON above. Anyone running VibePlugin can **Load** it.
+- **Publish** to the web **gallery** — the **Publish** button uploads the `.vstai`
+  to the catalogue; each entry plays live in the browser (the WASM in an
+  AudioWorklet) and is **downloadable as a `.vstai`**. The gallery is a static site
+  under [`docs/gallery/`](docs/gallery/).
+- **Export plugin… (whitelabel)** — turn the loaded creation into a **standalone,
+  locked `.vst3`**. It opens straight into the product GUI — no prompt, no editor,
+  no way out (see [`LockedEditor`](src/LockedEditor.h)) — so you can hand a finished
+  instrument to anyone. It **copies the running bundle** (no rebuild), bakes the
+  creation in, gives the copy its **own VST3 id + product name** (an in-place
+  binary patch, so it coexists with VibePlugin and other exports), **strips** the
+  bundled compiler + editor shell it no longer needs (≈170 MB → ≈30 MB), and
+  re-signs. With a **notarytool profile** set in **Settings** it also notarizes +
+  staples, so the export loads on any Mac with no Gatekeeper prompt. See
+  [`src/PluginExport.h`](src/PluginExport.h).
+
 ## Editing the code by hand
 
-The plugin window is tabbed:
+The editor is an HTML single-page app served from the bundle and shown in a
+WebView ([`WebEditor.*`](src/WebEditor.cpp) + [`ui/`](ui/); the legacy native JUCE
+editor [`PluginEditor.*`](src/PluginEditor.cpp) is still there as a fallback,
+toggled by the `useWebShell` setting). It is tabbed:
 
-- **GUI** — the live plugin (the generated WebView).
-- **DSP (AssemblyScript)** — a syntax-highlighted editor for the `index.ts` DSP.
-- **GUI HTML** — a syntax-highlighted editor for the GUI document.
-- **Problems** — compiler output / errors (the in-plugin "debugger").
+- **GUI** — the live plugin (the generated GUI, sandboxed in an `<iframe>`).
+- **DSP (AssemblyScript)** / **GUI HTML** — Monaco editors for the `index.ts` DSP
+  and the GUI document.
+- **Notes** — the model's explanation + the latest compiler diagnostics.
 - **History** — the prompt browser: every version (generate / AI-fix / hand-compile).
+- **Standard UI** / **Settings** — edit the house-style component kit, pick a design
+  school, and set keys / publish URL / notarization profile.
 
 Edit either source and **Save & Compile** (or `Cmd/Ctrl+S` in the editor): the
 AssemblyScript is recompiled to WASM and, on success, the engine + GUI reload
 live. On failure the previous plugin keeps playing and the compiler errors show
 up in **Problems**. **Fix with AI** hands the current source (plus any compiler
 errors) to the selected model to repair — using the same ≤3× compile-retry loop
-as generation. **Revert** restores the last compiled source. Editors use JUCE's
-built-in highlighter (offline, no external editor).
+as generation. **Revert** restores the last compiled source. The code editors are
+**Monaco**, shipped offline inside the bundle (the legacy native editor uses JUCE's
+built-in highlighter); no external editor and no network either way.
 
 The **History** tab is a prompt browser: every successful version (generate,
 AI-fix, or hand-compile) is snapshotted onto an append-only timeline. Pick any
@@ -195,8 +222,8 @@ the plugins appear as **VibePlugin FX** (effect) and **VibePlugin Synth** (instr
 (There's also a Standalone `.app` under `build*/…/Standalone/` for quick testing
 without a DAW.)
 
-Signing identity: the scripts auto-pick the first code-signing identity in your
-keychain (else ad-hoc, local-only). Override with
+Signing identity: the scripts prefer a **Developer ID Application** cert, else the
+first code-signing identity, else ad-hoc (local-only). Override with
 `VSTAI_SIGN_ID="Developer ID Application: …" ./scripts/build.sh`. See
 [Signing](#signing--gatekeeper-macos) for the one-time keychain setup.
 
@@ -246,10 +273,14 @@ the one-time setup is just getting a valid signing identity:
 - If signing fails with *"unable to build chain to self-signed root"*, your
   keychain is missing Apple's CA certs — import the current **WWDR G3**
   intermediate and **Apple Root CA** from <https://www.apple.com/certificateauthority/>.
-- Signing uses **no hardened runtime**: the DSP (wasmtime) and the bundled
-  compiler (V8) both JIT, which hardened runtime blocks without extra
-  entitlements. Distributing to *other* Macs needs a **Developer ID Application**
-  cert + notarization (add `--options runtime` + the JIT entitlements first).
+- The dev build signs with **no hardened runtime**: the DSP (wasmtime) and the
+  bundled compiler (V8) both JIT, which hardened runtime blocks without extra
+  entitlements — fine for local use.
+- For **distribution**, **Export plugin…** handles this for you: it hardened-runtime
+  signs the export (Developer ID + JIT entitlements) and, with a notarytool profile
+  in Settings, notarizes + staples it — so a whitelabel export loads on any Mac.
+  (The locked export carries only the WASM, so wasmtime is the only JIT'ing binary
+  left to entitle.)
 
 ### Manual build
 
@@ -305,27 +336,32 @@ anywhere; **Load** to bring one back; or send another prompt to evolve it.
 ```
 src/                         C++ (shared by both plugins)
   WasmAbi.h                  the host<->WASM contract (source of truth)
+  BridgeProtocol.h / BridgeShim.h   GUI<->host wire format + the injected window.vstai shim
   Prompt.h                   system prompt + output schema  ← "the prompt"
   Config.example.h           copy to Config.h to bake in the API key
-  Settings.h                 resolves config (compiled-in or env)
-  AppSettings.h              runtime keys/URL + license via Keys…/License…
+  Settings.h / AppSettings.h resolved config (compiled-in/env) + runtime keys/URLs/license/notary
+  Designs.h                  the 10 built-in design schools (house-style kits)
   LlmClient.*                raw HTTPS to Claude / GLM / Ollama
   ManualPanel.h              "bring your own chatbot" dialog (copy prompt / paste reply)
-  LicenseClient.h            license server HTTP (activate / validate / deactivate)
-  LicensePanel.h             "License…" dialog: activate a lifetime key
-server/                      lives in a separate PRIVATE repo: VibePlugin-server (not in this tree)
+  LicenseClient.h / LicensePanel.h   license server HTTP + the "License…" dialog
   AssemblyScriptCompiler.*   execs the bundled compiler -> WASM
   WasmEngine.*               wasmtime wrapper; audio + synth notes
-  VstaiDocument.*            the .vstai JSON model (+ DAW state)
-  PluginProcessor.*          audio/MIDI + state + generate/compile loop
-  PluginEditor.*             prompt bar + tabs (GUI/DSP/HTML/Problems/History) + bridge
-  SourceEditor.h             dark CodeEditorComponent for the DSP/HTML tabs
-  HistoryPanel.h             prompt browser (revision timeline) for the History tab
+  VstaiDocument.*            the .vstai JSON model (+ DAW state, lock flag)
+  PluginProcessor.*          audio/MIDI + state + generate/compile loop + export
+  WebEditor.* + WebAssets.h  the default editor: an HTML/Monaco WebView shell (loads ui/)
+  LockedEditor.*             product-only editor for an exported/whitelabel plugin
+  PluginExport.h             "Export plugin…": copy + bake + re-identify + sign a standalone .vst3
+  PluginEditor.* / SourceEditor.h / HistoryPanel.h   legacy native editor (fallback)
+ui/                          the WebView editor SPA (shell.html/js/css + Monaco) and designs/
 compiler/                    builds the bundled AssemblyScript compiler
   asc-driver.mjs             <in.ts> in, <out.wasm> out
   build.sh                   esbuild + (deno/bun/node) -> vstai-asc
 wasm-template/assembly/      reference AssemblyScript: index.ts (effect), synth.ts
+docs/gallery/                static web gallery — play creations live, download them as .vstai
 web/                         the default starter GUI
+
+The license/credits backend is **not** in this tree — it's a separate private repo
+(`VibePlugin-server`).
 ```
 
 ## Notes & limits

@@ -61,12 +61,16 @@ const P_REV_MIX: i32 = 33;   // reverb
 const P_REV_SIZE: i32 = 34;
 const P_REV_DAMP: i32 = 35;
 // ---- arpeggiator (DSP-level, so it follows DAW MIDI + keeps running with the GUI closed) ----
-const P_ARP_ON: i32 = 36;    // 0/1
-const P_ARP_RATE: i32 = 37;  // 0..1 -> ~2..18 steps/sec
-const P_ARP_OCT: i32 = 38;   // 1..4 octave span
-const P_ARP_GATE: i32 = 39;  // 0.1..1 note length (fraction of a step)
-const P_ARP_MODE: i32 = 40;  // 0 up, 1 down, 2 up-down, 3 random
-const NUM_PARAMS: i32 = 41;
+// Chord arp: the last held note is the root; it builds a chord (P_ARP_CHORD) and steps
+// through `up` tones above the root + `down` tones below it, in the chosen direction.
+const P_ARP_ON: i32 = 36;     // 0/1
+const P_ARP_RATE: i32 = 37;   // 0..1 -> ~2..18 steps/sec
+const P_ARP_CHORD: i32 = 38;  // 0..9: Maj,Min,Maj7,Min7,Dom7,Sus2,Sus4,Dim,Power,Octaves
+const P_ARP_GATE: i32 = 39;   // 0.1..1 note length (fraction of a step)
+const P_ARP_MODE: i32 = 40;   // 0 up, 1 down, 2 up-down, 3 random
+const P_ARP_UP: i32 = 41;     // 1..6 chord tones from the root upward (incl. the root)
+const P_ARP_DOWN: i32 = 42;   // 0..6 chord tones below the root
+const NUM_PARAMS: i32 = 43;
 
 let sampleRate: f32 = 44100;
 
@@ -120,7 +124,9 @@ let arpStep: i32 = 0;      // running pattern position
 let arpGate: f32 = 0;      // samples left before the current step releases
 let arpVoice: i32 = 0;     // 1 while an arp-triggered note is sounding
 let arpRand: i32 = 0x2f6e2b1;
-const arpSorted: StaticArray<f32> = new StaticArray<f32>(16);   // held freqs, ascending
+const chordIv: StaticArray<i32>   = new StaticArray<i32>(4);    // intervals of the current chord
+const arpLadder: StaticArray<i32> = new StaticArray<i32>(64);   // chord tones laddered across octaves
+const arpOffsets: StaticArray<i32> = new StaticArray<i32>(32);  // selected window (semitones from root)
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr;
@@ -153,8 +159,8 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   params[P_CHO_MIX] = 0.35; params[P_CHO_RATE] = 0.3; params[P_CHO_DEPTH] = 0.5;
   params[P_DLY_MIX] = 0.22; params[P_DLY_TIME] = 0.4; params[P_DLY_FB] = 0.4;
   params[P_REV_MIX] = 0.3; params[P_REV_SIZE] = 0.6; params[P_REV_DAMP] = 0.4;
-  params[P_ARP_ON] = 1; params[P_ARP_RATE] = 0.5; params[P_ARP_OCT] = 2;
-  params[P_ARP_GATE] = 0.5; params[P_ARP_MODE] = 0;
+  params[P_ARP_ON] = 1; params[P_ARP_RATE] = 0.5; params[P_ARP_CHORD] = 1;   // Minor
+  params[P_ARP_GATE] = 0.55; params[P_ARP_MODE] = 2; params[P_ARP_UP] = 3; params[P_ARP_DOWN] = 0;
 }
 
 export function getInputPtr(): usize  { return changetype<usize>(inBuf); }
@@ -184,19 +190,36 @@ export function noteOff(id: i32): void {
   else tgtFreq = stackHz[stackN - 1];                     // glide to held note
 }
 
-// Pick the arpeggiated note frequency for sequence index `idx` across `octs` octaves:
-// the held notes sorted ascending, repeated up by octaves.
-function arpNoteFreq(idx: i32, octs: i32): f32 {
-  for (let i = 0; i < stackN; i++) {                      // insertion sort held freqs -> arpSorted
-    const x = stackHz[i]; let j = i - 1;
-    while (j >= 0 && arpSorted[j] > x) { arpSorted[j + 1] = arpSorted[j]; j--; }
-    arpSorted[j + 1] = x;
-  }
-  const within: i32 = idx % stackN;
-  const oct: i32 = idx / stackN;
-  let f: f32 = arpSorted[within];
-  for (let o = 0; o < oct; o++) f *= 2.0;
-  return f;
+// Chord intervals (semitones) for a type -> chordIv[]; returns the count.
+function chordIntervals(type: i32): i32 {
+  if (type == 0) { chordIv[0]=0; chordIv[1]=4; chordIv[2]=7;                return 3; } // Major
+  if (type == 1) { chordIv[0]=0; chordIv[1]=3; chordIv[2]=7;                return 3; } // Minor
+  if (type == 2) { chordIv[0]=0; chordIv[1]=4; chordIv[2]=7; chordIv[3]=11; return 4; } // Maj7
+  if (type == 3) { chordIv[0]=0; chordIv[1]=3; chordIv[2]=7; chordIv[3]=10; return 4; } // Min7
+  if (type == 4) { chordIv[0]=0; chordIv[1]=4; chordIv[2]=7; chordIv[3]=10; return 4; } // Dom7
+  if (type == 5) { chordIv[0]=0; chordIv[1]=2; chordIv[2]=7;                return 3; } // Sus2
+  if (type == 6) { chordIv[0]=0; chordIv[1]=5; chordIv[2]=7;                return 3; } // Sus4
+  if (type == 7) { chordIv[0]=0; chordIv[1]=3; chordIv[2]=6;                return 3; } // Dim
+  if (type == 8) { chordIv[0]=0; chordIv[1]=7;                              return 2; } // Power
+  chordIv[0]=0;                                                             return 1;   // Octaves
+}
+
+// Build the arp's window of semitone offsets from the root into arpOffsets[] and return
+// its length: ladder the chord tones across octaves, then take `down` tones below the
+// root and `up` above it (the root is the first "up"). Mirrors the original GUI arp.
+function buildArpOffsets(type: i32, up: i32, down: i32): i32 {
+  const nc = chordIntervals(type);
+  let total = 0;
+  for (let o = -5; o <= 5; o++)                                  // ascending ladder
+    for (let i = 0; i < nc; i++) arpLadder[total++] = chordIv[i] + 12 * o;
+  let ri = 0; for (; ri < total; ri++) if (arpLadder[ri] == 0) break;   // root sits at offset 0
+  if (up < 1) up = 1; if (down < 0) down = 0;
+  let lo = ri - down; if (lo < 0) lo = 0;
+  let hi = ri + up;   if (hi > total) hi = total;
+  let cnt = 0;
+  for (let j = lo; j < hi; j++) arpOffsets[cnt++] = arpLadder[j];
+  if (cnt == 0) { arpOffsets[0] = 0; cnt = 1; }
+  return cnt;
 }
 
 // ---- helpers -------------------------------------------------------
@@ -287,8 +310,9 @@ export function process(n: i32): void {
         arpClock -= 1.0;
         if (arpClock <= 0.0) {
           arpClock += stepLen;
-          let octs: i32 = <i32>(params[P_ARP_OCT] + 0.5); if (octs < 1) octs = 1; if (octs > 4) octs = 4;
-          const seqN: i32 = stackN * octs;
+          const seqN: i32 = buildArpOffsets(<i32>(params[P_ARP_CHORD] + 0.5),
+                                            <i32>(params[P_ARP_UP] + 0.5),
+                                            <i32>(params[P_ARP_DOWN] + 0.5));
           const mode: i32 = <i32>(params[P_ARP_MODE] + 0.5);
           let idx: i32;
           if (mode == 1) {                                    // down
@@ -304,7 +328,8 @@ export function process(n: i32): void {
             idx = arpStep % seqN;
           }
           arpStep++;
-          const nf: f32 = arpNoteFreq(idx, octs);
+          const off: i32 = arpOffsets[idx];                   // semitones from the root (last held note)
+          const nf: f32 = stackHz[stackN - 1] * Mathf.pow(2.0, <f32>off / 12.0);
           tgtFreq = nf; curFreq = nf;                         // jump pitch (no glide between steps)
           aStage = 1; fStage = 1;                             // retrigger both envelopes (pluck)
           arpVoice = 1;

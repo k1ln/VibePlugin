@@ -302,7 +302,8 @@ function buildMod(){
 /* ---- arpeggiator UI — the arpeggiator itself lives in the WASM/DSP (moog.ts) so it
    follows DAW MIDI and keeps running when this window is closed. Here we only set its
    parameters; the on-screen keyboard and the DAW feed it the held notes to step. ---- */
-const P_ARP_ON=36, P_ARP_RATE=37, P_ARP_OCT=38, P_ARP_GATE=39, P_ARP_MODE=40;
+const P_ARP_ON=36, P_ARP_RATE=37, P_ARP_CHORD=38, P_ARP_GATE=39, P_ARP_MODE=40, P_ARP_UP=41, P_ARP_DOWN=42;
+const CHORD_NAMES=['Major','Minor','Maj7','Min7','Dom7','Sus2','Sus4','Dim','Power','Octaves'];
 let arpOn=true;
 function segBtns(labels,def,onPick){
   const w=document.createElement('div'); w.className='seg';
@@ -315,6 +316,13 @@ function arpField(label,node){
   const l=document.createElement('div'); l.className='arp-flabel'; l.textContent=label;
   f.append(l,node); return f;
 }
+function chordSelect(){
+  const sel=document.createElement('select'); sel.className='msel';
+  CHORD_NAMES.forEach((n,i)=>{const o=document.createElement('option');o.value=i;o.textContent=n;sel.append(o);});
+  sel.value='1';                                   // Minor
+  sel.onchange=()=>setP(P_ARP_CHORD, +sel.value);
+  return sel;
+}
 function buildArp(){
   const el=document.createElement('div'); el.className='sect arp';
   const h=document.createElement('h3'); h.textContent='Arpeggiator'; el.append(h);
@@ -322,14 +330,16 @@ function buildArp(){
   const onb=document.createElement('button'); onb.className='arp-on on'; onb.textContent='ON';
   onb.onclick=()=>{ arpOn=!arpOn; onb.classList.toggle('on',arpOn); onb.textContent=arpOn?'ON':'OFF'; setP(P_ARP_ON,arpOn?1:0); };
   row.append(arpField('Arp',onb));
-  row.append(arpField('Direction', segBtns(['↑','↓','↑↓','✶'],0,(i)=>setP(P_ARP_MODE,i))));
+  row.append(arpField('Chord', chordSelect()));
+  row.append(arpField('Direction', segBtns(['↑','↓','↑↓','✶'],2,(i)=>setP(P_ARP_MODE,i))));
   const knobs=document.createElement('div'); knobs.className='knobs arp-knobs';
   knobs.append(knob({label:'Rate',min:0,max:1,def:0.5,set:(v)=>setP(P_ARP_RATE,v)}));
-  knobs.append(knob({label:'Octaves',min:1,max:4,def:2,step:1,set:(v)=>setP(P_ARP_OCT,v)}));
-  knobs.append(knob({label:'Gate',min:0.1,max:1,def:0.5,set:(v)=>setP(P_ARP_GATE,v)}));
+  knobs.append(knob({label:'Notes Up',min:1,max:6,def:3,step:1,set:(v)=>setP(P_ARP_UP,v)}));
+  knobs.append(knob({label:'Notes Dn',min:0,max:6,def:0,step:1,set:(v)=>setP(P_ARP_DOWN,v)}));
+  knobs.append(knob({label:'Gate',min:0.1,max:1,def:0.55,set:(v)=>setP(P_ARP_GATE,v)}));
   row.append(knobs); el.append(row);
   const hint=document.createElement('div'); hint.className='arp-hint';
-  hint.textContent='ON: hold notes (the keys or your DAW) and they arpeggiate · OFF: play normally · keeps running with this window closed';
+  hint.textContent='ON: hold a note → it arpeggiates the chord (set Chord + Notes Up/Dn + Direction) · OFF: play normally · runs with this window closed';
   el.append(hint); return el;
 }
 
