@@ -15,17 +15,22 @@
   .head b{font-size:14px;letter-spacing:.02em}
   .head span{font:600 11px var(--mono);color:var(--muted);letter-spacing:.06em}
 
-  /* ---- control sections ---- */
-  .rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(206px,1fr));gap:11px;align-items:start}
+  /* ---- control sections: masonry columns so the knobs pack tight (no big
+         empty gaps under the shorter sections like a grid would leave) ---- */
+  .rack{column-width:250px;column-gap:11px}
   .sect{background:linear-gradient(180deg,var(--surface-2),#15171d);border:1px solid var(--line);
-    border-radius:13px;padding:12px 13px 14px;box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
+    border-radius:13px;padding:12px 13px 14px;box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+    break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 11px}
+  /* the oscillator bank, modulation + arp sections span the full width */
+  .sect.osc-bank, .sect.mod, .sect.arp{column-span:all;break-inside:avoid}
+  .sect.osc-bank .knobs{justify-content:space-evenly;gap:16px 30px}
   .sect h3{font:600 9px var(--mono);letter-spacing:.17em;color:var(--accent);opacity:.9;margin:0 0 11px;
     text-transform:uppercase;display:flex;align-items:center;gap:7px}
   .sect h3::after{content:"";flex:1;height:1px;background:var(--line)}
   .knobs{display:flex;gap:15px 14px;flex-wrap:wrap;justify-content:center}
 
   .knob{width:54px;display:flex;flex-direction:column;align-items:center;gap:5px}
-  .ring{width:48px;height:48px;border-radius:50%;padding:3px;cursor:ns-resize;position:relative;
+  .ring{width:48px;height:48px;border-radius:50%;padding:3px;cursor:ns-resize;position:relative;touch-action:none;
     background:conic-gradient(from 225deg,
       var(--accent) 0 var(--deg,0deg),
       rgba(255,255,255,.09) var(--deg,0deg) 270deg,
@@ -40,18 +45,101 @@
     box-shadow:0 0 6px var(--accent)}
   .knob label{font:600 9px var(--sans);letter-spacing:.05em;color:var(--ink-2);text-align:center}
   .knob .val{font:600 9px var(--mono);color:var(--muted)}
+  /* compact knob for the modulation matrix */
+  .knob.sm{width:46px} .knob.sm .ring{width:38px;height:38px}
+  .knob.sm .dial::after{height:11px;top:4px;transform-origin:50% 14px}
 
   .oscname{font:700 9px var(--sans);letter-spacing:.1em;color:var(--ink-2);margin-bottom:6px;text-transform:uppercase}
   .waves{display:flex;gap:3px;margin-bottom:8px}
-  .waves button{flex:1;background:#0e1015;border:1px solid var(--line);color:var(--muted);border-radius:7px;
-    padding:6px 0;cursor:pointer;font:600 13px var(--mono);line-height:1;transition:.12s}
+  .waves button{flex:1;display:flex;align-items:center;justify-content:center;
+    background:#0e1015;border:1px solid var(--line);color:var(--muted);border-radius:7px;
+    padding:5px 0;cursor:pointer;line-height:0;transition:.12s}
+  .waves button svg{width:26px;height:14px;display:block}
   .waves button:hover{color:var(--ink-2);border-color:var(--line-2)}
   .waves button.on{color:#fff;background:linear-gradient(180deg,#5b97ff,var(--accent));border-color:#3f74e0;
     box-shadow:0 0 11px rgba(79,141,255,.4)}
   .col{display:flex;flex-direction:column;align-items:center}
+
+  /* ---- modulation (3 LFOs + routing list) ---- */
+  .sect.mod{margin-top:0}
+  .lfos{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .lfo-card{flex:1 1 180px;display:flex;align-items:center;gap:10px;
+    background:#0e1015;border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+  .lfo-card .name{font:700 10px var(--sans);letter-spacing:.06em;color:var(--ink-2);width:40px}
+  .lfo-card .waves{margin:0;flex:1;max-width:128px}
+  .lfo1 .name{color:var(--accent)} .lfo2 .name{color:var(--accent-2)} .lfo3 .name{color:var(--ok)}
+  .routes{display:flex;flex-direction:column;gap:8px}
+  .route-list{display:flex;flex-direction:column;gap:8px}
+  .route{display:flex;align-items:center;gap:9px}
+  .msel{background:#0e1015;border:1px solid var(--line);color:var(--ink-2);border-radius:7px;
+    padding:7px 9px;font:600 11px var(--sans);cursor:pointer;outline:none}
+  .msel:hover{border-color:var(--line-2)}
+  .msel.dst{flex:1;min-width:130px}
+  .route .arrow{color:var(--muted)}
+  .route-del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;
+    width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;flex:0 0 auto}
+  .route-del:hover{color:#ff7a7a;border-color:#7a3030}
+  .route-add{align-self:flex-start;background:#0e1015;border:1px dashed var(--line-2);color:var(--accent);
+    border-radius:8px;padding:7px 13px;cursor:pointer;font:600 11px var(--sans);margin-top:2px}
+  .route-add:hover{border-color:var(--accent);background:#0f1320}
+  /* ---- arpeggiator ---- */
+  .arp-row{display:flex;align-items:flex-end;gap:18px 22px;flex-wrap:wrap}
+  .arp-field{display:flex;flex-direction:column;gap:7px}
+  .arp-flabel{font:600 8px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+  .arp-knobs{margin-left:auto;gap:14px}
+  .arp-on{background:#0e1015;border:1px solid var(--line);color:var(--muted);border-radius:8px;
+    padding:8px 17px;font:700 12px var(--mono);letter-spacing:.12em;cursor:pointer}
+  .arp-on.on{color:#06140f;background:linear-gradient(180deg,#5fe6bf,var(--ok));border-color:#2c8c79;
+    box-shadow:0 0 12px rgba(70,211,154,.45)}
+  .arp-hint{font:600 9px var(--mono);letter-spacing:.03em;color:var(--muted);opacity:.7;margin:12px 0 0}
+  .seg{display:flex;gap:3px}
+  .seg button{background:#0e1015;border:1px solid var(--line);color:var(--muted);border-radius:7px;
+    padding:6px 11px;cursor:pointer;font:600 13px var(--mono);line-height:1;transition:.12s}
+  .seg button:hover{color:var(--ink-2);border-color:var(--line-2)}
+  .seg button.on{color:#fff;background:linear-gradient(180deg,#5b97ff,var(--accent));border-color:#3f74e0}
+  .msel{background:#0e1015;border:1px solid var(--line);color:var(--ink-2);border-radius:7px;
+    padding:7px 9px;font:600 11px var(--mono);cursor:pointer}
+
+  /* ---- on-screen keyboard (self-contained: plays the synth + roots the arp) ---- */
+  .sect.keys{column-span:all;break-inside:avoid}
+  .kbd{position:relative;display:flex;height:94px;margin-top:2px;touch-action:none}
+  .key{position:relative;flex:1;border:1px solid #0a0c10;border-top:none;border-radius:0 0 6px 6px;
+    background:linear-gradient(180deg,#eef1f6,#ccd2dc);box-shadow:0 -3px 5px rgba(0,0,0,.32) inset;cursor:pointer}
+  .key.dn{background:linear-gradient(180deg,#9fc0ff,#6f97e6)}
+  .key.black{position:absolute;top:0;width:6%;height:60%;z-index:2;border-radius:0 0 5px 5px;
+    background:linear-gradient(180deg,#2b3140,#0b0d12);border:1px solid #000;
+    box-shadow:0 3px 6px rgba(0,0,0,.6);transform:translateX(-50%)}
+  .key.black.dn{background:linear-gradient(180deg,#5b8cff,#3358c8)}
+  .kbd-hint{font:600 9px var(--mono);letter-spacing:.04em;color:var(--muted);opacity:.7;margin:9px 0 0}
+
+  /* ---- intro build animation (homepage only; gated by window.__vstaiIntro) ---- */
+  /* the prompt box floats above everything (sections get a stacking context from
+     their reveal transform, so it needs an explicit z-index to stay on top) */
+  .build{position:relative;z-index:30;margin:2px 0 14px;display:flex;flex-direction:column;gap:7px;
+    transition:opacity .5s ease,margin .5s ease}
+  .chat{display:flex;align-items:center;gap:11px;font-size:15px;
+    background:linear-gradient(180deg,#171b25,#11141b);border:1px solid var(--line-2);
+    border-radius:12px;padding:12px 15px;box-shadow:0 16px 50px -26px #000,inset 0 1px 0 rgba(255,255,255,.05)}
+  .chat .spark{width:18px;height:18px;flex:0 0 auto;color:var(--accent);
+    filter:drop-shadow(0 0 5px rgba(79,141,255,.6))}
+  .chat .tag{font:600 9px var(--mono);letter-spacing:.14em;color:var(--muted);text-transform:uppercase;
+    flex:0 0 auto;border-right:1px solid var(--line);padding-right:11px}
+  .ctext{font-weight:600;color:var(--ink);white-space:pre}
+  .ccaret{width:2px;height:1.05em;border-radius:2px;background:var(--accent);
+    box-shadow:0 0 8px var(--accent);animation:cbl 1s steps(1) infinite}
+  .chat.ready .ccaret{display:none}
+  @keyframes cbl{50%{opacity:0}}
+  .chat .skiph{margin-left:auto;flex:0 0 auto;font:600 9px var(--mono);letter-spacing:.12em;
+    color:var(--muted);opacity:.55;text-transform:uppercase}
+  .chat.ready .skiph{display:none}
+  .bcap{min-height:15px;font:600 12px var(--mono);letter-spacing:.04em;color:var(--muted);padding-left:2px}
+  .bcap.ok{color:var(--ok);font-size:13px}
+  .sect.pre,.head.pre{opacity:0;transform:translateY(14px) scale(.985);pointer-events:none}
+  .sect.in,.head.in{opacity:1;transform:none;
+    transition:opacity .7s ease,transform .75s cubic-bezier(.2,.7,.2,1)}
 </style></head>
 <body>
-  <div class="head"><b>VibeSynth</b><span>monophonic analog · 3 osc · ladder filter · FX</span></div>
+  <div class="head"><b>VibeSynth</b><span>monophonic analog · 3 osc · ladder filter · LFO matrix · FX</span></div>
 
   <div class="rack" id="rack"></div>
 
@@ -69,54 +157,353 @@ const SECTIONS=[
   {h:'Ping-Pong Delay',items:[ K('Mix',30,0,1,0.22), K('Time',31,0,1,0.4), K('F.back',32,0,1,0.4) ]},
   {h:'Reverb',items:[ K('Mix',33,0,1,0.3), K('Size',34,0,1,0.6), K('Damp',35,0,1,0.4) ]},
 ];
-const WAVES=['◺','◹','⊓','⊔'];
-function setP(i,v){ if(window.vstai) window.vstai.setParam(i,v); }
+
+/* ---- exact waveform icons (stroked SVG paths in a 28x16 box) ----------- */
+const WAVE_PATHS={
+  sine:'M1 8 C 4.3 0.6, 9.7 0.6, 13 8 C 16.3 15.4, 21.7 15.4, 25 8',
+  tri :'M1 8 L 5 2 L 13 14 L 21 2 L 25 8',
+  saw :'M2 14 L 9 2 L 9 14 L 16 2 L 16 14 L 23 2',
+  sq  :'M1 13 L 1 3 L 8 3 L 8 13 L 15 13 L 15 3 L 22 3 L 22 13 L 25 13',
+  pulse:'M1 13 L 5 13 L 5 3 L 8 3 L 8 13 L 15 13 L 15 3 L 18 3 L 18 13 L 25 13',
+};
+const waveSVG=(name)=>'<svg viewBox="0 0 26 16" fill="none" stroke="currentColor" stroke-width="1.6" '+
+  'stroke-linejoin="round" stroke-linecap="round"><path d="'+WAVE_PATHS[name]+'"/></svg>';
+
+/* ---- params: setP tracks a base value so the LFO matrix can add on top --- */
+const base={};
+function raw(i,v){ if(window.vstai) window.vstai.setParam(i,v); }
+function setP(i,v){ base[i]=v; raw(i,v); }
+
+function makeWaveBtns(icons,def,onPick){
+  const waves=document.createElement('div'); waves.className='waves';
+  const btns=icons.map((name,wi)=>{const b=document.createElement('button');
+    b.innerHTML=waveSVG(name); b.title=name[0].toUpperCase()+name.slice(1);
+    b.onclick=()=>{onPick(wi);btns.forEach(x=>x.classList.remove('on'));b.classList.add('on');};return b;});
+  btns[def].classList.add('on'); waves.append(...btns); return waves;
+}
 
 function knob(s){
-  const wrap=document.createElement('div'); wrap.className='knob';
+  const wrap=document.createElement('div'); wrap.className='knob'+(s.sm?' sm':'');
   const ring=document.createElement('div'); ring.className='ring';
   const dial=document.createElement('div'); dial.className='dial'; ring.append(dial);
   const lab=document.createElement('label'); lab.textContent=s.label;
   const val=document.createElement('div'); val.className='val';
   wrap.append(ring,lab,val); let v=s.def;
   const snap=(x)=> s.step? Math.round(x/s.step)*s.step : x;
-  function apply(send){
-    v=Math.max(s.min,Math.min(s.max,snap(v)));
-    const t=(v-s.min)/(s.max-s.min);
+  const send=(sv)=> s.set? s.set(sv) : setP(s.idx,sv);
+  function apply(emit){
+    // keep v as a continuous accumulator (clamped); snap only for display + output,
+    // otherwise small drag increments on a stepped knob round back before they add up.
+    v=Math.max(s.min,Math.min(s.max,v));
+    const sv=snap(v);
+    const t=(sv-s.min)/(s.max-s.min);
     ring.style.setProperty('--deg',(t*270)+'deg');
     dial.style.setProperty('--rot',(-135+t*270)+'deg');
-    val.textContent = s.unit==='st'?(v>0?'+':'')+v.toFixed(0)+'st':(s.step?v.toFixed(0):v.toFixed(2));
-    if(send) setP(s.idx,v);
+    val.textContent = s.unit==='st'?(sv>0?'+':'')+sv.toFixed(0)+'st':(s.step?sv.toFixed(0):sv.toFixed(2));
+    if(emit) send(sv);
   }
-  let drag=false,ly=0;
-  const dn=(e)=>{drag=true;ly=(e.touches?e.touches[0].clientY:e.clientY);e.preventDefault();};
-  const mv=(e)=>{if(!drag)return;const y=(e.touches?e.touches[0].clientY:e.clientY);v+=(ly-y)*(s.max-s.min)/170;ly=y;apply(true);};
-  const up=()=>drag=false;
-  ring.addEventListener('mousedown',dn); ring.addEventListener('touchstart',dn,{passive:false});
-  window.addEventListener('mousemove',mv); window.addEventListener('touchmove',mv,{passive:false});
-  window.addEventListener('mouseup',up); window.addEventListener('touchend',up);
+  let ly=0;
+  const dn=(e)=>{ly=e.clientY;try{ring.setPointerCapture(e.pointerId);}catch(_){ }e.preventDefault();};
+  const mv=(e)=>{if(!ring.hasPointerCapture||!ring.hasPointerCapture(e.pointerId))return;const y=e.clientY;v+=(ly-y)*(s.max-s.min)/170;ly=y;apply(true);};
+  const up=(e)=>{try{ring.releasePointerCapture(e.pointerId);}catch(_){ }};
+  ring.addEventListener('pointerdown',dn);
+  ring.addEventListener('pointermove',mv);
+  ring.addEventListener('pointerup',up);
+  ring.addEventListener('pointercancel',up);
   ring.addEventListener('dblclick',()=>{v=s.def;apply(true);});
   apply(true); return wrap;
 }
 function osc(s){
   const col=document.createElement('div'); col.className='col';
   const name=document.createElement('div'); name.className='oscname'; name.textContent=s.name;
-  const waves=document.createElement('div'); waves.className='waves';
-  const btns=WAVES.map((g,wi)=>{const b=document.createElement('button');b.textContent=g;b.title=['Triangle','Saw','Square','Pulse'][wi];
-    b.onclick=()=>{setP(s.wIdx,wi);btns.forEach(x=>x.classList.remove('on'));b.classList.add('on');};return b;});
-  btns[s.defWave].classList.add('on'); setP(s.wIdx,s.defWave); waves.append(...btns);
+  setP(s.wIdx,s.defWave);
+  const waves=makeWaveBtns(['tri','saw','sq','pulse'],s.defWave,(wi)=>setP(s.wIdx,wi));
   const knobs=document.createElement('div'); knobs.className='knobs';
   knobs.append(knob(K('Oct',s.octIdx,-2,2,s.defOct,'',1)));
   if(s.detIdx!=null) knobs.append(knob(K('Detune',s.detIdx,-50,50,s.defDet)));
   col.append(name,waves,knobs); return col;
 }
+
+/* ====================================================================== *
+ *  MODULATION + ARPEGGIATOR — three LFOs patchable onto ANY knob, plus an  *
+ *  arp that starts when audio starts. All runs in the GUI, streaming        *
+ *  setParam()/noteOn() to the DSP (its params are all in use server-side).  *
+ * ====================================================================== */
+// every knob is a possible mod destination — derived from the section data
+const MOD_DESTS=[];
+(function(){
+  const SHORT={'Oscillator Bank':'Osc','Mixer':'Mix','Ladder Filter':'Filt','Loudness · Glide':'Amp',
+    'Chorus':'Chorus','Ping-Pong Delay':'Delay','Reverb':'Reverb'};
+  const add=(idx,label,min,max)=>{ if(idx!=null) MOD_DESTS.push({idx,label,min,max}); };
+  for(const sec of SECTIONS){ const p=SHORT[sec.h]||sec.h;
+    for(const it of sec.items){
+      if(it.type==='osc'){ add(it.octIdx,p+' '+it.name+' Oct',-2,2); if(it.detIdx!=null) add(it.detIdx,p+' '+it.name+' Detune',-50,50); }
+      else add(it.idx,p+' '+it.label,it.min,it.max);
+    }
+  }
+})();
+const destOf=(pidx)=>Math.max(0,MOD_DESTS.findIndex(d=>d.idx===pidx));
+
+const RATE_HZ=(t)=>0.08*Math.pow(600,t);   // ~0.08 .. 48 Hz — top end is 5x the old LFO max
+function lfoOut(shape,p){
+  if(shape===0) return Math.sin(p*6.2831853);             // sine
+  if(shape===1) return p<0.5? -1+4*p : 3-4*p;             // triangle
+  if(shape===2) return 2*p-1;                             // saw
+  return p<0.5? 1 : -1;                                   // square
+}
+const LFOS=[
+  {shape:0, rate:0.45, phase:0},
+  {shape:1, rate:0.34, phase:0.25},
+  {shape:2, rate:0.60, phase:0.5},
+];
+// modulation routes: source LFO -> destination (index into MOD_DESTS) * amount(-1..1)
+const ROUTES=[
+  {lfo:0, dest:destOf(14), amt:0.35},   // LFO 1 -> Cutoff
+  {lfo:1, dest:destOf(15), amt:0.20},   // LFO 2 -> Reso
+  {lfo:2, dest:destOf(27), amt:0.30},   // LFO 3 -> Chorus Mix
+];
+
+function lfoCard(lfo,li){
+  const card=document.createElement('div'); card.className='lfo-card lfo'+(li+1);
+  const nm=document.createElement('div'); nm.className='name'; nm.textContent='LFO '+(li+1);
+  const waves=makeWaveBtns(['sine','tri','saw','sq'],lfo.shape,(wi)=>lfo.shape=wi);
+  const rate=knob({label:'Rate',min:0,max:1,def:lfo.rate,sm:true,set:(v)=>{lfo.rate=v;}});
+  card.append(nm,waves,rate); return card;
+}
+function routeRow(r,rerender){
+  const row=document.createElement('div'); row.className='route';
+  const src=document.createElement('select'); src.className='msel src';
+  ['LFO 1','LFO 2','LFO 3'].forEach((n,i)=>{const o=document.createElement('option');o.value=i;o.textContent=n;src.append(o);});
+  src.value=r.lfo; src.onchange=()=>r.lfo=+src.value;
+  const arrow=document.createElement('span'); arrow.className='arrow'; arrow.textContent='→';
+  const dst=document.createElement('select'); dst.className='msel dst';
+  MOD_DESTS.forEach((d,i)=>{const o=document.createElement('option');o.value=i;o.textContent=d.label;dst.append(o);});
+  dst.value=r.dest; dst.onchange=()=>r.dest=+dst.value;
+  const amt=knob({label:'Amt',min:-1,max:1,def:r.amt,sm:true,set:(v)=>{r.amt=v;}});
+  const del=document.createElement('button'); del.className='route-del'; del.title='remove'; del.textContent='×';
+  del.onclick=()=>{ const i=ROUTES.indexOf(r); if(i>=0) ROUTES.splice(i,1); rerender(); };
+  row.append(src,arrow,dst,amt,del); return row;
+}
+function buildMod(){
+  const el=document.createElement('div'); el.className='sect mod';
+  const h=document.createElement('h3'); h.textContent='Modulation · 3 LFOs'; el.append(h);
+  const lfos=document.createElement('div'); lfos.className='lfos';
+  LFOS.forEach((lfo,li)=>lfos.append(lfoCard(lfo,li)));
+  el.append(lfos);
+  const routes=document.createElement('div'); routes.className='routes';
+  const list=document.createElement('div'); list.className='route-list';
+  function rerender(){ list.innerHTML=''; ROUTES.forEach(r=>list.append(routeRow(r,rerender))); }
+  const add=document.createElement('button'); add.className='route-add'; add.textContent='+ patch an LFO onto any knob';
+  add.onclick=()=>{ ROUTES.push({lfo:0,dest:0,amt:0.3}); rerender(); };
+  routes.append(list,add); el.append(routes); rerender();
+  return el;
+}
+
+/* ---- arpeggiator: latches to the LAST PLAYED note, arpeggiates a chord ---- */
+const CHORDS={ 'Major':[0,4,7], 'Minor':[0,3,7], 'Maj7':[0,4,7,11], 'Min7':[0,3,7,10],
+               'Sus4':[0,5,7], 'Power':[0,7], 'Octaves':[0] };
+const ARP={on:true, rate:0.5, up:3, down:0, gate:0.55, pattern:2, chordName:'Minor', root:48,
+           next:0, step:0, cur:null, curT:0};
+ARP.chord=CHORDS[ARP.chordName];
+let audioOn=false, nowT=0;
+const ARP_SPS=(t)=>2*Math.pow(9,t);                       // ~2 .. 18 steps/sec
+function postArp(){ try{ parent.postMessage({__vstai:1,type:'arpstate',on:(ARP.on&&audioOn)},'*'); }catch(_){ } }
+function arpSeq(){
+  // walk the chord tones as a ladder across octaves, take `up` notes from the root
+  // upward (incl. the root) and `down` notes below it. up=1 → just the root.
+  const ch=ARP.chord, offs=[];
+  for(let o=-5;o<=5;o++) for(const iv of ch) offs.push(iv+12*o);
+  offs.sort((a,b)=>a-b);
+  const ri=offs.indexOf(0);                                              // root sits at offset 0
+  const sel=offs.slice(Math.max(0,ri-(ARP.down|0)), ri+Math.max(1,ARP.up|0));
+  const up=[...new Set(sel.map(x=>ARP.root+x))].sort((a,b)=>a-b);
+  if(!up.length) return [ARP.root];
+  if(ARP.pattern===1) return up.slice().reverse();                       // down
+  if(ARP.pattern===2) return up.length>1? up.concat(up.slice(1,-1).reverse()) : up; // up-down
+  return up;                                                             // up / random pool
+}
+function arpOff(){ if(ARP.cur!=null){ if(window.vstai) window.vstai.noteOff(ARP.cur); ARP.cur=null; } }
+function arpTick(dt){
+  nowT+=dt;
+  if(!ARP.on || !audioOn){ arpOff(); ARP.next=nowT; return; }
+  const stepDur=1/ARP_SPS(ARP.rate);
+  if(ARP.cur!=null && nowT-ARP.curT>=stepDur*ARP.gate) arpOff();
+  if(nowT>=ARP.next){
+    ARP.next=nowT+stepDur;
+    const seq=arpSeq(); if(!seq.length) return;
+    const n = ARP.pattern===3 ? seq[(Math.random()*seq.length)|0] : seq[ARP.step%seq.length];
+    ARP.step++; arpOff();
+    if(window.vstai) window.vstai.noteOn(n,0.95);
+    ARP.cur=n; ARP.curT=nowT;
+  }
+}
+function segBtns(labels,def,onPick){
+  const w=document.createElement('div'); w.className='seg';
+  const bs=labels.map((t,i)=>{const b=document.createElement('button');b.textContent=t;b.title=['Up','Down','Up-Down','Random'][i]||'';
+    b.onclick=()=>{onPick(i);bs.forEach(x=>x.classList.remove('on'));b.classList.add('on');};return b;});
+  bs[def].classList.add('on'); w.append(...bs); return w;
+}
+function arpField(label,node){
+  const f=document.createElement('div'); f.className='arp-field';
+  const l=document.createElement('div'); l.className='arp-flabel'; l.textContent=label;
+  f.append(l,node); return f;
+}
+function chordSelect(){
+  const sel=document.createElement('select'); sel.className='msel';
+  Object.keys(CHORDS).forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o);});
+  sel.value=ARP.chordName; sel.onchange=()=>{ ARP.chordName=sel.value; ARP.chord=CHORDS[sel.value]; };
+  return sel;
+}
+function buildArp(){
+  const el=document.createElement('div'); el.className='sect arp';
+  const h=document.createElement('h3'); h.textContent='Arpeggiator'; el.append(h);
+  const row=document.createElement('div'); row.className='arp-row';
+  const onb=document.createElement('button'); onb.className='arp-on'+(ARP.on?' on':'');
+  onb.textContent=ARP.on?'ON':'OFF';
+  onb.onclick=()=>{ ARP.on=!ARP.on; onb.classList.toggle('on',ARP.on); onb.textContent=ARP.on?'ON':'OFF'; if(!ARP.on) arpOff(); postArp(); };
+  row.append(arpField('Arp',onb));
+  row.append(arpField('Chord', chordSelect()));
+  row.append(arpField('Direction', segBtns(['↑','↓','↑↓','✶'],ARP.pattern,(i)=>ARP.pattern=i)));
+  const knobs=document.createElement('div'); knobs.className='knobs arp-knobs';
+  knobs.append(knob({label:'Rate',min:0,max:1,def:ARP.rate,set:(v)=>ARP.rate=v}));
+  knobs.append(knob({label:'Notes Up',min:1,max:6,def:ARP.up,step:1,set:(v)=>ARP.up=v}));
+  knobs.append(knob({label:'Notes Dn',min:0,max:6,def:ARP.down,step:1,set:(v)=>ARP.down=v}));
+  knobs.append(knob({label:'Gate',min:0.1,max:1,def:ARP.gate,set:(v)=>ARP.gate=v}));
+  row.append(knobs); el.append(row);
+  const hint=document.createElement('div'); hint.className='arp-hint';
+  hint.textContent='ON: a key sets the root & arpeggiates a chord · OFF: play the keyboard freely';
+  el.append(hint); return el;
+}
+
+// modulation + arp loop, streamed to the DSP at frame rate
+let last=null;
+function modTick(now){
+  requestAnimationFrame(modTick);
+  if(last==null){ last=now; return; }
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  for(const lfo of LFOS){ lfo.phase=(lfo.phase+dt*RATE_HZ(lfo.rate))%1; }
+  const acc=new Map();
+  for(const r of ROUTES){ if(!r||Math.abs(r.amt)<0.001) continue;
+    const d=MOD_DESTS[r.dest], lfo=LFOS[r.lfo]; if(!d||!lfo) continue;
+    const add=lfoOut(lfo.shape,lfo.phase)*r.amt*(d.max-d.min)*0.5;
+    const e=acc.get(d.idx)||{sum:0,d}; e.sum+=add; acc.set(d.idx,e);
+  }
+  for(const [idx,e] of acc){ const b=(idx in base)?base[idx]:0; raw(idx, Math.max(e.d.min,Math.min(e.d.max,b+e.sum))); }
+  arpTick(dt);
+}
+
+// audio lifecycle from the player: start the arp on audio-start; re-root it to
+// the last note the user plays (latch-style), so the arp follows your playing.
+window.addEventListener('message',function(e){ const m=e.data; if(!m||!m.__vstai) return;
+  if(m.type==='audiostart'){ audioOn=true; ARP.step=0; ARP.next=nowT; postArp(); }
+  else if(m.type==='userplay' && m.note!=null){ ARP.root=m.note|0; ARP.step=0; ARP.next=nowT; }
+});
+
 const rack=document.getElementById('rack');
+const sectionEls=[];
 for(const sec of SECTIONS){
-  const el=document.createElement('div'); el.className='sect';
+  const el=document.createElement('div'); el.className='sect'+(sec.h==='Oscillator Bank'?' osc-bank':'');
   const h=document.createElement('h3'); h.textContent=sec.h; el.append(h);
   const k=document.createElement('div'); k.className='knobs';
   for(const it of sec.items) k.append(it.type==='osc'?osc(it):knob(it));
-  el.append(k); rack.append(el);
+  el.append(k); rack.append(el); sectionEls.push(el);
+}
+sectionEls.push(rack.appendChild(buildMod()));
+sectionEls.push(rack.appendChild(buildArp()));
+
+/* ---- on-screen keyboard — makes VibeSynth self-contained: it plays the synth and,
+   with the arp ON, a key sets the arpeggio root (and starts it). No longer depends on
+   the gallery's keyboard or its audio-start signal, so the arp works in the plugin. ---- */
+const KB_LOW=48, KB_OCTS=2, WHITE_IV=[0,2,4,5,7,9,11], BLACK_AT={1:1,3:2,6:4,8:5,10:6};
+const KEY_ROW='awsedftgyhujk';                  // computer keys: chromatic up from KB_LOW
+const kbDown=new Set(), kbEls={};
+function kbPlay(note,on){
+  if(on){ audioOn=true;                          // a key activates audio + the arp in the plugin
+    if(ARP.on){ ARP.root=note; ARP.step=0; ARP.next=nowT; }
+    else if(window.vstai) window.vstai.noteOn(note,0.95);
+  } else if(!ARP.on && window.vstai){ window.vstai.noteOff(note); }
+}
+function kbPress(n){ if(kbDown.has(n))return; kbDown.add(n); if(kbEls[n])kbEls[n].classList.add('dn'); kbPlay(n,true); }
+function kbRelease(n){ if(!kbDown.has(n))return; kbDown.delete(n); if(kbEls[n])kbEls[n].classList.remove('dn'); kbPlay(n,false); }
+function buildKeys(){
+  const el=document.createElement('div'); el.className='sect keys';
+  const h=document.createElement('h3'); h.textContent='Keyboard'; el.append(h);
+  const kb=document.createElement('div'); kb.className='kbd'; const W=KB_OCTS*7;
+  for(let o=0;o<KB_OCTS;o++) for(let i=0;i<7;i++){ const note=KB_LOW+o*12+WHITE_IV[i];
+    const k=document.createElement('div'); k.className='key'; k.dataset.note=note; kb.append(k); kbEls[note]=k; }
+  for(let o=0;o<KB_OCTS;o++) for(const w in BLACK_AT){ const note=KB_LOW+o*12+(+w);
+    const b=document.createElement('div'); b.className='key black'; b.dataset.note=note;
+    b.style.left=((o*7+BLACK_AT[w])/W*100)+'%'; kb.append(b); kbEls[note]=b; }
+  kb.addEventListener('pointerdown',(e)=>{ const n=e.target.dataset&&e.target.dataset.note; if(n){ e.preventDefault(); kbPress(+n); } });
+  el.append(kb);
+  const tip=document.createElement('div'); tip.className='kbd-hint';
+  tip.textContent='click the keys'+(window.top===window?' or type A–K':'')+' · with the arp ON, a key sets the arpeggio root';
+  el.append(tip); return el;
+}
+window.addEventListener('pointerup',    ()=>{ for(const n of [...kbDown]) kbRelease(n); });
+window.addEventListener('pointercancel',()=>{ for(const n of [...kbDown]) kbRelease(n); });
+if(window.top===window){                          // computer keys only when top-level (the plugin),
+  window.addEventListener('keydown',(e)=>{ if(e.repeat||e.metaKey||e.ctrlKey)return; const i=KEY_ROW.indexOf((e.key||'').toLowerCase()); if(i>=0) kbPress(KB_LOW+i); });
+  window.addEventListener('keyup',  (e)=>{ const i=KEY_ROW.indexOf((e.key||'').toLowerCase()); if(i>=0) kbRelease(KB_LOW+i); });
+}
+sectionEls.push(rack.appendChild(buildKeys()));
+requestAnimationFrame(modTick);
+
+/* ====================================================================== *
+ *  INTRO BUILD — only on the homepage embed (play.html sets window.__vstaiIntro).
+ *  Sections start hidden; a series of typed requests reveal them one group at a
+ *  time, then a "Try it out" caption. The real plugin/gallery never sees this.  *
+ * ====================================================================== */
+if(window.__vstaiIntro){
+  const head=document.querySelector('.head');
+  head.classList.add('pre'); sectionEls.forEach(el=>el.classList.add('pre'));
+  const build=document.createElement('div'); build.className='build';
+  build.innerHTML='<div class="chat"><svg class="spark" viewBox="0 0 24 24" fill="currentColor">'+
+    '<path d="M12 2l1.8 5.6L19 9.4l-4.6 3.1L16 18l-4-3.3L8 18l1.6-5.5L5 9.4l5.2-1.8z"/></svg>'+
+    '<span class="tag">You</span><span class="ctext"></span><span class="ccaret"></span>'+
+    '<span class="skiph">click to skip</span></div>'+
+    '<div class="bcap"></div>';
+  document.body.insertBefore(build, rack);
+  const chat=build.querySelector('.chat'), ctext=build.querySelector('.ctext'), bcap=build.querySelector('.bcap');
+  const postIntro=(phase)=>{try{parent.postMessage({__vstai:1,type:'intro',phase},'*');}catch(_){}}
+
+  const STEPS=[
+    {p:'a synth like a Moog Model D — three oscillators + a ladder filter', reveal:[0,1,2]},
+    {p:'add amp & filter envelopes with glide',                            reveal:[3]},
+    {p:'give it a lush stereo FX rack',                                     reveal:[4,5,6]},
+    {p:'three LFOs I can patch onto any knob',                             reveal:[7]},
+    {p:'and an arpeggiator',                                                reveal:[8]},
+  ];
+  let done=false;
+  const show=(el)=>{el.classList.remove('pre');el.classList.add('in');};
+  function reveal(idxs){ idxs.forEach((gi,k)=>setTimeout(()=>{const el=sectionEls[gi];if(el)show(el);},k*190)); }
+  function fadeBuildSoon(){ setTimeout(()=>{ build.style.opacity='0'; build.style.margin='0';
+    setTimeout(()=>build.remove(),520); }, 5200); }
+  function finishAll(){ if(done)return; done=true;
+    show(head); sectionEls.forEach(show); postIntro('keys');
+    chat.classList.add('ready'); ctext.textContent='';
+    bcap.textContent='✓ Ready — try it out, play the keys'; bcap.classList.add('ok'); fadeBuildSoon(); }
+  document.body.addEventListener('pointerdown',()=>{ if(!done) finishAll(); });
+
+  function type(text,cb){ ctext.textContent=''; let i=0;
+    (function t(){ if(done)return; ctext.textContent=text.slice(0,i);
+      if(i++<text.length) setTimeout(t,30+Math.random()*32); else setTimeout(cb,520); })(); }
+  let si=0;
+  function step(){
+    if(done) return;
+    if(si===0) show(head);
+    if(si>=STEPS.length){ finale(); return; }
+    const st=STEPS[si++];
+    type(st.p,()=>{ if(done)return; bcap.textContent='compiling to WebAssembly…'; reveal(st.reveal);
+      setTimeout(()=>{ if(done)return; bcap.textContent=''; step(); }, 950+st.reveal.length*190); });
+  }
+  function finale(){
+    type('…and a playable keyboard',()=>{ if(done)return; done=true; postIntro('keys');
+      chat.classList.add('ready'); bcap.textContent='✓ Ready — try it out, play the keys'; bcap.classList.add('ok');
+      fadeBuildSoon(); });
+  }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce) finishAll(); else setTimeout(step,700);
 }
 </script>
 </body></html>

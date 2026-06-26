@@ -12,7 +12,10 @@
       "Bash(./scripts/build.sh 2>&1 | grep -iE \"error:|signForExport|signed & valid|✅ Done\" | head *)",
       "Bash(node scripts/seeds/pack-moog.mjs)",
       "Bash(LC_ALL=C awk 'NR>=755 && NR<=792' src/Prompt.h)",
-      "Bash(node scripts/seeds/pack-references.mjs)"
+      "Bash(node scripts/seeds/pack-references.mjs)",
+      "Bash(python3 rewrite_dates_to_weekend.py --all /Users/k/projects/VibePlugin /Users/k/projects/synflow)",
+      "Bash(python3 rewrite_dates_to_weekend.py --apply --all /Users/k/projects/VibePlugin /Users/k/projects/synflow)",
+      "Bash(grep -vE \"^Rewrite [0-9a-f]{40}|WARNING: git-filter-branch|warning:|cannot be used with|on top of|please use an alternative|Proceeding|^\\\\s*$\")"
     ],
     "additionalDirectories": [
       "/private/tmp/claude-501/-Users-k-projects-VibePlugin/8768562d-d4aa-4287-93ac-8bdafdf5bcd3/scratchpad"
