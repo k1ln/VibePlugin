@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VibePlugin · Player</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="bar">
+    <a class="back" href="index.html">← Gallery</a>
+    <div class="title"><span id="name">…</span> <span id="badge" class="badge"></span></div>
+    <a id="download" class="btn" href="#" download>Download .vstai</a>
+  </header>
+
+  <main class="player">
+    <div id="startWrap" class="start">
+      <button id="startBtn" class="btn big">▶ Start audio</button>
+      <p class="muted">Browsers require a click before audio can play.</p>
+    </div>
+
+    <!-- effects: choose what to feed through the plugin -->
+    <div id="inputBar" class="inputbar" hidden>
+      <span class="muted">Input:</span>
+      <select id="sampleSel" class="seg-sel" title="Royalty-free test samples"></select>
+      <button class="seg-btn" data-src="tone">Test tone</button>
+      <button class="seg-btn" data-src="mic">Microphone</button>
+      <button class="seg-btn" data-src="file">My file</button>
+      <button class="seg-btn" data-src="none">Silent</button>
+      <input type="file" id="inputFile" accept="audio/*" hidden>
+    </div>
+
+    <!-- synths: on-screen keyboard (also responds to Web MIDI + computer keys) -->
+    <div id="keys" class="keys" hidden></div>
+
+    <div id="guiWrap" class="guiwrap" hidden>
+      <iframe id="gui" title="plugin GUI" sandbox="allow-scripts"></iframe>
+    </div>
+
+    <p id="status" class="status muted"></p>
+  </main>
+
+  <script type="module" src="player.js"></script>
+</body>
+</html>

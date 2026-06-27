@@ -1,0 +1,39 @@
+# =====================================================================
+#  Keep the static gallery catalogue (docs/gallery/data/index.json) in sync
+#  with the committed .vstai files. Runs when a synth/effect is added or
+#  changed (e.g. a merged "publish" PR) and commits the regenerated index.
+# =====================================================================
+name: Build gallery catalogue
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/gallery/data/**.vstai"
+      - "scripts/build-gallery.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Rebuild index.json
+        run: node scripts/build-gallery.mjs
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet -- docs/gallery/data/index.json; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/gallery/data/index.json
+            git commit -m "gallery: rebuild catalogue index"
+            git push
+          else
+            echo "index.json already up to date."
+          fi

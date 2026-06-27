@@ -28,6 +28,8 @@ package-lock.json
 
 # generated plugins (keep your own elsewhere)
 *.vstai
+# ...but the published gallery DOES commit its .vstai files
+!docs/gallery/data/*.vstai
 
 # os / editor
 .DS_Store

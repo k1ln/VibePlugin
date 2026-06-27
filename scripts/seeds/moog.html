@@ -1,0 +1,110 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+  :root{ --panel:#1b1714; --panel2:#241e19; --metal:#d8c9a8; --ink:#2a2118; --amber:#ffb23e;
+         --line:#3a302600; --wood:#5a3a22; }
+  *{box-sizing:border-box}
+  body{margin:0;font:12px ui-sans-serif,system-ui,"Segoe UI",sans-serif;color:#eadfce;
+    background:
+      linear-gradient(90deg,var(--wood) 0 14px,#0000 14px calc(100% - 14px),var(--wood) calc(100% - 14px) 100%),
+      radial-gradient(120% 140% at 50% -20%,#2c2620,#16110d 70%);
+    padding:14px 22px 18px;user-select:none;-webkit-user-select:none}
+  h2{font:700 13px ui-sans-serif;letter-spacing:.18em;margin:0 0 10px;color:var(--amber);
+    text-transform:uppercase;display:flex;align-items:center;gap:10px}
+  h2 small{color:#9b8e78;font-weight:600;letter-spacing:.16em}
+  .rack{display:flex;gap:12px;flex-wrap:wrap}
+  .sect{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid #00000060;
+    border-top:1px solid #ffffff10;border-radius:10px;padding:10px 12px 12px;box-shadow:0 6px 18px #0007 inset,0 1px 0 #ffffff08}
+  .sect h3{font:700 10px ui-sans-serif;letter-spacing:.16em;color:#bfb39a;margin:0 0 10px;text-transform:uppercase}
+  .row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+  .knob{width:60px;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .dial{width:48px;height:48px;border-radius:50%;cursor:ns-resize;position:relative;
+    background:radial-gradient(60% 60% at 38% 32%,#4a4036,#211b15 70%,#120d09);
+    border:1px solid #000;box-shadow:0 2px 5px #000a,0 1px 0 #ffffff12 inset}
+  .dial::after{content:"";position:absolute;left:50%;top:5px;width:2px;height:16px;border-radius:2px;
+    background:var(--amber);transform-origin:50% 19px;transform:translateX(-50%) rotate(var(--rot,-135deg));
+    box-shadow:0 0 6px var(--amber)}
+  .knob label{font:600 9px ui-sans-serif;letter-spacing:.08em;color:#cdc0a8;text-align:center}
+  .knob .val{font:600 9px ui-monospace,monospace;color:#9b8e78}
+  .waves{display:flex;gap:3px;margin-bottom:4px}
+  .waves button{flex:1;background:#171210;border:1px solid #000;color:#9b8e78;border-radius:5px;
+    padding:5px 0;cursor:pointer;font:700 12px ui-monospace}
+  .waves button.on{color:var(--ink);background:linear-gradient(180deg,#ffc662,var(--amber));border-color:#b5781f}
+  .oscname{font:600 9px ui-sans-serif;letter-spacing:.1em;color:#bfb39a;margin-bottom:5px}
+</style></head>
+<body>
+  <h2>Model&nbsp;D <small>· monophonic analog synthesizer</small></h2>
+  <div class="rack" id="rack"></div>
+
+<script>
+// param index → control spec. wave selectors get type:'wave'.
+const OSC = (n, wIdx, octIdx, detIdx) => ({ type:'osc', name:n, wIdx, octIdx, detIdx });
+const K = (label, idx, min, max, def, unit, step) => ({ type:'knob', label, idx, min, max, def, unit, step });
+
+const SECTIONS = [
+  { h:'Oscillator Bank', items:[ OSC('OSC 1',2,3,null), OSC('OSC 2',4,5,6), OSC('OSC 3',7,8,9) ] },
+  { h:'Mixer', items:[ K('Osc 1',10,0,1,0.9), K('Osc 2',11,0,1,0.7), K('Osc 3',12,0,1,0.5), K('Noise',13,0,1,0.06) ] },
+  { h:'Filter — Ladder', items:[ K('Cutoff',14,0,1,0.42), K('Reso',15,0,1,0.55), K('Env',16,0,1,0.6),
+      K('Atk',17,0,1,0.04), K('Dec',18,0,1,0.5), K('Sus',19,0,1,0.25), K('Rel',20,0,1,0.4) ] },
+  { h:'Loudness & Glide', items:[ K('Atk',21,0,1,0.02), K('Dec',22,0,1,0.4), K('Sus',23,0,1,0.8), K('Rel',24,0,1,0.35),
+      K('Drive',25,0,1,0.3), K('Glide',1,0,1,0.05), K('Tune',0,-12,12,0,'st',1), K('Volume',26,0,1,0.8) ] },
+];
+const WAVES = ['◺','◹','⊓','⊔'];   // tri, saw, square, pulse glyphs
+
+function setP(i,v){ if(window.vstai) window.vstai.setParam(i, v); }
+
+function knob(spec){
+  const wrap=document.createElement('div'); wrap.className='knob';
+  const dial=document.createElement('div'); dial.className='dial';
+  const lab=document.createElement('label'); lab.textContent=spec.label;
+  const val=document.createElement('div'); val.className='val';
+  wrap.append(dial,lab,val);
+  let v=spec.def;
+  const snap=(x)=> spec.step? Math.round(x/spec.step)*spec.step : x;
+  function apply(send){
+    v=Math.max(spec.min,Math.min(spec.max,snap(v)));
+    const t=(v-spec.min)/(spec.max-spec.min);
+    dial.style.setProperty('--rot',(-135+t*270)+'deg');
+    val.textContent = spec.unit==='st'? (v>0?'+':'')+v.toFixed(0)+'st'
+      : spec.step? v.toFixed(0) : v.toFixed(2);
+    if(send) setP(spec.idx, v);
+  }
+  let dragging=false, lastY=0;
+  const down=(e)=>{ dragging=true; lastY=(e.touches?e.touches[0].clientY:e.clientY); e.preventDefault(); };
+  const move=(e)=>{ if(!dragging)return; const y=(e.touches?e.touches[0].clientY:e.clientY);
+    v += (lastY-y)*(spec.max-spec.min)/180; lastY=y; apply(true); };
+  const up=()=>dragging=false;
+  dial.addEventListener('mousedown',down); dial.addEventListener('touchstart',move,{passive:false});
+  dial.addEventListener('touchstart',down,{passive:false});
+  window.addEventListener('mousemove',move); window.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',up); window.addEventListener('touchend',up);
+  dial.addEventListener('dblclick',()=>{ v=spec.def; apply(true); });
+  apply(true);
+  return wrap;
+}
+
+function osc(spec){
+  const col=document.createElement('div');
+  const name=document.createElement('div'); name.className='oscname'; name.textContent=spec.name;
+  const waves=document.createElement('div'); waves.className='waves';
+  const btns=WAVES.map((g,wi)=>{ const b=document.createElement('button'); b.textContent=g;
+    b.onclick=()=>{ setP(spec.wIdx,wi); btns.forEach(x=>x.classList.remove('on')); b.classList.add('on'); }; return b; });
+  // default selection: read sensible defaults (osc1 saw, osc2 saw, osc3 square)
+  const def = spec.wIdx===7?2:1; btns[def].classList.add('on'); setP(spec.wIdx,def);
+  waves.append(...btns);
+  const row=document.createElement('div'); row.className='row';
+  row.append(knob(K('Oct',spec.octIdx,-2,2, spec.octIdx===8?-1:0, '', 1)));
+  if(spec.detIdx!=null) row.append(knob(K('Detune',spec.detIdx,-50,50, spec.detIdx===9?-5:7)));
+  col.append(name,waves,row);
+  return col;
+}
+
+const rack=document.getElementById('rack');
+for(const s of SECTIONS){
+  const sect=document.createElement('div'); sect.className='sect';
+  const h=document.createElement('h3'); h.textContent=s.h; sect.append(h);
+  const row=document.createElement('div'); row.className='row';
+  for(const it of s.items) row.append(it.type==='osc'? osc(it) : knob(it));
+  sect.append(row); rack.append(sect);
+}
+</script>
+</body></html>
