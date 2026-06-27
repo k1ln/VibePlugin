@@ -103,7 +103,12 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         JUCE_VST3_CAN_REPLACE_VST2=0
         JUCE_DISPLAY_SPLASH_SCREEN=0
         VSTAI_IS_SYNTH=${SYNTH_DEF}
-        VSTAI_DEV_MODE=$<BOOL:${VSTAI_DEV_MODE}>)
+        VSTAI_DEV_MODE=$<BOOL:${VSTAI_DEV_MODE}>
+        # Windows: defining this flips JUCE_USE_WIN_WEBVIEW2 on in juce_gui_extra,
+        # which is what actually exposes WebBrowserComponent::Options::with-
+        # ResourceProvider (the GUI bridge). NEEDS_WEBVIEW2 only links the static
+        # loader; it does NOT define this. No-op on macOS/Linux.
+        $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>)
 
     target_include_directories(${TARGET} PRIVATE ${WASMTIME_INCLUDE_DIR})
 
