@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, "..", "..");
-const OUT  = path.join(ROOT, "docs", "gallery", "data", "moog-model-d.vstai");
+const OUT  = path.join(ROOT, "docs", "gallery", "data", "vibe-synth.vstai");
 
 const tmpWasm = path.join(os.tmpdir(), "moog-seed.wasm");
 const r = spawnSync(process.execPath,
@@ -37,13 +37,16 @@ const params = [
   ["Filt Atk", 17, 0, 1, 0.04], ["Filt Dec", 18, 0, 1, 0.5], ["Filt Sus", 19, 0, 1, 0.25], ["Filt Rel", 20, 0, 1, 0.4],
   ["Amp Atk", 21, 0, 1, 0.02], ["Amp Dec", 22, 0, 1, 0.4], ["Amp Sus", 23, 0, 1, 0.8], ["Amp Rel", 24, 0, 1, 0.35],
   ["Drive", 25, 0, 1, 0.3], ["Volume", 26, 0, 1, 0.8],
+  ["Chorus Mix", 27, 0, 1, 0.35], ["Chorus Rate", 28, 0, 1, 0.3], ["Chorus Depth", 29, 0, 1, 0.5],
+  ["Delay Mix", 30, 0, 1, 0.22], ["Delay Time", 31, 0, 1, 0.4], ["Delay Feedback", 32, 0, 1, 0.4],
+  ["Reverb Mix", 33, 0, 1, 0.3], ["Reverb Size", 34, 0, 1, 0.6], ["Reverb Damp", 35, 0, 1, 0.4],
 ].map(([name, index, min, max, def]) => ({ name, index, min, max, default: def, value: def }));
 
 const doc = {
   format: 1,
-  name: "Model D",
+  name: "VibeSynth",
   isInstrument: true,
-  explanation: "A Minimoog-style monophonic synthesizer: three anti-aliased oscillators with per-osc octave and detune, a noise source, the classic four-pole resonant ladder filter with drive, independent filter and amplifier ADSR envelopes, and portamento glide. Play it with the keyboard, your computer keys (a–k), or MIDI.",
+  explanation: "A monophonic analog-style synthesizer: three anti-aliased oscillators with per-osc octave and detune, a noise source, a four-pole resonant ladder filter with drive, independent filter and amplifier ADSR envelopes, and portamento glide. A stereo effects rack adds chorus, ping-pong delay and reverb, with live oscilloscope + spectrum displays. Play it with the keyboard, your computer keys (a–k), or MIDI.",
   params,
   wasmBase64,
   html,

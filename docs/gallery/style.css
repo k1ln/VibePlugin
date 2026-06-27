@@ -57,8 +57,8 @@ body.embed .player{padding:0;max-width:none}
 body.embed .start{position:absolute;top:10px;right:12px;padding:0;text-align:right;z-index:10}
 body.embed .start .muted{display:none}
 body.embed .start .btn.big{font-size:13px;padding:8px 14px}
-body.embed .guiwrap{border-radius:12px;min-height:0}
-body.embed .guiwrap iframe{height:430px}
+body.embed .guiwrap{border-radius:12px;min-height:0;border:0}
+body.embed .guiwrap iframe{height:650px}
 body.embed .status{padding:0 8px 8px}
 
 /* on-screen keyboard for synths */

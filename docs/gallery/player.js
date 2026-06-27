@@ -11,6 +11,7 @@ const embed = qs.get("embed") === "1";   // hero/embedded mode: no chrome, GUI s
 
 let ctx, node, meta, wasmBytes;
 let inputNode = null;        // current effect input source feeding `node`
+let analyser = null;         // view-only scope/EQ tap on the output
 
 function setStatus(t) { $("status").textContent = t; }
 
@@ -75,7 +76,13 @@ async function start() {
     if (m.type === "ready") setStatus(meta.isInstrument ? "Ready — play the keyboard." : "Ready — pick an input.");
     if (m.type === "error") setStatus("DSP error: " + m.message);
   };
-  node.connect(ctx.destination);
+  // tap the output for the GUI's oscilloscope + spectrum (display only)
+  analyser = ctx.createAnalyser();
+  analyser.fftSize = 1024;
+  analyser.smoothingTimeConstant = 0.72;
+  node.connect(analyser);
+  analyser.connect(ctx.destination);
+  startScope();
   node.port.postMessage({ type: "load", wasm: wasmBytes, sampleRate: ctx.sampleRate, channels: 2 });
 
   $("startWrap").hidden = true;
@@ -91,6 +98,33 @@ async function start() {
     await loadSampleList();
     setInput("tone");                       // sensible default so effects are audible
   }
+}
+
+// ---- view-only scope feed: send downsampled time + freq to the GUI iframe ----
+function startScope() {
+  const T = new Float32Array(analyser.fftSize);
+  const F = new Uint8Array(analyser.frequencyBinCount);
+  const NT = 220, NF = 64;                       // points sent to the GUI
+  function tick() {
+    if (!ctx || ctx.state === "closed") return;
+    requestAnimationFrame(tick);
+    const gui = $("gui").contentWindow;
+    if (!gui) return;
+    analyser.getFloatTimeDomainData(T);
+    analyser.getByteFrequencyData(F);
+    const t = new Float32Array(NT);
+    for (let i = 0; i < NT; i++) t[i] = T[(i * T.length / NT) | 0];
+    const f = new Uint8Array(NF);                // log-ish grouping into NF bars
+    const lo = 1, hi = F.length;
+    for (let i = 0; i < NF; i++) {
+      const a = (lo * Math.pow(hi / lo, i / NF)) | 0;
+      const b = Math.max(a + 1, (lo * Math.pow(hi / lo, (i + 1) / NF)) | 0);
+      let m = 0; for (let j = a; j < b && j < F.length; j++) if (F[j] > m) m = F[j];
+      f[i] = m;
+    }
+    gui.postMessage({ __vstaiScope: 1, t, f }, "*");
+  }
+  requestAnimationFrame(tick);
 }
 
 // ---- note helpers (used by keyboard + MIDI) ------------------------

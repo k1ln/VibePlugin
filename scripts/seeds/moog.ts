@@ -50,7 +50,17 @@ const P_AS: i32 = 23;
 const P_AR: i32 = 24;
 const P_DRIVE: i32 = 25;     // 0..1 pre-filter saturation
 const P_VOL: i32 = 26;       // 0..1
-const NUM_PARAMS: i32 = 27;
+// ---- effects -------------------------------------------------------
+const P_CHO_MIX: i32 = 27;   // chorus
+const P_CHO_RATE: i32 = 28;
+const P_CHO_DEPTH: i32 = 29;
+const P_DLY_MIX: i32 = 30;   // ping-pong delay
+const P_DLY_TIME: i32 = 31;
+const P_DLY_FB: i32 = 32;
+const P_REV_MIX: i32 = 33;   // reverb
+const P_REV_SIZE: i32 = 34;
+const P_REV_DAMP: i32 = 35;
+const NUM_PARAMS: i32 = 36;
 
 let sampleRate: f32 = 44100;
 
@@ -62,6 +72,31 @@ let noiseState: i32 = 0x1234567;
 // ---- ladder filter state (4 cascaded TPT one-pole lowpasses) -------
 let s1f: f32 = 0, s2f: f32 = 0, s3f: f32 = 0, s4f: f32 = 0;
 let fbk: f32 = 0;   // last stage output, fed back for resonance
+
+// ---- FX: stereo chorus (one modulated mono delay line, 2 LFO phases) ----
+const CHORUS_LEN: i32 = 2048;
+const choBuf: StaticArray<f32> = new StaticArray<f32>(CHORUS_LEN);
+let choW: i32 = 0;
+let choPhase: f32 = 0;
+
+// ---- FX: stereo ping-pong delay ------------------------------------
+const DELAY_LEN: i32 = 96000;   // ~2 s at 48 kHz
+const dlyL: StaticArray<f32> = new StaticArray<f32>(DELAY_LEN);
+const dlyR: StaticArray<f32> = new StaticArray<f32>(DELAY_LEN);
+let dlyW: i32 = 0;
+
+// ---- FX: reverb (Schroeder: 4 parallel combs -> 2 series allpass) ----
+const RV_C0: i32 = 1900, RV_A0: i32 = 700;
+const rc0: StaticArray<f32> = new StaticArray<f32>(RV_C0);
+const rc1: StaticArray<f32> = new StaticArray<f32>(RV_C0);
+const rc2: StaticArray<f32> = new StaticArray<f32>(RV_C0);
+const rc3: StaticArray<f32> = new StaticArray<f32>(RV_C0);
+const ra0: StaticArray<f32> = new StaticArray<f32>(RV_A0);
+const ra1: StaticArray<f32> = new StaticArray<f32>(RV_A0);
+let ci0: i32 = 0, ci1: i32 = 0, ci2: i32 = 0, ci3: i32 = 0, ai0: i32 = 0, ai1: i32 = 0;
+let cl0: f32 = 0, cl1: f32 = 0, cl2: f32 = 0, cl3: f32 = 0;   // comb damping lowpass state
+let cLen0: i32 = 1557, cLen1: i32 = 1617, cLen2: i32 = 1491, cLen3: i32 = 1422;
+let aLen0: i32 = 556, aLen1: i32 = 441;
 
 // ---- envelope state (0 off,1 atk,2 dec,3 sus,4 rel) ----------------
 let aStage: i32 = 0, aLevel: f32 = 0;
@@ -79,6 +114,17 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   aStage = 0; aLevel = 0; fStage = 0; fLevel = 0;
   s1f = 0; s2f = 0; s3f = 0; s4f = 0; fbk = 0;
 
+  // FX state + sample-rate-correct reverb buffer lengths
+  choW = 0; choPhase = 0; dlyW = 0;
+  ci0 = ci1 = ci2 = ci3 = ai0 = ai1 = 0;
+  cl0 = cl1 = cl2 = cl3 = 0;
+  const rf: f32 = sr / 44100.0;
+  cLen0 = <i32>(1557.0 * rf); cLen1 = <i32>(1617.0 * rf);
+  cLen2 = <i32>(1491.0 * rf); cLen3 = <i32>(1422.0 * rf);
+  aLen0 = <i32>(556.0 * rf);  aLen1 = <i32>(441.0 * rf);
+  if (cLen1 >= RV_C0) cLen1 = RV_C0 - 1;
+  if (aLen0 >= RV_A0) aLen0 = RV_A0 - 1;
+
   params[P_TUNE] = 0;
   params[P_GLIDE] = 0.05;
   params[P_O1_WAVE] = 1; params[P_O1_OCT] = 0;
@@ -89,6 +135,9 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   params[P_FA] = 0.04; params[P_FD] = 0.5; params[P_FS] = 0.25; params[P_FR] = 0.4;
   params[P_AA] = 0.02; params[P_AD] = 0.4; params[P_AS] = 0.8; params[P_AR] = 0.35;
   params[P_DRIVE] = 0.3; params[P_VOL] = 0.8;
+  params[P_CHO_MIX] = 0.35; params[P_CHO_RATE] = 0.3; params[P_CHO_DEPTH] = 0.5;
+  params[P_DLY_MIX] = 0.22; params[P_DLY_TIME] = 0.4; params[P_DLY_FB] = 0.4;
+  params[P_REV_MIX] = 0.3; params[P_REV_SIZE] = 0.6; params[P_REV_DAMP] = 0.4;
 }
 
 export function getInputPtr(): usize  { return changetype<usize>(inBuf); }
@@ -150,6 +199,16 @@ function adsr(stage: i32, level: f32, a: f32, d: f32, s: f32, r: f32, sr: f32): 
   return level;
 }
 
+// interpolated read from the chorus delay line, `d` samples behind the write head
+function choRead(d: f32): f32 {
+  let rp: f32 = <f32>choW - d;
+  while (rp < 0.0) rp += <f32>CHORUS_LEN;
+  const i0: i32 = <i32>rp;
+  const frac: f32 = rp - <f32>i0;
+  let i1: i32 = i0 + 1; if (i1 >= CHORUS_LEN) i1 -= CHORUS_LEN;
+  return choBuf[i0] * (1.0 - frac) + choBuf[i1] * frac;
+}
+
 export function process(n: i32): void {
   const tuneRatio: f32 = Mathf.pow(2.0, params[P_TUNE] / 12.0);
   const o1r: f32 = Mathf.pow(2.0, params[P_O1_OCT]);
@@ -165,6 +224,19 @@ export function process(n: i32): void {
   // glide coefficient
   const glideT: f32 = params[P_GLIDE] * params[P_GLIDE] * 0.6;
   const glide: f32 = glideT < 0.0005 ? 1.0 : 1.0 - Mathf.exp(-1.0 / (glideT * sampleRate));
+
+  // FX params (read once per block)
+  const choMix: f32 = params[P_CHO_MIX];
+  const choInc: f32 = (0.1 + params[P_CHO_RATE] * 5.9) / sampleRate;
+  const choBase: f32 = 0.012 * sampleRate;
+  const choDepth: f32 = params[P_CHO_DEPTH] * 0.006 * sampleRate;
+  const dlyMix: f32 = params[P_DLY_MIX];
+  let dlySamp: i32 = <i32>((0.03 + params[P_DLY_TIME] * 0.67) * sampleRate);
+  if (dlySamp >= DELAY_LEN) dlySamp = DELAY_LEN - 1;
+  const dlyFb: f32 = params[P_DLY_FB] * 0.85;
+  const revMix: f32 = params[P_REV_MIX];
+  const revFb: f32 = 0.7 + params[P_REV_SIZE] * 0.28;
+  const revDamp: f32 = params[P_REV_DAMP] * 0.4;
 
   for (let i = 0; i < n; i++) {
     // pitch glide
@@ -213,8 +285,44 @@ export function process(n: i32): void {
     v = (a2 - s3f) * G; y = v + s3f; s3f = y + v; const a3 = y;
     v = (a3 - s4f) * G; y = v + s4f; s4f = y + v; fbk = y;
 
-    const out: f32 = fbk * aLevel * vel * vol;
-    outBuf[i] = out;
-    outBuf[MAX_FRAMES + i] = out;
+    const dry: f32 = fbk * aLevel * vel * vol;
+
+    // --- stereo chorus ---
+    choBuf[choW] = dry;
+    choPhase += choInc; if (choPhase >= 1.0) choPhase -= 1.0;
+    const lfoL: f32 = 0.5 + 0.5 * Mathf.sin(6.2831853 * choPhase);
+    const lfoR: f32 = 0.5 + 0.5 * Mathf.sin(6.2831853 * choPhase + 1.5707963);
+    const wetCL: f32 = choRead(choBase + choDepth * lfoL);
+    const wetCR: f32 = choRead(choBase + choDepth * lfoR);
+    choW++; if (choW >= CHORUS_LEN) choW = 0;
+    let lch: f32 = dry + (wetCL - dry) * choMix;
+    let rch: f32 = dry + (wetCR - dry) * choMix;
+
+    // --- ping-pong delay (cross-fed) ---
+    let rp: i32 = dlyW - dlySamp; if (rp < 0) rp += DELAY_LEN;
+    const rdL: f32 = dlyL[rp];
+    const rdR: f32 = dlyR[rp];
+    dlyL[dlyW] = lch + rdR * dlyFb;
+    dlyR[dlyW] = rch + rdL * dlyFb;
+    dlyW++; if (dlyW >= DELAY_LEN) dlyW = 0;
+    lch = lch + (rdL - lch) * dlyMix;
+    rch = rch + (rdR - rch) * dlyMix;
+
+    // --- reverb: 4 parallel combs -> 2 series allpass ---
+    const rin: f32 = (lch + rch) * 0.5 * 0.015;
+    let cout: f32 = 0;
+    let rd: f32 = rc0[ci0]; cl0 = rd * (1.0 - revDamp) + cl0 * revDamp; rc0[ci0] = rin + cl0 * revFb; ci0++; if (ci0 >= cLen0) ci0 = 0; cout += rd;
+    rd = rc1[ci1];        cl1 = rd * (1.0 - revDamp) + cl1 * revDamp; rc1[ci1] = rin + cl1 * revFb; ci1++; if (ci1 >= cLen1) ci1 = 0; cout += rd;
+    rd = rc2[ci2];        cl2 = rd * (1.0 - revDamp) + cl2 * revDamp; rc2[ci2] = rin + cl2 * revFb; ci2++; if (ci2 >= cLen2) ci2 = 0; cout += rd;
+    rd = rc3[ci3];        cl3 = rd * (1.0 - revDamp) + cl3 * revDamp; rc3[ci3] = rin + cl3 * revFb; ci3++; if (ci3 >= cLen3) ci3 = 0; cout += rd;
+    const ar0: f32 = ra0[ai0]; const ao0: f32 = -cout + ar0; ra0[ai0] = cout + ar0 * 0.5; ai0++; if (ai0 >= aLen0) ai0 = 0;
+    const ar1: f32 = ra1[ai1]; const ao1: f32 = -ao0 + ar1; ra1[ai1] = ao0 + ar1 * 0.5; ai1++; if (ai1 >= aLen1) ai1 = 0;
+    lch = lch + (ao0 - lch) * revMix;   // slight L/R decorrelation: 1 vs 2 allpass
+    rch = rch + (ao1 - rch) * revMix;
+
+    if (lch > 1.5) lch = 1.5; else if (lch < -1.5) lch = -1.5;
+    if (rch > 1.5) rch = 1.5; else if (rch < -1.5) rch = -1.5;
+    outBuf[i] = lch;
+    outBuf[MAX_FRAMES + i] = rch;
   }
 }
