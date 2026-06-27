@@ -54,6 +54,18 @@ function render() {
 
 search.addEventListener("input", render);
 
+// forward computer-key play to the player iframe when the gallery (not the search
+// box) has focus — so A–K / Z–X reach the synth wherever you clicked.
+function forwardKey(type) {
+  return (e) => {
+    if (document.activeElement === search) return;
+    const w = frame.contentWindow;
+    if (w) w.postMessage({ __vstai: 1, type, key: e.key, repeat: e.repeat }, "*");
+  };
+}
+window.addEventListener("keydown", forwardKey("keydown"));
+window.addEventListener("keyup", forwardKey("keyup"));
+
 (async function load() {
   try {
     all = await (await fetch("data/index.json", { cache: "no-cache" })).json();

@@ -19,6 +19,21 @@
       <p class="muted">Browsers require a click before audio can play.</p>
     </div>
 
+    <!-- top deck: oscilloscope + spectrum + (for synths) the keyboard -->
+    <div id="deck" class="deck" hidden>
+      <div class="scope"><div class="cap"><span>Oscilloscope</span><span>OUT</span></div><canvas id="osc"></canvas></div>
+      <div class="scope"><div class="cap"><span>Spectrum</span><span>EQ</span></div><canvas id="eq"></canvas></div>
+      <div id="kbdWrap" class="kbd" hidden>
+        <div class="kbd-bar">
+          <button id="octDown" class="oct-btn" title="Octave down (Z)">▼</button>
+          <span id="octLabel" class="oct-label">C4</span>
+          <button id="octUp" class="oct-btn" title="Octave up (X)">▲</button>
+          <span class="muted small kbd-hint">type A–K to play · Z / X shift octave</span>
+        </div>
+        <div id="keys" class="keys"></div>
+      </div>
+    </div>
+
     <!-- effects: choose what to feed through the plugin -->
     <div id="inputBar" class="inputbar" hidden>
       <span class="muted">Input:</span>
@@ -33,9 +48,6 @@
     <div id="guiWrap" class="guiwrap" hidden>
       <iframe id="gui" title="plugin GUI" sandbox="allow-scripts"></iframe>
     </div>
-
-    <!-- synths: on-screen keyboard (also responds to Web MIDI + computer keys) -->
-    <div id="keys" class="keys" hidden></div>
 
     <p id="status" class="status muted"></p>
   </main>

@@ -15,15 +15,6 @@
   .head b{font-size:14px;letter-spacing:.02em}
   .head span{font:600 11px var(--mono);color:var(--muted);letter-spacing:.06em}
 
-  /* ---- view-only displays: oscilloscope + spectrum ---- */
-  .scopes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-  .scope{background:#06070a;border:1px solid var(--line);border-radius:10px;padding:8px 10px 6px;
-    box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
-  .scope .cap{font:600 9px var(--mono);letter-spacing:.16em;color:var(--muted);text-transform:uppercase;
-    display:flex;justify-content:space-between;margin-bottom:4px}
-  .scope canvas{display:block;width:100%;height:80px}
-  @media(max-width:520px){ .scopes{grid-template-columns:1fr} }
-
   /* ---- control sections ---- */
   .rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(206px,1fr));gap:11px;align-items:start}
   .sect{background:linear-gradient(180deg,var(--surface-2),#15171d);border:1px solid var(--line);
@@ -61,11 +52,6 @@
 </style></head>
 <body>
   <div class="head"><b>VibeSynth</b><span>monophonic analog · 3 osc · ladder filter · FX</span></div>
-
-  <div class="scopes">
-    <div class="scope"><div class="cap"><span>Oscilloscope</span><span>OUT</span></div><canvas id="osc"></canvas></div>
-    <div class="scope"><div class="cap"><span>Spectrum</span><span>EQ</span></div><canvas id="eq"></canvas></div>
-  </div>
 
   <div class="rack" id="rack"></div>
 
@@ -132,33 +118,5 @@ for(const sec of SECTIONS){
   for(const it of sec.items) k.append(it.type==='osc'?osc(it):knob(it));
   el.append(k); rack.append(el);
 }
-
-/* ---- view-only oscilloscope + spectrum, fed by the player's analyser ---- */
-(function(){
-  const osc=document.getElementById('osc'), eq=document.getElementById('eq');
-  const oc=osc.getContext('2d'), ec=eq.getContext('2d');
-  const dpr=Math.min(2,window.devicePixelRatio||1);
-  function size(c){ const r=c.getBoundingClientRect(); c.width=r.width*dpr; c.height=r.height*dpr; }
-  function resize(){ size(osc); size(eq); }
-  window.addEventListener('resize',resize); setTimeout(resize,0);
-  let T=null, F=null;
-  window.addEventListener('message',(e)=>{ const d=e.data; if(!d||!d.__vstaiScope)return; T=d.t; F=d.f; });
-  function draw(){
-    requestAnimationFrame(draw);
-    let w=osc.width,h=osc.height; oc.clearRect(0,0,w,h);
-    oc.strokeStyle='rgba(255,255,255,.06)'; oc.lineWidth=1; oc.beginPath(); oc.moveTo(0,h/2); oc.lineTo(w,h/2); oc.stroke();
-    if(T&&T.length){ oc.strokeStyle='#4f8dff'; oc.lineWidth=1.6*dpr; oc.beginPath();
-      for(let i=0;i<T.length;i++){ const x=i/(T.length-1)*w, y=h/2 - T[i]*h*0.46; i?oc.lineTo(x,y):oc.moveTo(x,y); }
-      oc.shadowColor='#4f8dff'; oc.shadowBlur=8*dpr; oc.stroke(); oc.shadowBlur=0;
-    }
-    w=eq.width; h=eq.height; ec.clearRect(0,0,w,h);
-    if(F&&F.length){ const n=F.length, bw=w/n;
-      for(let i=0;i<n;i++){ const v=F[i]/255, bh=v*h*0.95, x=i*bw;
-        const g=ec.createLinearGradient(0,h,0,h-bh); g.addColorStop(0,'#3a63d6'); g.addColorStop(1,'#9d7bff');
-        ec.fillStyle=g; ec.fillRect(x+0.5,h-bh,bw-1.2,bh); }
-    }
-  }
-  draw();
-})();
 </script>
 </body></html>

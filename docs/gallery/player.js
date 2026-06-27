@@ -56,10 +56,11 @@ async function boot() {
       // from the click usually allows it; otherwise the first key/click resumes).
       start();
     } else {
-      // show the GUI + keyboard immediately so the panel looks live before audio.
+      // show the GUI + deck immediately so the panel looks live before audio.
       $("guiWrap").hidden = false;
       renderGui();
-      if (meta.isInstrument) { $("keys").hidden = false; buildKeyboard(); }
+      $("deck").hidden = false;
+      if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); }
     }
   }
 }
@@ -98,7 +99,8 @@ async function start() {
 
   $("guiWrap").hidden = false;
   renderGui();
-  if (meta.isInstrument) { $("keys").hidden = false; buildKeyboard(); setupMidi(); }
+  $("deck").hidden = false;
+  if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); setupMidi(); }
   else { $("inputBar").hidden = false; await loadSampleList(); setInput("tone"); }
 
   // resume now (works inside a click gesture); otherwise resume on the first gesture.
@@ -111,29 +113,41 @@ async function start() {
   tryResume();
 }
 
-// ---- view-only scope feed: send downsampled time + freq to the GUI iframe ----
+// ---- view-only oscilloscope + spectrum, drawn on the top deck canvases ----
 function startScope() {
+  const osc = $("osc"), eq = $("eq");
+  const oc = osc.getContext("2d"), ec = eq.getContext("2d");
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const size = (c) => { const r = c.getBoundingClientRect(); if (r.width) { c.width = r.width * dpr; c.height = r.height * dpr; } };
   const T = new Float32Array(analyser.fftSize);
   const F = new Uint8Array(analyser.frequencyBinCount);
-  const NT = 220, NF = 64;                       // points sent to the GUI
+  const NF = 64;
   function tick() {
     if (!ctx || ctx.state === "closed") return;
     requestAnimationFrame(tick);
-    const gui = $("gui").contentWindow;
-    if (!gui) return;
+    size(osc); size(eq);
     analyser.getFloatTimeDomainData(T);
     analyser.getByteFrequencyData(F);
-    const t = new Float32Array(NT);
-    for (let i = 0; i < NT; i++) t[i] = T[(i * T.length / NT) | 0];
-    const f = new Uint8Array(NF);                // log-ish grouping into NF bars
-    const lo = 1, hi = F.length;
+
+    // oscilloscope
+    let w = osc.width, h = osc.height; oc.clearRect(0, 0, w, h);
+    oc.strokeStyle = "rgba(255,255,255,.06)"; oc.lineWidth = 1;
+    oc.beginPath(); oc.moveTo(0, h / 2); oc.lineTo(w, h / 2); oc.stroke();
+    oc.strokeStyle = "#4f8dff"; oc.lineWidth = 1.6 * dpr; oc.beginPath();
+    for (let i = 0; i < T.length; i++) { const x = i / (T.length - 1) * w, y = h / 2 - T[i] * h * 0.46; i ? oc.lineTo(x, y) : oc.moveTo(x, y); }
+    oc.shadowColor = "#4f8dff"; oc.shadowBlur = 8 * dpr; oc.stroke(); oc.shadowBlur = 0;
+
+    // spectrum (EQ), log-grouped bars
+    w = eq.width; h = eq.height; ec.clearRect(0, 0, w, h);
+    const lo = 1, hi = F.length, bw = w / NF;
     for (let i = 0; i < NF; i++) {
       const a = (lo * Math.pow(hi / lo, i / NF)) | 0;
       const b = Math.max(a + 1, (lo * Math.pow(hi / lo, (i + 1) / NF)) | 0);
-      let m = 0; for (let j = a; j < b && j < F.length; j++) if (F[j] > m) m = F[j];
-      f[i] = m;
+      let mx = 0; for (let j = a; j < b && j < F.length; j++) if (F[j] > mx) mx = F[j];
+      const bh = (mx / 255) * h * 0.95, x = i * bw;
+      const g = ec.createLinearGradient(0, h, 0, h - bh); g.addColorStop(0, "#3a63d6"); g.addColorStop(1, "#9d7bff");
+      ec.fillStyle = g; ec.fillRect(x + 0.5, h - bh, bw - 1.2, bh);
     }
-    gui.postMessage({ __vstaiScope: 1, t, f }, "*");
   }
   requestAnimationFrame(tick);
 }
@@ -219,19 +233,27 @@ for (const b of document.querySelectorAll("#inputBar .seg-btn"))
 
 // ---- on-screen keyboard (synths) -----------------------------------
 const KEY_ROW = "awsedftgyhujk";              // computer keys → semitones from C
+const PC_NAMES = ["C", "", "D", "", "E", "F", "", "G", "", "A", "", "B"];
+let octave = 0;                                // keyboard octave shift (×12 semitones)
+const baseMidi = () => 60 + octave * 12;       // leftmost C of the on-screen keyboard
+const noteName = (midi) => PC_NAMES[((midi % 12) + 12) % 12] + (Math.floor(midi / 12) - 1);
+
+function noteVisual(midi, on) {
+  const el = document.querySelector(`.key[data-midi="${midi}"]`);
+  if (el) el.classList.toggle("down", on);
+}
 function buildKeyboard() {
   const root = $("keys"); root.innerHTML = "";
-  const START = 60, COUNT = 17;               // C4 .. E5
+  const START = baseMidi(), COUNT = 17;        // ~1.5 octaves
   const black = { 1: 1, 3: 1, 6: 1, 8: 1, 10: 1 };
-  const names = ["C", "", "D", "", "E", "F", "", "G", "", "A", "", "B"];
   for (let i = 0; i < COUNT; i++) {
-    const midi = START + i, pc = midi % 12;
+    const midi = START + i, pc = ((midi % 12) + 12) % 12;
     const k = document.createElement("div");
     k.className = "key" + (black[pc] ? " black" : "");
     k.dataset.midi = midi;
-    k.textContent = names[pc] || "";
-    const down = (ev) => { ev.preventDefault(); k.classList.add("down"); sendNote(true, midi); };
-    const up   = () => { k.classList.remove("down"); sendNote(false, midi); };
+    k.textContent = PC_NAMES[pc] ? noteName(midi) : "";
+    const down = (ev) => { ev.preventDefault(); noteVisual(midi, true); sendNote(true, midi); };
+    const up   = () => { noteVisual(midi, false); sendNote(false, midi); };
     k.addEventListener("mousedown", down);
     k.addEventListener("mouseup", up);
     k.addEventListener("mouseleave", () => { if (k.classList.contains("down")) up(); });
@@ -240,24 +262,41 @@ function buildKeyboard() {
     root.appendChild(k);
   }
 }
-const heldKeys = new Set();
-window.addEventListener("keydown", (e) => {
-  if (!meta || !meta.isInstrument || e.repeat) return;
-  const idx = KEY_ROW.indexOf(e.key.toLowerCase());
-  if (idx < 0 || heldKeys.has(e.key)) return;
-  heldKeys.add(e.key);
-  const midi = 60 + idx;
-  sendNote(true, midi);
-  const el = document.querySelector(`.key[data-midi="${midi}"]`); if (el) el.classList.add("down");
-});
-window.addEventListener("keyup", (e) => {
-  const idx = KEY_ROW.indexOf(e.key.toLowerCase());
-  if (idx < 0) return;
-  heldKeys.delete(e.key);
-  const midi = 60 + idx;
-  sendNote(false, midi);
-  const el = document.querySelector(`.key[data-midi="${midi}"]`); if (el) el.classList.remove("down");
-});
+function updateOctaveLabel() { const el = $("octLabel"); if (el) el.textContent = noteName(baseMidi()); }
+
+// physical/forwarded computer-key handling (char → midi so keyup matches the press)
+const keyDownByChar = new Map();
+function releaseAllKeys() {
+  for (const midi of keyDownByChar.values()) { noteVisual(midi, false); sendNote(false, midi); }
+  keyDownByChar.clear();
+}
+function changeOctave(d) {
+  releaseAllKeys();                            // avoid stuck notes across the shift
+  octave = Math.max(-3, Math.min(3, octave + d));
+  updateOctaveLabel();
+  if (meta && meta.isInstrument) buildKeyboard();
+}
+function onKeyDown(key, repeat) {
+  if (!meta || !meta.isInstrument) return;
+  const k = (key || "").toLowerCase();
+  if (k === "z") { if (!repeat) changeOctave(-1); return; }
+  if (k === "x") { if (!repeat) changeOctave(1); return; }
+  const idx = KEY_ROW.indexOf(k);
+  if (idx < 0 || keyDownByChar.has(k)) return;
+  const midi = baseMidi() + idx;
+  keyDownByChar.set(k, midi);
+  noteVisual(midi, true); sendNote(true, midi);
+}
+function onKeyUp(key) {
+  const k = (key || "").toLowerCase();
+  if (!keyDownByChar.has(k)) return;
+  const midi = keyDownByChar.get(k); keyDownByChar.delete(k);
+  noteVisual(midi, false); sendNote(false, midi);
+}
+window.addEventListener("keydown", (e) => onKeyDown(e.key, e.repeat));
+window.addEventListener("keyup", (e) => onKeyUp(e.key));
+$("octDown").addEventListener("click", () => changeOctave(-1));
+$("octUp").addEventListener("click", () => changeOctave(1));
 
 // ---- GUI iframe + window.vstai bridge ------------------------------
 // The plugin's HTML (arbitrary, user-published) runs in a sandboxed iframe with
@@ -287,6 +326,10 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
     noteOff:function(n){ post({type:'note', on:false, note:(n|0)}); },
     loadSample:function(file,onProgress){ return loadSample(file,onProgress); }
   };
+  // forward computer-key play up to the player (so A–K / Z–X work while the GUI
+  // has focus — e.g. right after dragging a knob).
+  window.addEventListener('keydown', function(e){ post({type:'keydown', key:e.key, repeat:e.repeat}); });
+  window.addEventListener('keyup',   function(e){ post({type:'keyup',   key:e.key}); });
 })();
 <\/script>`;
 
@@ -300,7 +343,11 @@ function renderGui() {
 }
 
 window.addEventListener("message", (e) => {
-  const m = e.data; if (!m || !m.__vstai || !node) return;
+  const m = e.data; if (!m || !m.__vstai) return;
+  // computer-key play forwarded from the GUI iframe or the gallery parent
+  if (m.type === "keydown") { onKeyDown(m.key, m.repeat); return; }
+  if (m.type === "keyup")   { onKeyUp(m.key); return; }
+  if (!node) return;
   if (m.type === "param") node.port.postMessage({ type: "param", i: m.i, v: m.v });
   else if (m.type === "note") node.port.postMessage({ type: "note", on: m.on, note: m.note, vel: m.vel });
   else if (m.type === "sample") node.port.postMessage({ type: "sample", channels: m.channels, frames: m.frames, rate: m.rate, data: m.data }, [m.data.buffer]);
