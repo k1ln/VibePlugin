@@ -118,14 +118,19 @@ function startScope() {
   const osc = $("osc"), eq = $("eq");
   const oc = osc.getContext("2d"), ec = eq.getContext("2d");
   const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const size = (c) => { const r = c.getBoundingClientRect(); if (r.width) { c.width = r.width * dpr; c.height = r.height * dpr; } };
+  // only resize the bitmap when the element's CSS size actually changed — resizing
+  // every frame clears the canvas and thrashes layout.
+  const fit = (c) => {
+    const w = Math.round(c.clientWidth * dpr), h = Math.round(c.clientHeight * dpr);
+    if (w && (c.width !== w || c.height !== h)) { c.width = w; c.height = h; }
+  };
   const T = new Float32Array(analyser.fftSize);
   const F = new Uint8Array(analyser.frequencyBinCount);
   const NF = 64;
   function tick() {
     if (!ctx || ctx.state === "closed") return;
     requestAnimationFrame(tick);
-    size(osc); size(eq);
+    fit(osc); fit(eq);
     analyser.getFloatTimeDomainData(T);
     analyser.getByteFrequencyData(F);
 
