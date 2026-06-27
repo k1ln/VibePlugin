@@ -27,7 +27,7 @@ prompt ▶│  Editor (WebView GUI + prompt bar)                                
         │     ▼                                                                         │
         │  AudioProcessor ──▶ WasmEngine (wasmtime) ◀── plugin.wasm (the DSP)            │
         │     │                                                                         │
-        │     ├─ LlmClient ─── HTTPS ──▶ Claude / GLM / local Ollama (open models)      │
+        │     ├─ LlmClient ─── HTTPS ──▶ Claude (your key) or VibePlugin Cloud credits  │
         │     │       │ { assembly, html, params }  (structured / JSON output)         │
         │     │       ▼                                                                 │
         │     └─ AssemblyScriptCompiler ──▶ execs bundled vstai-asc ──▶ plugin.wasm     │
@@ -66,42 +66,39 @@ value falls back to the env var (`ANTHROPIC_API_KEY` / `VSTAI_MODEL` /
 `VSTAI_COMPILER`). You can also enter keys at runtime — see *Providers* below. ⚠️ The key is embedded in clear text (extractable with
 `strings`) — only ship a scoped key you're comfortable distributing.
 
-## Generation (Manual / Claude / GLM / Ollama)
+## Generation (Manual / Anthropic / Cloud)
 
-The **Model** dropdown picks who writes the plugin:
+The **Model** dropdown picks who writes the plugin. Three paths are offered today:
 
-| Option | Models | Key | How |
+| Option | Models | Key / account | How |
 |---|---|---|---|
 | **Manual** (free) | any chatbot you have | **none** | copy the prompt → paste into ChatGPT/Claude/etc → paste the reply back |
-| **Anthropic** | Opus 4.8, Sonnet 4.6 | your key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
-| **GLM** (Z.ai) | `glm-5.2`, `glm-4.6` | your key | `<glm-url>/chat/completions` (OpenAI-compatible, JSON mode; defaults to Z.ai) |
-| **Ollama** | whatever you've pulled locally | **none** | `<ollama-url>/v1/chat/completions` (local, private) |
+| **Anthropic — your key** | Opus 4.8, Sonnet 4.6 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
+| **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 4.6 / Opus 4.8 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
 
-**Manual ("bring your own chatbot")** is the free, no-API-key, no-account path.
-Pick *Copy prompt → paste from any chatbot*, press **Generate**, and a dialog
-copies a self-contained prompt to your clipboard. Paste it into any chatbot,
-paste the full reply back, and click **Apply** — the plugin extracts the fenced
-`assemblyscript` / `html` / `json` blocks and compiles them. This prompt is
-deliberately **different** from the API prompt: there's no JSON output schema to
-enforce, so it asks for clearly fenced blocks instead. If the DSP doesn't
-compile, the dialog shows the error and a **Copy fix request** button — paste
-that back to the same chat, paste the new reply, and try again. See
+**Manual ("bring your own chatbot")** is the free, no-API-key, no-account path. Click
+**Copy to chatbot** and a dialog copies a self-contained prompt to your clipboard.
+Paste it into any chatbot, paste the full reply back, and click
+**Apply** — the plugin extracts the fenced `assemblyscript` / `html` / `json` blocks
+and compiles them. This prompt is deliberately **different** from the API prompt:
+there's no JSON output schema to enforce, so it asks for clearly fenced blocks
+instead. If the DSP doesn't compile, the dialog shows the error and a **Copy fix
+request** button — paste that back, paste the new reply, and try again. See
 [`Prompt.h`](src/Prompt.h) (`buildManualPrompt` / `parseManualReply`).
 
-Click **Keys…** to enter your Anthropic and GLM keys and the Ollama URL.
-These are stored in your user settings
-(`~/Library/Application Support/VibePlugin/VibePlugin.settings`) and take precedence
-over `Config.h` / env. Leaving a field blank falls back to the compiled-in /
-environment value (`ANTHROPIC_API_KEY` / `GLM_API_KEY` /
-`VSTAI_OLLAMA_URL` / `OLLAMA_HOST`).
+**Anthropic (your key)** — open **Settings** and paste your `sk-ant-…` key (stored
+in your user settings, taking precedence over `Config.h` / `ANTHROPIC_API_KEY`).
+A **Thinking** depth control applies to Claude models. The ≤3× compile-error retry
+loop applies to every API generation.
 
-**Ollama** runs open models on your machine with no API key and no network. Start
-it (`ollama serve`), pull a model (`ollama pull qwen2.5-coder`), and the plugin
-lists your local models under *Ollama (local)* in the dropdown — refreshed
-whenever the editor opens or you save the Keys… dialog. Smaller local models are
-faster/cheaper but less reliable at one-shot DSP + GUI than Claude; the ≤3×
-compile-error retry loop applies to every API provider. "Thinking" depth applies
-to Claude models.
+**VibePlugin Cloud (credits)** — click **Account**, sign in, and generations are
+billed against pay-as-you-go credits, proxied by the hosted server so you never
+handle an API key. Credits are the only paid-only feature; the key and manual paths
+are free.
+
+> The `LlmClient` backend also speaks **GLM (Z.ai)** and local **Ollama**, but both
+> are currently **hidden from the dropdown** (Anthropic-only for now). Re-enable them
+> in `modelCatalog` ([`src/WebEditor.cpp`](src/WebEditor.cpp)) to restore them.
 
 ## Shareware & lifetime license
 
@@ -341,7 +338,8 @@ src/                         C++ (shared by both plugins)
   Config.example.h           copy to Config.h to bake in the API key
   Settings.h / AppSettings.h resolved config (compiled-in/env) + runtime keys/URLs/license/notary
   Designs.h                  the 10 built-in design schools (house-style kits)
-  LlmClient.*                raw HTTPS to Claude / GLM / Ollama
+  LlmClient.* / CloudClient.* raw HTTPS to Claude (your key) or the hosted Cloud proxy (credits)
+  AccountPanel.h             "Account…" dialog: cloud sign-in + credits balance
   ManualPanel.h              "bring your own chatbot" dialog (copy prompt / paste reply)
   LicenseClient.h / LicensePanel.h   license server HTTP + the "License…" dialog
   AssemblyScriptCompiler.*   execs the bundled compiler -> WASM
@@ -372,9 +370,8 @@ The license/credits backend is **not** in this tree — it's a separate private 
 - Generated GUIs are offline/self-contained (no CDN/network) — they only talk to
   the host through `window.vstai`.
 - The REST calls are non-streaming with a 10-minute timeout; switch
-  `LlmClient` to streaming for very large generations. Ollama caps output at ~8k
-  tokens; GLM is a reasoning model given a large budget (thinking + output share
-  it). Very large GUIs are best generated with Claude or GLM.
+  `LlmClient` to streaming for very large generations. Very large GUIs are best
+  generated with the strongest model (Opus 4.8).
 - Treat generated code as untrusted: DSP runs in the WASM sandbox, the GUI in an
   embedded WebView. Don't paste secrets into prompts.
 
