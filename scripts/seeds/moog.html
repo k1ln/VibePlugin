@@ -8,45 +8,59 @@
     --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;font:13px var(--sans);color:var(--ink);background:var(--surface);
-    padding:14px 16px 16px;user-select:none;-webkit-user-select:none}
+  body{margin:0;font:13px var(--sans);color:var(--ink);
+    background:radial-gradient(130% 100% at 50% -10%,#1a1e27,var(--surface) 60%);
+    padding:14px 16px 18px;user-select:none;-webkit-user-select:none}
   .head{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
   .head b{font-size:14px;letter-spacing:.02em}
   .head span{font:600 11px var(--mono);color:var(--muted);letter-spacing:.06em}
 
   /* ---- view-only displays: oscilloscope + spectrum ---- */
   .scopes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-  .scope{background:#07080b;border:1px solid var(--line);border-radius:10px;padding:8px 10px 6px}
+  .scope{background:#06070a;border:1px solid var(--line);border-radius:10px;padding:8px 10px 6px;
+    box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
   .scope .cap{font:600 9px var(--mono);letter-spacing:.16em;color:var(--muted);text-transform:uppercase;
     display:flex;justify-content:space-between;margin-bottom:4px}
-  .scope canvas{display:block;width:100%;height:84px}
+  .scope canvas{display:block;width:100%;height:80px}
   @media(max-width:520px){ .scopes{grid-template-columns:1fr} }
 
   /* ---- control sections ---- */
-  .rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+  .rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(206px,1fr));gap:11px;align-items:start}
   .sect{background:linear-gradient(180deg,var(--surface-2),#15171d);border:1px solid var(--line);
-    border-radius:12px;padding:11px 12px 13px}
-  .sect h3{font:600 9px var(--mono);letter-spacing:.16em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
-  .knobs{display:flex;gap:13px;flex-wrap:wrap}
-  .knob{width:52px;display:flex;flex-direction:column;align-items:center;gap:4px}
-  .dial{width:44px;height:44px;border-radius:50%;cursor:ns-resize;position:relative;
-    background:radial-gradient(60% 60% at 38% 30%,#2b303b,#171a21 72%,#0e1015);
-    border:1px solid var(--line-2);box-shadow:0 2px 6px #0007,0 1px 0 rgba(255,255,255,.05) inset}
-  .dial::after{content:"";position:absolute;left:50%;top:5px;width:2px;height:15px;border-radius:2px;
-    background:var(--accent);transform-origin:50% 17px;transform:translateX(-50%) rotate(var(--rot,-135deg));
-    box-shadow:0 0 7px var(--accent)}
-  .knob label{font:600 9px var(--sans);letter-spacing:.06em;color:var(--ink-2);text-align:center}
+    border-radius:13px;padding:12px 13px 14px;box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
+  .sect h3{font:600 9px var(--mono);letter-spacing:.17em;color:var(--accent);opacity:.9;margin:0 0 11px;
+    text-transform:uppercase;display:flex;align-items:center;gap:7px}
+  .sect h3::after{content:"";flex:1;height:1px;background:var(--line)}
+  .knobs{display:flex;gap:15px 14px;flex-wrap:wrap;justify-content:center}
+
+  .knob{width:54px;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .ring{width:48px;height:48px;border-radius:50%;padding:3px;cursor:ns-resize;position:relative;
+    background:conic-gradient(from 225deg,
+      var(--accent) 0 var(--deg,0deg),
+      rgba(255,255,255,.09) var(--deg,0deg) 270deg,
+      transparent 270deg 360deg);
+    filter:drop-shadow(0 0 0 transparent);transition:filter .12s}
+  .knob:hover .ring{filter:drop-shadow(0 0 6px rgba(79,141,255,.45))}
+  .dial{position:absolute;inset:3px;border-radius:50%;
+    background:radial-gradient(58% 58% at 38% 30%,#333845,#181b22 70%,#0d0f14);
+    border:1px solid rgba(0,0,0,.55);box-shadow:0 2px 6px #0009,0 1px 0 rgba(255,255,255,.06) inset}
+  .dial::after{content:"";position:absolute;left:50%;top:5px;width:2px;height:13px;border-radius:2px;
+    background:#eef3fc;transform-origin:50% 16px;transform:translateX(-50%) rotate(var(--rot,-135deg));
+    box-shadow:0 0 6px var(--accent)}
+  .knob label{font:600 9px var(--sans);letter-spacing:.05em;color:var(--ink-2);text-align:center}
   .knob .val{font:600 9px var(--mono);color:var(--muted)}
-  .oscname{font:600 9px var(--sans);letter-spacing:.08em;color:var(--ink-2);margin-bottom:5px}
-  .waves{display:flex;gap:3px;margin-bottom:6px}
-  .waves button{flex:1;background:#0e1015;border:1px solid var(--line);color:var(--muted);border-radius:6px;
-    padding:5px 0;cursor:pointer;font:600 13px var(--mono);line-height:1}
+
+  .oscname{font:700 9px var(--sans);letter-spacing:.1em;color:var(--ink-2);margin-bottom:6px;text-transform:uppercase}
+  .waves{display:flex;gap:3px;margin-bottom:8px}
+  .waves button{flex:1;background:#0e1015;border:1px solid var(--line);color:var(--muted);border-radius:7px;
+    padding:6px 0;cursor:pointer;font:600 13px var(--mono);line-height:1;transition:.12s}
+  .waves button:hover{color:var(--ink-2);border-color:var(--line-2)}
   .waves button.on{color:#fff;background:linear-gradient(180deg,#5b97ff,var(--accent));border-color:#3f74e0;
-    box-shadow:0 0 10px rgba(79,141,255,.35)}
-  .col{display:flex;flex-direction:column}
+    box-shadow:0 0 11px rgba(79,141,255,.4)}
+  .col{display:flex;flex-direction:column;align-items:center}
 </style></head>
 <body>
-  <div class="head"><b>VibeSynth</b><span>monophonic analog · 3 osc · ladder filter</span></div>
+  <div class="head"><b>VibeSynth</b><span>monophonic analog · 3 osc · ladder filter · FX</span></div>
 
   <div class="scopes">
     <div class="scope"><div class="cap"><span>Oscilloscope</span><span>OUT</span></div><canvas id="osc"></canvas></div>
@@ -59,7 +73,7 @@
 const K=(label,idx,min,max,def,unit,step)=>({type:'knob',label,idx,min,max,def,unit,step});
 const OSC=(name,wIdx,octIdx,detIdx,defWave,defOct,defDet)=>({type:'osc',name,wIdx,octIdx,detIdx,defWave,defOct,defDet});
 const SECTIONS=[
-  {h:'Oscillator Bank',items:[ OSC('OSC 1',2,3,null,1,0,0), OSC('OSC 2',4,5,6,1,0,7), OSC('OSC 3',7,8,9,2,-1,-5) ]},
+  {h:'Oscillator Bank',items:[ OSC('Osc 1',2,3,null,1,0,0), OSC('Osc 2',4,5,6,1,0,7), OSC('Osc 3',7,8,9,2,-1,-5) ]},
   {h:'Mixer',items:[ K('Osc 1',10,0,1,0.9), K('Osc 2',11,0,1,0.7), K('Osc 3',12,0,1,0.5), K('Noise',13,0,1,0.06) ]},
   {h:'Ladder Filter',items:[ K('Cutoff',14,0,1,0.42), K('Reso',15,0,1,0.55), K('Env',16,0,1,0.6),
      K('Atk',17,0,1,0.04), K('Dec',18,0,1,0.5), K('Sus',19,0,1,0.25), K('Rel',20,0,1,0.4) ]},
@@ -74,14 +88,16 @@ function setP(i,v){ if(window.vstai) window.vstai.setParam(i,v); }
 
 function knob(s){
   const wrap=document.createElement('div'); wrap.className='knob';
-  const dial=document.createElement('div'); dial.className='dial';
+  const ring=document.createElement('div'); ring.className='ring';
+  const dial=document.createElement('div'); dial.className='dial'; ring.append(dial);
   const lab=document.createElement('label'); lab.textContent=s.label;
   const val=document.createElement('div'); val.className='val';
-  wrap.append(dial,lab,val); let v=s.def;
+  wrap.append(ring,lab,val); let v=s.def;
   const snap=(x)=> s.step? Math.round(x/s.step)*s.step : x;
   function apply(send){
     v=Math.max(s.min,Math.min(s.max,snap(v)));
     const t=(v-s.min)/(s.max-s.min);
+    ring.style.setProperty('--deg',(t*270)+'deg');
     dial.style.setProperty('--rot',(-135+t*270)+'deg');
     val.textContent = s.unit==='st'?(v>0?'+':'')+v.toFixed(0)+'st':(s.step?v.toFixed(0):v.toFixed(2));
     if(send) setP(s.idx,v);
@@ -90,17 +106,17 @@ function knob(s){
   const dn=(e)=>{drag=true;ly=(e.touches?e.touches[0].clientY:e.clientY);e.preventDefault();};
   const mv=(e)=>{if(!drag)return;const y=(e.touches?e.touches[0].clientY:e.clientY);v+=(ly-y)*(s.max-s.min)/170;ly=y;apply(true);};
   const up=()=>drag=false;
-  dial.addEventListener('mousedown',dn); dial.addEventListener('touchstart',dn,{passive:false});
+  ring.addEventListener('mousedown',dn); ring.addEventListener('touchstart',dn,{passive:false});
   window.addEventListener('mousemove',mv); window.addEventListener('touchmove',mv,{passive:false});
   window.addEventListener('mouseup',up); window.addEventListener('touchend',up);
-  dial.addEventListener('dblclick',()=>{v=s.def;apply(true);});
+  ring.addEventListener('dblclick',()=>{v=s.def;apply(true);});
   apply(true); return wrap;
 }
 function osc(s){
   const col=document.createElement('div'); col.className='col';
   const name=document.createElement('div'); name.className='oscname'; name.textContent=s.name;
   const waves=document.createElement('div'); waves.className='waves';
-  const btns=WAVES.map((g,wi)=>{const b=document.createElement('button');b.textContent=g;
+  const btns=WAVES.map((g,wi)=>{const b=document.createElement('button');b.textContent=g;b.title=['Triangle','Saw','Square','Pulse'][wi];
     b.onclick=()=>{setP(s.wIdx,wi);btns.forEach(x=>x.classList.remove('on'));b.classList.add('on');};return b;});
   btns[s.defWave].classList.add('on'); setP(s.wIdx,s.defWave); waves.append(...btns);
   const knobs=document.createElement('div'); knobs.className='knobs';
@@ -129,14 +145,12 @@ for(const sec of SECTIONS){
   window.addEventListener('message',(e)=>{ const d=e.data; if(!d||!d.__vstaiScope)return; T=d.t; F=d.f; });
   function draw(){
     requestAnimationFrame(draw);
-    // oscilloscope
     let w=osc.width,h=osc.height; oc.clearRect(0,0,w,h);
     oc.strokeStyle='rgba(255,255,255,.06)'; oc.lineWidth=1; oc.beginPath(); oc.moveTo(0,h/2); oc.lineTo(w,h/2); oc.stroke();
     if(T&&T.length){ oc.strokeStyle='#4f8dff'; oc.lineWidth=1.6*dpr; oc.beginPath();
       for(let i=0;i<T.length;i++){ const x=i/(T.length-1)*w, y=h/2 - T[i]*h*0.46; i?oc.lineTo(x,y):oc.moveTo(x,y); }
       oc.shadowColor='#4f8dff'; oc.shadowBlur=8*dpr; oc.stroke(); oc.shadowBlur=0;
     }
-    // spectrum (EQ view)
     w=eq.width; h=eq.height; ec.clearRect(0,0,w,h);
     if(F&&F.length){ const n=F.length, bw=w/n;
       for(let i=0;i<n;i++){ const v=F[i]/255, bh=v*h*0.95, x=i*bw;

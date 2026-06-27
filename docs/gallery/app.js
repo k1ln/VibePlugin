@@ -1,43 +1,55 @@
-// app.js — the static gallery: list + search published synths/effects.
-// Reads a prebuilt catalogue (data/index.json) — no server. The build script
-// scripts/build-gallery.mjs regenerates index.json from the committed .vstai files.
+// app.js — the gallery: a searchable list (left) + a live player (right).
+// Clicking an item loads it into the player pane and starts audio. Reads a
+// prebuilt catalogue (data/index.json) — no server.
 
 const grid   = document.getElementById("grid");
 const empty  = document.getElementById("empty");
 const search = document.getElementById("search");
+const frame  = document.getElementById("playerFrame");
+const hint   = document.getElementById("playerHint");
 
-let all = [];   // full catalogue, filtered client-side
+let all = [];
+let currentId = null;
 
-function card(p) {
-  const el = document.createElement("div");
-  el.className = "card";
+function row(p) {
+  const el = document.createElement("button");
+  el.className = "row";
+  el.dataset.id = p.id;
   const badge = p.isInstrument ? '<span class="badge synth">SYNTH</span>'
                                : '<span class="badge fx">EFFECT</span>';
   el.innerHTML =
-    `<div class="card-head"><span class="card-name"></span>${badge}</div>
-     <p class="card-desc"></p>
-     <div class="card-actions">
-       <a class="btn accent" href="play.html?id=${encodeURIComponent(p.id)}">▶ Play</a>
-       <a class="btn" href="data/${encodeURIComponent(p.id)}.vstai" download="${encodeURIComponent(p.id)}.vstai">Download</a>
+    `<div class="row-head"><span class="row-name"></span>${badge}</div>
+     <p class="row-desc"></p>
+     <div class="row-foot">
        <span class="muted small">${p.params} param${p.params === 1 ? "" : "s"}</span>
+       <a class="row-dl" href="data/${encodeURIComponent(p.id)}.vstai" download="${p.id}.vstai" title="Download .vstai">↓ .vstai</a>
      </div>`;
-  el.querySelector(".card-name").textContent = p.name;
-  el.querySelector(".card-desc").textContent = p.explanation || "";
+  el.querySelector(".row-name").textContent = p.name;
+  el.querySelector(".row-desc").textContent = p.explanation || "";
+  el.querySelector(".row-dl").addEventListener("click", (e) => e.stopPropagation());
+  el.addEventListener("click", () => select(p.id, true));
   return el;
+}
+
+function select(id, autostart) {
+  currentId = id;
+  hint.hidden = true;
+  frame.src = "play.html?id=" + encodeURIComponent(id) + "&embed=1" + (autostart ? "&autostart=1" : "");
+  for (const b of grid.querySelectorAll(".row")) b.classList.toggle("active", b.dataset.id === id);
 }
 
 function render() {
   const q = search.value.trim().toLowerCase();
   const rows = q
-    ? all.filter((r) => r.name.toLowerCase().includes(q) ||
-                        (r.explanation || "").toLowerCase().includes(q))
+    ? all.filter((r) => r.name.toLowerCase().includes(q) || (r.explanation || "").toLowerCase().includes(q))
     : all;
 
   grid.innerHTML = "";
   empty.hidden = rows.length > 0;
-  if (!rows.length) empty.textContent = q ? `No results for “${search.value.trim()}”.`
-                                          : "Nothing published yet.";
-  for (const p of rows) grid.appendChild(card(p));
+  if (!rows.length) empty.textContent = q ? `No results for “${search.value.trim()}”.` : "Nothing published yet.";
+  for (const p of rows) grid.appendChild(row(p));
+  // keep the active highlight after a re-filter
+  if (currentId) for (const b of grid.querySelectorAll(".row")) b.classList.toggle("active", b.dataset.id === currentId);
 }
 
 search.addEventListener("input", render);
@@ -53,4 +65,7 @@ search.addEventListener("input", render);
     return;
   }
   render();
+  // preload the first plugin so the player pane isn't empty (audio resumes on the
+  // first click/keypress; selecting any item afterwards starts it immediately).
+  if (all.length) select(all[0].id, true);
 })();

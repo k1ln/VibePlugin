@@ -6,16 +6,23 @@
   <title>VibePlugin · Gallery</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="gallery-page">
   <header class="bar">
     <div class="title">VibePlugin <span class="muted">gallery</span></div>
     <a class="back" href="../index.html">← VibePlugin</a>
   </header>
 
-  <main class="gallery">
-    <input id="search" class="search" type="search" placeholder="Search synths &amp; effects by name or description…" autofocus>
-    <div id="grid" class="grid"></div>
-    <p id="empty" class="muted" hidden>Nothing published yet.</p>
+  <main class="split">
+    <section class="list-pane">
+      <input id="search" class="search" type="search" placeholder="Search synths &amp; effects…" autofocus>
+      <div id="grid" class="list"></div>
+      <p id="empty" class="muted" hidden>Nothing published yet.</p>
+    </section>
+
+    <section class="player-pane">
+      <iframe id="playerFrame" title="live player" allow="microphone; midi"></iframe>
+      <div id="playerHint" class="player-hint">Pick a synth or effect on the left to load &amp; play it here.</div>
+    </section>
   </main>
 
   <script type="module" src="app.js"></script>

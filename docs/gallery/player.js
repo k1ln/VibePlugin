@@ -7,7 +7,8 @@
 const $ = (id) => document.getElementById(id);
 const qs = new URLSearchParams(location.search);
 const id = qs.get("id") || "";
-const embed = qs.get("embed") === "1";   // hero/embedded mode: no chrome, GUI shown immediately
+const embed = qs.get("embed") === "1";       // embedded mode: slim chrome, GUI fills the pane
+const autostart = qs.get("autostart") === "1"; // begin audio immediately (uses sticky activation)
 
 let ctx, node, meta, wasmBytes;
 let inputNode = null;        // current effect input source feeding `node`
@@ -49,33 +50,43 @@ async function boot() {
   setStatus("Loaded. Press Start audio.");
 
   if (embed) {
-    // Show the real GUI (and keyboard) immediately — before audio — so the panel
-    // looks live. Audio still needs the one required click on Start.
     document.body.classList.add("embed");
-    $("guiWrap").hidden = false;
-    renderGui();
-    if (meta.isInstrument) { $("keys").hidden = false; buildKeyboard(); }
+    if (autostart) {
+      // selected from the gallery: bring up audio right away (sticky activation
+      // from the click usually allows it; otherwise the first key/click resumes).
+      start();
+    } else {
+      // show the GUI + keyboard immediately so the panel looks live before audio.
+      $("guiWrap").hidden = false;
+      renderGui();
+      if (meta.isInstrument) { $("keys").hidden = false; buildKeyboard(); }
+    }
   }
 }
 
 // ---- audio graph ----------------------------------------------------
+let gestureHooked = false;
+function afterRunning() {
+  const running = ctx && ctx.state === "running";
+  $("startWrap").hidden = running;
+  setStatus(running ? (meta.isInstrument ? "Ready — play the keyboard." : "Ready — pick an input.")
+                    : "Click or play a key to enable sound 🔊");
+}
+function tryResume() { if (ctx) ctx.resume().then(afterRunning, afterRunning); }
+
 async function start() {
-  $("startBtn").disabled = true;
+  if (ctx) { tryResume(); return; }          // already booted — just (re)resume
   setStatus("Starting audio…");
   ctx = new (window.AudioContext || window.webkitAudioContext)();
-  await ctx.resume();
-  await ctx.audioWorklet.addModule("worklet.js");
+  await ctx.audioWorklet.addModule("worklet.js");   // OK while suspended (no gesture yet)
 
   node = new AudioWorkletNode(ctx, "vstai-dsp", {
     numberOfInputs: meta.isInstrument ? 0 : 1,
     numberOfOutputs: 1,
     outputChannelCount: [2],
   });
-  node.port.onmessage = (e) => {
-    const m = e.data;
-    if (m.type === "ready") setStatus(meta.isInstrument ? "Ready — play the keyboard." : "Ready — pick an input.");
-    if (m.type === "error") setStatus("DSP error: " + m.message);
-  };
+  node.port.onmessage = (e) => { if (e.data.type === "error") setStatus("DSP error: " + e.data.message); };
+
   // tap the output for the GUI's oscilloscope + spectrum (display only)
   analyser = ctx.createAnalyser();
   analyser.fftSize = 1024;
@@ -85,19 +96,19 @@ async function start() {
   startScope();
   node.port.postMessage({ type: "load", wasm: wasmBytes, sampleRate: ctx.sampleRate, channels: 2 });
 
-  $("startWrap").hidden = true;
   $("guiWrap").hidden = false;
   renderGui();
+  if (meta.isInstrument) { $("keys").hidden = false; buildKeyboard(); setupMidi(); }
+  else { $("inputBar").hidden = false; await loadSampleList(); setInput("tone"); }
 
-  if (meta.isInstrument) {
-    $("keys").hidden = false;
-    buildKeyboard();
-    setupMidi();
-  } else {
-    $("inputBar").hidden = false;
-    await loadSampleList();
-    setInput("tone");                       // sensible default so effects are audible
+  // resume now (works inside a click gesture); otherwise resume on the first gesture.
+  if (!gestureHooked) {
+    gestureHooked = true;
+    const go = () => tryResume();
+    window.addEventListener("pointerdown", go, true);
+    window.addEventListener("keydown", go, true);
   }
+  tryResume();
 }
 
 // ---- view-only scope feed: send downsampled time + freq to the GUI iframe ----
