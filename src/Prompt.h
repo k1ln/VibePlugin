@@ -403,7 +403,9 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
                                           const juce::String& currentAssembly,
                                           const juce::String& currentHtml,
                                           bool isSynth,
-                                          const juce::String& standardUi = {})
+                                          const juce::String& standardUi = {},
+                                          const juce::String& designName = {},
+                                          const juce::String& designPrinciples = {})
     {
         juce::StringArray s;
         s.add (isSynth
@@ -414,6 +416,17 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             : juce::String ("TARGET: AUDIO EFFECT. Read the input buffer and write the processed "
                             "output buffer."));
         s.add ("");
+
+        if (designPrinciples.isNotEmpty())
+        {
+            s.add ("=== DESIGN LANGUAGE" + (designName.isNotEmpty() ? (": " + designName) : juce::String()) + " ===");
+            s.add ("The GUI MUST follow this visual design language. The component kit below");
+            s.add ("is rendered in this language; keep the same look, palette, and treatment");
+            s.add ("when you build the plugin's GUI.");
+            s.add (designPrinciples);
+            s.add ("=== END DESIGN LANGUAGE ===");
+            s.add ("");
+        }
 
         if (standardUi.isNotEmpty())
         {
@@ -612,7 +625,9 @@ Do NOT put AssemblyScript or HTML inside the JSON block (other than inside the
     inline juce::String buildManualPrompt (const juce::String& prompt,
                                            const juce::String& currentAssembly,
                                            const juce::String& currentHtml,
-                                           bool isSynth)
+                                           bool isSynth,
+                                           const juce::String& designName = {},
+                                           const juce::String& designPrinciples = {})
     {
         juce::StringArray s;
         s.add (kSystemPrompt);
@@ -621,7 +636,10 @@ Do NOT put AssemblyScript or HTML inside the JSON block (other than inside the
         s.add ("============================================================");
         s.add ("YOUR TASK");
         s.add ("============================================================");
-        s.add (buildUserMessage (prompt, currentAssembly, currentHtml, isSynth));
+        // The manual (chatbot) path stays lightweight — it carries the design
+        // LANGUAGE so the look is honoured, but not the full component kit.
+        s.add (buildUserMessage (prompt, currentAssembly, currentHtml, isSynth,
+                                 {}, designName, designPrinciples));
         return s.joinIntoString ("\n");
     }
 

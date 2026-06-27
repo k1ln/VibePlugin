@@ -14,24 +14,31 @@
   --muted:#6b7280;                 /* tertiary / labels   */
   --accent:#4f8dff;                /* primary action      */
   --accent-press:#3d7af0;
+  --accent-ink:#fff;               /* text on accent btn  */
   --violet:#9d7bff;                /* secondary action    */
   --ok:#46d39a; --danger:#e5687a;
   --r:7px;                         /* default radius      */
   --r-lg:11px;
   --h:30px;                        /* control height      */
+  /* Body font stack. The selected design may override these via JS (see
+     applyTheme) so the whole shell matches the generated GUI's house style. */
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{
   display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
-  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+  font:13px/1.45 var(--font);
   -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;overflow:hidden;
 }
+/* A monospace design school re-skins the whole shell to mono type. */
+body.mono{font-family:var(--mono)}
 .spacer{flex:1}
 .muted{color:var(--muted)}
 ::-webkit-scrollbar{width:11px;height:11px}
 ::-webkit-scrollbar-thumb{background:var(--line-2);border:3px solid transparent;background-clip:padding-box;border-radius:8px}
-::-webkit-scrollbar-thumb:hover{background:#3e4859;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--line-3);background-clip:padding-box}
 
 /* ---- buttons -------------------------------------------------------- */
 .btn{appearance:none;height:var(--h);display:inline-flex;align-items:center;gap:6px;
@@ -41,11 +48,11 @@ body{
 .btn:hover{background:var(--surface-2);border-color:var(--line-3)}
 .btn:active{background:var(--bg)}
 .btn:disabled{opacity:.4;cursor:default;background:var(--surface)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-.btn.primary:hover{background:#5c98ff;border-color:#5c98ff}
-.btn.primary:active{background:var(--accent-press)}
-.btn.accent2{background:transparent;border-color:var(--violet);color:#b9a8ff;font-weight:600}
-.btn.accent2:hover{background:rgba(138,108,255,.12)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.primary:active{background:var(--accent-press);border-color:var(--accent-press);filter:none}
+.btn.accent2{background:transparent;border-color:var(--violet);color:var(--violet);font-weight:600}
+.btn.accent2:hover{background:var(--surface-2)}
 .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2);padding:0 9px}
 .btn.ghost:hover{background:var(--surface);border-color:var(--line);color:var(--ink)}
 .link{appearance:none;background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;padding:2px 4px}
@@ -80,7 +87,7 @@ body.collapsed #headerBtns { display:none; }
   border:1px solid var(--line-2);border-radius:var(--r-lg);padding:11px 13px;
   font:14.5px/1.45 inherit;transition:border-color .12s,box-shadow .12s}
 #promptBox::placeholder{color:var(--muted)}
-#promptBox:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(77,141,255,.16)}
+#promptBox:focus{outline:none;border-color:var(--accent)}
 .prompt-actions{display:flex;flex-direction:column;gap:8px;width:150px}
 .prompt-actions .btn{flex:1;justify-content:center}
 
@@ -118,6 +125,31 @@ select:focus{outline:none;border-color:var(--accent)}
 .pane{position:absolute;inset:0;display:none}
 .pane.active{display:block}
 #preview{width:100%;height:100%;border:0;background:var(--bg)}
+
+/* ---- settings tab --------------------------------------------------- */
+.settings{height:100%;overflow:auto;padding:18px 20px;max-width:760px}
+.set-block{margin:0 0 26px}
+.set-block h3{margin:0 0 6px;font-size:12px;font-weight:600;letter-spacing:.4px;
+  text-transform:uppercase;color:var(--ink-2)}
+.set-block .muted{margin:0 0 12px;font-size:12px}
+.field{display:flex;flex-direction:column;gap:5px;margin:0 0 12px;font-size:12px;color:var(--ink-2)}
+.field input{height:var(--h);border:1px solid var(--line-2);background:var(--surface);color:var(--ink);
+  font:inherit;padding:0 10px;border-radius:var(--r)}
+.field input:focus{outline:none;border-color:var(--accent)}
+.settings .row{display:flex;align-items:center;gap:10px}
+.design-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin:0 0 12px}
+.design-card{position:relative;text-align:left;display:flex;flex-direction:column;gap:4px;
+  padding:11px 12px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);
+  border-radius:var(--r);cursor:pointer;font:inherit;transition:border-color .1s,background .1s}
+.design-card:hover{border-color:var(--line-3);background:var(--surface-2)}
+.design-card.on{border-color:var(--accent);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--accent)}
+.design-card .dc-name{font-size:12.5px;font-weight:600}
+.design-card .dc-blurb{font-size:11px;color:var(--muted);line-height:1.35}
+.design-card .dc-tag{position:absolute;top:8px;right:8px;font-size:9px;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--violet)}
+.design-card .dc-del{position:absolute;bottom:8px;right:9px;font-size:11px;color:var(--muted);
+  width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.design-card .dc-del:hover{color:var(--danger);background:rgba(255,255,255,.06)}
 .editor{width:100%;height:100%}
 .notes{margin:0;padding:16px;height:100%;overflow:auto;white-space:pre-wrap;
   font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
@@ -169,7 +201,7 @@ select:focus{outline:none;border-color:var(--accent)}
 .paste-field textarea{padding-top:24px}
 .paste-tag{position:absolute;top:7px;left:11px;font-size:10.5px;letter-spacing:.4px;font-weight:600;
   text-transform:uppercase;color:var(--muted);pointer-events:none}
-.paste-tag em{font-style:normal;color:#5a6577;text-transform:none;letter-spacing:0;font-weight:500}
+.paste-tag em{font-style:normal;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500}
 .paste-field.err textarea{border-color:var(--danger);color:#ffc6cd}
 .paste-field.err .paste-tag{color:var(--danger)}
 

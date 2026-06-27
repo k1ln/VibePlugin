@@ -17,6 +17,7 @@
 #include <juce_data_structures/juce_data_structures.h>
 #include "Settings.h"
 #include "StandardUi.h"
+#include "Designs.h"
 
 namespace vstai::appsettings
 {
@@ -75,12 +76,110 @@ namespace vstai::appsettings
         return v.isNotEmpty() ? v : vstai::settings::glmBaseUrl();
     }
 
-    // The user's edited standard component kit, or the baked-in default. Used as
-    // the starter GUI, the build-prompt house style, and the Standard UI tab seed.
+    // ===== Design schools ===================================================
+    //  The selected design provides the default component kit + the design
+    //  language fed to the prompt. Built-in designs load from ui/designs/;
+    //  imported "custom" designs are stored here as JSON (they have no file).
+
+    inline juce::String selectedDesignId()
+    {
+        auto v = file().getValue ("designId");
+        return v.isNotEmpty() ? v : juce::String ("minimal");
+    }
+
+    inline juce::Array<juce::var> customDesignArray()
+    {
+        auto parsed = juce::JSON::parse (file().getValue ("customDesigns"));
+        if (auto* a = parsed.getArray()) return *a;
+        return {};
+    }
+
+    inline juce::var findCustomDesign (const juce::String& id)
+    {
+        for (auto& v : customDesignArray())
+            if (auto* o = v.getDynamicObject())
+                if (o->getProperty ("id").toString() == id)
+                    return v;
+        return {};
+    }
+
+    // Kit HTML for any design id: a custom design's stored HTML, else the
+    // built-in on-disk file (or baked minimal fallback).
+    inline juce::String designKitHtml (const juce::String& id)
+    {
+        auto c = findCustomDesign (id);
+        if (auto* o = c.getDynamicObject())
+            return o->getProperty ("html").toString();
+        return vstai::designs::builtinKitHtml (id);
+    }
+
+    inline vstai::designs::DesignMeta designMeta (const juce::String& id)
+    {
+        auto c = findCustomDesign (id);
+        if (auto* o = c.getDynamicObject())
+        {
+            vstai::designs::DesignMeta m;
+            m.id = id; m.builtin = false;
+            m.name       = o->getProperty ("name").toString();
+            m.blurb      = o->getProperty ("blurb").toString();
+            m.principles = o->getProperty ("principles").toString();
+            // The chrome palette lives only in the kit's header — pull it from the
+            // stored HTML so imported designs re-skin the shell like built-ins do.
+            m.theme      = vstai::designs::parseMeta (o->getProperty ("html").toString(), id).theme;
+            if (m.name.isEmpty()) m.name = id;
+            return m;
+        }
+        return vstai::designs::builtinMeta (id);
+    }
+
+    inline juce::String selectedDesignKitHtml()    { return designKitHtml (selectedDesignId()); }
+    inline juce::String selectedDesignPrinciples() { return designMeta   (selectedDesignId()).principles; }
+    inline juce::String selectedDesignName()       { return designMeta   (selectedDesignId()).name; }
+
+    // Switching design clears any manual Standard-UI override so the chosen
+    // design actually takes effect as the starter GUI / house style.
+    inline void setSelectedDesignId (const juce::String& id)
+    {
+        file().setValue ("designId", id);
+        file().removeValue ("standardUi");
+        file().saveIfNeeded();
+    }
+
+    inline void upsertCustomDesign (const vstai::designs::DesignMeta& m, const juce::String& html)
+    {
+        juce::Array<juce::var> arr = customDesignArray();
+        for (int i = arr.size(); --i >= 0;)
+            if (auto* o = arr[i].getDynamicObject())
+                if (o->getProperty ("id").toString() == m.id) arr.remove (i);
+        auto* o = new juce::DynamicObject();
+        o->setProperty ("id", m.id);
+        o->setProperty ("name", m.name);
+        o->setProperty ("blurb", m.blurb);
+        o->setProperty ("principles", m.principles);
+        o->setProperty ("html", html);
+        arr.add (juce::var (o));
+        file().setValue ("customDesigns", juce::JSON::toString (juce::var (arr)));
+        file().saveIfNeeded();
+    }
+
+    inline void removeCustomDesign (const juce::String& id)
+    {
+        juce::Array<juce::var> arr = customDesignArray();
+        for (int i = arr.size(); --i >= 0;)
+            if (auto* o = arr[i].getDynamicObject())
+                if (o->getProperty ("id").toString() == id) arr.remove (i);
+        file().setValue ("customDesigns", juce::JSON::toString (juce::var (arr)));
+        if (selectedDesignId() == id) setSelectedDesignId ("minimal");
+        file().saveIfNeeded();
+    }
+
+    // The user's edited standard component kit, or — failing that — the selected
+    // design's kit. Used as the starter GUI, the build-prompt house style, and
+    // the Standard UI tab seed.
     inline juce::String standardUi()
     {
         auto v = rawStandardUi();
-        return v.isNotEmpty() ? v : juce::String (vstai::defaultStandardUiHtml());
+        return v.isNotEmpty() ? v : selectedDesignKitHtml();
     }
 
     // Which editor chrome to use: the new WebView shell (default) or the legacy

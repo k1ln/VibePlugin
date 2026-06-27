@@ -1,195 +1,199 @@
+<!--VSTAI-DESIGN
+{"theme":{"bg":"#f2efe9","surface":"#ffffff","surface2":"#e8e4db","surface3":"#ffffff","line":"#111111","line2":"#111111","line3":"#111111","ink":"#111111","ink2":"#111111","muted":"#6b6a64","accent":"#1d4e89","accentPress":"#163a66","accentInk":"#ffffff","accent2":"#d62828","ok":"#1d4e89","danger":"#d62828","radius":"0px","radiusLg":"0px"},"id":"bauhaus","name":"Bauhaus / Swiss","blurb":"Geometric modernist poster: primary colors, bold black rules, flat shapes, Helvetica.","principles":"Bauhaus / Swiss graphic design for a synth GUI. Off-white ground #f2efe9, ink black #111, strict primaries as bold functional blocks: red #d62828, blue #1d4e89, yellow #f1c40f. STRICTLY FLAT: no shadow, gradient, glow, blur, rounded skeuomorphism or pastel. Hierarchy from color blocks, scale and 2-3px black rules between sections; rigorous grid, asymmetric but poster-balanced. Type: Helvetica/Arial only; headers big UPPERCASE, wide tracking (.18em), weight 800, in a black or colored bar; labels small uppercase; numbers tabular. Knobs are a core motif: a bold flat circle, 3px black outline, heavy black pointer, value as a vivid colored arc on the rim; modulation a second concentric arc. Accents: primitive squares, triangles, circles. Buttons flat solid rectangles (no radius); toggles flip primary vs black. Faders rectangular, solid primary fill, square cap. Visualizers in black-ruled frames on paper, data flat in primaries with NO glow; meters solid color bars; tabs flat color blocks. DO: primaries, black, off-white, hard edges, visible grid. DON'T: gradient, glow, shadow, bevel."}
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>VibePlugin Standard Kit</title>
+<title>VibePlugin — Bauhaus Kit</title>
 <style>
-  /* ---- THEME TOKENS -------------------------------------------------------
-     House style: "minimal utilitarian" — the look of stock DAW devices
-     (Ableton / Bitwig) and tools like FabFilter. Flat matte surfaces, thin
-     hairline borders, small dense controls, NO neon bloom / drop-shadow glow /
-     film grain. Depth comes from a 1px lighter top edge + darker recessed
-     wells, never from blur. One muted amber accent, one muted blue for
-     modulation. Re-skin everything from here. */
+  /* ===================================================================
+     BAUHAUS / SWISS — geometric modernist. Off-white ground, primary
+     color blocks, heavy black rules. STRICTLY FLAT: no shadow/gradient/
+     glow/radius (except where a circle is the geometric form itself).
+     =================================================================== */
   :root{
-    --bg:#171717;            /* app base                 */
-    --panel:#1f1f1f;         /* module surface           */
-    --panel-2:#262626;       /* raised / hover           */
-    --track:#0d0d0d;         /* recessed wells, displays */
-    --line:rgba(255,255,255,.06);   /* hairline divider  */
-    --line-2:rgba(255,255,255,.11);  /* control border   */
-    --line-3:rgba(255,255,255,.20);  /* emphasis / hover */
-    --edge:rgba(255,255,255,.05);    /* 1px top highlight (fake bevel) */
-    --ink:#d7d7d9; --ink-2:#9a9b9e; --muted:#67696e;
-    --accent:#c8923a;        /* muted amber (values, fills)   */
-    --accent-2:#3fa98c;      /* muted teal  (modulation)      */
-    --warn:#c75d52;          /* clip / danger                 */
-    --ok:#5fae7e;            /* signal present                */
-    --radius:3px; --radius-sm:2px;
+    --paper:#f2efe9;        /* base off-white ground            */
+    --ink:#111;             /* black                            */
+    --red:#d62828;
+    --blue:#1d4e89;
+    --yellow:#f1c40f;
+    --paper-2:#e8e4db;      /* slightly recessed well           */
+    --line:#111;            /* all rules are black              */
+    --mut:#6b6a64;          /* muted ink for secondary labels   */
+    --rule:3px;
   }
-  body.light{
-    --bg:#dfe0e2; --panel:#ececee; --panel-2:#f6f6f7; --track:#cfd0d3;
-    --line:rgba(0,0,0,.07); --line-2:rgba(0,0,0,.14); --line-3:rgba(0,0,0,.26);
-    --edge:rgba(255,255,255,.55);
-    --ink:#1c1d20; --ink-2:#4a4c50; --muted:#7a7c80;
-    --accent:#b07820; --accent-2:#2f8f73;
+  body.light{ /* "light" toggle: invert to an ink-poster variant */
+    --paper:#111; --ink:#f2efe9; --paper-2:#1c1c1c; --mut:#9a988f; --line:#f2efe9;
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
   body{
-    background:var(--bg); color:var(--ink); padding:0;
-    font:11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased; -webkit-user-select:none;user-select:none;
+    background:var(--paper); color:var(--ink); padding:0;
+    font:11px/1.35 Helvetica,Arial,"Helvetica Neue",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;
   }
-  /* ---- structural chrome -------------------------------------------------- */
-  .app{display:flex;flex-direction:column;min-height:100%}
-  .topbar{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;
-          background:var(--panel);border-bottom:1px solid var(--line)}
-  .topbar .brand{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-2)}
+  /* ---- structural chrome ------------------------------------------- */
+  .app{display:flex;flex-direction:column;min-height:100%;border-top:6px solid var(--ink)}
+  .topbar{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;
+          background:var(--paper);border-bottom:var(--rule) solid var(--ink)}
+  .mark{display:flex;align-items:center;gap:8px}
+  .mark .sq{width:14px;height:14px;background:var(--red)}
+  .mark .ci{width:14px;height:14px;border-radius:50%;background:var(--blue)}
+  .mark .tr{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:14px solid var(--yellow)}
+  .brand{font-size:14px;font-weight:800;letter-spacing:.20em;text-transform:uppercase}
   .topbar .sp{flex:1}
-  .tabs{display:flex;gap:1px;height:28px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line)}
-  .tab{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:10px;
-       letter-spacing:.8px;text-transform:uppercase;padding:0 12px;cursor:pointer;
-       border-bottom:2px solid transparent}
-  .tab:hover{color:var(--ink-2)}
-  .tab.on{color:var(--ink);border-bottom-color:var(--accent)}
-  .page{display:none;padding:12px}
+  .led{width:12px;height:12px;background:var(--paper);border:2px solid var(--ink)}
+  .led.on{background:var(--red)}
+  .led.warn.on{background:var(--yellow)}
+  /* preset bar */
+  .pbrow{display:flex;align-items:stretch;gap:0;border:2px solid var(--ink)}
+  .pbrow input{background:var(--paper);border:0;border-left:2px solid var(--ink);border-right:2px solid var(--ink);
+       color:var(--ink);font:inherit;font-size:11px;font-weight:700;padding:0 9px;width:158px;letter-spacing:.04em}
+  .pbrow input:focus{outline:none;background:var(--yellow)}
+  /* ---- tabs as flat color blocks ---------------------------------- */
+  .tabs{display:flex;gap:0;background:var(--paper);border-bottom:var(--rule) solid var(--ink)}
+  .tab{appearance:none;border:0;border-right:var(--rule) solid var(--ink);background:var(--paper);
+       color:var(--ink);font:inherit;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+       padding:11px 18px;cursor:pointer}
+  .tab:hover{background:var(--paper-2)}
+  .tab.on{background:var(--ink);color:var(--paper)}
+  .tab:nth-child(2).on{background:var(--red);color:#fff}
+  .tab:nth-child(3).on{background:var(--blue);color:#fff}
+  .tab:nth-child(4).on{background:var(--yellow);color:#111}
+  .page{display:none;padding:16px}
   .page.on{display:block}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
-  /* ---- panel / section (collapsible) -------------------------------------- */
-  .panel{background:var(--panel);border:1px solid var(--line);border-top-color:var(--edge);
-         border-radius:var(--radius);min-width:0}
-  .panel>.head{display:flex;align-items:center;gap:6px;height:22px;padding:0 8px;
-       font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);
-       border-bottom:1px solid var(--line);cursor:default}
-  .panel>.head .caret{cursor:pointer;color:var(--ink-2);width:10px;text-align:center;transition:transform .12s}
-  .panel.collapsed>.head .caret{transform:rotate(-90deg)}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:stretch}
+  /* ---- panels: poster blocks framed by black rules ---------------- */
+  .panel{background:var(--paper);border:var(--rule) solid var(--ink);min-width:0;display:flex;flex-direction:column}
+  .panel>.head{display:flex;align-items:center;gap:8px;padding:7px 10px;
+       font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+       background:var(--ink);color:var(--paper);cursor:default}
+  .panel>.head .caret{cursor:pointer;width:14px;height:14px;display:inline-block;position:relative}
+  .panel>.head .caret::before{content:"";position:absolute;left:1px;top:3px;
+       border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--yellow);transition:transform .12s}
+  .panel.collapsed>.head .caret::before{transform:rotate(-90deg)}
   .panel.collapsed>.body{display:none}
-  .panel>.body{padding:10px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
-  /* ---- control cell (label under control) --------------------------------- */
-  .cell{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
-  .cell .lbl{font-size:9px;letter-spacing:.4px;color:var(--ink-2);white-space:nowrap}
-  .cell .sub{font-size:8.5px;color:var(--muted)}
-  /* readout chip (also the editable numeric field) */
-  .num{font-size:10px;color:var(--ink);font-variant-numeric:tabular-nums;background:var(--track);
-       border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:1px 6px;min-width:44px;
-       text-align:center;cursor:text}
-  .num:focus{outline:none;border-color:var(--accent);color:#fff}
-  /* ---- knob — flat/minimal: the arc IS the scale, no skeuomorphic tick ring */
+  .panel>.body{padding:14px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+  /* ---- control cell ------------------------------------------------ */
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+  .cell .lbl{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+  .cell .sub{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+  /* numeric readout / editable field */
+  .num{font-size:11px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;
+       background:var(--paper);border:2px solid var(--ink);padding:2px 7px;min-width:50px;
+       text-align:center;cursor:text;letter-spacing:.02em}
+  .num:focus{outline:none;background:var(--yellow)}
+  /* ---- KNOB — bold flat circle + black pointer + primary value arc - */
   .knob{cursor:ns-resize;touch-action:none;display:block}
-  .knob .face{fill:var(--track);stroke:var(--line-2);stroke-width:1}
-  .knob .track{fill:none;stroke:var(--line-2);stroke-width:2.5}
-  .knob .arc{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:butt}
-  .knob .mod{fill:none;stroke:var(--accent-2);stroke-width:2.5;stroke-linecap:butt;opacity:.85}
-  .knob .ind{stroke:var(--ink);stroke-width:2;stroke-linecap:round}
-  .knob.endless .arc{stroke:var(--accent-2)}
-  /* ---- fader (vertical + horizontal) -------------------------------------- */
-  .fader{position:relative;background:var(--track);border:1px solid var(--line-2);
-         border-radius:var(--radius-sm);cursor:pointer;touch-action:none;overflow:hidden}
-  .fader.v{width:22px;height:108px}
-  .fader.h{width:140px;height:22px}
-  .fader .fill{position:absolute;background:var(--accent);opacity:.8}
+  .knob .face{fill:var(--paper);stroke:var(--ink);stroke-width:3}
+  .knob .track{fill:none;stroke:var(--ink);stroke-width:3;opacity:.18}
+  .knob .arc{fill:none;stroke:var(--red);stroke-width:6;stroke-linecap:butt}
+  .knob .mod{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:butt}
+  .knob .ind{stroke:var(--ink);stroke-width:4;stroke-linecap:butt}
+  .knob .hub{fill:var(--ink)}
+  .knob.endless .arc{stroke:var(--blue)}
+  /* ---- FADER (vertical + horizontal) — rectangular, square cap ----- */
+  .fader{position:relative;background:var(--paper);border:3px solid var(--ink);
+         cursor:pointer;touch-action:none;overflow:hidden}
+  .fader.v{width:26px;height:118px}
+  .fader.h{width:150px;height:26px}
+  .fader .fill{position:absolute;background:var(--red)}
   .fader.v .fill{left:0;right:0;bottom:0}
   .fader.h .fill{left:0;top:0;bottom:0}
-  .fader .cap{position:absolute;background:var(--ink-2)}
-  .fader.v .cap{left:0;right:0;height:3px}
-  .fader.h .cap{top:0;bottom:0;width:3px}
-  /* ---- buttons / toggles -------------------------------------------------- */
-  .btn{appearance:none;border:1px solid var(--line-2);border-top-color:var(--edge);
-       background:var(--panel-2);color:var(--ink-2);font:inherit;font-size:10px;font-weight:600;
-       letter-spacing:.3px;padding:5px 11px;border-radius:var(--radius-sm);cursor:pointer;min-width:54px}
-  .btn:hover{border-color:var(--line-3);color:var(--ink)}
-  .btn:active{background:var(--panel)}
-  .btn.on{background:var(--accent);border-color:var(--accent);color:#111}
-  /* segmented selector / radio group */
-  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--radius-sm);overflow:hidden}
-  .seg button{appearance:none;border:0;border-left:1px solid var(--line);background:var(--panel-2);
-       color:var(--ink-2);font:inherit;font-size:10px;padding:4px 9px;cursor:pointer}
+  .fader .cap{position:absolute;background:var(--ink)}
+  .fader.v .cap{left:0;right:0;height:5px}
+  .fader.h .cap{top:0;bottom:0;width:5px}
+  /* ---- buttons / toggles — flat solid rectangles ------------------- */
+  .btn{appearance:none;border:3px solid var(--ink);background:var(--paper);color:var(--ink);
+       font:inherit;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+       padding:7px 13px;cursor:pointer;min-width:58px}
+  .btn:hover{background:var(--paper-2)}
+  .btn:active{background:var(--yellow)}
+  .btn.on{background:var(--red);border-color:var(--ink);color:#fff}
+  /* segmented selector / radio */
+  .seg{display:inline-flex;border:3px solid var(--ink)}
+  .seg button{appearance:none;border:0;border-left:3px solid var(--ink);background:var(--paper);
+       color:var(--ink);font:inherit;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+       padding:6px 11px;cursor:pointer}
   .seg button:first-child{border-left:0}
-  .seg button:hover{color:var(--ink)}
-  .seg button.on{background:var(--accent);color:#111}
+  .seg button:hover{background:var(--paper-2)}
+  .seg button.on{background:var(--blue);color:#fff}
   /* dropdown / combo */
-  .sel{appearance:none;background:var(--panel-2);color:var(--ink);font:inherit;font-size:10px;
-       border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:4px 22px 4px 8px;cursor:pointer;
-       background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(-45deg,transparent 50%,var(--ink-2) 50%);
-       background-position:calc(100% - 12px) 50%,calc(100% - 8px) 50%;background-size:4px 4px;background-repeat:no-repeat}
-  .sel:hover{border-color:var(--line-3)}
+  .sel{appearance:none;background:var(--paper);color:var(--ink);font:inherit;font-size:10px;font-weight:700;
+       letter-spacing:.06em;text-transform:uppercase;border:3px solid var(--ink);padding:6px 26px 6px 9px;cursor:pointer;
+       background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(-45deg,transparent 50%,var(--ink) 50%);
+       background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+  .sel:hover{background-color:var(--paper-2)}
   /* stepper */
-  .step{display:inline-flex;align-items:stretch;border:1px solid var(--line-2);border-radius:var(--radius-sm);overflow:hidden}
-  .step button{appearance:none;border:0;background:var(--panel-2);color:var(--ink-2);font:inherit;
-       width:20px;cursor:pointer;font-size:12px;line-height:1}
-  .step button:hover{color:var(--ink);background:var(--panel)}
-  .step .v{min-width:42px;text-align:center;align-self:center;font-variant-numeric:tabular-nums;
-       border-left:1px solid var(--line);border-right:1px solid var(--line);padding:3px 0}
-  /* LED */
-  .led{width:7px;height:7px;border-radius:50%;background:var(--track);border:1px solid var(--line-2)}
-  .led.on{background:var(--ok);border-color:var(--ok)}
-  .led.warn.on{background:var(--warn);border-color:var(--warn)}
-  /* ---- canvas displays (scope/spectrum/curve/wavetable/lfo/adsr/seq) ------ */
-  .disp{position:relative;background:var(--track);border:1px solid var(--line-2);border-radius:var(--radius-sm)}
+  .step{display:inline-flex;align-items:stretch;border:3px solid var(--ink)}
+  .step button{appearance:none;border:0;background:var(--paper);color:var(--ink);font:inherit;font-weight:800;
+       width:26px;cursor:pointer;font-size:15px;line-height:1}
+  .step button:first-child{background:var(--red);color:#fff}
+  .step button:last-child{background:var(--blue);color:#fff}
+  .step .v{min-width:48px;text-align:center;align-self:center;font-weight:700;font-variant-numeric:tabular-nums;
+       border-left:3px solid var(--ink);border-right:3px solid var(--ink);padding:5px 0}
+  /* ---- canvas displays --------------------------------------------- */
+  .disp{position:relative;background:var(--paper);border:3px solid var(--ink)}
   .disp canvas{display:block;width:100%;height:100%}
-  .disp .tag{position:absolute;top:4px;left:6px;font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
-  .disp .rd{position:absolute;top:4px;right:6px;font-size:9px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-  /* ---- XY pad ------------------------------------------------------------- */
-  .xy{position:relative;background:
-        linear-gradient(var(--line),transparent 1px) 0 0/100% 25%,
-        linear-gradient(90deg,var(--line),transparent 1px) 0 0/25% 100%,
-        var(--track);
-      border:1px solid var(--line-2);border-radius:var(--radius-sm);cursor:crosshair;touch-action:none}
-  .xy .pt{position:absolute;width:10px;height:10px;margin:-5px;border-radius:50%;background:var(--accent);border:1px solid #111}
-  .xy .ch{position:absolute;background:var(--line);pointer-events:none}
-  /* ---- meter -------------------------------------------------------------- */
-  .meter{display:flex;gap:3px;height:108px;padding:3px;background:var(--track);
-         border:1px solid var(--line-2);border-radius:var(--radius-sm)}
-  .meter .ch{width:9px;align-self:stretch;background:var(--bg);position:relative;overflow:hidden}
-  .meter .ch .fl{position:absolute;left:0;right:0;bottom:0;background:var(--ok)}
-  .meter .ch .pk{position:absolute;left:0;right:0;height:1px;background:var(--ink)}
-  /* ---- piano -------------------------------------------------------------- */
-  .piano{position:relative;height:74px;display:flex;border:1px solid var(--line-2);
-         border-radius:var(--radius-sm);overflow:hidden;background:#000}
-  .wk{flex:1;background:#cfd0d2;border-right:1px solid #2a2a2a;cursor:pointer}
-  .wk:active,.wk.down{background:var(--accent)}
-  .bk{position:absolute;top:0;width:5%;height:62%;background:#202022;z-index:2;cursor:pointer;
-      border:1px solid #000;border-top:0;border-radius:0 0 2px 2px}
-  .bk:active,.bk.down{background:var(--accent)}
-  /* ---- mod matrix --------------------------------------------------------- */
+  .disp .tag{position:absolute;top:0;left:0;font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+       color:var(--paper);background:var(--ink);padding:3px 6px}
+  .disp .rd{position:absolute;top:0;right:0;font-size:9px;font-weight:800;color:#fff;background:var(--red);
+       padding:3px 6px;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  /* ---- XY pad ------------------------------------------------------ */
+  .xy{position:relative;background:var(--paper);border:3px solid var(--ink);cursor:crosshair;touch-action:none}
+  .xy .pt{position:absolute;width:14px;height:14px;margin:-7px;border-radius:50%;background:var(--yellow);border:3px solid var(--ink)}
+  .xy .ch{position:absolute;background:var(--ink);pointer-events:none}
+  /* ---- meter ------------------------------------------------------- */
+  .meter{display:flex;gap:5px;height:118px;padding:5px;background:var(--paper);border:3px solid var(--ink)}
+  .meter .ch{width:13px;align-self:stretch;background:var(--paper-2);position:relative;overflow:hidden;border:1px solid var(--ink)}
+  .meter .ch .fl{position:absolute;left:0;right:0;bottom:0;background:var(--blue)}
+  .meter .ch .pk{position:absolute;left:0;right:0;height:3px;background:var(--ink)}
+  /* ---- piano ------------------------------------------------------- */
+  .piano{position:relative;height:88px;display:flex;border:3px solid var(--ink);overflow:hidden;background:var(--ink)}
+  .wk{flex:1;background:var(--paper);border-right:2px solid var(--ink);cursor:pointer}
+  .wk:active,.wk.down{background:var(--red)}
+  .bk{position:absolute;top:0;width:5%;height:60%;background:var(--ink);z-index:2;cursor:pointer;border:2px solid var(--ink)}
+  .bk:active,.bk.down{background:var(--blue)}
+  /* ---- mod matrix -------------------------------------------------- */
   table.mtx{border-collapse:collapse;font-size:9px}
-  table.mtx th{color:var(--muted);font-weight:500;padding:3px 6px;text-align:center;
-       letter-spacing:.3px;border:1px solid var(--line)}
-  table.mtx th.src{text-align:right}
-  table.mtx td{border:1px solid var(--line);width:34px;height:22px;padding:0;position:relative;cursor:ns-resize}
-  table.mtx td .fl{position:absolute;left:0;right:0;bottom:0;background:var(--accent-2);opacity:.85}
-  table.mtx td.neg .fl{background:var(--warn);opacity:.7}
-  /* ---- step sequencer ----------------------------------------------------- */
-  .seq{display:flex;gap:2px;align-items:flex-end;height:84px;padding:4px;background:var(--track);
-       border:1px solid var(--line-2);border-radius:var(--radius-sm)}
-  .seq .st{flex:1;background:var(--bg);position:relative;cursor:ns-resize;min-width:10px;align-self:stretch}
-  .seq .st .fl{position:absolute;left:0;right:0;bottom:0;background:var(--accent)}
-  .seq .st.cur{outline:1px solid var(--ink-2);outline-offset:-1px}
-  .seq .st.off .fl{background:var(--line-2)}
-  /* ---- preset browser ----------------------------------------------------- */
-  .pbrow{display:flex;align-items:center;gap:4px}
-  .pbrow input{background:var(--track);border:1px solid var(--line-2);border-radius:var(--radius-sm);
-       color:var(--ink);font:inherit;font-size:10px;padding:3px 7px;width:150px}
-  .pbrow input:focus{outline:none;border-color:var(--accent)}
-  .plist{margin-top:6px;max-height:128px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--track)}
-  .plist .it{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;border-bottom:1px solid var(--line)}
-  .plist .it:hover{background:var(--panel)}
-  .plist .it.on{background:var(--panel-2);color:#fff}
-  .plist .it .fav{color:var(--muted);width:12px;text-align:center}
-  .plist .it .fav.y{color:var(--accent)}
-  .plist .it .cat{margin-left:auto;font-size:8.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
-  /* ---- tooltip + context menu (shared, JS-driven) ------------------------- */
-  .tip{position:fixed;z-index:50;background:#000;color:var(--ink);border:1px solid var(--line-2);
-       border-radius:var(--radius-sm);padding:3px 7px;font-size:10px;pointer-events:none;
+  table.mtx th{font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;text-align:center;
+       border:2px solid var(--ink);background:var(--ink);color:var(--paper)}
+  table.mtx th.src{text-align:right;background:var(--paper);color:var(--ink)}
+  table.mtx th:first-child{background:var(--paper)}
+  table.mtx td{border:2px solid var(--ink);width:40px;height:26px;padding:0;position:relative;cursor:ns-resize;background:var(--paper)}
+  table.mtx td .fl{position:absolute;left:0;right:0;bottom:0;background:var(--blue)}
+  table.mtx td.neg .fl{background:var(--red)}
+  /* ---- step sequencer ---------------------------------------------- */
+  .seq{display:flex;gap:3px;align-items:flex-end;height:96px;padding:5px;background:var(--paper);border:3px solid var(--ink)}
+  .seq .st{flex:1;background:var(--paper-2);position:relative;cursor:ns-resize;min-width:12px;align-self:stretch;border:1px solid var(--ink)}
+  .seq .st .fl{position:absolute;left:0;right:0;bottom:0;background:var(--red)}
+  .seq .st.cur{background:var(--yellow)}
+  .seq .st.cur .fl{background:var(--ink)}
+  .seq .st.off .fl{background:var(--paper-2)}
+  /* ---- preset browser --------------------------------------------- */
+  .plist{margin-top:0;max-height:150px;overflow:auto;border:3px solid var(--ink);background:var(--paper)}
+  .plist .it{display:flex;align-items:center;gap:8px;padding:6px 9px;cursor:pointer;border-bottom:2px solid var(--ink)}
+  .plist .it:last-child{border-bottom:0}
+  .plist .it:hover{background:var(--paper-2)}
+  .plist .it.on{background:var(--yellow)}
+  .plist .it .fav{width:14px;text-align:center;font-weight:800}
+  .plist .it .fav.y{color:var(--red)}
+  .plist .it span:nth-child(2){font-weight:700;letter-spacing:.02em}
+  .plist .it .cat{margin-left:auto;font-size:8px;font-weight:800;color:var(--ink);letter-spacing:.1em;text-transform:uppercase;
+       background:var(--blue);color:#fff;padding:1px 5px}
+  /* ---- tooltip + context menu -------------------------------------- */
+  .tip{position:fixed;z-index:50;background:var(--ink);color:var(--paper);border:2px solid var(--ink);
+       padding:4px 8px;font-size:10px;font-weight:700;letter-spacing:.04em;pointer-events:none;
        white-space:nowrap;opacity:0;transition:opacity .08s}
   .tip.show{opacity:1}
-  .menu{position:fixed;z-index:60;background:var(--panel);border:1px solid var(--line-3);
-        border-radius:var(--radius-sm);padding:3px;min-width:130px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
-  .menu .mi{padding:5px 10px;font-size:10px;color:var(--ink-2);cursor:pointer;border-radius:var(--radius-sm)}
-  .menu .mi:hover{background:var(--panel-2);color:var(--ink)}
-  .menu .sep{height:1px;background:var(--line);margin:3px 0}
+  .menu{position:fixed;z-index:60;background:var(--paper);border:3px solid var(--ink);padding:0;min-width:160px}
+  .menu .mi{padding:7px 12px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+       color:var(--ink);cursor:pointer;border-bottom:2px solid var(--ink)}
+  .menu .mi:last-child{border-bottom:0}
+  .menu .mi:hover{background:var(--red);color:#fff}
+  .menu .sep{height:0;border-bottom:2px solid var(--ink)}
   /* showcase-onepage: every section on one page, no tabs — design showcase */
   .tabs{display:none!important}
   .page{display:block!important}
@@ -199,16 +203,17 @@
 <div class="app">
   <!-- ====================== TOP BAR + PRESET BROWSER ====================== -->
   <div class="topbar">
-    <span class="led on" id="sigLed" data-tip="Signal present"></span>
+    <div class="mark"><span class="sq"></span><span class="ci"></span><span class="tr"></span></div>
     <span class="brand">VibePlugin</span>
+    <span class="led on" id="sigLed" data-tip="Signal present"></span>
     <div class="pbrow" style="margin-left:8px">
-      <button class="btn preset-prev" style="min-width:24px;padding:5px 6px">‹</button>
-      <input id="presetSearch" placeholder="search presets…" autocomplete="off"/>
-      <button class="btn preset-next" style="min-width:24px;padding:5px 6px">›</button>
+      <button class="btn preset-prev" style="min-width:30px;padding:0 8px;border:0">‹</button>
+      <input id="presetSearch" placeholder="SEARCH PRESETS" autocomplete="off"/>
+      <button class="btn preset-next" style="min-width:30px;padding:0 8px;border:0">›</button>
     </div>
     <span class="sp"></span>
     <button class="btn" id="abBtn" data-tip="A/B compare">A</button>
-    <button class="btn" id="themeBtn" data-tip="Toggle light / dark">◐</button>
+    <button class="btn" id="themeBtn" data-tip="Toggle ink / paper">◐</button>
   </div>
 
   <!-- =============================== TABS ================================= -->
@@ -223,7 +228,7 @@
   <!-- =============================== OSC PAGE ============================= -->
   <div class="page on" id="page-osc">
     <div class="row">
-      <div class="panel"><div class="head"><span class="caret">▾</span>Oscillator</div>
+      <div class="panel"><div class="head"><span class="caret"></span>Oscillator</div>
         <div class="body">
           <div class="cell"><div class="knob-host" data-index="0" data-min="0" data-max="1" data-def="0.5"></div>
             <div class="lbl">Shape</div><div class="num num-host"></div></div>
@@ -235,9 +240,9 @@
             <div class="lbl">Octave</div></div>
         </div>
       </div>
-      <div class="panel"><div class="head"><span class="caret">▾</span>Wavetable</div>
+      <div class="panel"><div class="head"><span class="caret"></span>Wavetable</div>
         <div class="body">
-          <div class="disp wavetable-host" data-index="4" style="width:200px;height:120px"><span class="tag">Table</span></div>
+          <div class="disp wavetable-host" data-index="4" style="width:210px;height:128px"><span class="tag">Table</span></div>
           <div class="cell"><div class="fader-host" data-orient="v" data-index="5" data-min="0" data-max="1" data-def="0.3"></div>
             <div class="lbl">Position</div></div>
         </div>
@@ -248,9 +253,8 @@
   <!-- ============================= FILTER PAGE =========================== -->
   <div class="page" id="page-filter">
     <div class="row">
-      <div class="panel"><div class="head"><span class="caret">▾</span>Filter</div>
+      <div class="panel"><div class="head"><span class="caret"></span>Filter</div>
         <div class="body">
-          <!-- knob with a modulation ring (data-mod = simulated modulated value) -->
           <div class="cell"><div class="knob-host" data-index="6" data-min="20" data-max="20000"
                  data-def="1200" data-log="1" data-mod="0.18" data-suffix=" Hz"></div>
             <div class="lbl">Cutoff</div><div class="num num-host"></div></div>
@@ -263,12 +267,12 @@
       <div class="panel"><div class="head">Response</div>
         <div class="body">
           <div class="disp curve-host" data-cutoff="6" data-reso="7" data-type="8"
-               style="width:230px;height:120px"><span class="tag">Filter</span><span class="rd"></span></div>
+               style="width:240px;height:128px"><span class="tag">Filter</span><span class="rd"></span></div>
         </div>
       </div>
       <div class="panel"><div class="head">Performance</div>
         <div class="body">
-          <div class="cell"><div class="xy-host" data-x="6" data-y="7" style="width:120px;height:120px"></div>
+          <div class="cell"><div class="xy-host" data-x="6" data-y="7" style="width:128px;height:128px"></div>
             <div class="lbl">Cutoff × Reso</div></div>
           <div class="cell"><select class="sel sel-host" data-index="9"
                data-options="LFO 1,LFO 2,Env 2,Velocity,Mod Wheel,Random"></select>
@@ -284,12 +288,12 @@
       <div class="panel"><div class="head">Amp Envelope</div>
         <div class="body">
           <div class="disp adsr-host" data-a="10" data-d="11" data-s="12" data-r="13"
-               style="width:260px;height:120px"><span class="tag">ADSR</span></div>
+               style="width:270px;height:128px"><span class="tag">ADSR</span></div>
         </div>
       </div>
       <div class="panel"><div class="head">LFO 1</div>
         <div class="body">
-          <div class="disp lfo-host" data-shape="14" style="width:160px;height:90px"><span class="tag">LFO</span></div>
+          <div class="disp lfo-host" data-shape="14" style="width:170px;height:96px"><span class="tag">LFO</span></div>
           <div class="cell"><div class="seg-host" data-index="14" data-options="Sin,Tri,Saw,Sqr,S&amp;H"></div>
             <div class="lbl">Shape</div></div>
           <div class="cell"><div class="knob-host" data-index="15" data-min="0.01" data-max="20" data-def="2"
@@ -297,7 +301,7 @@
         </div>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
+    <div class="row" style="margin-top:16px">
       <div class="panel"><div class="head">Modulation Matrix</div>
         <div class="body"><div class="mtx-host"
              data-sources="LFO 1,LFO 2,Env 2,Vel"
@@ -327,11 +331,11 @@
         </div>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
+    <div class="row" style="margin-top:16px">
       <div class="panel" style="flex:1"><div class="head">Oscilloscope</div>
-        <div class="body"><div class="disp scope-host" style="width:100%;height:110px"></div></div></div>
+        <div class="body"><div class="disp scope-host" style="width:100%;height:118px"></div></div></div>
       <div class="panel" style="flex:1"><div class="head">Spectrum</div>
-        <div class="body"><div class="disp spectrum-host" style="width:100%;height:110px"></div></div></div>
+        <div class="body"><div class="disp spectrum-host" style="width:100%;height:118px"></div></div></div>
     </div>
   </div>
 
@@ -341,7 +345,7 @@
       <div class="panel" style="flex:1"><div class="head">Step Sequencer</div>
         <div class="body" style="display:block">
           <div class="seq-host" data-base="21" data-steps="16"></div>
-          <div class="row" style="margin-top:10px">
+          <div class="row" style="margin-top:16px">
             <div class="cell"><div class="seg-host" data-index="37" data-options="Up,Down,U/D,Rand"></div>
               <div class="lbl">Arp mode</div></div>
             <div class="cell"><select class="sel sel-host" data-index="38"
@@ -353,15 +357,15 @@
         </div>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
+    <div class="row" style="margin-top:16px">
       <div class="panel" style="flex:1"><div class="head">Keyboard</div>
         <div class="body" style="display:block"><div class="piano" id="kbd"></div></div></div>
     </div>
   </div>
 </div>
 
-<!-- preset list lives outside the bar so it can overlay; populated by JS -->
-<div class="plist" id="presetList" style="position:fixed;top:34px;left:60px;width:240px;display:none;z-index:40"></div>
+<!-- preset list overlays under the bar; populated by JS -->
+<div class="plist" id="presetList" style="position:fixed;top:46px;left:160px;width:260px;display:none;z-index:40"></div>
 
 <script>
 "use strict";
@@ -384,8 +388,6 @@ const svgEl=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e
 
 /* ===================================================================== *
  *  SHARED: tooltip + right-click context menu.                          *
- *  A real plugin's perceived quality leans heavily on these — right-     *
- *  click any continuous control for reset / fine / MIDI-learn / assign.  *
  * ===================================================================== */
 const tip=document.createElement("div"); tip.className="tip"; document.body.append(tip);
 function showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
@@ -415,29 +417,29 @@ function contextMenu(x,y,items){
 }
 
 /* ===================================================================== *
- *  KNOB — bounded + endless, fine-drag (shift), wheel, dbl-click reset,  *
- *  hover/drag readout, modulation ring, tooltip, right-click menu.       *
+ *  KNOB — bold flat circle, black pointer, primary value arc, mod ring. *
  * ===================================================================== */
 function makeKnob(host){
   const i=+host.dataset.index, def=+host.dataset.def||0,
         endless=host.dataset.endless==="1",
         min=endless?0:+host.dataset.min, max=endless?1:+host.dataset.max,
         log=host.dataset.log==="1", suffix=host.dataset.suffix||"",
-        modDepth=host.dataset.mod!=null?+host.dataset.mod:null;   // demo modulation amount
+        modDepth=host.dataset.mod!=null?+host.dataset.mod:null;
   const num=host.parentElement.querySelector(".num-host");
-  const sz=host.dataset.size?+host.dataset.size:54;
+  const sz=host.dataset.size?+host.dataset.size:60;
   host.style.width=host.style.height=sz+"px";
   const svg=svgEl("svg",{class:"knob"+(endless?" endless":""),viewBox:"0 0 100 100",width:sz,height:sz});
   if(endless) svg.style.cursor="ns-resize";
-  const a0=135,a1=405,R=38;
+  const a0=135,a1=405,R=40;
   const polar=(deg,r)=>[50+r*Math.cos(deg*Math.PI/180),50+r*Math.sin(deg*Math.PI/180)];
   const arcPath=(from,to,r)=>{ const[sx,sy]=polar(from,r),[ex,ey]=polar(to,r);
     return `M ${sx} ${sy} A ${r} ${r} 0 ${to-from>180?1:0} 1 ${ex} ${ey}`; };
-  svg.append(svgEl("circle",{class:"face",cx:50,cy:50,r:R-6}));
+  svg.append(svgEl("circle",{class:"face",cx:50,cy:50,r:R-9}));
   svg.append(svgEl("path",{class:"track",d:arcPath(a0,a1,R)}));
   const modArc=svgEl("path",{class:"mod"}); if(modDepth!=null) svg.append(modArc);
   const arc=svgEl("path",{class:"arc"}); const ind=svgEl("line",{class:"ind"});
-  svg.append(arc,ind); host.append(svg);
+  const hub=svgEl("circle",{class:"hub",cx:50,cy:50,r:3});
+  svg.append(arc,ind,hub); host.append(svg);
 
   const toNorm=v=>log?Math.log(v/min)/Math.log(max/min):(v-min)/(max-min);
   const fromNorm=n=>log?min*Math.pow(max/min,n):min+n*(max-min);
@@ -446,7 +448,7 @@ function makeKnob(host){
   function render(){
     const n=clamp(endless?(value%1+1)%1:toNorm(value),0,1), ang=a0+n*(a1-a0);
     arc.setAttribute("d",arcPath(a0,ang,R));
-    const[ix,iy]=polar(ang,14),[ox,oy]=polar(ang,R-1);
+    const[ix,iy]=polar(ang,11),[ox,oy]=polar(ang,R-13);
     ind.setAttribute("x1",ix);ind.setAttribute("y1",iy);ind.setAttribute("x2",ox);ind.setAttribute("y2",oy);
     if(modDepth!=null){ const m=clamp(n+modDepth,0,1), mang=a0+m*(a1-a0);
       modArc.setAttribute("d",arcPath(Math.min(ang,mang),Math.max(ang,mang),R)); }
@@ -498,8 +500,8 @@ function makeFader(host){
   const cap=document.createElement("div"); cap.className="cap"; host.append(fill,cap);
   let value=def;
   function render(){ const n=clamp((value-min)/(max-min),0,1);
-    if(horiz){ fill.style.width=(n*100)+"%"; cap.style.left="calc("+(n*100)+"% - 1px)"; }
-    else     { fill.style.height=(n*100)+"%"; cap.style.bottom="calc("+(n*100)+"% - 1px)"; }
+    if(horiz){ fill.style.width=(n*100)+"%"; cap.style.left="calc("+(n*100)+"% - 2px)"; }
+    else     { fill.style.height=(n*100)+"%"; cap.style.bottom="calc("+(n*100)+"% - 2px)"; }
     if(num) num.textContent=fmt(value)+suffix; }
   function set(v){ value=clamp(v,min,max); render(); setParam(i,value); }
   let drag=false;
@@ -587,8 +589,6 @@ function makeStepper(host){
 
 /* ===================================================================== *
  *  EDITABLE NUMERIC FIELD — type an exact value into a .num readout.     *
- *  Knobs/faders already write into their sibling .num-host; make those   *
- *  click-to-edit so a typed value feeds back to the control.            *
  * ===================================================================== */
 function makeNumEditable(num){
   num.contentEditable="true"; num.spellcheck=false;
@@ -606,8 +606,8 @@ function makeNumEditable(num){
 function makeXY(host){
   const ix=+host.dataset.x, iy=+host.dataset.y;
   host.classList.add("xy");
-  const vline=document.createElement("div"); vline.className="ch"; vline.style.cssText+="top:0;bottom:0;width:1px";
-  const hline=document.createElement("div"); hline.className="ch"; hline.style.cssText+="left:0;right:0;height:1px";
+  const vline=document.createElement("div"); vline.className="ch"; vline.style.cssText+="top:0;bottom:0;width:2px";
+  const hline=document.createElement("div"); hline.className="ch"; hline.style.cssText+="left:0;right:0;height:2px";
   const pt=document.createElement("div"); pt.className="pt"; host.append(vline,hline,pt);
   let cx=0.5,cy=0.5,drag=false;
   function render(){ pt.style.left=(cx*100)+"%"; pt.style.top=(cy*100)+"%";
@@ -636,11 +636,12 @@ function dispCanvas(host){
 }
 const vcol=(n,f)=>(getComputedStyle(document.body).getPropertyValue(n).trim())||f;
 const vfresh=o=>o._t&&(performance.now()-o._t)<250;
-function grid(ctx,W,H,cols,rows){ ctx.strokeStyle=vcol("--line","#222"); ctx.lineWidth=1; ctx.beginPath();
+/* Bauhaus grid: hard black hairlines on the off-white ground. */
+function grid(ctx,W,H,cols,rows){ ctx.strokeStyle=vcol("--ink","#111"); ctx.globalAlpha=0.14; ctx.lineWidth=1; ctx.beginPath();
   for(let k=1;k<cols;k++){ const x=Math.round(W*k/cols)+.5; ctx.moveTo(x,0); ctx.lineTo(x,H); }
-  for(let k=1;k<rows;k++){ const y=Math.round(H*k/rows)+.5; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke(); }
+  for(let k=1;k<rows;k++){ const y=Math.round(H*k/rows)+.5; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke(); ctx.globalAlpha=1; }
 
-/* ---- OSCILLOSCOPE — thin line, no glow ---------------------------------- */
+/* ---- OSCILLOSCOPE — flat red line, no glow ------------------------------ */
 function makeScope(host){
   const ctx=dispCanvas(host); const c=ctx.canvas;
   const N=320; let data=new Float32Array(N),ph=0; const api={push(a){data=a;api._t=performance.now();}}; host.viz=api;
@@ -648,23 +649,23 @@ function makeScope(host){
     if(!vfresh(api)){ ph+=0.04; for(let k=0;k<N;k++){ const t=k/N*Math.PI*6+ph;
       data[k]=(Math.sin(t)*0.6+Math.sin(t*2+ph*1.3)*0.22+Math.sin(t*3)*0.12)*(0.8+0.2*Math.sin(ph)); } }
     ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
-    ctx.strokeStyle=vcol("--accent","#c8923a"); ctx.lineWidth=1.25; ctx.beginPath();
+    ctx.strokeStyle=vcol("--red","#d62828"); ctx.lineWidth=2.5; ctx.beginPath();
     for(let k=0;k<data.length;k++){ const x=k/(data.length-1)*W,y=H/2-data[k]*H*0.42; k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
     ctx.stroke(); requestAnimationFrame(loop); })();
 }
-/* ---- SPECTRUM — thin bars, peak caps ------------------------------------ */
+/* ---- SPECTRUM — flat blue bars, black peak caps ------------------------- */
 function makeSpectrum(host){
   const ctx=dispCanvas(host); const c=ctx.canvas;
-  const N=48; let mags=new Float32Array(N),peaks=new Float32Array(N),ph=0;
+  const N=24; let mags=new Float32Array(N),peaks=new Float32Array(N),ph=0;
   const api={push(a){mags=a;api._t=performance.now();}}; host.viz=api;
   (function loop(){ const W=c._w,H=c._h;
     if(!vfresh(api)){ ph+=0.03; for(let k=0;k<N;k++){ const f=k/N;
       mags[k]=Math.max(0,Math.pow(1-f,0.7)*(0.45+0.45*Math.sin(ph*2+k*0.5))+0.02*Math.sin(k*12.9)); } }
     ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
-    ctx.fillStyle=vcol("--accent","#c8923a"); const bw=W/N;
-    for(let k=0;k<N;k++){ const v=Math.min(1,mags[k]),bh=v*(H-4); ctx.fillRect(k*bw+1,H-bh,bw-1.5,bh);
-      peaks[k]=Math.max(peaks[k]-0.8,bh); ctx.fillStyle=vcol("--ink-2","#9a9b9e");
-      ctx.fillRect(k*bw+1,H-peaks[k]-1,bw-1.5,1); ctx.fillStyle=vcol("--accent","#c8923a"); }
+    ctx.fillStyle=vcol("--blue","#1d4e89"); const bw=W/N;
+    for(let k=0;k<N;k++){ const v=Math.min(1,mags[k]),bh=v*(H-4); ctx.fillRect(k*bw+2,H-bh,bw-4,bh);
+      peaks[k]=Math.max(peaks[k]-0.8,bh); ctx.fillStyle=vcol("--ink","#111");
+      ctx.fillRect(k*bw+2,H-peaks[k]-2,bw-4,2); ctx.fillStyle=vcol("--blue","#1d4e89"); }
     requestAnimationFrame(loop); })();
 }
 /* ---- LEVEL METER — DOM, stereo, peak hold ------------------------------- */
@@ -676,7 +677,7 @@ function makeMeter(host){
   let lv=[0,0],ph=0; const api={setLevel(l,r){lv=[l,r==null?l:r];api._t=performance.now();}}; host.viz=api;
   (function loop(){ if(!vfresh(api)){ ph+=0.05; lv=[0.4+0.5*Math.abs(Math.sin(ph)),0.4+0.5*Math.abs(Math.sin(ph*1.1+1))]; }
     chans.forEach((c,k)=>{ const v=clamp(lv[k]||0,0,1); c.fl.style.height=(v*100)+"%";
-      c.fl.style.background= v>0.92?vcol("--warn","#c75d52"):v>0.75?vcol("--accent","#c8923a"):vcol("--ok","#5fae7e");
+      c.fl.style.background= v>0.92?vcol("--red","#d62828"):v>0.75?vcol("--yellow","#f1c40f"):vcol("--blue","#1d4e89");
       c.peak=Math.max(c.peak-0.012,v); c.pk.style.bottom=(c.peak*100)+"%"; });
     requestAnimationFrame(loop); })();
 }
@@ -687,24 +688,21 @@ function makeFilterCurve(host){
   const rd=host.querySelector(".rd"); const ctx=dispCanvas(host); const c=ctx.canvas;
   let cut=0.45,res=0.2,type=0;
   onParam((p,v)=>{ if(p===ci) cut=clamp((Math.log(+v/20)/Math.log(1000))*0.5+0.0,0,1); else if(p===ri) res=clamp(+v,0,1); else if(p===ti) type=Math.round(+v*3); });
-  // approximate biquad magnitude so the curve reads as real
-  function mag(f){ // f in 0..1 (log freq), fc cutoff in 0..1
-    const fc=cut, q=0.5+res*8, d=(f-fc)*6;
+  function mag(f){ const fc=cut, q=0.5+res*8, d=(f-fc)*6;
     let lp=1/Math.sqrt(1+Math.pow(Math.max(0,d)*2,4));
     let hp=1/Math.sqrt(1+Math.pow(Math.max(0,-d)*2,4));
     const peak=res*1.1/(1+Math.pow(d*q*0.7,2));
-    if(type===0) return clamp(lp+peak*0.6,0,1.3);          // LP
-    if(type===1) return clamp(hp+peak*0.6,0,1.3);          // HP
-    if(type===2) return clamp((1/(1+Math.pow(d*q,2)))+peak*0.3,0,1.3); // BP
-    return clamp(1-1/(1+Math.pow(d*q,2))*0.95,0,1.3);      // Notch
+    if(type===0) return clamp(lp+peak*0.6,0,1.3);
+    if(type===1) return clamp(hp+peak*0.6,0,1.3);
+    if(type===2) return clamp((1/(1+Math.pow(d*q,2)))+peak*0.3,0,1.3);
+    return clamp(1-1/(1+Math.pow(d*q,2))*0.95,0,1.3);
   }
   (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
-    ctx.strokeStyle=vcol("--accent","#c8923a"); ctx.lineWidth=1.5; ctx.beginPath();
+    ctx.strokeStyle=vcol("--blue","#1d4e89"); ctx.lineWidth=3; ctx.beginPath();
     for(let x=0;x<=W;x++){ const m=mag(x/W),y=H-clamp(m/1.3,0,1)*(H-4)-2; x?ctx.lineTo(x,y):ctx.moveTo(x,y); }
     ctx.stroke();
-    // soft fill under the curve
     ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
-    ctx.fillStyle=vcol("--accent","#c8923a"); ctx.globalAlpha=0.10; ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=vcol("--blue","#1d4e89"); ctx.globalAlpha=0.16; ctx.fill(); ctx.globalAlpha=1;
     if(rd){ const fHz=Math.round(20*Math.pow(1000,cut/0.5)); rd.textContent=(fHz>=1000?(fHz/1000).toFixed(1)+"k":fHz)+" Hz"; }
     requestAnimationFrame(loop); })();
 }
@@ -715,17 +713,18 @@ function makeLFO(host){
   onParam((p,v)=>{ if(p===si) shape=Math.round(+v*4); });
   const wave=(t)=>{ t=(t%1+1)%1; switch(shape){
     case 0:return Math.sin(t*Math.PI*2);
-    case 1:return t<0.5?(t*4-1):(3-t*4);                  // tri
-    case 2:return t*2-1;                                   // saw
-    case 3:return t<0.5?1:-1;                              // sqr
-    default:return Math.sin(Math.floor(t*8)/8*Math.PI*2);  // S&H-ish
+    case 1:return t<0.5?(t*4-1):(3-t*4);
+    case 2:return t*2-1;
+    case 3:return t<0.5?1:-1;
+    default:return Math.sin(Math.floor(t*8)/8*Math.PI*2);
   }};
   (function loop(){ const W=c._w,H=c._h; ph+=0.01; ctx.clearRect(0,0,W,H); grid(ctx,W,H,4,2);
-    ctx.strokeStyle=vcol("--accent-2","#5d83a8"); ctx.lineWidth=1.5; ctx.beginPath();
+    ctx.strokeStyle=vcol("--red","#d62828"); ctx.lineWidth=3; ctx.beginPath();
     for(let x=0;x<=W;x++){ const y=H/2-wave(x/W*2)*H*0.4; x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
-    // moving phosphor dot showing the playhead
+    /* playhead: a solid yellow square (Bauhaus primitive) */
     const px=((ph%1))*W, py=H/2-wave(ph*2)*H*0.4;
-    ctx.fillStyle=vcol("--accent","#c8923a"); ctx.beginPath(); ctx.arc(px,py,2,0,7); ctx.fill();
+    ctx.fillStyle=vcol("--yellow","#f1c40f"); ctx.fillRect(px-3,py-3,6,6);
+    ctx.strokeStyle=vcol("--ink","#111"); ctx.lineWidth=1.5; ctx.strokeRect(px-3,py-3,6,6);
     requestAnimationFrame(loop); })();
 }
 
@@ -733,7 +732,7 @@ function makeLFO(host){
 function makeWavetable(host){
   const pi=+host.dataset.index; const ctx=dispCanvas(host); const c=ctx.canvas; let pos=0.3;
   onParam((p,v)=>{ if(p===pi) pos=clamp(+v,0,1); });
-  const frame=(z)=>{ // morph between a few waveshapes across the table
+  const frame=(z)=>{
     return (x)=>{ const a=Math.sin(x*Math.PI*2), b=(x*2-1), s=Math.sign(Math.sin(x*Math.PI*2));
       const seg=z*2; return seg<1?a*(1-seg)+b*seg : b*(2-seg)+s*(seg-1); }; };
   (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H);
@@ -742,8 +741,8 @@ function makeWavetable(host){
       const fn=frame(z); ctx.beginPath();
       for(let s=0;s<=60;s++){ const x=x0+f*dx+s/60*(W*0.58), y=y0-f*dy-fn(s/60)*H*0.16;
         s?ctx.lineTo(x,y):ctx.moveTo(x,y); }
-      ctx.strokeStyle=sel?vcol("--accent","#c8923a"):vcol("--line-2","#333");
-      ctx.lineWidth=sel?1.6:1; ctx.globalAlpha=sel?1:0.35+0.4*z; ctx.stroke(); }
+      ctx.strokeStyle=sel?vcol("--red","#d62828"):vcol("--ink","#111");
+      ctx.lineWidth=sel?3:1; ctx.globalAlpha=sel?1:0.18+0.30*z; ctx.stroke(); }
     ctx.globalAlpha=1; requestAnimationFrame(loop); })();
 }
 
@@ -751,10 +750,10 @@ function makeWavetable(host){
 function makeADSR(host){
   const ai=+host.dataset.a, di=+host.dataset.d, si=+host.dataset.s, ri=+host.dataset.r;
   const ctx=dispCanvas(host); const c=ctx.canvas;
-  let a=0.15,d=0.25,s=0.6,r=0.4;                            // all 0..1
+  let a=0.15,d=0.25,s=0.6,r=0.4;
   onParam((p,v)=>{ if(p===ai)a=+v; else if(p===di)d=+v; else if(p===si)s=+v; else if(p===ri)r=+v; });
   setParam(ai,a);setParam(di,d);setParam(si,s);setParam(ri,r);
-  const pad=8;
+  const pad=10;
   function pts(W,H){ const w=W-pad*2,h=H-pad*2, segA=0.25,segD=0.25,segS=0.18,segR=0.32;
     const xA=pad+w*segA*a, xD=xA+w*segD*d, xS=xD+w*segS, xR=xS+w*segR*r;
     return [[pad,H-pad],[xA,pad],[xD,H-pad-h*s],[xS,H-pad-h*s],[xR,H-pad]]; }
@@ -775,18 +774,17 @@ function makeADSR(host){
   (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
     const P=pts(W,H);
     ctx.beginPath(); P.forEach((p,k)=>k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
-    ctx.strokeStyle=vcol("--accent","#c8923a"); ctx.lineWidth=1.5; ctx.stroke();
+    ctx.strokeStyle=vcol("--red","#d62828"); ctx.lineWidth=3; ctx.stroke();
     ctx.lineTo(P[4][0],H-pad); ctx.lineTo(pad,H-pad); ctx.closePath();
-    ctx.fillStyle=vcol("--accent","#c8923a"); ctx.globalAlpha=0.10; ctx.fill(); ctx.globalAlpha=1;
-    [1,2,4].forEach(k=>{ ctx.beginPath(); ctx.arc(P[k][0],P[k][1],3.2,0,7);
-      ctx.fillStyle=vcol("--track","#0d0d0d"); ctx.fill();
-      ctx.lineWidth=1.5; ctx.strokeStyle=vcol("--ink","#d7d7d9"); ctx.stroke(); });
+    ctx.fillStyle=vcol("--red","#d62828"); ctx.globalAlpha=0.16; ctx.fill(); ctx.globalAlpha=1;
+    /* breakpoints: solid black squares with paper centers (geometric handles) */
+    [1,2,4].forEach(k=>{ ctx.fillStyle=vcol("--ink","#111"); ctx.fillRect(P[k][0]-5,P[k][1]-5,10,10);
+      ctx.fillStyle=vcol("--paper","#f2efe9"); ctx.fillRect(P[k][0]-2,P[k][1]-2,4,4); });
     requestAnimationFrame(loop); })();
 }
 
 /* ===================================================================== *
- *  MODULATION MATRIX — sources × destinations grid, drag a cell up/down  *
- *  to set bipolar depth. Param index = base + row*nDest + col.           *
+ *  MODULATION MATRIX — sources × destinations grid, drag a cell up/down. *
  * ===================================================================== */
 function makeModMatrix(host){
   const sources=host.dataset.sources.split(","), dests=host.dataset.dests.split(",");
@@ -813,8 +811,7 @@ function makeModMatrix(host){
 }
 
 /* ===================================================================== *
- *  STEP SEQUENCER — drag a step up/down for its value; right-click mutes. *
- *  Param index = base + step. A playhead sweeps for "alive" feedback.    *
+ *  STEP SEQUENCER — drag a step up/down; right-click mutes; playhead.    *
  * ===================================================================== */
 function makeSequencer(host){
   const base=+host.dataset.base, steps=+host.dataset.steps; host.classList.add("seq");
@@ -831,7 +828,6 @@ function makeSequencer(host){
     st.addEventListener("pointerup",()=>drag=false);
     st.addEventListener("contextmenu",e=>{ e.preventDefault(); on=!on; render(); });
     render(); host.append(st); cells.push(st); }
-  // playhead
   let cur=0; setInterval(()=>{ cells[cur].classList.remove("cur"); cur=(cur+1)%steps; cells[cur].classList.add("cur"); },220);
 }
 
@@ -882,7 +878,7 @@ function makeKeyboard(host){
   host.addEventListener("pointerdown",e=>{ const n=e.target.dataset.note; if(n){ down=+n; press(down); host.setPointerCapture(e.pointerId);} });
   host.addEventListener("pointerup",()=>{ if(down!=null){ release(down); down=null; } });
   host.addEventListener("pointerleave",()=>{ if(down!=null){ release(down); down=null; } });
-  onParam(()=>{});  // (real builds may light keys from engine note events)
+  onParam(()=>{});
 }
 
 /* ===================================================================== *
@@ -923,12 +919,10 @@ whenReady(()=>{
   document.querySelectorAll(".mtx-host").forEach(makeModMatrix);
   document.querySelectorAll(".seq-host").forEach(makeSequencer);
   makePresetBrowser();
-  makeKeyboard(document.getElementById("kbd"));   // remove for an effect with no keyboard
+  makeKeyboard(document.getElementById("kbd"));
 
-  // numeric readouts under knobs/faders are click-to-edit; wire them to their control
   document.querySelectorAll(".num-host").forEach(num=>{ makeNumEditable(num); });
 
-  // header LED demo: blink to look alive; real builds drive from signal state
   const led=document.getElementById("sigLed"); let lp=0;
   setInterval(()=>{ lp+=0.1; led.classList.toggle("on",Math.sin(lp)>-0.3); },120);
   document.getElementById("themeBtn").onclick=()=>document.body.classList.toggle("light");

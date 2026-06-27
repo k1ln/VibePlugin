@@ -28,6 +28,7 @@ namespace
     const char* kBridgeShim = R"JS(<script>
 (function(){
   var vals = {};
+  var held = {};   // note numbers currently sounding from the on-screen GUI
   function send(path){
     try { fetch(path + '?_=' + Date.now() + '_' + Math.random(), { cache: 'no-store' }); } catch(e){}
   }
@@ -77,10 +78,24 @@ namespace
     setParam: function(i, v){ vals[i] = +v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v)); },
     getParam: function(i){ return (i in vals) ? vals[i] : 0; },
     onReady: function(cb){ try { cb(); } catch(e){} },
-    noteOn: function(n, v){ send('/__vstai/note/' + (n|0) + '/' + (v == null ? 1 : v) + '/1'); },
-    noteOff: function(n){ send('/__vstai/note/' + (n|0) + '/0/0'); },
+    noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
+    noteOff: function(n){ n = n|0; delete held[n]; send('/__vstai/note/' + n + '/0/0'); },
     loadSample: function(file, onProgress){ return loadSample(file, onProgress); }
   };
+  // Safety net for stuck notes: some WebViews (notably WKWebView) don't reliably
+  // deliver pointerup/pointerleave to the element that captured the pointer, so an
+  // on-screen key's noteOff can be missed. Whenever a press ends ANYWHERE — or
+  // focus is lost — flush note-off for everything still held.
+  function allNotesOff(){
+    for (var k in held) send('/__vstai/note/' + (k|0) + '/0/0');
+    held = {};
+  }
+  var off = function(){ if (Object.keys(held).length) allNotesOff(); };
+  window.addEventListener('pointerup',   off, true);
+  window.addEventListener('mouseup',     off, true);
+  window.addEventListener('pointercancel', off, true);
+  window.addEventListener('blur',        allNotesOff);
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) allNotesOff(); });
 })();
 </script>)JS";
 

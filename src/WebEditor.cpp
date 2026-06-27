@@ -29,6 +29,7 @@ namespace
     try { fetch(path + '?_=' + Date.now() + '_' + Math.random(), { cache: 'no-store' }); } catch(e){}
   }
   var paramCbs = [];
+  var held = {};   // note numbers currently sounding from the on-screen GUI
   // base64url-encode a byte chunk (no '+' '/' '=' so it is safe in a URL path).
   function b64url(u8){
     var s = '';
@@ -78,10 +79,24 @@ namespace
     // Register cb(index, value) to be called when a param changes from OUTSIDE the
     // GUI (host automation, another controller). Controls use this to follow along.
     onParam: function(cb){ if (typeof cb === 'function') paramCbs.push(cb); },
-    noteOn: function(n, v){ send('/__vstai/note/' + (n|0) + '/' + (v == null ? 1 : v) + '/1'); },
-    noteOff: function(n){ send('/__vstai/note/' + (n|0) + '/0/0'); },
+    noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
+    noteOff: function(n){ n = n|0; delete held[n]; send('/__vstai/note/' + n + '/0/0'); },
     loadSample: function(file, onProgress){ return loadSample(file, onProgress); }
   };
+  // Safety net for stuck notes: some WebViews (notably WKWebView) don't reliably
+  // deliver pointerup/pointerleave to the element that captured the pointer, so an
+  // on-screen key's noteOff can be missed and the note hangs. Whenever a press
+  // ends ANYWHERE — or focus is lost — flush note-off for everything still held.
+  function allNotesOff(){
+    for (var k in held) send('/__vstai/note/' + (k|0) + '/0/0');
+    held = {};
+  }
+  var off = function(){ if (Object.keys(held).length) allNotesOff(); };
+  window.addEventListener('pointerup',   off, true);
+  window.addEventListener('mouseup',     off, true);
+  window.addEventListener('pointercancel', off, true);
+  window.addEventListener('blur',        allNotesOff);
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) allNotesOff(); });
   // The host pushes param updates via the editor shell, which postMessages them in.
   window.addEventListener('message', function(e){
     var d = e.data;
@@ -146,21 +161,24 @@ namespace
         juce::Array<var> a;
         a.add (modelEntry ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best)",      "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)", "Anthropic (your key)"));
-        a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));
-        a.add (modelEntry ("glm", "glm-4.6", "GLM-4.6", "GLM / Z.ai (your key)"));
-        a.add (modelEntry ("cloud", "glm-5.2",           "Cloud · GLM-5.2 (cheapest)", "VibePlugin Cloud (credits)"));
+        // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
+        // (Anthropic-only for now). The backend still supports them — re-add to restore.
+        // a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));
+        // a.add (modelEntry ("glm", "glm-4.6", "GLM-4.6", "GLM / Z.ai (your key)"));
+        // a.add (modelEntry ("cloud", "glm-5.2",           "Cloud · GLM-5.2 (cheapest)", "VibePlugin Cloud (credits)"));
         a.add (modelEntry ("cloud", "claude-haiku-4-5",  "Cloud · Haiku 4.5",          "VibePlugin Cloud (credits)"));
         a.add (modelEntry ("cloud", "claude-sonnet-4-6", "Cloud · Sonnet 4.6",         "VibePlugin Cloud (credits)"));
         a.add (modelEntry ("cloud", "claude-opus-4-8",   "Cloud · Opus 4.8 (best)",    "VibePlugin Cloud (credits)"));
-        for (const auto& m : ollama)
-        {
-            auto* o = new juce::DynamicObject();
-            o->setProperty ("provider", "ollama");
-            o->setProperty ("id", m);
-            o->setProperty ("label", m);
-            o->setProperty ("group", "Ollama (local, no key)");
-            a.add (var (o));
-        }
+        // for (const auto& m : ollama)
+        // {
+        //     auto* o = new juce::DynamicObject();
+        //     o->setProperty ("provider", "ollama");
+        //     o->setProperty ("id", m);
+        //     o->setProperty ("label", m);
+        //     o->setProperty ("group", "Ollama (local, no key)");
+        //     a.add (var (o));
+        // }
+        juce::ignoreUnused (ollama);
         return a;
     }
 
@@ -234,7 +252,9 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             if (safe == nullptr) { complete (var()); return; }
             const auto& d = safe->processor.getDocument();
             complete (vstai::buildManualPrompt (argStr (a, 0), d.assembly, d.html,
-                                                safe->processor.isInstrument()));
+                                                safe->processor.isInstrument(),
+                                                vstai::appsettings::selectedDesignName(),
+                                                vstai::appsettings::selectedDesignPrinciples()));
         })
         // Short follow-up prompt for iterating in the SAME chat (no re-paste of the
         // system rules or current code — the chat already holds them).
@@ -427,6 +447,113 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             vstai::appsettings::resetStandardUi();
             complete (vstai::appsettings::standardUi());
         })
+        // ---- settings + design schools ---------------------------------
+        .withNativeFunction ("getSettings", [] (const VarArray&, Completion complete)
+        {
+            auto* o = new juce::DynamicObject();
+            o->setProperty ("anthropicKey", vstai::appsettings::rawAnthropicKey());
+            o->setProperty ("publishUrl",   vstai::appsettings::publishUrl());
+            o->setProperty ("designId",     vstai::appsettings::selectedDesignId());
+            o->setProperty ("designTheme",
+                            vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
+            complete (var (o));
+        })
+        .withNativeFunction ("saveSettings", [] (const VarArray& a, Completion complete)
+        {
+            auto parsed = juce::JSON::parse (argStr (a, 0));
+            if (auto* o = parsed.getDynamicObject())
+            {
+                vstai::appsettings::setAnthropicKey (o->getProperty ("anthropicKey").toString().trim());
+                vstai::appsettings::setPublishUrl   (o->getProperty ("publishUrl").toString().trim());
+            }
+            complete (result (true, "Settings saved."));
+        })
+        .withNativeFunction ("getDesigns", [] (const VarArray&, Completion complete)
+        {
+            const auto sel = vstai::appsettings::selectedDesignId();
+            juce::Array<var> rows;
+            auto add = [&rows, &sel] (const vstai::designs::DesignMeta& m)
+            {
+                auto* o = new juce::DynamicObject();
+                o->setProperty ("id",       m.id);
+                o->setProperty ("name",     m.name);
+                o->setProperty ("blurb",    m.blurb);
+                o->setProperty ("builtin",  m.builtin);
+                o->setProperty ("selected", m.id == sel);
+                o->setProperty ("theme",    m.theme);
+                rows.add (var (o));
+            };
+            for (auto& id : vstai::designs::builtinIds())
+                add (vstai::appsettings::designMeta (id));
+            for (auto& v : vstai::appsettings::customDesignArray())
+                if (auto* o = v.getDynamicObject())
+                    add (vstai::appsettings::designMeta (o->getProperty ("id").toString()));
+            complete (rows);
+        })
+        .withNativeFunction ("setDesign", [safe] (const VarArray& a, Completion complete)
+        {
+            const auto id = argStr (a, 0);
+            if (id.isNotEmpty()) vstai::appsettings::setSelectedDesignId (id);
+            // No plugin yet? The preview shows the standard kit — reseed it so the
+            // newly-selected design is visible immediately.
+            if (safe != nullptr && ! safe->processor.getDocument().hasPlugin())
+                safe->emitEvent ("documentChanged", safe->currentState());
+            complete (result (true, "Design: " + vstai::appsettings::selectedDesignName()));
+        })
+        .withNativeFunction ("removeDesign", [safe] (const VarArray& a, Completion complete)
+        {
+            const auto id = argStr (a, 0);
+            if (id.isNotEmpty()) vstai::appsettings::removeCustomDesign (id);
+            if (safe != nullptr && ! safe->processor.getDocument().hasPlugin())
+                safe->emitEvent ("documentChanged", safe->currentState());
+            complete (result (true, "Removed."));
+        })
+        .withNativeFunction ("exportDesign", [safe] (const VarArray& a, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            const auto id   = argStr (a, 0).isNotEmpty() ? argStr (a, 0)
+                                                         : vstai::appsettings::selectedDesignId();
+            const auto html = vstai::appsettings::designKitHtml (id);
+            safe->chooser = std::make_unique<juce::FileChooser> (
+                "Export design",
+                juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
+                    .getChildFile (id + ".vibedesign.html"),
+                "*.html");
+            safe->chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+                [html, complete] (const juce::FileChooser& fc)
+                {
+                    auto file = fc.getResult();
+                    if (file == juce::File()) { complete (result (false, "Cancelled.")); return; }
+                    if (file.getFileExtension().isEmpty()) file = file.withFileExtension ("html");
+                    const bool ok = file.replaceWithText (html);
+                    complete (result (ok, ok ? ("Exported " + file.getFileName()) : juce::String ("Export failed.")));
+                });
+        })
+        .withNativeFunction ("importDesign", [safe] (const VarArray&, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            safe->chooser = std::make_unique<juce::FileChooser> (
+                "Import a design (.html)",
+                juce::File::getSpecialLocation (juce::File::userDocumentsDirectory), "*.html");
+            safe->chooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                [safe, complete] (const juce::FileChooser& fc)
+                {
+                    auto file = fc.getResult();
+                    if (file == juce::File() || safe == nullptr) { complete (result (false, "Cancelled.")); return; }
+                    const auto html = file.loadFileAsString();
+                    if (html.isEmpty()) { complete (result (false, "Empty or unreadable file.")); return; }
+                    auto meta = vstai::designs::parseMeta (html, file.getFileNameWithoutExtension());
+                    // Never clobber a built-in id; give imports their own namespace.
+                    if (meta.id.isEmpty() || vstai::designs::isBuiltin (meta.id))
+                        meta.id = "custom-" + juce::Uuid().toString().substring (0, 8);
+                    meta.builtin = false;
+                    vstai::appsettings::upsertCustomDesign (meta, html);
+                    vstai::appsettings::setSelectedDesignId (meta.id);
+                    if (! safe->processor.getDocument().hasPlugin())
+                        safe->emitEvent ("documentChanged", safe->currentState());
+                    complete (result (true, "Imported \"" + meta.name + "\"."));
+                });
+        })
         // ---- prompt history --------------------------------------------
         .withNativeFunction ("getHistory", [safe] (const VarArray&, Completion complete)
         {
@@ -489,14 +616,15 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         .withNativeFunction ("openKeys", [safe] (const VarArray&, Completion complete)
         {
             if (safe == nullptr) { complete (var()); return; }
-            auto* aw = new juce::AlertWindow ("API keys & local models",
-                "Leave a field blank to fall back to the compiled-in / environment value.\n"
-                "Anthropic and GLM need a key; Ollama runs local open models with no key.",
+            auto* aw = new juce::AlertWindow ("API keys",
+                "Leave a field blank to fall back to the compiled-in / environment value.",
                 juce::MessageBoxIconType::NoIcon);
             aw->addTextEditor ("anthropic", vstai::appsettings::rawAnthropicKey(), "Anthropic API key", true);
-            aw->addTextEditor ("glm",       vstai::appsettings::rawGlmKey(),       "GLM (Z.ai) API key", true);
-            aw->addTextEditor ("glmurl",    vstai::appsettings::rawGlmUrl(),       "GLM URL (blank = Z.ai)");
-            aw->addTextEditor ("ollama",    vstai::appsettings::ollamaBaseUrl(),   "Ollama URL");
+            // GLM / Z.ai and Ollama fields are temporarily hidden (Anthropic-only for now).
+            // The backend still supports them — re-add these editors and their setters to restore.
+            // aw->addTextEditor ("glm",       vstai::appsettings::rawGlmKey(),       "GLM (Z.ai) API key", true);
+            // aw->addTextEditor ("glmurl",    vstai::appsettings::rawGlmUrl(),       "GLM URL (blank = Z.ai)");
+            // aw->addTextEditor ("ollama",    vstai::appsettings::ollamaBaseUrl(),   "Ollama URL");
             aw->addTextEditor ("publish",   vstai::appsettings::publishUrl(),      "Publish server URL (e.g. http://localhost:8787)");
             aw->addButton ("Save",   1, juce::KeyPress (juce::KeyPress::returnKey));
             aw->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
@@ -508,9 +636,10 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 if (r == 1)
                 {
                     vstai::appsettings::setAnthropicKey (aw->getTextEditorContents ("anthropic").trim());
-                    vstai::appsettings::setGlmKey       (aw->getTextEditorContents ("glm").trim());
-                    vstai::appsettings::setGlmUrl       (aw->getTextEditorContents ("glmurl").trim());
-                    vstai::appsettings::setOllamaUrl    (aw->getTextEditorContents ("ollama").trim());
+                    // GLM / Ollama fields hidden — leave their stored values untouched.
+                    // vstai::appsettings::setGlmKey       (aw->getTextEditorContents ("glm").trim());
+                    // vstai::appsettings::setGlmUrl       (aw->getTextEditorContents ("glmurl").trim());
+                    // vstai::appsettings::setOllamaUrl    (aw->getTextEditorContents ("ollama").trim());
                     vstai::appsettings::setPublishUrl   (aw->getTextEditorContents ("publish").trim());
                 }
                 complete (result (r == 1, r == 1 ? "Settings saved." : "Cancelled."));
@@ -762,6 +891,11 @@ juce::var WebEditor::currentState() const
                                                                   : vstai::appsettings::cloudEmail());
     o->setProperty ("building",  processor.isBuilding());
     o->setProperty ("stage",     processor.getBuildStage());
+    o->setProperty ("designId",  vstai::appsettings::selectedDesignId());
+    // The selected design's chrome palette, so the shell re-skins to match the
+    // generated GUI on every state refresh (incl. live design switches).
+    o->setProperty ("designTheme",
+                    vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
     return var (o);
 }
 

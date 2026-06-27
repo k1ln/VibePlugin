@@ -9,6 +9,17 @@ under **wasmtime**, and the HTML is shown in an embedded WebView. Each plugin
 saves to a portable **`.vstai`** file and reloads later — and you can keep
 talking to it to evolve it.
 
+![A generated VibePlugin GUI](docs/screenshots/gui.png)
+
+### 10 built-in design schools
+
+Every generated GUI is built from a house-style component kit that ships in **ten
+distinct visual languages**. Pick one in **Settings** — it becomes the live house
+style *and* is described to Claude in the build prompt, so generated plugins follow
+the look. You can also export a design and import your own.
+
+![The ten built-in design schools](docs/screenshots/design-schools.png)
+
 ```
         ┌──────────────────────────── VibePlugin (C++ / JUCE) ────────────────────────────┐
 prompt ▶│  Editor (WebView GUI + prompt bar)                                            │

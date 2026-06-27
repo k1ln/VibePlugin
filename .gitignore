@@ -2,7 +2,9 @@
 /build/
 /build-dev/
 /build-test/
+/build-verify/
 /cmake-build-*/
+/dist/
 src/Config.h
 *.vst3
 *.component
