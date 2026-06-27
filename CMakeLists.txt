@@ -77,6 +77,16 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         set(SYNTH_DEF 0)
     endif()
 
+    # COPY_PLUGIN_AFTER_BUILD installs the built plugin into the system folder.
+    # macOS (~/Library/...) and Linux (~/.vst3) are user-writable — handy for dev.
+    # Windows targets C:\Program Files\Common Files\VST3, which needs admin and
+    # makes the build's POST_BUILD step fail in CI (error MSB3073). Off on Windows.
+    if(WIN32)
+        set(COPY_AFTER_BUILD FALSE)
+    else()
+        set(COPY_AFTER_BUILD TRUE)
+    endif()
+
     juce_add_plugin(${TARGET}
         PRODUCT_NAME             "${PRODUCT}"
         COMPANY_NAME             "VibePlugin"
@@ -93,7 +103,7 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         # reads this only inside its WIN32 branch). Needs the WebView2 SDK at
         # configure time via JUCE_WEBVIEW2_PACKAGE_LOCATION (CI fetches the NuGet).
         NEEDS_WEBVIEW2           TRUE
-        COPY_PLUGIN_AFTER_BUILD  TRUE)
+        COPY_PLUGIN_AFTER_BUILD  ${COPY_AFTER_BUILD})
 
     target_sources(${TARGET} PRIVATE ${VSTAI_SOURCES})
 
