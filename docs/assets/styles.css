@@ -137,26 +137,44 @@ a { color: inherit; text-decoration: none; }
 .btn.lg { padding: 14px 26px; font-size: 16px; }
 
 /* ------------------------------------------------------------------ hero */
-.hero { position: relative; padding: 86px 0 40px; }
-.hero .grid {
-  display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 38px; align-items: center;
+/* full first screen: compact title block on top, the live synth fills the rest */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  padding: 70px 0 24px;
+  display: flex; flex-direction: column;
 }
+.hero-head { text-align: center; flex: 0 0 auto; }
 .hero h1 {
-  font-size: clamp(38px, 6vw, 66px);
-  line-height: 1.04;
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 1.03;
   letter-spacing: -.02em;
-  margin: 18px 0 18px;
+  margin: 10px 0 12px;
   font-weight: 720;
 }
 .hero h1 .grad {
   background: linear-gradient(100deg, #6ea2ff 0%, #9d7bff 60%, #c4a6ff 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.hero p.lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--ink-2); max-width: 33ch; }
-.hero .cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
-.hero .meta { margin-top: 22px; display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-.hero .meta span { display: inline-flex; align-items: center; gap: 7px; }
-.hero .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.hero p.lead { font-size: clamp(14px, 1.7vw, 17px); color: var(--ink-2); max-width: 58ch; margin: 0 auto; }
+.hero .cta { display: flex; gap: 12px; margin: 18px 0 2px; flex-wrap: wrap; justify-content: center; }
+
+/* the live synth stage — fills the first screen under the title, and is tall
+   enough to show the whole synth (3-osc rack + LFO matrix + FX) with no inner
+   scroll; on shorter windows the page itself scrolls to reveal the lower rack. */
+.hero-stage { flex: 1 1 0; min-height: 0; display: flex; margin-top: 22px; }
+.hero-synth {
+  flex: 1 1 auto; min-height: 1240px;
+  display: flex; flex-direction: column;
+  padding: 0; overflow: hidden;
+}
+.hero-synth .bar { flex: 0 0 auto; }
+.hero-synth .bar-link { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+.hero-synth .bar-link:hover { color: var(--ink-2); }
+.hero-synth iframe {
+  flex: 1 1 0; min-height: 0;
+  display: block; width: 100%; border: 0; background: #14161c;
+}
 
 /* hero visual: faux plugin panel + animated waveform */
 .panel {
@@ -200,8 +218,8 @@ a { color: inherit; text-decoration: none; }
 .panel .prompt .cur { color: var(--accent); }
 
 @media (max-width: 860px) {
-  .hero .grid { grid-template-columns: 1fr; gap: 36px; }
-  .hero { padding: 54px 0 20px; }
+  .hero { padding: 64px 0 18px; min-height: auto; }
+  .hero-stage { min-height: 70vh; margin-top: 20px; }
 }
 
 /* --------------------------------------------------------------- sections */

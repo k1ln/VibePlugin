@@ -9,6 +9,7 @@ const qs = new URLSearchParams(location.search);
 const id = qs.get("id") || "";
 const embed = qs.get("embed") === "1";       // embedded mode: slim chrome, GUI fills the pane
 const autostart = qs.get("autostart") === "1"; // begin audio immediately (uses sticky activation)
+const intro = qs.get("intro") === "1";         // homepage: the GUI runs a staged "build" animation
 
 let ctx, node, meta, wasmBytes;
 let inputNode = null;        // current effect input source feeding `node`
@@ -56,11 +57,15 @@ async function boot() {
       // from the click usually allows it; otherwise the first key/click resumes).
       start();
     } else {
-      // show the GUI + deck immediately so the panel looks live before audio.
+      // show the GUI immediately so the panel looks live before audio.
       $("guiWrap").hidden = false;
       renderGui();
-      $("deck").hidden = false;
-      if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); }
+      // intro mode: the GUI runs a staged build and signals when to bring in the
+      // deck/keyboard (so the keys land last, under the "try it out" caption).
+      if (!intro) {
+        $("deck").hidden = false;
+        if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); }
+      }
     }
   }
 }
@@ -340,10 +345,12 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
 
 function renderGui() {
   const html = meta.html || "<body style='font:14px sans-serif;color:#fff'>No GUI.</body>";
+  // homepage only: tell the GUI to run its staged "build" animation
+  const flag = intro ? "<script>window.__vstaiIntro=true<\/script>" : "";
   const head = html.indexOf("<head>");
   const doc = head >= 0
-    ? html.slice(0, head + 6) + SHIM + html.slice(head + 6)
-    : SHIM + html;
+    ? html.slice(0, head + 6) + flag + SHIM + html.slice(head + 6)
+    : flag + SHIM + html;
   $("gui").srcdoc = doc;
 }
 
@@ -352,6 +359,14 @@ window.addEventListener("message", (e) => {
   // computer-key play forwarded from the GUI iframe or the gallery parent
   if (m.type === "keydown") { onKeyDown(m.key, m.repeat); return; }
   if (m.type === "keyup")   { onKeyUp(m.key); return; }
+  // intro build finished: bring the deck + keyboard in for the "try it out" beat
+  if (m.type === "intro") {
+    if (m.phase === "keys" && $("deck").hidden) {
+      $("deck").hidden = false; $("deck").classList.add("deck-in");
+      if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); }
+    }
+    return;
+  }
   if (!node) return;
   if (m.type === "param") node.port.postMessage({ type: "param", i: m.i, v: m.v });
   else if (m.type === "note") node.port.postMessage({ type: "note", on: m.on, note: m.note, vel: m.vel });

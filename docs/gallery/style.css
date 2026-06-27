@@ -86,8 +86,15 @@ html,body{height:100%}
 body.embed{background:transparent;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 body.embed .bar{position:static;padding:9px 14px;background:transparent;backdrop-filter:none;flex:0 0 auto}
 body.embed .bar .back, body.embed #download{display:none}
-body.embed .player{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:10px;padding:8px 12px 12px;max-width:none}
+/* full width: the base .player has margin:0 auto, whose auto cross-axis margins
+   suppress flex stretch and shrink it to content — reset them so the rack gets
+   the whole frame width (more knob columns, shorter rack, nothing clipped). */
+body.embed .player{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:10px;padding:8px 12px 12px;max-width:none;width:100%;margin:0}
 body.embed .deck{flex:0 0 auto;margin-bottom:0}
+/* slimmer scopes + keys in the embed so the knob rack gets the vertical room */
+body.embed .deck .scope canvas{height:56px}
+body.embed .key{height:78px}
+body.embed .key.black{height:50px}
 body.embed .start{position:absolute;top:7px;right:12px;padding:0;text-align:right;z-index:10}
 body.embed .start .muted{display:none}
 body.embed .start .btn.big{font-size:13px;padding:7px 13px}
@@ -95,9 +102,15 @@ body.embed .guiwrap{flex:1 1 0;min-height:0;border-radius:12px;border:0}
 body.embed .guiwrap iframe{height:100%}
 body.embed .keys{margin:0;justify-content:center}
 body.embed .status{flex:0 0 auto;padding:0 8px}
+/* .deck/.inputbar set display:flex, which (author > UA) overrides the [hidden]
+   attribute — so make hidden actually hide them (intro keeps the deck back; and
+   synths no longer show the effect-only input bar). */
+body.embed .deck[hidden], body.embed .inputbar[hidden]{display:none}
 
 /* top deck: oscilloscope + spectrum + keyboard, side by side */
 .deck{display:flex;gap:12px;flex-wrap:wrap;align-items:stretch;margin-bottom:14px}
+.deck.deck-in{animation:deckIn .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes deckIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .deck .scope{flex:1 1 150px;min-width:138px;background:#06070a;border:1px solid var(--line);
   border-radius:10px;padding:8px 10px 6px}
 .deck .scope .cap{font:600 9px ui-monospace,monospace;letter-spacing:.16em;color:var(--muted);

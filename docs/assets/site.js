@@ -39,6 +39,27 @@ window.vstaiOS = detectOS();
   els.forEach((e) => io.observe(e));
 })();
 
+/* ---- hero synth: play it with the computer keyboard ------------------
+   The synth runs in a sandboxed iframe, so its own key listener only fires
+   when the iframe has focus. Forward the play keys (A–K) and octave shift
+   (Z/X) from this page down to it, so you can just start typing.  The player
+   already accepts {__vstai:1, type:'keydown'|'keyup', key} via postMessage. */
+(function heroKeys() {
+  const f = document.getElementById("heroSynth");
+  if (!f) return;
+  const PLAY = "awsedftgyhujkzx";                 // note keys + Z/X octave
+  const forward = (type) => (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = (e.key || "").toLowerCase();
+    if (PLAY.indexOf(k) < 0) return;
+    const t = e.target;
+    if (t && /^(input|textarea|select)$/i.test(t.tagName)) return;  // don't steal typing
+    f.contentWindow.postMessage({ __vstai: 1, type, key: e.key, repeat: e.repeat }, "*");
+  };
+  window.addEventListener("keydown", forward("keydown"));
+  window.addEventListener("keyup", forward("keyup"));
+})();
+
 /* ---- hero waveform --------------------------------------------------- */
 (function waveform() {
   const canvas = document.getElementById("wave");
