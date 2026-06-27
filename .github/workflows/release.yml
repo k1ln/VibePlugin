@@ -167,11 +167,14 @@ jobs:
           find build -name "*.vst3" -maxdepth 6 -type d -prune -exec cp -R {} "stage/$out/" \;
           cp README.md "stage/$out/" 2>/dev/null || true
           cd stage
-          if command -v zip >/dev/null 2>&1; then
-            zip -qr "$out.zip" "$out"
-          else
-            7z a -tzip "$out.zip" "$out" >/dev/null   # windows runners ship 7z, not zip
-          fi
+          # Zip per-OS: macOS `ditto` is the native, bundle-safe archiver (the runner's
+          # `zip -q` started erroring "option 'q' not negatable"); Windows runners ship
+          # 7z, not zip; Linux uses Info-ZIP.
+          case "${{ matrix.os }}" in
+            macos)   ditto -c -k --keepParent "$out" "$out.zip" ;;
+            windows) 7z a -tzip "$out.zip" "$out" >/dev/null ;;
+            *)       zip -r "$out.zip" "$out" >/dev/null ;;
+          esac
           echo "ASSET=stage/$out.zip" >> "$GITHUB_ENV"
 
       - name: Upload build artifact
