@@ -41,7 +41,14 @@ namespace vstai::appsettings
     inline juce::String rawGlmKey()       { return file().getValue ("glmApiKey"); }
     inline juce::String rawGlmUrl()       { return file().getValue ("glmBaseUrl"); }
     inline juce::String rawStandardUi()   { return file().getValue ("standardUi"); }
-    inline juce::String publishUrl()      { return file().getValue ("publishUrl"); }
+    inline juce::String rawPublishUrl()   { return file().getValue ("publishUrl"); }
+    // Default publish proxy (VibePlugin-server on Scaleway). Stored override wins.
+    inline juce::String publishUrl()
+    {
+        auto v = rawPublishUrl();
+        return v.isNotEmpty() ? v
+            : juce::String ("https://nsvibepluginnuskhm4r-fct-cranky-khayyam.functions.fnc.fr-par.scw.cloud/");
+    }
 
     inline void setPublishUrl   (const juce::String& v) { file().setValue ("publishUrl", v); file().saveIfNeeded(); }
     inline void setAnthropicKey (const juce::String& v) { file().setValue ("anthropicApiKey", v); file().saveIfNeeded(); }

@@ -297,11 +297,13 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 juce::MessageManager::callAsync ([s2, complete, ok, name, status, link, base]() mutable
                 {
                     if (s2 == nullptr) return;
+                    // On success, open the PR so the submitter can track review/publish status.
+                    if (ok && link.isNotEmpty()) juce::URL (link).launchInDefaultBrowser();
                     complete (result (ok,
-                        ok ? ("Published “" + name + "”"
-                              + (link.isNotEmpty() ? "  —  " + link : juce::String()))
+                        ok ? ("Submitted “" + name + "” — it will be tested & reviewed before publishing."
+                              + (link.isNotEmpty() ? " Tracking the PR in your browser." : juce::String()))
                            : ("Publish failed (HTTP " + juce::String (status)
-                              + "). Is the catalogue server running at " + base + "?")));
+                              + "). Is the publish proxy reachable at " + base + "?")));
                 });
             }).detach();
         })
@@ -452,7 +454,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         {
             auto* o = new juce::DynamicObject();
             o->setProperty ("anthropicKey", vstai::appsettings::rawAnthropicKey());
-            o->setProperty ("publishUrl",   vstai::appsettings::publishUrl());
+            o->setProperty ("publishUrl",   vstai::appsettings::rawPublishUrl());
             o->setProperty ("designId",     vstai::appsettings::selectedDesignId());
             o->setProperty ("designTheme",
                             vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
@@ -625,7 +627,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             // aw->addTextEditor ("glm",       vstai::appsettings::rawGlmKey(),       "GLM (Z.ai) API key", true);
             // aw->addTextEditor ("glmurl",    vstai::appsettings::rawGlmUrl(),       "GLM URL (blank = Z.ai)");
             // aw->addTextEditor ("ollama",    vstai::appsettings::ollamaBaseUrl(),   "Ollama URL");
-            aw->addTextEditor ("publish",   vstai::appsettings::publishUrl(),      "Publish server URL (e.g. http://localhost:8787)");
+            aw->addTextEditor ("publish",   vstai::appsettings::rawPublishUrl(),   "Publish server URL (blank = default proxy)");
             aw->addButton ("Save",   1, juce::KeyPress (juce::KeyPress::returnKey));
             aw->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
             aw->enterModalState (true, juce::ModalCallbackFunction::create ([safe, aw, complete] (int r)
