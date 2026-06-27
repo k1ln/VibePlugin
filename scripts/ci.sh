@@ -6,6 +6,8 @@
 #
 #  Quick start
 #    scripts/ci.sh build              # build all 3 OSes now (artifacts only)   [needs gh]
+#    scripts/ci.sh build win          # build ONLY Windows (also: linux | macos | all)
+#    scripts/ci.sh build win --tag v1.0.0   # build Windows + attach to that Release
 #    scripts/ci.sh build --watch      # ...and stream progress until it finishes [needs gh]
 #    scripts/ci.sh tag v1.0.0         # cut a release: push a tag -> builds +    [git only]
 #                                     #   attaches the zips to that GitHub Release
@@ -53,19 +55,26 @@ latest_run_id() {
 cmd="${1:-help}"; shift || true
 
 case "$cmd" in
-  build)
+  build|build-win|build-windows|build-linux|build-mac|build-macos)
     require_gh
+    # OS can come from the subcommand alias (build-win) or the first positional
+    # (build win|linux|macos|all). Default: all three.
+    os="all"
+    case "$cmd" in build-win|build-windows) os=windows;; build-linux) os=linux;; build-mac|build-macos) os=macos;; esac
     watch=0; tag=""
     while [ $# -gt 0 ]; do
       case "$1" in
+        all|macos|mac|linux|windows|win)
+          case "$1" in mac) os=macos;; win) os=windows;; *) os="$1";; esac ;;
         --watch) watch=1 ;;
         --tag)   tag="${2:?--tag needs a value like v1.0.0}"; shift ;;
-        *) echo "unknown flag: $1" >&2; exit 2 ;;
+        *) echo "unknown arg: $1" >&2; exit 2 ;;
       esac; shift
     done
-    echo "▶ dispatching '$WORKFLOW' on $REPO${tag:+  (release tag: $tag)}…"
-    if [ -n "$tag" ]; then gh workflow run "$WORKFLOW" --repo "$REPO" -f "tag=$tag";
-    else                   gh workflow run "$WORKFLOW" --repo "$REPO"; fi
+    echo "▶ dispatching '$WORKFLOW' on $REPO  (os: $os${tag:+, release tag: $tag})…"
+    args=(workflow run "$WORKFLOW" --repo "$REPO" -f "os=$os")
+    [ -n "$tag" ] && args+=(-f "tag=$tag")
+    gh "${args[@]}"
     # The run takes a moment to register; poll briefly for its id.
     id=""; for _ in 1 2 3 4 5 6 7 8; do sleep 2; id="$(latest_run_id)"; [ -n "$id" ] && break; done
     if [ -z "$id" ]; then echo "  dispatched. See: scripts/ci.sh status"; exit 0; fi
