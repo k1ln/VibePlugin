@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>VibePlugin</title>
+<link rel="stylesheet" href="shell.css"/>
+<!-- Surface any JS error (incl. failed module loads) visibly, so problems are
+     never silent. Classic inline script so it runs before the module below. -->
+<script>
+window.__vstaiErr = function (msg) {
+  var b = document.getElementById("bootErr");
+  if (!b) { b = document.createElement("div"); b.id = "bootErr";
+    b.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#3a1015;" +
+      "color:#ffb4b4;font:12px ui-monospace,Menlo,monospace;padding:8px 12px;white-space:pre-wrap;" +
+      "border-top:1px solid #e5687a"; (document.body||document.documentElement).appendChild(b); }
+  b.textContent = "UI error: " + msg;
+};
+window.addEventListener("error", function (e) {
+  window.__vstaiErr((e.message || e.error || "?") + (e.filename ? ("  @ " + e.filename + ":" + e.lineno) : ""));
+});
+window.addEventListener("unhandledrejection", function (e) {
+  window.__vstaiErr("promise: " + (e.reason && (e.reason.message || e.reason)));
+});
+</script>
+<!-- Monaco AMD loader (classic script: runs before the deferred module below). -->
+<script src="vendor/monaco/vs/loader.js" onerror="window.__vstaiErr('failed to load Monaco loader.js')"></script>
+</head>
+<body>
+  <!-- ===== Header ===================================================== -->
+  <header class="bar">
+    <div class="brand"><span class="dot"></span><h1>VibePlugin</h1>
+      <span class="sub" id="kindSub">plugin generator</span>
+      <span class="plugin-name" id="pluginName" hidden></span></div>
+    <div class="spacer"></div>
+    <div class="group" id="headerBtns">
+      <button class="btn ghost" id="keysBtn"    title="API keys & local models">Keys</button>
+      <button class="btn ghost" id="accountBtn" title="Cloud credits">Account</button>
+      <button class="btn ghost" id="licenseBtn" title="License">Unlicensed</button>
+    </div>
+    <button class="btn ghost" id="collapseBtn" title="Hide the editor — show just the plugin GUI">Hide editor ▴</button>
+  </header>
+
+  <!-- ===== Prompt ==================================================== -->
+  <section class="prompt">
+    <textarea id="promptBox" rows="2"
+      placeholder="Describe the plugin you want, or a change to make  (Cmd/Ctrl+Enter to generate)"></textarea>
+    <div class="prompt-actions">
+      <button class="btn primary"  id="generateBtn">Generate</button>
+      <button class="btn accent2"  id="chatbotBtn" title="No API key needed — copy a prompt to any chatbot">Copy to chatbot</button>
+    </div>
+  </section>
+
+  <!-- ===== Toolbar =================================================== -->
+  <section class="toolbar">
+    <div class="group">
+      <button class="btn" id="newBtn">New</button>
+      <button class="btn" id="saveBtn">Save</button>
+      <button class="btn" id="loadBtn">Load</button>
+      <button class="btn accent2" id="publishBtn" title="Publish to the web catalogue — play it live in a browser">Publish</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="group">
+      <label class="lbl" for="modelSel">Model</label>
+      <select id="modelSel"></select>
+      <label class="lbl" id="effortLbl" for="effortSel">Thinking</label>
+      <select id="effortSel">
+        <option value="low">Low (cheapest)</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+        <option value="max">Max</option>
+      </select>
+      <label class="lbl chk" id="thinkWrap"><input type="checkbox" id="thinkChk"/> Think</label>
+    </div>
+  </section>
+
+  <!-- ===== Status =================================================== -->
+  <section class="status">
+    <span class="spinner" id="spinner" hidden></span>
+    <span id="statusText">Ready.</span>
+    <div class="spacer"></div>
+    <button class="link" id="thinkToggle" hidden>▸ See reasoning</button>
+  </section>
+  <pre class="thinking" id="thinkingView" hidden></pre>
+
+  <!-- ===== Tabs ===================================================== -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="preview">GUI</button>
+    <button class="tab" data-tab="dsp">DSP (AssemblyScript)</button>
+    <button class="tab" data-tab="html">GUI HTML</button>
+    <button class="tab" data-tab="notes">Notes</button>
+    <button class="tab" data-tab="history">History</button>
+    <button class="tab" data-tab="standard">Standard UI</button>
+  </nav>
+
+  <main class="panes">
+    <div class="pane active" data-pane="preview">
+      <iframe id="preview" src="preview" title="Live GUI"></iframe>
+    </div>
+    <div class="pane" data-pane="dsp"><div class="editor" id="dspEditor"></div></div>
+    <div class="pane" data-pane="html"><div class="editor" id="htmlEditor"></div></div>
+    <div class="pane" data-pane="notes"><pre class="notes" id="notesView">Edit the DSP or GUI, then Save &amp; Compile. Compiler output and the AI's notes show up here.</pre></div>
+    <div class="pane" data-pane="history"><div class="history" id="historyList"></div></div>
+    <div class="pane" data-pane="standard"><div class="editor" id="stdEditor"></div></div>
+  </main>
+
+  <!-- ===== Code action bar ========================================= -->
+  <footer class="actions" id="codeActions" hidden>
+    <button class="btn primary" id="compileBtn">Save &amp; Compile</button>
+    <button class="btn" id="fixBtn">Fix with AI</button>
+    <button class="btn" id="revertBtn">Revert</button>
+    <div class="spacer"></div>
+    <button class="btn accent2" id="stdSaveBtn" hidden>Save Standard UI</button>
+    <button class="btn" id="stdResetBtn" hidden>Reset</button>
+  </footer>
+
+  <!-- ===== Chatbot modal =========================================== -->
+  <div class="modal" id="chatModal" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2>Generate with any chatbot</h2>
+        <button class="iconbtn" id="chatCloseBtn" title="Close">✕</button>
+      </div>
+      <p class="muted">Free — no API key. It's copied to your clipboard; paste it into ChatGPT, Claude or Gemini, then paste the full reply back here.</p>
+
+      <label class="field-label">1 · The prompt</label>
+      <textarea id="promptCopyArea" rows="5" readonly></textarea>
+      <div class="row"><button class="btn" id="copyPromptBtn">Copy prompt</button><span id="chatStatus" class="muted"></span></div>
+      <label class="row" id="sameChatWrap" hidden style="gap:8px;cursor:pointer;align-items:center">
+        <input type="checkbox" id="sameChatChk">
+        <span class="muted">Continue in the same chat — paste only the change (shorter prompt, returns a patch)</span>
+      </label>
+
+      <div class="field-head">
+        <label class="field-label">2 · Paste the reply</label>
+        <div class="seg" id="pasteModeSeg">
+          <button type="button" class="seg-btn active" id="modeOneBtn" data-mode="one">One response</button>
+          <button type="button" class="seg-btn" id="modePartsBtn" data-mode="parts">Three parts</button>
+        </div>
+      </div>
+
+      <!-- One-response mode (default): paste the whole reply, blocks auto-detected. -->
+      <div id="pasteOne">
+        <div class="paste-field">
+          <span class="paste-tag">Full chatbot reply</span>
+          <textarea id="replyPaste" rows="12" spellcheck="false" placeholder="paste the chatbot's entire reply here — the ```assemblyscript, ```html and ```json blocks are detected automatically"></textarea>
+        </div>
+      </div>
+
+      <!-- Three-parts mode: paste each block into its own box. -->
+      <div id="pasteParts" hidden>
+        <div class="paste-field">
+          <span class="paste-tag">AssemblyScript · index.ts</span>
+          <textarea id="asmPaste" rows="7" spellcheck="false" placeholder="// paste the ```assemblyscript block here"></textarea>
+        </div>
+        <div class="paste-field">
+          <span class="paste-tag">GUI HTML</span>
+          <textarea id="htmlPaste" rows="6" spellcheck="false" placeholder="<!-- paste the ```html block here -->"></textarea>
+        </div>
+        <div class="paste-field">
+          <span class="paste-tag">Params JSON <em>(optional)</em></span>
+          <textarea id="jsonPaste" rows="4" spellcheck="false" placeholder='{ "params": [ … ], "explanation": "…" }'></textarea>
+        </div>
+        <div class="row">
+          <button class="link" id="splitPasteBtn" title="Paste the whole reply and auto-split it into the boxes above">or paste the full reply to auto-split</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="applyReplyBtn">Apply &amp; build</button>
+      </div>
+
+      <div class="paste-field err" id="errorWrap" hidden>
+        <span class="paste-tag">Build error</span>
+        <textarea id="errorBox" rows="7" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="row" id="errorActions" hidden>
+        <button class="btn" id="copyErrorBtn">Copy error</button>
+        <button class="btn accent2" id="copyFixBtn">Copy fix request →</button>
+        <span class="muted">paste the fix request back into the same chat</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="shell.js" onerror="window.__vstaiErr('failed to load shell.js')"></script>
+</body>
+</html>

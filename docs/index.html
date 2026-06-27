@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VibePlugin — plugins that write themselves</title>
+  <meta name="description" content="Describe a sound. VibePlugin generates the DSP and the GUI on the spot — a real VST3 effect or synth that runs in your DAW. Powered by Claude, compiled to WebAssembly, fully offline playback.">
+  <meta property="og:title" content="VibePlugin — plugins that write themselves">
+  <meta property="og:description" content="Describe a sound. Get a real VST3 plugin — DSP and GUI generated on the spot.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f8dff'/%3E%3Cpath d='M7 16h3l2-7 4 14 3-9 2 4h4' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================ nav -->
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="./index.html">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#4f8dff"/>
+          <path d="M7 16h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <span><b>VST3</b>-AI</span>
+        <span class="tag">v1.0</span>
+      </a>
+      <div class="spacer"></div>
+      <div class="links">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#plugins">Plugins</a>
+        <a href="releases.html">Downloads</a>
+        <a href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <a class="btn primary" href="releases.html" id="navDownload">Download</a>
+    </div>
+  </nav>
+
+  <!-- =========================================================== hero -->
+  <header class="hero">
+    <div class="wrap grid">
+      <div>
+        <span class="eyebrow">AI-native VST3 instruments &amp; effects</span>
+        <h1>Plugins that<br><span class="grad">write themselves.</span></h1>
+        <p class="lead">Describe a sound in plain language. VibePlugin generates the DSP <em>and</em> a custom GUI on the spot — a real plugin that loads in your DAW and plays entirely offline.</p>
+        <div class="cta">
+          <a class="btn primary lg" href="releases.html" id="heroDownload">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+            Download
+          </a>
+          <a class="btn ghost lg" href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.36-2.22-.26-4.55-1.14-4.55-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.4 9.4 0 015 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.6.69.49A10.02 10.02 0 0022 12.25C22 6.58 17.52 2 12 2z"/></svg>
+            Source on GitHub
+          </a>
+        </div>
+        <div class="meta">
+          <span><span class="dot"></span> macOS · Windows · Linux</span>
+          <span>Free &amp; open source</span>
+          <span>No cloud at playback</span>
+        </div>
+      </div>
+
+      <!-- faux plugin panel with a live waveform -->
+      <div class="panel reveal">
+        <div class="bar">
+          <span class="d"></span><span class="d"></span><span class="d"></span>
+          <span class="title">VibePlugin Synth — “Glass Pad”</span>
+        </div>
+        <div class="body">
+          <canvas id="wave" width="600" height="240"></canvas>
+          <div class="knobs">
+            <div class="knob"><div class="dial"></div><label>Drive</label></div>
+            <div class="knob"><div class="dial"></div><label>Tone</label></div>
+            <div class="knob"><div class="dial"></div><label>Shimmer</label></div>
+          </div>
+          <div class="prompt"><span class="muted">prompt ▸</span> a warm glass pad with slow shimmer<span class="cur">▍</span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================================================== how it works -->
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">How it works</span>
+        <h2>From a sentence to a signal chain.</h2>
+        <p>No DSP code, no toolchain to install. The plugin does the engineering for you and then gets out of the way.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="n">1</div>
+          <h3>Describe it</h3>
+          <p>Type what you want — “a gritty tape saturator with drive and tone”, or “a lush analog pad”. The plugin sends the prompt to Claude.</p>
+        </div>
+        <div class="step reveal">
+          <div class="n">2</div>
+          <h3>It writes the plugin</h3>
+          <p>Claude returns an AssemblyScript DSP module and a self-contained HTML GUI. A compiler bundled inside the plugin turns the DSP into WebAssembly — no toolchain on your machine.</p>
+        </div>
+        <div class="step reveal">
+          <div class="n">3</div>
+          <h3>Play &amp; refine</h3>
+          <p>The WASM runs under wasmtime and the GUI shows in an embedded view. Keep talking to evolve it, then save a portable <code>.vstai</code> file to reload anytime.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================= features -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Features</span>
+        <h2>Built like a boutique plug-in. Driven by language.</h2>
+      </div>
+      <div class="features">
+        <div class="feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17V7m4 10V4m4 13V9m4 8V6m4 11v-7"/></svg></div>
+          <h3>Real DSP, generated</h3>
+          <p>Filters, saturation, envelopes, oscillators — written as AssemblyScript and compiled to native-speed WebAssembly.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10M8 8h4M8 12h8"/></svg></div>
+          <h3>A custom GUI every time</h3>
+          <p>Each plugin ships its own hand-styled interface — knobs, sliders, meters, a playable keyboard for synths — not a generic preset rack.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <h3>Offline at playback</h3>
+          <p>The cloud is only touched while generating. Once built, the DSP runs locally under wasmtime — no network in the audio path.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9"/><path d="M21 3l-9 9"/></svg></div>
+          <h3>Your model, your way</h3>
+          <p>Bring your own API key, paste prompts into any chatbot for free, or use cloud credits. Open models via Ollama work too.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v6h6"/></svg></div>
+          <h3>Portable .vstai files</h3>
+          <p>Every plugin saves to one shareable file — params, GUI and compiled WASM — and reloads instantly, no regeneration needed.</p>
+        </div>
+        <div class="feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <h3>Full host automation</h3>
+          <p>A fixed 64-parameter pool is exposed to your DAW, so every generated control can be automated and recalled like any other plugin.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== plugins -->
+  <section id="plugins">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Two plugins, one engine</span>
+        <h2>An effect and an instrument.</h2>
+        <p>The same core ships as two products so your DAW treats them correctly — one in the FX chain, one as a playable instrument.</p>
+      </div>
+      <div class="products">
+        <div class="product fx reveal">
+          <span class="kind">Audio effect</span>
+          <h3>VibePlugin FX</h3>
+          <p>Drop it on any channel and describe a processor. Reads the input, writes the processed output.</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Saturators, EQs, reverbs, delays, dynamics</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Load a file for samplers, granular &amp; convolution</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Tweak by prompt — it patches, not rewrites</li>
+          </ul>
+        </div>
+        <div class="product synth reveal">
+          <span class="kind">Instrument · synth</span>
+          <h3>VibePlugin Synth</h3>
+          <p>Play it from MIDI or the on-screen keyboard. Synthesizes straight into the output buffer.</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Pads, basses, leads, plucks, drones</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Built-in playable keyboard in every GUI</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Host converts MIDI to Hz — just play</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== tech -->
+  <section>
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">Under the hood</span>
+        <h2>Serious engineering, quietly.</h2>
+      </div>
+      <div class="tech">
+        <span class="chip"><b>Claude</b> writes the DSP</span>
+        <span class="chip"><b>AssemblyScript</b> → WASM</span>
+        <span class="chip"><b>Binaryen</b> optimizer, bundled</span>
+        <span class="chip"><b>wasmtime</b> runtime</span>
+        <span class="chip"><b>JUCE 8</b> / C++ host</span>
+        <span class="chip"><b>WebView</b> GUI</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== cta band -->
+  <section>
+    <div class="wrap">
+      <div class="cta-band reveal">
+        <h2>Make a plugin out of a sentence.</h2>
+        <p>Free, open source, and yours to run locally on macOS, Windows or Linux.</p>
+        <a class="btn primary lg" href="releases.html">Download VibePlugin</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= footer -->
+  <footer>
+    <div class="wrap">
+      <a class="brand" href="./index.html">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#4f8dff"/>
+          <path d="M7 16h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <span><b>VST3</b>-AI</span>
+      </a>
+      <div class="spacer"></div>
+      <a class="f" href="releases.html">Downloads</a>
+      <a class="f" href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">GitHub</a>
+      <a class="f" href="https://github.com/k1ln/VibePlugin/issues" target="_blank" rel="noopener">Issues</a>
+      <span class="muted">© 2026 VibePlugin</span>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>

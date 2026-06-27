@@ -1,0 +1,176 @@
+/* VibePlugin editor shell — professional dark theme.
+   Layered near-black surfaces (lighter = elevated, not shadowed), hairline
+   white-alpha borders, off-white text hierarchy, one restrained accent. */
+:root{
+  --bg:#0b0c0f;                    /* app base            */
+  --surface:#14161c;               /* header, inputs      */
+  --surface-2:#1b1e26;             /* hover / raised      */
+  --surface-3:#22262f;             /* elevated            */
+  --line:rgba(255,255,255,.07);    /* hairline border     */
+  --line-2:rgba(255,255,255,.12);  /* default border      */
+  --line-3:rgba(255,255,255,.20);  /* strong border       */
+  --ink:#eceef3;                   /* primary text        */
+  --ink-2:#aab1c0;                 /* secondary text      */
+  --muted:#6b7280;                 /* tertiary / labels   */
+  --accent:#4f8dff;                /* primary action      */
+  --accent-press:#3d7af0;
+  --violet:#9d7bff;                /* secondary action    */
+  --ok:#46d39a; --danger:#e5687a;
+  --r:7px;                         /* default radius      */
+  --r-lg:11px;
+  --h:30px;                        /* control height      */
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
+  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;overflow:hidden;
+}
+.spacer{flex:1}
+.muted{color:var(--muted)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:var(--line-2);border:3px solid transparent;background-clip:padding-box;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#3e4859;background-clip:padding-box}
+
+/* ---- buttons -------------------------------------------------------- */
+.btn{appearance:none;height:var(--h);display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink);
+  font:inherit;font-weight:500;padding:0 12px;border-radius:var(--r);cursor:pointer;
+  transition:background .1s,border-color .1s,color .1s}
+.btn:hover{background:var(--surface-2);border-color:var(--line-3)}
+.btn:active{background:var(--bg)}
+.btn:disabled{opacity:.4;cursor:default;background:var(--surface)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.primary:hover{background:#5c98ff;border-color:#5c98ff}
+.btn.primary:active{background:var(--accent-press)}
+.btn.accent2{background:transparent;border-color:var(--violet);color:#b9a8ff;font-weight:600}
+.btn.accent2:hover{background:rgba(138,108,255,.12)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2);padding:0 9px}
+.btn.ghost:hover{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.link{appearance:none;background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;padding:2px 4px}
+.link:hover{color:var(--ink-2)}
+.iconbtn{appearance:none;background:none;border:0;color:var(--muted);cursor:pointer;font-size:14px;
+  width:26px;height:26px;border-radius:var(--r);line-height:1}
+.iconbtn:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ---- header --------------------------------------------------------- */
+.bar{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;
+  background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px}
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);align-self:center}
+.brand h1{font-size:13.5px;font-weight:650;letter-spacing:.2px;margin:0;color:var(--ink)}
+.brand .sub{color:var(--muted);font-size:11px}
+.brand .plugin-name{color:var(--ink);font-size:12.5px;font-weight:600;padding-left:8px;
+  margin-left:4px;border-left:1px solid var(--line-2);max-width:240px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+
+/* ---- collapsed mode: hide the authoring chrome, keep header + GUI ---- */
+body.collapsed .prompt,
+body.collapsed .toolbar,
+body.collapsed .status,
+body.collapsed .thinking,
+body.collapsed .tabs,
+body.collapsed .actions,
+body.collapsed #headerBtns { display:none; }
+
+/* ---- prompt --------------------------------------------------------- */
+.prompt{display:flex;gap:10px;padding:14px 14px 8px;align-items:stretch}
+#promptBox{flex:1;resize:none;min-height:56px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line-2);border-radius:var(--r-lg);padding:11px 13px;
+  font:14.5px/1.45 inherit;transition:border-color .12s,box-shadow .12s}
+#promptBox::placeholder{color:var(--muted)}
+#promptBox:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(77,141,255,.16)}
+.prompt-actions{display:flex;flex-direction:column;gap:8px;width:150px}
+.prompt-actions .btn{flex:1;justify-content:center}
+
+/* ---- toolbar -------------------------------------------------------- */
+.toolbar{display:flex;align-items:center;gap:8px;padding:2px 14px 6px}
+.toolbar .group{display:flex;align-items:center;gap:6px}
+.toolbar .group + .group{padding-left:8px}
+.lbl{color:var(--muted);font-size:11px;margin-left:4px;font-weight:500}
+.lbl.chk{display:flex;align-items:center;gap:5px;cursor:pointer}
+input[type=checkbox]{accent-color:var(--accent)}
+select{appearance:none;height:var(--h);background:var(--surface);color:var(--ink);
+  border:1px solid var(--line-2);border-radius:var(--r);padding:0 26px 0 10px;font:inherit;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 14px) center,calc(100% - 9px) center;background-size:5px 5px;background-repeat:no-repeat}
+select:hover{border-color:var(--line-3)}
+select:focus{outline:none;border-color:var(--accent)}
+
+/* ---- status --------------------------------------------------------- */
+.status{display:flex;align-items:center;gap:8px;padding:2px 14px 10px;min-height:22px;color:var(--ink-2);font-size:12.5px}
+.thinking{margin:0 14px 10px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);
+  padding:9px 11px;max-height:150px;overflow:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2);white-space:pre-wrap}
+.spinner{width:13px;height:13px;border:2px solid var(--line-2);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- tabs ----------------------------------------------------------- */
+.tabs{display:flex;gap:0;padding:0 8px;background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+  font:inherit;font-weight:500;padding:9px 13px;cursor:pointer;margin-bottom:-1px;transition:color .1s}
+.tab:hover{color:var(--ink-2)}
+.tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+
+/* ---- panes ---------------------------------------------------------- */
+.panes{flex:1;position:relative;min-height:0;background:var(--bg)}
+.pane{position:absolute;inset:0;display:none}
+.pane.active{display:block}
+#preview{width:100%;height:100%;border:0;background:var(--bg)}
+.editor{width:100%;height:100%}
+.notes{margin:0;padding:16px;height:100%;overflow:auto;white-space:pre-wrap;
+  font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
+.editor textarea{width:100%;height:100%;border:0;resize:none;background:var(--bg);color:var(--ink);
+  padding:14px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ---- history -------------------------------------------------------- */
+.history{height:100%;overflow:auto;padding:14px}
+.history .empty{color:var(--muted);padding:10px 2px}
+.hrow{display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:8px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);transition:border-color .1s}
+.hrow:hover{border-color:var(--line-2)}
+.hrow.active{border-color:var(--accent)}
+.hrow .meta{flex:1;min-width:0}
+.hrow .p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-weight:500}
+.hrow .sub{color:var(--muted);font-size:11px;margin-top:2px}
+
+/* ---- code action bar ----------------------------------------------- */
+.actions{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--surface);border-top:1px solid var(--line)}
+
+/* ---- modal ---------------------------------------------------------- */
+.modal{position:fixed;inset:0;background:rgba(6,9,14,.66);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;z-index:20}
+.sheet{width:min(640px,92vw);max-height:88vh;overflow:auto;background:var(--surface);
+  border:1px solid var(--line-2);border-radius:var(--r-lg);padding:18px 20px 20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between}
+.sheet h2{margin:0;font-size:15px;font-weight:650;color:var(--ink)}
+.sheet p{margin:6px 0 14px;color:var(--muted);font-size:12.5px;line-height:1.5}
+.sheet .row{display:flex;align-items:center;gap:10px;margin:8px 0 14px}
+.field-label{display:block;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--muted);margin:6px 0 6px}
+#promptCopyArea,.paste-field textarea{width:100%;resize:vertical;background:var(--bg);color:var(--ink-2);
+  border:1px solid var(--line-2);border-radius:var(--r);padding:10px 12px;
+  font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+#promptCopyArea:focus,.paste-field textarea:focus{outline:none;border-color:var(--accent)}
+
+/* paste-mode toggle (manual modal: one response vs three parts) */
+.field-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}
+.field-head .field-label{margin:0}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r);padding:2px;gap:2px}
+.seg-btn{appearance:none;background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;font-size:12px;
+  padding:3px 11px;border-radius:calc(var(--r) - 3px)}
+.seg-btn:hover{color:var(--ink-2)}
+.seg-btn.active{background:var(--surface-2);color:var(--ink)}
+
+/* labelled paste boxes in the manual modal */
+.paste-field{position:relative;margin-bottom:10px}
+.paste-field textarea{padding-top:24px}
+.paste-tag{position:absolute;top:7px;left:11px;font-size:10.5px;letter-spacing:.4px;font-weight:600;
+  text-transform:uppercase;color:var(--muted);pointer-events:none}
+.paste-tag em{font-style:normal;color:#5a6577;text-transform:none;letter-spacing:0;font-weight:500}
+.paste-field.err textarea{border-color:var(--danger);color:#ffc6cd}
+.paste-field.err .paste-tag{color:var(--danger)}
+
+[hidden]{display:none !important}

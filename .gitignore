@@ -1,0 +1,33 @@
+# build output
+/build/
+/build-dev/
+/build-test/
+/cmake-build-*/
+src/Config.h
+*.vst3
+*.component
+
+# compiled-in secrets (never commit)
+src/Config.h
+
+# bundled-compiler build artifacts
+compiler/node_modules/
+compiler/asc-bundle.mjs
+compiler/asc-bundle.cjs
+compiler/vstai-asc
+compiler/vstai-node
+compiler/vstai-node.exe
+compiler/vstai-asc.exe
+compiler/sea-prep.blob
+compiler/sea-config.json
+wasm-template/node_modules/
+wasm-template/build/
+package-lock.json
+
+# generated plugins (keep your own elsewhere)
+*.vstai
+
+# os / editor
+.DS_Store
+.vscode/
+.idea/
