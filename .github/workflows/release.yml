@@ -157,7 +157,10 @@ jobs:
         shell: bash
         run: |
           set -e
-          tag="${GITHUB_REF_NAME:-${{ github.event.inputs.tag }}}"
+          # Prefer the dispatch 'tag' input; on a tag push GITHUB_REF_NAME IS the tag.
+          # (A plain dispatch with no input names artifacts after the branch — fine.)
+          tag="${{ github.event.inputs.tag }}"
+          [ -z "$tag" ] && tag="$GITHUB_REF_NAME"
           [ -z "$tag" ] && tag="dev"
           out="VibePlugin-${tag}-${{ matrix.os }}"
           mkdir -p "stage/$out"
