@@ -162,6 +162,11 @@ public:
     juce::String getGenerationEffort()   const { return document.effort; }
     bool         getGenerationThinking() const { return document.thinking; }
 
+    // Rename the current creation (Publish / Export naming). Bakes the name into
+    // the document so the saved / published artifact carries it, then notifies the
+    // editor + host so the new name shows immediately.
+    void setDocumentName (const juce::String& n) { document.name = n; notifyChanged(); }
+
     // Save/load .vstai to/from disk.
     bool saveDocument (const juce::File&, juce::String& errorOut);
     bool loadDocument (const juce::File&, juce::String& errorOut);

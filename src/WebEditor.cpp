@@ -150,50 +150,71 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         {
             complete (vstai::buildManualUpdatePrompt (argStr (a, 0)));
         })
-        // Publish the compiled plugin to the configured web catalogue. POSTs the
-        // .vstai JSON (html + wasm + params) to <publishUrl>/api/publish; the server
-        // serves a browser player that runs the WASM DSP live.
+        // Publish the compiled plugin to the configured web catalogue. Prompts for a
+        // name, bakes it into the document, then POSTs the .vstai JSON (html + wasm +
+        // params) to <publishUrl>/api/publish; the server serves a browser player that
+        // runs the WASM DSP live.
         .withNativeFunction ("publish", [safe] (const VarArray&, Completion complete)
         {
             if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
             const auto base = vstai::appsettings::publishUrl().trim();
             if (base.isEmpty()) { complete (result (false, "Set a Publish server URL first — open Keys…")); return; }
-            const auto& d = safe->processor.getDocument();
-            if (! d.hasPlugin()) { complete (result (false, "Generate or compile a plugin first.")); return; }
+            if (! safe->processor.getDocument().hasPlugin())
+            { complete (result (false, "Generate or compile a plugin first.")); return; }
 
-            const juce::String payload = d.toJsonString();
-            const juce::String name    = d.name;
-            juce::Component::SafePointer<WebEditor> s2 (safe);
-            std::thread ([s2, base, payload, name, complete]() mutable
+            // Ask for the name to publish under (defaults to the current name). The
+            // chosen name is baked into the document so the catalogue entry carries it.
+            const auto current = safe->processor.getDocument().name;
+            auto* aw = new juce::AlertWindow ("Publish to the catalogue",
+                "Name this creation — it's how players will find it in the web catalogue.",
+                juce::MessageBoxIconType::NoIcon);
+            aw->addTextEditor ("name", current == "Untitled" ? juce::String() : current, "Name");
+            aw->addButton ("Publish", 1, juce::KeyPress (juce::KeyPress::returnKey));
+            aw->addButton ("Cancel",  0, juce::KeyPress (juce::KeyPress::escapeKey));
+            aw->enterModalState (true, juce::ModalCallbackFunction::create ([safe, aw, complete, base] (int r)
             {
-                juce::String endpoint = base;
-                while (endpoint.endsWithChar ('/')) endpoint = endpoint.dropLastCharacters (1);
-                endpoint += "/api/publish";
+                // If the editor is gone the WebView bridge behind `complete` is dead too,
+                // and `aw` is being torn down with us — bail before touching either.
+                if (safe == nullptr) return;
+                if (r != 1) { complete (result (false, "Cancelled.")); return; }
+                const auto name = aw->getTextEditorContents ("name").trim();
+                if (name.isEmpty()) { complete (result (false, "Give it a name first.")); return; }
 
-                int status = 0; juce::String resp;
-                auto opts = juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inPostData)
-                                .withExtraHeaders ("Content-Type: application/json")
-                                .withConnectionTimeoutMs (15000)
-                                .withStatusCode (&status);
-                if (auto in = juce::URL (endpoint).withPOSTData (payload).createInputStream (opts))
-                    resp = in->readEntireStreamAsString();
-
-                const bool ok = (status >= 200 && status < 300);
-                juce::String link;
-                if (auto* o = juce::JSON::parse (resp).getDynamicObject()) link = o->getProperty ("url").toString();
-
-                juce::MessageManager::callAsync ([s2, complete, ok, name, status, link, base]() mutable
+                safe->processor.setDocumentName (name);
+                const juce::String payload = safe->processor.getDocument().toJsonString();
+                juce::Component::SafePointer<WebEditor> s2 (safe);
+                std::thread ([s2, base, payload, name, complete]() mutable
                 {
-                    if (s2 == nullptr) return;
-                    // On success, open the PR so the submitter can track review/publish status.
-                    if (ok && link.isNotEmpty()) juce::URL (link).launchInDefaultBrowser();
-                    complete (result (ok,
-                        ok ? ("Submitted “" + name + "” — it will be tested & reviewed before publishing."
-                              + (link.isNotEmpty() ? " Tracking the PR in your browser." : juce::String()))
-                           : ("Publish failed (HTTP " + juce::String (status)
-                              + "). Is the publish proxy reachable at " + base + "?")));
-                });
-            }).detach();
+                    juce::String endpoint = base;
+                    while (endpoint.endsWithChar ('/')) endpoint = endpoint.dropLastCharacters (1);
+                    endpoint += "/api/publish";
+
+                    int status = 0; juce::String resp;
+                    auto opts = juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inPostData)
+                                    .withExtraHeaders ("Content-Type: application/json")
+                                    .withConnectionTimeoutMs (15000)
+                                    .withStatusCode (&status);
+                    if (auto in = juce::URL (endpoint).withPOSTData (payload).createInputStream (opts))
+                        resp = in->readEntireStreamAsString();
+
+                    const bool ok = (status >= 200 && status < 300);
+                    juce::String link;
+                    if (auto* o = juce::JSON::parse (resp).getDynamicObject()) link = o->getProperty ("url").toString();
+
+                    juce::MessageManager::callAsync ([s2, complete, ok, name, status, link, base]() mutable
+                    {
+                        if (s2 == nullptr) return;
+                        // On success, open the PR so the submitter can track review/publish status.
+                        if (ok && link.isNotEmpty()) juce::URL (link).launchInDefaultBrowser();
+                        complete (result (ok,
+                            ok ? ("Submitted “" + name + "” — it will be tested & reviewed before publishing."
+                                  + (link.isNotEmpty() ? " Tracking the PR in your browser." : juce::String()))
+                               : ("Publish failed (HTTP " + juce::String (status)
+                                  + "). Is the publish proxy reachable at " + base + "?")));
+                    });
+                }).detach();
+            }), true);
+            safe->trackDialog (aw);
         })
         .withNativeFunction ("manualFixPrompt", [] (const VarArray& a, Completion complete)
         {

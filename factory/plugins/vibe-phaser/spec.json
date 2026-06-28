@@ -1,0 +1,16 @@
+{
+  "name": "Vibe Phaser",
+  "isInstrument": false,
+  "explanation": "A photocell vibe and phaser: a four-stage all-pass network is swept by a slow, asymmetric optical LFO (a lamp seen through a light-dependent resistor — fast warm-up, slow cool-down) so the notches glide unevenly for a watery, throbbing movement. Switch between Chorus (phase-shifted path blended with the dry signal) and Vibrato (100% wet pitch wobble), and shape it with Rate, Depth, Intensity and Mix.",
+  "assembly": "factory/plugins/vibe-phaser/assembly.ts",
+  "out": "factory/plugins/vibe-phaser/x.vstai",
+  "publishedAt": 1751000034000,
+  "theme": { "accent": "#9b8cff", "accent2": "#c0a0ff" },
+  "params": [
+    { "name": "Rate",      "index": 0, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "Depth",     "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Mode",      "index": 2, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Intensity", "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

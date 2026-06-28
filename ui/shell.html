@@ -36,7 +36,8 @@ window.addEventListener("unhandledrejection", function (e) {
     <div class="group" id="headerBtns">
       <button class="btn ghost" id="keysBtn"    title="API keys, design &amp; settings">Settings</button>
       <button class="btn ghost" id="accountBtn" title="Cloud credits">Account</button>
-      <button class="btn ghost" id="licenseBtn" title="License">Unlicensed</button>
+      <!-- Lifetime is always included — no license to buy/activate, so this is hidden. -->
+      <button class="btn ghost" id="licenseBtn" title="License" hidden>Unlicensed</button>
     </div>
     <button class="btn ghost" id="collapseBtn" title="Hide the editor — show just the plugin GUI">Hide editor ▴</button>
   </header>

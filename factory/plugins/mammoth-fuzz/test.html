@@ -1,0 +1,92 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mammoth Fuzz — test bench</title><style>
+  :root{--ac:#ff7a3c}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#e7eef6;
+    background:radial-gradient(120% 90% at 50% -10%,#161c28,#080b10 70%);display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px}
+  .top{display:flex;align-items:center;gap:12px;width:100%;max-width:600px}
+  .top b{font-size:15px;letter-spacing:.04em;color:var(--ac)}
+  .top .sub{font-size:11px;color:#7c8aa3}
+  iframe{width:100%;max-width:600px;height:380px;border:0;background:transparent}
+  .bar{width:100%;max-width:600px;display:flex;flex-direction:column;gap:10px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  button{font:inherit;color:#06080c;background:var(--ac);border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer}
+  button.off{background:#2a3344;color:#e7eef6}
+  select,input[type=file]{font:inherit;color:#e7eef6;background:#11161f;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 9px}
+  label{display:flex;gap:8px;align-items:center;color:#aeb9cc}
+  .st{font-size:12px;color:#8da0bd;min-height:16px}
+  .kb{display:flex;gap:3px;flex-wrap:wrap}
+  .kb .key{width:30px;height:78px;border-radius:0 0 6px 6px;background:linear-gradient(#f4f7fb,#cfd7e2);
+    border:1px solid #2a3344;cursor:pointer;color:#1a2230;font-size:9px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px}
+  .kb .key.bk{background:linear-gradient(#2b3340,#10151d);color:#9fb0c8;height:50px;width:22px;margin:0 -12px;z-index:2}
+  .kb .key.dn{background:var(--ac);color:#06080c}
+  </style></head><body>
+  <div class="top"><b>Mammoth Fuzz</b><span class="sub">live test bench — turn the knobs, play audio</span></div>
+  <iframe id="gui"></iframe>
+  <div class="bar">
+    <div class="row"><button id="go" class="off">▶ Start audio</button><span class="st" id="st">click Start (browsers need a gesture to begin audio)</span></div>
+    <div class="row"><label>Source
+         <select id="src"><option value="riff">Musical riff</option><option value="mic">Microphone</option><option value="file">Audio file…</option></select></label>
+         <input type="file" id="file" accept="audio/*" style="display:none"></div>
+  </div>
+  <script>
+  var WB="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", IS_SYNTH=false;
+  document.getElementById('gui').srcdoc="<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>\n  :root{--ac:#ff7a3c;--ac2:#ffb454}\n  *{box-sizing:border-box}\n  body{margin:0;min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#e7eef6;\n    background:radial-gradient(120% 90% at 50% -10%,#1b2230 0%,#0a0d13 60%,#06080c 100%);\n    display:flex;align-items:center;justify-content:center;padding:22px;overflow:hidden}\n  .panel{position:relative;width:100%;max-width:560px;border-radius:20px;padding:22px 24px 18px;\n    background:linear-gradient(160deg,rgba(31,38,52,.86),rgba(13,17,24,.92));\n    border:1px solid rgba(255,255,255,.08);\n    box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06)}\n  .panel::before{content:\"\";position:absolute;inset:-40%;z-index:0;pointer-events:none;\n    background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 22%,transparent),transparent);\n    filter:blur(20px);animation:drift 9s ease-in-out infinite alternate}\n  @keyframes drift{from{transform:translate(-12%,-8%)}to{transform:translate(12%,8%)}}\n  .hd{position:relative;z-index:1;display:flex;align-items:baseline;gap:10px;margin-bottom:4px}\n  h1{font-size:18px;margin:0;letter-spacing:.06em;font-weight:700;\n    background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}\n  .badge{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8da0bd;\n    border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:2px 8px}\n  .grid{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:14px 10px;justify-content:center;margin:16px 0 6px}\n  .knob{width:96px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:ns-resize;user-select:none;touch-action:none}\n  .dial{--n:0;position:relative;width:84px;height:84px;border-radius:50%;\n    background:conic-gradient(from 225deg,var(--ac) calc(var(--n)*270deg),rgba(255,255,255,.09) calc(var(--n)*270deg) 270deg,transparent 270deg);\n    filter:drop-shadow(0 0 7px color-mix(in srgb,var(--ac) 55%,transparent))}\n  .cap{position:absolute;top:11px;left:11px;width:62px;height:62px;border-radius:50%;\n    background:radial-gradient(circle at 50% 32%,#2c3546,#0f131b 72%);\n    box-shadow:inset 0 2px 7px rgba(0,0,0,.65),inset 0 -1px 0 rgba(255,255,255,.05)}\n  .ptr{position:absolute;top:7px;left:50%;width:3px;height:26px;margin-left:-1.5px;border-radius:2px;\n    background:var(--ac);box-shadow:0 0 7px var(--ac);transform-origin:50% 35px;\n    transform:rotate(calc((var(--n) - 0.5) * 270deg))}\n  .nm{font-size:11px;letter-spacing:.06em;color:#aeb9cc;text-transform:uppercase}\n  .val{font-size:12px;color:#fff;font-variant-numeric:tabular-nums;font-weight:600}\n  .ft{position:relative;z-index:1;font-size:11px;line-height:1.5;color:#7c8aa3;margin-top:8px;\n    border-top:1px solid rgba(255,255,255,.06);padding-top:10px}\n  <\/style><script>window.vstai={onReady:function(f){f()},setParam:function(i,v){parent.postMessage({t:\"p\",i:i,v:v},\"*\")},noteOn:function(id,f,v){parent.postMessage({t:\"on\",id:id,f:f,v:v},\"*\")},noteOff:function(id){parent.postMessage({t:\"off\",id:id},\"*\")}};<\/script><\/head><body>\n  <div class=\"panel\">\n    <div class=\"hd\"><h1>Mammoth Fuzz<\/h1><span class=\"badge\">4 controls<\/span><\/div>\n    <div class=\"grid\">\n      <div class=\"knob\" data-i=\"0\" data-min=\"0\" data-max=\"1\" data-def=\"0.7\" data-step=\"0.001\">\n        <div class=\"dial\"><span class=\"cap\"><\/span><span class=\"ptr\"><\/span><\/div>\n        <div class=\"nm\">Sustain<\/div><div class=\"val\"><\/div>\n      <\/div>\n      <div class=\"knob\" data-i=\"1\" data-min=\"0\" data-max=\"1\" data-def=\"0.5\" data-step=\"0.001\">\n        <div class=\"dial\"><span class=\"cap\"><\/span><span class=\"ptr\"><\/span><\/div>\n        <div class=\"nm\">Tone<\/div><div class=\"val\"><\/div>\n      <\/div>\n      <div class=\"knob\" data-i=\"2\" data-min=\"0\" data-max=\"1\" data-def=\"0.6\" data-step=\"0.001\">\n        <div class=\"dial\"><span class=\"cap\"><\/span><span class=\"ptr\"><\/span><\/div>\n        <div class=\"nm\">Volume<\/div><div class=\"val\"><\/div>\n      <\/div>\n      <div class=\"knob\" data-i=\"3\" data-min=\"0\" data-max=\"1\" data-def=\"1\" data-step=\"0.001\">\n        <div class=\"dial\"><span class=\"cap\"><\/span><span class=\"ptr\"><\/span><\/div>\n        <div class=\"nm\">Mix<\/div><div class=\"val\"><\/div>\n      <\/div>\n    <\/div>\n    <div class=\"ft\">A thick, sustaining fuzz. Two cascaded soft-clipping gain stages with inter-stage high-pass filtering deliver long sustain and rich harmonics, while a mid-scooped Tone control tilts the voice between dark/bassy and bright/cutting. Controls: Sustain, Tone, Volume and dry/wet Mix.<\/div>\n  <\/div>\n  <script>\n  (function(){\n    function fmt(v,step){ var d=step>=1?0:(step>=0.1?1:(step>=0.01?2:3)); return (+v).toFixed(d); }\n    function setup(k){\n      var i=+k.dataset.i, mn=+k.dataset.min, mx=+k.dataset.max, def=+k.dataset.def, step=+k.dataset.step||0.001;\n      var val=def, dial=k.querySelector('.dial'), out=k.querySelector('.val');\n      function norm(){ return (val-mn)/(mx-mn||1); }\n      function paint(){ dial.style.setProperty('--n', norm()); out.textContent=fmt(val,step);\n        if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,val); }\n      function setN(n){ n=n<0?0:(n>1?1:n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }\n      k.addEventListener('pointerdown',function(e){ k._d=1; k._y=e.clientY; k._n=norm(); k.setPointerCapture(e.pointerId); e.preventDefault(); });\n      k.addEventListener('pointermove',function(e){ if(!k._d)return; setN(k._n+(k._y-e.clientY)/220); });\n      k.addEventListener('pointerup',function(){ k._d=0; });\n      k.addEventListener('pointercancel',function(){ k._d=0; });\n      k.addEventListener('dblclick',function(){ val=def; paint(); });\n      k.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});\n      paint();\n    }\n    function ready(){ var ks=document.querySelectorAll('.knob'); for(var j=0;j<ks.length;j++) setup(ks[j]); }\n    if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();\n  })();\n  <\/script>\n  <\/body><\/html>";
+  var ctx,node,src,ex,inPtr,outPtr,parPtr,STRIDE=8192,started=false,running=false;
+  var pcache=new Float32Array(64);
+  function memF(){return new Float32Array(ex.memory.buffer);}
+  window.addEventListener('message',function(e){var d=e.data||{};
+    if(d.t==='p'){pcache[d.i]=d.v; if(ex) memF()[parPtr+d.i]=d.v;}
+    else if(d.t==='on'&&ex&&ex.noteOn) ex.noteOn(d.id,d.f,d.v);
+    else if(d.t==='off'&&ex&&ex.noteOff) ex.noteOff(d.id);});
+  function st(m){document.getElementById('st').textContent=m;}
+  function makeRiff(){
+    var sr=ctx.sampleRate, len=Math.floor(sr*3.2), b=ctx.createBuffer(2,len,sr), d=b.getChannelData(0);
+    var riff=[45,52,57,60,64,57,52,48], nl=Math.floor(sr*0.4);
+    for(var i=0;i<len;i++){var idx=Math.floor(i/nl),lt=(i-idx*nl)/sr,hz=440*Math.pow(2,(riff[idx%riff.length]-69)/12),
+      ph=2*Math.PI*hz*(i/sr),env=Math.exp(-lt*5);
+      d[i]=env*(Math.sin(ph)+0.5*Math.sin(2*ph)+0.3*Math.sin(3*ph))*0.18;}
+    b.copyToChannel(d,1); return b;
+  }
+  async function ensure(){
+    if(started)return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    var bytes=Uint8Array.from(atob(WB),function(c){return c.charCodeAt(0);});
+    var inst=await WebAssembly.instantiate(await WebAssembly.compile(bytes),{env:{abort:function(){},seed:function(){return 0;}}});
+    ex=inst.exports; ex.init(ctx.sampleRate,STRIDE,2);
+    inPtr=ex.getInputPtr()>>>2; outPtr=ex.getOutputPtr()>>>2; parPtr=ex.getParamsPtr()>>>2;
+    var m=memF(); for(var i=0;i<64;i++) m[parPtr+i]=pcache[i];
+    node=ctx.createScriptProcessor(1024,2,2);
+    node.onaudioprocess=function(e){var n=e.outputBuffer.length,m=memF(),
+      iL=e.inputBuffer.getChannelData(0),iR=e.inputBuffer.numberOfChannels>1?e.inputBuffer.getChannelData(1):e.inputBuffer.getChannelData(0);
+      for(var i=0;i<n;i++){m[inPtr+i]=iL[i];m[inPtr+STRIDE+i]=iR[i];}
+      ex.process(n);
+      var oL=e.outputBuffer.getChannelData(0),oR=e.outputBuffer.getChannelData(1);
+      for(var i=0;i<n;i++){oL[i]=m[outPtr+i];oR[i]=m[outPtr+STRIDE+i];}};
+    node.connect(ctx.destination); started=true;
+  }
+  function disconnectSrc(){ if(src){try{src.disconnect();}catch(e){}; src=null;} }
+  function setSource(kind){
+    disconnectSrc();
+    if(kind==='riff'){ src=ctx.createBufferSource(); src.buffer=makeRiff(); src.loop=true; src.connect(node); src.start(); st('playing musical riff through the plugin'); }
+    else if(kind==='mic'){ navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){ src=ctx.createMediaStreamSource(s); src.connect(node); st('microphone → plugin'); }).catch(function(){ st('mic blocked'); }); }
+  }
+  document.getElementById('go').addEventListener('click',async function(){
+    await ensure();
+    if(ctx.state==='suspended') await ctx.resume();
+    if(!running){ running=true; this.textContent='⏸ Stop'; this.className='';
+      if(!IS_SYNTH){ setSource(document.getElementById('src').value); } else { st('press the keys (or computer keys A–K) to play'); }
+    } else { running=false; this.textContent='▶ Start audio'; this.className='off'; disconnectSrc(); st('stopped'); }
+  });
+  
+  document.getElementById('src').addEventListener('change',function(){
+    var v=this.value, fi=document.getElementById('file'); fi.style.display=v==='file'?'inline-block':'none';
+    if(running&&v!=='file') setSource(v);
+  });
+  document.getElementById('file').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f)return; ensure().then(function(){ f.arrayBuffer().then(function(ab){ ctx.decodeAudioData(ab,function(buf){
+      disconnectSrc(); src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; src.connect(node); if(ctx.state==='suspended')ctx.resume(); src.start(); st('looping '+f.name+' through the plugin'); }); }); });
+  });
+  
+  </script></body></html>

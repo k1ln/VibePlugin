@@ -250,9 +250,10 @@ namespace vstai::appsettings
     inline juce::String licenseEmail()        { return file().getValue ("licenseEmail"); }
     inline juce::String licenseActivationId() { return file().getValue ("licenseActivationId"); }
 
-    // Licensed == we hold a key that the server confirmed at least once. Network
-    // failures never flip this off (fail-open); only an explicit server "invalid".
-    inline bool isLicensed() { return file().getBoolValue ("licensed", false) && licenseKey().isNotEmpty(); }
+    // The lifetime license is always included — every install counts as licensed, so
+    // the (joking) shareware nag never shows and nothing is gated. Kept as a function
+    // so the license UI/state still resolve cleanly.
+    inline bool isLicensed() { return true; }
 
     inline void setLicense (const juce::String& key, const juce::String& email,
                             const juce::String& activationId)

@@ -1,0 +1,15 @@
+{
+  "name": "Emerald Overdrive",
+  "isInstrument": false,
+  "explanation": "Smooth, mid-focused tube-style overdrive. A band-limited gain stage feeds a symmetric soft-clipper (op-amp + anti-parallel diode model); the low end is cleaned before clipping for the signature mid-hump, then a post tone low-pass and output level shape the result. Controls: Drive, Tone, Level and dry/wet Mix.",
+  "assembly": "factory/plugins/emerald-overdrive/assembly.ts",
+  "out": "factory/plugins/emerald-overdrive/x.vstai",
+  "publishedAt": 1751000003000,
+  "theme": { "accent": "#3fd07a", "accent2": "#9ae66e" },
+  "params": [
+    { "name": "Drive", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tone",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",   "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Velvet EQ",
+  "isInstrument": false,
+  "explanation": "A passive program equalizer with a vintage tube-EQ character. The low band can boost and attenuate at once — the cut sits just above the boost to carve the famous resonant low end — while the high band adds a broad presence/air peak with a selectable centre plus an independent gentle high-shelf attenuation. Controls: Low Freq, Low Boost, Low Atten, High Boost Freq, High Boost and High Atten.",
+  "assembly": "factory/plugins/velvet-eq/assembly.ts",
+  "out": "factory/plugins/velvet-eq/x.vstai",
+  "publishedAt": 1751000006000,
+  "theme": { "accent": "#f0a0ff", "accent2": "#c08cff" },
+  "params": [
+    { "name": "Low Freq",        "index": 0, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Low Boost",       "index": 1, "min": 0, "max": 1, "default": 0 },
+    { "name": "Low Atten",       "index": 2, "min": 0, "max": 1, "default": 0 },
+    { "name": "High Boost Freq", "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "High Boost",      "index": 4, "min": 0, "max": 1, "default": 0 },
+    { "name": "High Atten",      "index": 5, "min": 0, "max": 1, "default": 0 }
+  ]
+}

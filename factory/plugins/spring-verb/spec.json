@@ -1,0 +1,15 @@
+{
+  "name": "Spring Verb",
+  "isInstrument": false,
+  "explanation": "An original model of a vintage spring-tank reverb. A long cascade of dispersive all-pass delays smears transients into the characteristic chirpy, twangy 'boing', wrapped in a damped feedback loop with two short comb reflections for body. Controls: Decay, Tension (dispersion/brightness), Drip (chirp amount) and dry/wet Mix.",
+  "assembly": "factory/plugins/spring-verb/assembly.ts",
+  "out": "factory/plugins/spring-verb/x.vstai",
+  "publishedAt": 1751000014000,
+  "theme": { "accent": "#4dd2a6", "accent2": "#7ee8c0" },
+  "params": [
+    { "name": "Decay",   "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Tension", "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Drip",    "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",     "index": 3, "min": 0, "max": 1, "default": 0.35 }
+  ]
+}

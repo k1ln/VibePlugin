@@ -1,0 +1,16 @@
+{
+  "name": "FET Squeeze",
+  "isInstrument": false,
+  "explanation": "A fast FET-style peak compressor. A very fast peak detector feeds a dB-domain gain computer with a selectable ratio (about 2:1 to 20:1) and a soft knee, plus a program-dependent release for punchy, glued dynamics. Controls: Input (how hard it hits the detector), Attack, Release, Ratio and Output makeup gain.",
+  "assembly": "factory/plugins/fet-squeeze/assembly.ts",
+  "out": "factory/plugins/fet-squeeze/x.vstai",
+  "publishedAt": 1751000004000,
+  "theme": { "accent": "#ff5a6e", "accent2": "#ff9a6a" },
+  "params": [
+    { "name": "Input",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Attack",  "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Release", "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Ratio",   "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output",  "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

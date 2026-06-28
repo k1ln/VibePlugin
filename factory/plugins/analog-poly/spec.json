@@ -1,0 +1,19 @@
+{
+  "name": "Analog Poly",
+  "isInstrument": true,
+  "explanation": "A warm polyphonic analog-style synthesizer with up to eight independent voices. Each voice runs two detuned oscillators (a band-limited saw and pulse) into a resonant 4-pole low-pass shaped by its own filter envelope, then an amplitude ADSR; chords ring with independent contours. Controls: Detune, Cutoff, Resonance, Filter Env Amount and a full ADSR.",
+  "assembly": "factory/plugins/analog-poly/assembly.ts",
+  "out": "factory/plugins/analog-poly/x.vstai",
+  "publishedAt": 1751000018000,
+  "theme": { "accent": "#ff7ad1", "accent2": "#b08cff" },
+  "params": [
+    { "name": "Detune",        "index": 0, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Cutoff",        "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance",     "index": 2, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "FilterEnvAmt",  "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Attack",        "index": 4, "min": 0, "max": 1, "default": 0.02 },
+    { "name": "Decay",         "index": 5, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Sustain",       "index": 6, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Release",       "index": 7, "min": 0, "max": 1, "default": 0.3 }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Punch Comp",
+  "isInstrument": false,
+  "explanation": "A punchy VCA-style dynamics compressor. A stereo-linked RMS+peak detector feeds a dB-domain gain computer with Threshold, Ratio and an over-easy soft knee; Attack and Release shape the gain-reduction envelope and a makeup Gain restores level. It tames loud transients while leaving quiet passages untouched for a clean, controlled, punchy sound.",
+  "assembly": "factory/plugins/punch-comp/assembly.ts",
+  "out": "factory/plugins/punch-comp/x.vstai",
+  "publishedAt": 1751000036000,
+  "theme": { "accent": "#ff6b6b", "accent2": "#ff9a9a" },
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Ratio",     "index": 1, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Attack",    "index": 2, "min": 0, "max": 1, "default": 0.20 },
+    { "name": "Release",   "index": 3, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Gain",      "index": 4, "min": 0, "max": 1, "default": 0.32 }
+  ]
+}

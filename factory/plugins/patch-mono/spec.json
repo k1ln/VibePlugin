@@ -1,0 +1,19 @@
+{
+  "name": "Patch Mono",
+  "isInstrument": true,
+  "explanation": "An original semi-modular monophonic synth voice: two slightly detuned oscillators (saw plus a triangle-flavoured pulse, with a ring-mod blend in the middle) feed an aggressive two-stage resonant filter — a state-variable high-pass into a Sallen-Key-style low-pass that can self-oscillate and scream. An ADSR drives the amplitude and (by EnvAmount) the low-pass cutoff, with a touch of pre-filter drive. Last-note priority.",
+  "assembly": "factory/plugins/patch-mono/assembly.ts",
+  "out": "factory/plugins/patch-mono/x.vstai",
+  "publishedAt": 1751000026000,
+  "theme": { "accent": "#ffd23f", "accent2": "#ffe066" },
+  "params": [
+    { "name": "OscMix",    "index": 0, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Detune",    "index": 1, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "LP Cutoff", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "HP Cutoff", "index": 3, "min": 0, "max": 1, "default": 0.05 },
+    { "name": "Resonance", "index": 4, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "EnvAmount", "index": 5, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Attack",    "index": 6, "min": 0, "max": 1, "default": 0.04 },
+    { "name": "Release",   "index": 7, "min": 0, "max": 1, "default": 0.35 }
+  ]
+}

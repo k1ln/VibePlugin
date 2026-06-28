@@ -1,0 +1,19 @@
+{
+  "name": "Pulse Drums",
+  "isInstrument": true,
+  "explanation": "A hybrid analog + sample drum machine. The body voices (kick, snare, tom) are fully synthesized analog-style, while the metallic voices (closed hat, open hat and crash) are real one-shot recordings baked in from public-domain / CC0 samples and decoded at startup. Each incoming note triggers a voice, and the controls shape tuning, the body decays, snare snap, hat and cymbal decay, brightness, accent and the kick click.",
+  "assembly": "factory/plugins/pulse-drums/assembly.ts",
+  "out": "factory/plugins/pulse-drums/x.vstai",
+  "publishedAt": 1751000031000,
+  "theme": { "accent": "#ff5470", "accent2": "#ff8090" },
+  "params": [
+    { "name": "Tune",         "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Kick Decay",   "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Snare Snap",   "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Hat Decay",    "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Cymbal Decay", "index": 4, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Tone",         "index": 5, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Accent",       "index": 6, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Click",        "index": 7, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Acid Bass",
+  "isInstrument": true,
+  "explanation": "A monophonic squelch-bass synth: one saw<->square morphing oscillator feeding a 4-pole resonant low-pass with a fast-decaying filter envelope for the classic acid sweep. Accent boosts the filter envelope and level on hard hits, Glide slides pitch between notes (last-note priority), and high Resonance pushes toward self-oscillation while staying bounded.",
+  "assembly": "factory/plugins/acid-bass/assembly.ts",
+  "out": "factory/plugins/acid-bass/x.vstai",
+  "publishedAt": 1751000017000,
+  "theme": { "accent": "#c6ff3d", "accent2": "#9ae66e" },
+  "params": [
+    { "name": "Waveform",  "index": 0, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Cutoff",    "index": 1, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Resonance", "index": 2, "min": 0, "max": 1, "default": 0.78 },
+    { "name": "Env Mod",   "index": 3, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Decay",     "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Accent",    "index": 5, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Glide",     "index": 6, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Level",     "index": 7, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

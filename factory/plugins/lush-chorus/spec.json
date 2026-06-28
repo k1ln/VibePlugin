@@ -1,0 +1,16 @@
+{
+  "name": "Lush Chorus",
+  "isInstrument": false,
+  "explanation": "A lush bucket-brigade-style stereo chorus. Short modulated delay lines are read with interpolation and driven by two LFOs in quadrature for a wide image; an Intensity control sweeps from a subtle shimmer to a deep, fast ensemble by scaling rate and depth together, while a dark wet-path low-pass mimics the soft tone of an analogue delay line. Controls: Rate, Depth, Intensity, Mix and Width.",
+  "assembly": "factory/plugins/lush-chorus/assembly.ts",
+  "out": "factory/plugins/lush-chorus/x.vstai",
+  "publishedAt": 1751000011000,
+  "theme": { "accent": "#6ad0ff", "accent2": "#7a8cff" },
+  "params": [
+    { "name": "Rate",      "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Depth",     "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Intensity", "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Mix",       "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Width",     "index": 4, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

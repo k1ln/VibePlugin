@@ -100,20 +100,15 @@ are free.
 > are currently **hidden from the dropdown** (Anthropic-only for now). Re-enable them
 > in `modelCatalog` ([`src/WebEditor.cpp`](src/WebEditor.cpp)) to restore them.
 
-## Shareware & lifetime license
+## Free & fully featured
 
-VibePlugin is **shareware**: every feature works unlicensed, but a friendly (joking)
-warning greets you on open until you buy a one-time **lifetime license**. Click
-**License…**, enter the email you bought with and your `VSTAI-…` key, and
-**Activate** — the warning disappears. A license works on up to **5 machines**;
-activating a 6th automatically releases the oldest. Keys are delivered by email
-on purchase (Lemon Squeezy → Scaleway email). The license only removes the nag;
-it gates no functionality. The license/credits server is **not part of this
-repository** — it lives in a separate private repo (`VibePlugin-server`,
-TypeScript + Fastify + Postgres). Point the plugin at your own deployment with
-`VSTAI_LICENSE_URL` / `VSTAI_CONFIG_LICENSE_URL` and set `VSTAI_CHECKOUT_URL` to
-your checkout link. The plugin is fully usable without it — bring your own API
-key or use the manual chatbot path.
+VibePlugin is free and unrestricted — **the lifetime license is included for
+everyone**, so there's no nag and nothing to buy. Every feature works out of the box:
+bring your own API key, use the manual chatbot path, or buy **cloud credits** if you
+want zero-setup generation with no key. The optional credits **server** lives in a
+separate private repo (`VibePlugin-server`, TypeScript + Fastify + Postgres) and powers
+only that cloud-credits tier — nothing here depends on it, and the plugin is fully
+usable (and offline once a plugin is generated) without it.
 
 ## Effect vs. instrument
 

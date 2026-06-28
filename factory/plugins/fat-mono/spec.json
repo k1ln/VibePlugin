@@ -1,0 +1,19 @@
+{
+  "name": "Fat Mono",
+  "isInstrument": true,
+  "explanation": "A fat monophonic analog-style synthesizer: three detuned oscillators (two saws + a pulse) summed thick and driven through a 4-pole resonant transistor-ladder low-pass with tanh saturation in the feedback loop. A dedicated filter envelope sweeps the cutoff on every note, with a separate amplitude envelope plus portamento glide for expressive, last-note-priority lead and bass tones.",
+  "assembly": "factory/plugins/fat-mono/assembly.ts",
+  "out": "factory/plugins/fat-mono/x.vstai",
+  "publishedAt": 1751000016000,
+  "theme": { "accent": "#ff8c42", "accent2": "#ffb454" },
+  "params": [
+    { "name": "Detune",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Cutoff",       "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance",    "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "FilterEnvAmt", "index": 3, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Attack",       "index": 4, "min": 0, "max": 1, "default": 0.08 },
+    { "name": "Release",      "index": 5, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Glide",        "index": 6, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Level",        "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

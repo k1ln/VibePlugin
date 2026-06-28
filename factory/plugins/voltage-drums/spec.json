@@ -1,0 +1,18 @@
+{
+  "name": "Voltage Drums",
+  "isInstrument": true,
+  "explanation": "A fully-synthesized analog drum machine. Seven one-shot voices are generated purely by oscillators and filtered noise — kick (pitch-swept sine with a click), snare (tuned sines plus band-passed noise), closed and open hats (a metallic square-oscillator cluster through a high band-pass), clap, tom and cowbell. Each incoming note triggers a voice, and the controls shape tuning, decays, snap, tone and accent.",
+  "assembly": "factory/plugins/voltage-drums/assembly.ts",
+  "out": "factory/plugins/voltage-drums/x.vstai",
+  "publishedAt": 1751000027000,
+  "theme": { "accent": "#ff5a3c", "accent2": "#ff8a5a" },
+  "params": [
+    { "name": "Tune",       "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Kick Decay",  "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Snare Snap",  "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Hat Decay",   "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Tone",        "index": 4, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Accent",      "index": 5, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Kick Tone",   "index": 6, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

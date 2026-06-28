@@ -1,0 +1,16 @@
+{
+  "name": "Jet Flanger",
+  "isInstrument": false,
+  "explanation": "A modulated short-delay flanger: a swept fractional delay (about 0.2 to 10 ms) is read with linear interpolation and summed with the dry signal to form a moving comb filter. A bipolar Regen (feedback) control deepens the resonant notches, with negative settings giving the hollow, metallic through-zero-style jet sweep. Controls: Rate, Depth, Regen, Manual base delay and dry/wet Mix.",
+  "assembly": "factory/plugins/jet-flanger/assembly.ts",
+  "out": "factory/plugins/jet-flanger/x.vstai",
+  "publishedAt": 1751000022000,
+  "theme": { "accent": "#40b8d0", "accent2": "#7ad0e8" },
+  "params": [
+    { "name": "Rate",   "index": 0, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Depth",  "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Regen",  "index": 2, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Manual", "index": 3, "min": 0, "max": 1, "default": 0.2 },
+    { "name": "Mix",    "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

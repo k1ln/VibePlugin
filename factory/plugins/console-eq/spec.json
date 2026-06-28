@@ -1,0 +1,16 @@
+{
+  "name": "Console EQ",
+  "isInstrument": false,
+  "explanation": "A class-A console channel equaliser: a musical low shelf, a sweepable mid bell with proportional-Q that narrows as you push it, and a high shelf with air. The full strip runs through gentle transformer-style saturation for analog weight. Controls: Low Gain, Mid Freq, Mid Gain, High Gain and Drive.",
+  "assembly": "factory/plugins/console-eq/assembly.ts",
+  "out": "factory/plugins/console-eq/x.vstai",
+  "publishedAt": 1751000037000,
+  "theme": { "accent": "#ffd166", "accent2": "#ffe08a" },
+  "params": [
+    { "name": "Low Gain",  "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mid Freq",  "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mid Gain",  "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "High Gain", "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Drive",     "index": 4, "min": 0, "max": 1, "default": 0.25 }
+  ]
+}

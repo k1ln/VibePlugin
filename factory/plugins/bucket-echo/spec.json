@@ -1,0 +1,16 @@
+{
+  "name": "Bucket Echo",
+  "isInstrument": false,
+  "explanation": "A warm analog bucket-brigade-style delay. A modulated, interpolated delay line feeds a bounded feedback path whose repeats grow progressively darker through an in-loop low-pass, while a slow wow/flutter LFO adds vintage pitch wander. Controls: Time, Feedback, Tone, Modulation and dry/wet Mix.",
+  "assembly": "factory/plugins/bucket-echo/assembly.ts",
+  "out": "factory/plugins/bucket-echo/x.vstai",
+  "publishedAt": 1751000012000,
+  "theme": { "accent": "#ffa94d", "accent2": "#ffd166" },
+  "params": [
+    { "name": "Time",       "index": 0, "min": 0, "max": 1, "default": 0.22 },
+    { "name": "Feedback",   "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Tone",       "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Modulation", "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",        "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

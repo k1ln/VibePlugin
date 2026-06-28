@@ -1,0 +1,15 @@
+{
+  "name": "Germanium Fuzz",
+  "isInstrument": false,
+  "explanation": "A vintage two-transistor germanium fuzz: an AC-coupled, very high-gain stage feeds an asymmetric clipper (soft knee into a hard ceiling) that mimics a cascaded transistor pair. The Bias control shifts the operating point and, turned down, starves the circuit for gated, spitty fuzz; Tone tilts dark-to-bright and Volume sets the output. Controls: Fuzz, Bias, Tone, Volume.",
+  "assembly": "factory/plugins/germanium-fuzz/assembly.ts",
+  "out": "factory/plugins/germanium-fuzz/x.vstai",
+  "publishedAt": 1751000023000,
+  "theme": { "accent": "#d98b4a", "accent2": "#e8a860" },
+  "params": [
+    { "name": "Fuzz",   "index": 0, "min": 0, "max": 1, "default": 0.75 },
+    { "name": "Bias",   "index": 1, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Tone",   "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Volume", "index": 3, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Reel Saturator",
+  "isInstrument": false,
+  "explanation": "A tape-style saturation and warmth processor. Drive feeds a tanh soft-saturation (oversampled to tame aliasing) that adds even and odd harmonics with gentle program-dependent compression; Warmth rolls off the highs, Bump adds a resonant low head-bump, and a very subtle wow modulation gives tape motion. Controls: Drive, Warmth, Bump, Mix and Output.",
+  "assembly": "factory/plugins/reel-saturator/assembly.ts",
+  "out": "factory/plugins/reel-saturator/x.vstai",
+  "publishedAt": 1751000025000,
+  "theme": { "accent": "#e0b070", "accent2": "#f0d0a0" },
+  "params": [
+    { "name": "Drive",  "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Warmth", "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Bump",   "index": 2, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",    "index": 3, "min": 0, "max": 1, "default": 1 },
+    { "name": "Output", "index": 4, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

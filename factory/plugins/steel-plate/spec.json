@@ -1,0 +1,16 @@
+{
+  "name": "Steel Plate",
+  "isInstrument": false,
+  "explanation": "A bright, dense algorithmic plate reverb built from a figure-8 tank: cascaded input-diffusion all-passes feed two cross-coupled, HF-damped delay loops tapped at several internal points for a smooth, fast-building stereo tail. Controls: Mix, Decay, Damping, Pre-Delay and Modulation.",
+  "assembly": "factory/plugins/steel-plate/assembly.ts",
+  "out": "factory/plugins/steel-plate/x.vstai",
+  "publishedAt": 1751000015000,
+  "theme": { "accent": "#9fb3c8", "accent2": "#cfe0f0" },
+  "params": [
+    { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Decay",     "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Damping",   "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Pre-Delay", "index": 3, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Modulation","index": 4, "min": 0, "max": 1, "default": 0.3 }
+  ]
+}

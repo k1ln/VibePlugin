@@ -1,0 +1,15 @@
+{
+  "name": "Grit Distortion",
+  "isInstrument": false,
+  "explanation": "Hard-edged, high-gain diode distortion. A high-gain input stage drives an asymmetric hard/diode clipper for an aggressive, cutting character; the signature Filter control is a reversed tone low-pass that gets DARKER as you turn it up. Controls: Distortion, Filter, Volume and dry/wet Mix.",
+  "assembly": "factory/plugins/grit-distortion/assembly.ts",
+  "out": "factory/plugins/grit-distortion/x.vstai",
+  "publishedAt": 1751000008000,
+  "theme": { "accent": "#c0c8d0", "accent2": "#9aa6b4" },
+  "params": [
+    { "name": "Distortion", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Filter",     "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Volume",     "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",        "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

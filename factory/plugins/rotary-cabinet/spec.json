@@ -1,0 +1,16 @@
+{
+  "name": "Rotary Cabinet",
+  "isInstrument": false,
+  "explanation": "A twin-rotor rotating-speaker simulator. The signal is split into a low (woofer) and high (horn) band and each is spun through its own virtual driver, producing amplitude tremolo plus a short Doppler pitch vibrato; horn and drum turn at different rates and a Speed control morphs slow chorale to fast tremolo with inertia, so the rotors ramp rather than jump. Two virtual mics build the swirling stereo image.",
+  "assembly": "factory/plugins/rotary-cabinet/assembly.ts",
+  "out": "factory/plugins/rotary-cabinet/x.vstai",
+  "publishedAt": 1751000013000,
+  "theme": { "accent": "#8d7bff", "accent2": "#b08cff" },
+  "params": [
+    { "name": "Speed",   "index": 0, "min": 0, "max": 1, "default": 0.85 },
+    { "name": "Inertia", "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Depth",   "index": 2, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Mix",     "index": 3, "min": 0, "max": 1, "default": 1 },
+    { "name": "Width",   "index": 4, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

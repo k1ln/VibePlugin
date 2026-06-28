@@ -1,0 +1,19 @@
+{
+  "name": "Classic Beats",
+  "isInstrument": true,
+  "explanation": "A four-voice sample-based drum machine in the spirit of the early-'80s sampled rhythm boxes. Real kick, snare, closed hi-hat and clap one-shots — all CC0 / public-domain recordings — are baked into the plugin and triggered polyphonically, with each incoming MIDI note mapped to a voice (note number modulo four) so every key plays a hit. Per-voice levels plus Tone, Decay and Drive shape the groove.",
+  "assembly": "factory/plugins/classic-beats/assembly.ts",
+  "out": "factory/plugins/classic-beats/x.vstai",
+  "publishedAt": 1751000030000,
+  "theme": { "accent": "#54b0ff", "accent2": "#80c8ff" },
+  "params": [
+    { "name": "Level", "index": 0, "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Kick",  "index": 1, "min": 0, "max": 1, "default": 0.9 },
+    { "name": "Snare", "index": 2, "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Hat",   "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Clap",  "index": 4, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Tone",  "index": 5, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Decay", "index": 6, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Drive", "index": 7, "min": 0, "max": 1, "default": 0.2 }
+  ]
+}

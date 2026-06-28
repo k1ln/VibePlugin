@@ -1,0 +1,15 @@
+{
+  "name": "Mythic Drive",
+  "isInstrument": false,
+  "explanation": "A transparent, low-end-preserving overdrive. A clean boosted core is summed with a treble-voiced, soft-clipped gain path that is high-passed before clipping so the bass stays full and clear; an active Treble/Tone control keeps the drive bright and present. Controls: Gain, Treble, Output and clean/driven Mix.",
+  "assembly": "factory/plugins/mythic-drive/assembly.ts",
+  "out": "factory/plugins/mythic-drive/x.vstai",
+  "publishedAt": 1751000038000,
+  "theme": { "accent": "#e0b24a", "accent2": "#f0d080" },
+  "params": [
+    { "name": "Gain",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Treble", "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output", "index": 2, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Mix",    "index": 3, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}
