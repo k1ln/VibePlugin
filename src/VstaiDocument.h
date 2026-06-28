@@ -57,6 +57,11 @@ public:
     juce::String              lastExplanation;
     bool                      isInstrument = false; // effect vs synth
 
+    // Whitelabel/share lock: when true the plugin opens straight into the product
+    // GUI with no authoring chrome and no way back (see LockedEditor). Set when a
+    // creation is exported as a standalone plugin; rides through state + .vstai.
+    bool                      locked = false;
+
     // Generation settings (persisted so a reopened project keeps your choice).
     juce::String              provider = "anthropic";       // anthropic | glm | ollama | cloud
     juce::String              model  = "claude-opus-4-8";   // claude-* / glm-* / an Ollama model

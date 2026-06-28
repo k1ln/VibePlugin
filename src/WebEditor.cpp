@@ -2,6 +2,7 @@
 #include "WebEditor.h"
 #include "DevLog.h"
 #include "BridgeProtocol.h"
+#include "BridgeShim.h"
 #include "AppSettings.h"
 #include "WebAssets.h"
 #include "Prompt.h"
@@ -16,124 +17,11 @@ using Completion = juce::WebBrowserComponent::NativeFunctionCompletion;
 
 namespace
 {
-    // ---- the param/note bridge injected into the /preview iframe -------------
-    // (same shim the legacy editor uses; keep them byte-identical so generated
-    // GUIs behave the same in both editors).
-    const char* kCharsetMeta =
-        R"HTML(<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">)HTML";
-
-    const char* kBridgeShim = R"JS(<script>
-(function(){
-  var vals = {};
-  function send(path){
-    try { fetch(path + '?_=' + Date.now() + '_' + Math.random(), { cache: 'no-store' }); } catch(e){}
-  }
-  var paramCbs = [];
-  var held = {};   // note numbers currently sounding from the on-screen GUI
-  // base64url-encode a byte chunk (no '+' '/' '=' so it is safe in a URL path).
-  function b64url(u8){
-    var s = '';
-    for (var i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
-    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-  // Decode an audio file (File/Blob) to f32 PCM and stream it to the host's WASM
-  // sample buffer. Returns a Promise resolving { frames, channels, sampleRate }.
-  async function loadSample(file, onProgress){
-    if (!file) throw new Error('No file given.');
-    var bytes = await file.arrayBuffer();
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) throw new Error('No AudioContext to decode audio.');
-    var ac = new AC();
-    var audio = await ac.decodeAudioData(bytes);
-    try { ac.close(); } catch(e){}
-    var channels = Math.min(2, audio.numberOfChannels);
-    var frames = audio.length;
-    var rate = Math.round(audio.sampleRate);
-    // begin -> host replies with the module's per-channel capacity; clamp to it.
-    var capResp = await fetch('/__vstai/sample/begin/' + channels + '/' + frames + '/' + rate + '?_=' + Date.now(), { cache: 'no-store' });
-    var cap = parseInt(await capResp.text(), 10) || 0;
-    if (cap <= 0) throw new Error('This plugin has no sample buffer.');
-    if (frames > cap) frames = cap;
-    // Build one planar f32 byte blob: all of channel 0, then channel 1.
-    var bytesPerCh = frames * 4;
-    var blob = new Uint8Array(channels * bytesPerCh);
-    for (var c = 0; c < channels; c++){
-      var ch = audio.getChannelData(c);
-      blob.set(new Uint8Array(ch.buffer, ch.byteOffset, frames * 4), c * bytesPerCh);
-    }
-    // Ship in chunks, awaited so they arrive (and are appended) in order.
-    var CHUNK = 32768;
-    for (var off = 0; off < blob.length; off += CHUNK){
-      var part = blob.subarray(off, Math.min(off + CHUNK, blob.length));
-      await fetch('/__vstai/sample/data/' + b64url(part) + '?_=' + Date.now(), { cache: 'no-store' });
-      if (onProgress) { try { onProgress(Math.min(1, (off + CHUNK) / blob.length)); } catch(e){} }
-    }
-    var endTxt = await (await fetch('/__vstai/sample/end?_=' + Date.now(), { cache: 'no-store' })).text();
-    if (endTxt.indexOf('ERR:') === 0) throw new Error(endTxt.substring(4));
-    return { frames: frames, channels: channels, sampleRate: rate };
-  }
-  window.vstai = {
-    setParam: function(i, v){ vals[i] = +v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v)); },
-    getParam: function(i){ return (i in vals) ? vals[i] : 0; },
-    onReady: function(cb){ try { cb(); } catch(e){} },
-    // Register cb(index, value) to be called when a param changes from OUTSIDE the
-    // GUI (host automation, another controller). Controls use this to follow along.
-    onParam: function(cb){ if (typeof cb === 'function') paramCbs.push(cb); },
-    noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
-    noteOff: function(n){ n = n|0; delete held[n]; send('/__vstai/note/' + n + '/0/0'); },
-    loadSample: function(file, onProgress){ return loadSample(file, onProgress); }
-  };
-  // Safety net for stuck notes: some WebViews (notably WKWebView) don't reliably
-  // deliver pointerup/pointerleave to the element that captured the pointer, so an
-  // on-screen key's noteOff can be missed and the note hangs. Whenever a press
-  // ends ANYWHERE — or focus is lost — flush note-off for everything still held.
-  function allNotesOff(){
-    for (var k in held) send('/__vstai/note/' + (k|0) + '/0/0');
-    held = {};
-  }
-  var off = function(){ if (Object.keys(held).length) allNotesOff(); };
-  window.addEventListener('pointerup',   off, true);
-  window.addEventListener('mouseup',     off, true);
-  window.addEventListener('pointercancel', off, true);
-  window.addEventListener('blur',        allNotesOff);
-  document.addEventListener('visibilitychange', function(){ if (document.hidden) allNotesOff(); });
-  // The host pushes param updates via the editor shell, which postMessages them in.
-  window.addEventListener('message', function(e){
-    var d = e.data;
-    if (!d || d.type !== 'vstai:params' || !d.values) return;
-    for (var k in d.values){ var idx = +k, val = +d.values[k]; vals[idx] = val;
-      for (var j = 0; j < paramCbs.length; j++){ try { paramCbs[j](idx, val); } catch(_){} } }
-  });
-})();
-</script>)JS";
-
-    std::vector<std::byte> toBytes (const juce::String& s)
-    {
-        auto utf8 = s.toRawUTF8();
-        auto len  = s.getNumBytesAsUTF8();
-        std::vector<std::byte> out (len);
-        std::memcpy (out.data(), utf8, len);
-        return out;
-    }
-
-    std::vector<std::byte> toBytes (const juce::MemoryBlock& m)
-    {
-        std::vector<std::byte> out (m.getSize());
-        std::memcpy (out.data(), m.getData(), m.getSize());
-        return out;
-    }
-
-    juce::String withBridge (const juce::String& html)
-    {
-        const juce::String inject = juce::String (kCharsetMeta) + kBridgeShim;
-        int head = html.indexOfIgnoreCase ("<head>");
-        if (head >= 0)
-            return html.substring (0, head + 6) + inject + html.substring (head + 6);
-        int body = html.indexOfIgnoreCase ("<body>");
-        if (body >= 0)
-            return html.substring (0, body + 6) + inject + html.substring (body + 6);
-        return inject + html;
-    }
+    // The GUI bridge shim + withBridge + toBytes now live in BridgeShim.h so the
+    // locked product editor (LockedEditor) injects byte-identical JS. Bring the two
+    // we use here into scope so the rest of this file reads unchanged.
+    using vstai::shim::toBytes;
+    using vstai::shim::withBridge;
 
     // {ok, message} result object returned to a JS promise.
     var result (bool ok, const juce::String& message)
@@ -430,6 +318,51 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                     complete (result (ok, ok ? ("Loaded " + file.getFileName()) : ("Load failed: " + err)));
                 });
         })
+        // ---- export as a standalone, locked whitelabel plugin ----------
+        .withNativeFunction ("exportPlugin", [safe] (const VarArray&, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            if (! safe->processor.getDocument().hasPlugin())
+            {
+                complete (result (false, "Generate a plugin first, then export it."));
+                return;
+            }
+            const auto suggested = safe->processor.getDocument().name;
+            safe->chooser = std::make_unique<juce::FileChooser> (
+                "Export as a standalone, locked plugin (.vst3)",
+                juce::File::getSpecialLocation (juce::File::userDesktopDirectory)
+                    .getChildFile ((suggested.isNotEmpty() && suggested != "Untitled" ? suggested
+                                                                                      : juce::String ("My Plugin")) + ".vst3"),
+                "*.vst3");
+            safe->chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+                [safe, complete] (const juce::FileChooser& fc)
+                {
+                    auto file = fc.getResult();
+                    if (file == juce::File() || safe == nullptr) { complete (result (false, "Cancelled.")); return; }
+                    if (! file.getFileName().endsWithIgnoreCase (".vst3"))
+                        file = file.getSiblingFile (file.getFileName() + ".vst3");
+                    const auto productName = file.getFileNameWithoutExtension();
+
+                    // Copy + bake + re-sign shells out to ditto/codesign and can take a
+                    // few seconds — run it off the message thread. Capture the processor
+                    // (it outlives the editor) rather than dereferencing the editor there.
+                    auto* proc = &safe->processor;
+                    std::thread ([proc, safe, file, productName, complete]
+                    {
+                        // Surface each stage (copy / sign / notarize / staple) in the
+                        // status line — notarization alone can take a few minutes.
+                        auto progress = [safe] (const juce::String& s)
+                        {
+                            juce::MessageManager::callAsync ([safe, s]
+                                { if (safe != nullptr) safe->emitEvent ("stage", s); });
+                        };
+                        juce::String message;
+                        const bool ok = proc->exportToBundle (file, productName, progress, message);
+                        const juce::String msg = ok ? message : ("Export failed: " + message);
+                        juce::MessageManager::callAsync ([complete, ok, msg] { complete (result (ok, msg)); });
+                    }).detach();
+                });
+        })
         // ---- standard UI editor ----------------------------------------
         .withNativeFunction ("getStandardUi", [] (const VarArray&, Completion complete)
         {
@@ -453,9 +386,10 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         .withNativeFunction ("getSettings", [] (const VarArray&, Completion complete)
         {
             auto* o = new juce::DynamicObject();
-            o->setProperty ("anthropicKey", vstai::appsettings::rawAnthropicKey());
-            o->setProperty ("publishUrl",   vstai::appsettings::rawPublishUrl());
-            o->setProperty ("designId",     vstai::appsettings::selectedDesignId());
+            o->setProperty ("anthropicKey",  vstai::appsettings::rawAnthropicKey());
+            o->setProperty ("publishUrl",    vstai::appsettings::rawPublishUrl());
+            o->setProperty ("notaryProfile", vstai::appsettings::notaryProfile());
+            o->setProperty ("designId",      vstai::appsettings::selectedDesignId());
             o->setProperty ("designTheme",
                             vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
             complete (var (o));
@@ -465,8 +399,9 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             auto parsed = juce::JSON::parse (argStr (a, 0));
             if (auto* o = parsed.getDynamicObject())
             {
-                vstai::appsettings::setAnthropicKey (o->getProperty ("anthropicKey").toString().trim());
-                vstai::appsettings::setPublishUrl   (o->getProperty ("publishUrl").toString().trim());
+                vstai::appsettings::setAnthropicKey  (o->getProperty ("anthropicKey").toString().trim());
+                vstai::appsettings::setPublishUrl    (o->getProperty ("publishUrl").toString().trim());
+                vstai::appsettings::setNotaryProfile (o->getProperty ("notaryProfile").toString().trim());
             }
             complete (result (true, "Settings saved."));
         })
@@ -906,34 +841,9 @@ WebEditor::provideResource (const juce::String& rawUrl)
 {
     const juce::String url = rawUrl.startsWith ("/") ? rawUrl : ("/" + rawUrl);
 
-    // ---- param / note bridge from the /preview iframe ----------------------
-    if (url.startsWith ("/__vstai/param/"))
-    {
-        const auto m = vstai::bridge::parseParam (url);
-        if (m.valid) processor.setParamFromGui (m.index, m.value);
-        return juce::WebBrowserComponent::Resource { toBytes (juce::String ("ok")), "text/plain;charset=UTF-8" };
-    }
-    if (url.startsWith ("/__vstai/note/"))
-    {
-        const auto m = vstai::bridge::parseNote (url);
-        if (m.valid) processor.noteFromGui (m.note, m.vel, m.on);
-        return juce::WebBrowserComponent::Resource { toBytes (juce::String ("ok")), "text/plain;charset=UTF-8" };
-    }
-    if (url.startsWith ("/__vstai/sample/"))
-    {
-        const auto m = vstai::bridge::parseSample (url);
-        juce::String body = "ok";
-        if (m.kind == vstai::bridge::SampleMsg::Kind::begin && m.valid)
-            body = juce::String (processor.beginSampleUpload (m.channels, m.frames, m.sampleRate));
-        else if (m.kind == vstai::bridge::SampleMsg::Kind::data && m.valid)
-            processor.appendSampleData (m.bytes.getData(), m.bytes.getSize());
-        else if (m.kind == vstai::bridge::SampleMsg::Kind::end)
-        {
-            const auto err = processor.endSampleUpload();
-            body = err.isEmpty() ? juce::String ("ok") : ("ERR:" + err);
-        }
-        return juce::WebBrowserComponent::Resource { toBytes (body), "text/plain;charset=UTF-8" };
-    }
+    // ---- param / note / sample bridge from the /preview iframe --------------
+    if (auto r = vstai::shim::handleBridgeFetch (processor, url))
+        return r;
 
     // ---- the sandboxed generated GUI ---------------------------------------
     if (url == "/preview" || url.endsWithIgnoreCase ("/preview"))

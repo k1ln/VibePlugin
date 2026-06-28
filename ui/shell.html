@@ -58,6 +58,7 @@ window.addEventListener("unhandledrejection", function (e) {
       <button class="btn" id="saveBtn">Save</button>
       <button class="btn" id="loadBtn">Load</button>
       <button class="btn accent2" id="publishBtn" title="Publish to the web catalogue — play it live in a browser">Publish</button>
+      <button class="btn accent2" id="exportBtn" title="Export this creation as a standalone, locked plugin you can hand to others">Export plugin…</button>
     </div>
     <div class="spacer"></div>
     <div class="group">
@@ -112,6 +113,8 @@ window.addEventListener("unhandledrejection", function (e) {
             <input id="setAnthropic" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"/></label>
           <label class="field">Publish server URL
             <input id="setPublish" type="text" autocomplete="off" spellcheck="false" placeholder="http://localhost:8787"/></label>
+          <label class="field">Notarization profile <span class="muted">(macOS — auto-notarize exported plugins; blank = off)</span>
+            <input id="setNotary" type="text" autocomplete="off" spellcheck="false" placeholder="notarytool keychain profile, e.g. VibePlugin"/></label>
           <div class="row"><button class="btn primary" id="setSaveBtn">Save settings</button>
             <span id="setStatus" class="muted"></span></div>
         </section>

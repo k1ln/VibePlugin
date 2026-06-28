@@ -78,12 +78,23 @@ async function boot() {
 // ---- audio graph ----------------------------------------------------
 let gestureHooked = false;
 let announcedStart = false;
+let guiLoaded = false;
+// "audiostart" kicks off the GUI's arpeggiator. It must reach the GUI only once it
+// is actually listening: on an item-switch the iframe reloads AND audio auto-resumes
+// from the sticky activation, so a post fired on `running` alone can beat the freshly
+// reloaded GUI's listener and the arp never starts. Gate it on running AND gui-loaded
+// (whichever lands last), exactly once.
+function maybeAnnounceStart() {
+  if (announcedStart || !guiLoaded || !(ctx && ctx.state === "running")) return;
+  announcedStart = true;
+  postToGui({ type: "audiostart" });
+}
 function afterRunning() {
   const running = ctx && ctx.state === "running";
   $("startWrap").hidden = running;
   setStatus(running ? (meta.isInstrument ? "Ready — play the keyboard." : "Ready — pick an input.")
                     : "Click or play a key to enable sound 🔊");
-  if (running && !announcedStart) { announcedStart = true; postToGui({ type: "audiostart" }); }  // kicks off the arp
+  maybeAnnounceStart();
 }
 function tryResume() { if (ctx) ctx.resume().then(afterRunning, afterRunning); }
 
@@ -364,7 +375,11 @@ function renderGui() {
   const doc = head >= 0
     ? html.slice(0, head + 6) + flag + SHIM + html.slice(head + 6)
     : flag + SHIM + html;
-  $("gui").srcdoc = doc;
+  const f = $("gui");
+  // Once the GUI document (and its arp/audiostart listener) is live, release any
+  // pending audiostart. Guards the switch-back race where audio is already running.
+  f.addEventListener("load", () => { guiLoaded = true; maybeAnnounceStart(); }, { once: true });
+  f.srcdoc = doc;
 }
 
 window.addEventListener("message", (e) => {

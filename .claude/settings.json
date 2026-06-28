@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/build.sh)",
+      "Bash(rm -rf __TRACKED_VAR__/RenameTest.vst3)",
+      "Bash(ditto 'VibePlugin Synth.vst3' __TRACKED_VAR__/Orig.vst3)",
+      "Bash(mv __TRACKED_VAR__/Orig.vst3 __TRACKED_VAR__/RenameTest.vst3)",
+      "Bash(codesign --verify --deep --strict __TRACKED_VAR__/RenameTest.vst3)",
+      "Bash(node -e ' *)",
+      "Bash(node --check player.js)",
+      "Bash(./scripts/test.sh)",
+      "Bash(./scripts/build.sh 2>&1 | grep -iE \"error:|signForExport|signed & valid|✅ Done\" | head *)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp/claude-501/-Users-k-projects-VibePlugin/8768562d-d4aa-4287-93ac-8bdafdf5bcd3/scratchpad"
+    ]
+  }
+}

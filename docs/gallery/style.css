@@ -85,7 +85,12 @@ html,body{height:100%}
    re-wrap the deck (the GUI area absorbs any slack via flex). */
 body.embed{background:transparent;display:flex;flex-direction:column;height:100vh;overflow:hidden}
 body.embed .bar{position:static;padding:9px 14px;background:transparent;backdrop-filter:none;flex:0 0 auto}
-body.embed .bar .back, body.embed #download{display:none}
+body.embed .bar .back{display:none}
+/* Keep the "Download .vstai" button when embedded — it's the main surface once you
+   click a gallery item. Sit it left of the title so it clears the top-right "Start
+   audio" overlay (.start, below), and slim it to fit the compact bar. */
+body.embed .bar{justify-content:flex-start;gap:12px}
+body.embed #download{order:-1;padding:5px 11px;font-size:12px}
 /* full width: the base .player has margin:0 auto, whose auto cross-axis margins
    suppress flex stretch and shrink it to content — reset them so the rack gets
    the whole frame width (more knob columns, shorter rack, nothing clipped). */

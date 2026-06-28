@@ -99,6 +99,7 @@ juce::var VstaiDocument::toVar() const
     obj->setProperty ("wasmBase64",   wasmToBase64 (wasm));
     obj->setProperty ("explanation",  lastExplanation);
     obj->setProperty ("isInstrument", isInstrument);
+    obj->setProperty ("locked",       locked);
     obj->setProperty ("provider",     provider);
     obj->setProperty ("model",        model);
     obj->setProperty ("effort",       effort);
@@ -141,6 +142,7 @@ VstaiDocument VstaiDocument::fromVar (const juce::var& v)
         d.html            = obj->getProperty ("html").toString();
         d.lastExplanation = obj->getProperty ("explanation").toString();
         d.isInstrument    = (bool) obj->getProperty ("isInstrument");
+        d.locked          = (bool) obj->getProperty ("locked");
         d.wasm            = base64ToWasm (obj->getProperty ("wasmBase64").toString());
         if (obj->hasProperty ("model"))    d.model    = obj->getProperty ("model").toString();
         if (obj->hasProperty ("effort"))   d.effort   = obj->getProperty ("effort").toString();

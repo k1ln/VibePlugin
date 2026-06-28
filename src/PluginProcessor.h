@@ -54,7 +54,15 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
 
-    const juce::String getName() const override { return kIsSynth ? "VibePlugin Synth" : "VibePlugin FX"; }
+    const juce::String getName() const override
+    {
+        // Whitelabel: an exported (locked) plugin reports its product name where the
+        // host honours a runtime name (wrapper/window title). The plugin-list name
+        // stays compile-time — see PluginExport.h.
+        if (isLocked() && document.name.isNotEmpty() && document.name != "Untitled")
+            return document.name;
+        return kIsSynth ? "VibePlugin Synth" : "VibePlugin FX";
+    }
     bool   acceptsMidi()  const override { return kIsSynth; }
     bool   producesMidi() const override { return false; }
     bool   isMidiEffect() const override { return false; }
@@ -128,6 +136,19 @@ public:
 
     bool isInstrument() const { return kIsSynth; }
 
+    // Whitelabel / share lock: when true the plugin opens straight into the product
+    // GUI (LockedEditor) with no authoring chrome and no way out. Set by a baked
+    // creation in the bundle, by document.locked (rides through state), or by the
+    // VSTAI_FORCE_LOCKED dev override (handled in maybeLoadBakedDocument).
+    bool isLocked() const { return lockedFromBundle || document.locked; }
+
+    // Export the current creation as a standalone, locked .vst3 at `destBundle`
+    // (a copy of this bundle with the creation baked in + re-signed). Returns false
+    // with a human-readable `errorOut` on failure. Safe to call off the message
+    // thread (pure file/process work).
+    bool exportToBundle (const juce::File& destBundle, const juce::String& productName,
+                         std::function<void(const juce::String&)> progress, juce::String& messageOut);
+
     // Reset to the blank starter plugin (keeps the model/effort choice).
     void newPlugin();
 
@@ -168,6 +189,7 @@ private:
 
     void loadDocumentIntoEngine();           // (re)instantiate wasm + apply params
     void notifyChanged();
+    void maybeLoadBakedDocument();           // ctor: load a baked creation -> locked mode
 
     // ---- host automation -------------------------------------------------
     void setupHostParameters();              // ctor: create the fixed pool
@@ -187,6 +209,7 @@ private:
 
     WasmEngine    engine;
     VstaiDocument document;
+    bool          lockedFromBundle = false;   // a baked creation / force-lock was found
     std::shared_ptr<AssemblyScriptCompiler> compiler; // shared so module JIT is reused
 
     double currentSampleRate = 44100.0;

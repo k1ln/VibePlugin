@@ -2,6 +2,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "WebEditor.h"
+#include "LockedEditor.h"
+#include "PluginExport.h"
 #include "LlmClient.h"
 #include "AssemblyScriptCompiler.h"
 #include "Prompt.h"
@@ -66,9 +68,57 @@ VstaiAudioProcessor::VstaiAudioProcessor()
     compiler = std::make_shared<AssemblyScriptCompiler>();
     // API key + model come from the compiled-in Config.h (or env); the
     // compiler executable is resolved from Config.h / env / the plugin bundle.
+    maybeLoadBakedDocument();   // exported/whitelabel build: load the baked creation, lock the UI
     VSTAI_LOG ("processor created (" + juce::String (kIsSynth ? "synth" : "fx")
                + "), compiler available: " + (compiler->isAvailable() ? "yes" : "no")
-               + ", host params: " + juce::String (getParameters().size()));
+               + ", host params: " + juce::String (getParameters().size())
+               + (isLocked() ? ", LOCKED (whitelabel)" : ""));
+}
+
+// An exported plugin ships its creation as Contents/Resources/baked.vstai. Load it
+// here (the host may never call setStateInformation on a fresh insert) and lock the
+// editor to the product GUI. VSTAI_FORCE_LOCKED locks the normal plugin for testing.
+void VstaiAudioProcessor::maybeLoadBakedDocument()
+{
+    auto baked = vstai::pluginexport::bakedDocFile();
+    if (baked.existsAsFile())
+    {
+        // An export bundle is always a locked product — lock first, so even a
+        // corrupt baked doc can't fall through to the (now-stripped) authoring shell.
+        lockedFromBundle = true;
+        VstaiDocument loaded;
+        juce::String err;
+        if (VstaiDocument::loadFromFile (baked, loaded, err))
+        {
+            document = std::move (loaded);
+            document.locked = true;       // belt-and-suspenders: persist the lock through state
+            loadDocumentIntoEngine();
+            VSTAI_LOG ("loaded baked creation: " + document.name);
+        }
+        else
+            VSTAI_LOG ("baked creation present but failed to load: " + err);
+        return;
+    }
+
+    if (vstai::pluginexport::forceLocked())
+    {
+        lockedFromBundle = true;          // lock the current (normal) doc for testing
+        VSTAI_LOG ("VSTAI_FORCE_LOCKED set — opening in locked product mode");
+    }
+}
+
+bool VstaiAudioProcessor::exportToBundle (const juce::File& destBundle,
+                                          const juce::String& productName,
+                                          std::function<void(const juce::String&)> progress,
+                                          juce::String& messageOut)
+{
+    const auto src = vstai::pluginexport::findOwnBundle();
+    // The compiled-in identity this build ships with — what patchIdentity rewrites.
+    const juce::String oldName = kIsSynth ? "VibePlugin Synth" : "VibePlugin FX";
+    const juce::String oldCode = kIsSynth ? "Vssy" : "Vsfx";
+    const juce::String profile = vstai::appsettings::notaryProfile();
+    return vstai::pluginexport::exportPlugin (src, destBundle, document, productName,
+                                              oldName, oldCode, profile, progress, messageOut);
 }
 
 VstaiAudioProcessor::~VstaiAudioProcessor()
@@ -724,6 +774,9 @@ void VstaiAudioProcessor::setStateInformation (const void* data, int sizeInBytes
 
 juce::AudioProcessorEditor* VstaiAudioProcessor::createEditor()
 {
+    // Exported / whitelabel build: only the product GUI, no authoring chrome, no exit.
+    if (isLocked())
+        return new LockedEditor (*this);
     if (vstai::appsettings::useWebShell())
         return new WebEditor (*this);
     return new VstaiAudioProcessorEditor (*this);

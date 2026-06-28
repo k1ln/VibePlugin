@@ -50,6 +50,11 @@ namespace vstai::appsettings
             : juce::String ("https://nsvibepluginnuskhm4r-fct-cranky-khayyam.functions.fnc.fr-par.scw.cloud/");
     }
 
+    // notarytool keychain-profile name used to auto-notarize exported plugins
+    // (empty = don't notarize). See PluginExport.h / the Settings dialog.
+    inline juce::String notaryProfile()                  { return file().getValue ("notaryProfile"); }
+    inline void setNotaryProfile (const juce::String& v) { file().setValue ("notaryProfile", v); file().saveIfNeeded(); }
+
     inline void setPublishUrl   (const juce::String& v) { file().setValue ("publishUrl", v); file().saveIfNeeded(); }
     inline void setAnthropicKey (const juce::String& v) { file().setValue ("anthropicApiKey", v); file().saveIfNeeded(); }
     inline void setOllamaUrl    (const juce::String& v) { file().setValue ("ollamaBaseUrl",   v); file().saveIfNeeded(); }
