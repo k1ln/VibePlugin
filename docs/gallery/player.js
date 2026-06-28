@@ -170,9 +170,11 @@ function startScope() {
 }
 
 // ---- note helpers (used by keyboard + MIDI) ------------------------
+let guiArpOn = false;          // mirrors the GUI arpeggiator's running state
 function sendNote(on, note, vel) {
   if (!node) return;
-  if (on) postToGui({ type: "userplay" });     // a real key press → arp yields for a moment
+  if (on) postToGui({ type: "userplay", note: note | 0 });   // re-root the arp to this note
+  if (guiArpOn) return;        // arp is driving the synth — your keys just steer it, don't double-trigger
   node.port.postMessage({ type: "note", on, note: note | 0, vel: vel == null ? 0.9 : vel });
 }
 
@@ -370,6 +372,8 @@ window.addEventListener("message", (e) => {
   // computer-key play forwarded from the GUI iframe or the gallery parent
   if (m.type === "keydown") { onKeyDown(m.key, m.repeat); return; }
   if (m.type === "keyup")   { onKeyUp(m.key); return; }
+  // GUI arpeggiator running-state (so keys re-root it instead of double-triggering)
+  if (m.type === "arpstate") { guiArpOn = !!m.on; return; }
   // intro build finished: bring the deck + keyboard in for the "try it out" beat
   if (m.type === "intro") {
     if (m.phase === "keys" && $("deck").hidden) {
