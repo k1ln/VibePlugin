@@ -16,6 +16,11 @@ let inputNode = null;        // current effect input source feeding `node`
 let analyser = null;         // view-only scope/EQ tap on the output
 
 function setStatus(t) { $("status").textContent = t; }
+// post a control message down into the sandboxed GUI iframe (arp lifecycle, etc.)
+function postToGui(m) {
+  const f = $("gui");
+  if (f && f.contentWindow) { try { f.contentWindow.postMessage(Object.assign({ __vstai: 1 }, m), "*"); } catch (e) {} }
+}
 
 // base64 → ArrayBuffer (the .vstai stores the module as wasmBase64)
 function b64ToBytes(b64) {
@@ -72,11 +77,13 @@ async function boot() {
 
 // ---- audio graph ----------------------------------------------------
 let gestureHooked = false;
+let announcedStart = false;
 function afterRunning() {
   const running = ctx && ctx.state === "running";
   $("startWrap").hidden = running;
   setStatus(running ? (meta.isInstrument ? "Ready — play the keyboard." : "Ready — pick an input.")
                     : "Click or play a key to enable sound 🔊");
+  if (running && !announcedStart) { announcedStart = true; postToGui({ type: "audiostart" }); }  // kicks off the arp
 }
 function tryResume() { if (ctx) ctx.resume().then(afterRunning, afterRunning); }
 
@@ -165,6 +172,7 @@ function startScope() {
 // ---- note helpers (used by keyboard + MIDI) ------------------------
 function sendNote(on, note, vel) {
   if (!node) return;
+  if (on) postToGui({ type: "userplay" });     // a real key press → arp yields for a moment
   node.port.postMessage({ type: "note", on, note: note | 0, vel: vel == null ? 0.9 : vel });
 }
 
@@ -343,7 +351,10 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
 })();
 <\/script>`;
 
+let guiRendered = false;
 function renderGui() {
+  if (guiRendered) return;            // render once — re-rendering would restart the intro build
+  guiRendered = true;
   const html = meta.html || "<body style='font:14px sans-serif;color:#fff'>No GUI.</body>";
   // homepage only: tell the GUI to run its staged "build" animation
   const flag = intro ? "<script>window.__vstaiIntro=true<\/script>" : "";

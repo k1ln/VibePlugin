@@ -22,32 +22,12 @@ class VstaiProcessor extends AudioWorkletProcessor {
 
   async onMessage(m) {
     if (m.type === "load") {
+      // keep the bytes/config so we can re-instantiate if the DSP ever traps
+      this.wasmBytes = m.wasm;
+      this.sr = m.sampleRate;
+      this.channels = Math.min(MAX_CHANNELS, m.channels || 2);
       try {
-        // The module has no imports; env.abort is provided defensively (the host
-        // compiles with `--use abort=`, so it is normally absent).
-        const { instance } = await WebAssembly.instantiate(m.wasm, { env: { abort() {} } });
-        this.ex = instance.exports;
-        this.memory = this.ex.memory;
-        this.channels = Math.min(MAX_CHANNELS, m.channels || 2);
-
-        this.ex.init(m.sampleRate, 128, this.channels);
-
-        this.inPtr     = this.ex.getInputPtr()  >>> 2;   // >> 2 → f32 index
-        this.outPtr    = this.ex.getOutputPtr() >>> 2;
-        this.paramsPtr = this.ex.getParamsPtr() >>> 2;
-        this.numParams = this.ex.getNumParams();
-
-        this.hasNoteOn = typeof this.ex.noteOn === "function";
-        this.hasSample = typeof this.ex.getSamplePtr === "function"
-                       && typeof this.ex.setSampleInfo === "function";
-
-        // Seed the shadow with the module's own defaults (set in init()).
-        const f = this.view();
-        for (let i = 0; i < MAX_PARAMS; i++) this.shadow[i] = f[this.paramsPtr + i];
-
-        this.ready = true;
-        this.port.postMessage({ type: "ready", numParams: this.numParams,
-                                isSynth: this.hasNoteOn, hasSample: this.hasSample });
+        await this.instantiate(true);
       } catch (err) {
         this.port.postMessage({ type: "error", message: String((err && err.message) || err) });
       }
@@ -57,6 +37,36 @@ class VstaiProcessor extends AudioWorkletProcessor {
     if (m.type === "param") { if (m.i >= 0 && m.i < MAX_PARAMS) this.shadow[m.i] = +m.v; return; }
     if (m.type === "note")  { this.notes.push(m); return; }
     if (m.type === "sample") { this.loadSample(m); return; }
+  }
+
+  // (re)build the WASM instance from the stored bytes. `seed` mirrors the
+  // module's default params into the shadow (only on the very first load).
+  async instantiate(seed) {
+    this.ready = false;
+    // The module has no imports; env.abort is provided defensively.
+    const { instance } = await WebAssembly.instantiate(this.wasmBytes, { env: { abort() {} } });
+    this.ex = instance.exports;
+    this.memory = this.ex.memory;
+    this.f32 = null;
+
+    this.ex.init(this.sr, 128, this.channels);
+
+    this.inPtr     = this.ex.getInputPtr()  >>> 2;   // >> 2 → f32 index
+    this.outPtr    = this.ex.getOutputPtr() >>> 2;
+    this.paramsPtr = this.ex.getParamsPtr() >>> 2;
+    this.numParams = this.ex.getNumParams();
+
+    this.hasNoteOn = typeof this.ex.noteOn === "function";
+    this.hasSample = typeof this.ex.getSamplePtr === "function"
+                   && typeof this.ex.setSampleInfo === "function";
+
+    if (seed) {
+      const f = this.view();
+      for (let i = 0; i < MAX_PARAMS; i++) this.shadow[i] = f[this.paramsPtr + i];
+      this.port.postMessage({ type: "ready", numParams: this.numParams,
+                              isSynth: this.hasNoteOn, hasSample: this.hasSample });
+    }
+    this.ready = true;
   }
 
   // Re-derive the Float32 view if the module grew (and replaced) its memory.
@@ -112,14 +122,35 @@ class VstaiProcessor extends AudioWorkletProcessor {
       else     for (let i = 0; i < numFrames; i++) f[dst + i] = 0;
     }
 
-    this.ex.process(numFrames);
+    // A bad DSP state (e.g. a runaway feedback/delay path) can trap the WASM.
+    // Catch it, output silence, and rebuild the instance so audio recovers
+    // instead of the worklet dying silently.
+    try {
+      this.ex.process(numFrames);
+    } catch (err) {
+      this.ready = false;
+      for (const c of out) c.fill(0);
+      this.port.postMessage({ type: "error", message: "DSP recovered from: " + String((err && err.message) || err) });
+      if (!this.reloading) {
+        this.reloading = true;
+        this.instantiate(false).then(() => { this.reloading = false; },
+                                     () => { this.reloading = false; });
+      }
+      return true;
+    }
 
-    // outBuf → outputs (re-view in case process grew memory)
+    // outBuf → outputs (re-view in case process grew memory), sanitised so a NaN
+    // or runaway value can't propagate or blast the output.
     const g = this.view();
     for (let c = 0; c < ch; c++) {
       const s = this.outPtr + c * MAX_FRAMES;
       const o = out[c];
-      for (let i = 0; i < numFrames; i++) o[i] = g[s + i];
+      for (let i = 0; i < numFrames; i++) {
+        let v = g[s + i];
+        if (v !== v || v === Infinity || v === -Infinity) v = 0;   // NaN / Inf
+        else if (v > 1) v = 1; else if (v < -1) v = -1;            // hard clip
+        o[i] = v;
+      }
     }
     // duplicate to extra output channels if the module is mono-ish
     for (let c = ch; c < out.length; c++) out[c].set(out[Math.min(ch - 1, 0)]);

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VibePlugin — plugins that write themselves</title>
-  <meta name="description" content="Describe a sound. VibePlugin generates the DSP and the GUI on the spot — a real VST3 effect or synth that runs in your DAW. Powered by Claude, compiled to WebAssembly, fully offline playback.">
+  <meta name="description" content="Describe a sound. VibePlugin generates a full DSP engine and a stunning custom GUI on the spot — a real VST3 effect or synth in your DAW. Powered by Claude Opus, compiled to WebAssembly, fully offline playback.">
   <meta property="og:title" content="VibePlugin — plugins that write themselves">
   <meta property="og:description" content="Describe a sound. Get a real VST3 plugin — DSP and GUI generated on the spot.">
   <meta property="og:type" content="website">
@@ -40,7 +40,7 @@
   <!-- =========================================================== hero -->
   <header class="hero">
     <div class="wrap hero-head">
-      <span class="eyebrow">AI-native VST3 instruments &amp; effects</span>
+      <span class="eyebrow">AI-native VST3 · powered by Claude&nbsp;Opus</span>
       <h1>Plugins that <span class="grad">write themselves.</span></h1>
       <p class="lead">Describe a sound in plain language and VibePlugin generates the DSP <em>and</em> a custom GUI on the spot. Here's a real one — press <strong>Start audio</strong>, then play it with the on-screen keys or your computer keyboard (A–K).</p>
       <div class="cta">
@@ -69,6 +69,49 @@
       </div>
     </div>
   </header>
+
+  <!-- ===================================================== depth strip -->
+  <section class="depth">
+    <div class="wrap">
+      <p class="depth-lead">Everything above is <strong>one generated patch</strong> — compiled, and playing live in your browser.</p>
+      <div class="depth-stats">
+        <div><b>64</b><span>available parameters</span></div>
+        <div><b>3</b><span>oscillators</span></div>
+        <div><b>3</b><span>routable LFOs</span></div>
+        <div><b>1</b><span>arpeggiator</span></div>
+        <div><b>&infin;</b><span>patches</span></div>
+      </div>
+      <p class="depth-foot">A <strong>full instrument</strong>, not a preset — three oscillators, a ladder filter, dual ADSR envelopes, a stereo FX rack, a modulation matrix and an arpeggiator, with up to <strong>64 automatable parameters</strong> exposed to your DAW. All from a sentence.</p>
+    </div>
+  </section>
+
+  <!-- =================================================== intelligence -->
+  <section id="intelligence" class="intel">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow">The brain</span>
+        <h2>Built on <span class="grad">Claude&nbsp;Opus</span>. End to end.</h2>
+        <p>VibePlugin runs on Anthropic's most capable model — purpose-built for Claude, start to finish. No other model to wrangle: it just works.</p>
+      </div>
+      <div class="intel-grid">
+        <div class="intel-card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l1.9 5.8L20 9.6l-4.8 3.2L17 19l-5-3.5L7 19l1.8-6.2L4 9.6l6.1-1.8z"/></svg></div>
+          <h3>Claude Opus, by default</h3>
+          <p>Generation runs on Anthropic's strongest model — deeper DSP, smarter signal chains, fewer dead ends. Nothing to configure: it just works.</p>
+        </div>
+        <div class="intel-card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><circle cx="16" cy="11" r="2"/><path d="M8 8v0M16 8v0"/></svg></div>
+          <h3>Stunning UI, if you wish</h3>
+          <p>Just ask for a look. Every plugin gets a bespoke, hand-styled interface — knobs, scopes, a modulation matrix, a playable keyboard — designed for the sound it makes.</p>
+        </div>
+        <div class="intel-card reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="9" r="3.2"/><path d="M10.4 11.4 19 20M16 17l2-2M14 19l1.6-1.6"/></svg></div>
+          <h3>Use Claude your way</h3>
+          <p>Bring your own Anthropic API key, top up with cloud credits, or paste prompts into Claude by hand for free. Your account, your control — no subscription locked in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- ==================================================== how it works -->
   <section id="how">
@@ -123,8 +166,8 @@
         </div>
         <div class="feature reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9"/><path d="M21 3l-9 9"/></svg></div>
-          <h3>Your model, your way</h3>
-          <p>Bring your own API key, paste prompts into any chatbot for free, or use cloud credits. Open models via Ollama work too.</p>
+          <h3>Claude Opus, your way</h3>
+          <p>Ships on Claude Opus. Use your own Anthropic API key, top up with cloud credits, or paste prompts into Claude by hand for free — your account, your control.</p>
         </div>
         <div class="feature reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M9 3v6h6"/></svg></div>
@@ -181,7 +224,7 @@
         <h2>Serious engineering, quietly.</h2>
       </div>
       <div class="tech">
-        <span class="chip"><b>Claude</b> writes the DSP</span>
+        <span class="chip"><b>Claude Opus</b> writes the DSP</span>
         <span class="chip"><b>AssemblyScript</b> → WASM</span>
         <span class="chip"><b>Binaryen</b> optimizer, bundled</span>
         <span class="chip"><b>wasmtime</b> runtime</span>

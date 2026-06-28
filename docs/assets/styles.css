@@ -162,9 +162,12 @@ a { color: inherit; text-decoration: none; }
 /* the live synth stage — fills the first screen under the title, and is tall
    enough to show the whole synth (3-osc rack + LFO matrix + FX) with no inner
    scroll; on shorter windows the page itself scrolls to reveal the lower rack. */
-.hero-stage { flex: 1 1 0; min-height: 0; display: flex; margin-top: 22px; }
+/* flex:1 0 auto (shrink 0) so the stage never collapses below the synth's own
+   height — otherwise the tall synth overflows the hero and overlaps the section
+   below it. It still grows to fill the first screen on taller viewports. */
+.hero-stage { flex: 1 0 auto; display: flex; margin-top: 22px; }
 .hero-synth {
-  flex: 1 1 auto; min-height: 1240px;
+  flex: 1 1 auto; min-height: 1600px;
   display: flex; flex-direction: column;
   padding: 0; overflow: hidden;
 }
@@ -298,6 +301,41 @@ section { padding: 76px 0; }
 .cta-band h2 { font-size: clamp(26px, 4vw, 38px); margin: 0 0 12px; letter-spacing: -.02em; }
 .cta-band p { color: var(--ink-2); margin: 0 auto 26px; max-width: 48ch; }
 
+/* ----------------------------------------------- depth strip ("not 4 knobs") */
+.depth { padding: 46px 0 10px; }
+.depth-lead { text-align: center; font-size: clamp(17px, 2.3vw, 23px); color: var(--ink);
+  max-width: 56ch; margin: 0 auto 30px; letter-spacing: -.01em; }
+.depth-lead strong { color: var(--accent); }
+.depth-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px 46px; margin: 0 auto 30px; }
+.depth-stats div { text-align: center; min-width: 84px; }
+.depth-stats b { display: block; font-size: clamp(36px, 6vw, 58px); font-weight: 760; line-height: 1; letter-spacing: -.03em;
+  background: linear-gradient(170deg, #d6e4ff, var(--accent) 55%, var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.depth-stats span { display: block; margin-top: 7px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.depth-foot { text-align: center; max-width: 72ch; margin: 0 auto; color: var(--ink-2); font-size: 15.5px; }
+.depth-foot strong { color: var(--ink); }
+
+/* --------------------------------------------------- intelligence band */
+.intel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.intel-card {
+  position: relative; padding: 30px 26px; border-radius: var(--r-lg); overflow: hidden;
+  border: 1px solid var(--line-2); background: linear-gradient(180deg, var(--surface-2), #0f1116);
+  transition: transform .2s, border-color .2s;
+}
+.intel-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.2); }
+.intel-card::before { content: ""; position: absolute; inset: 0; opacity: .8; pointer-events: none;
+  background: radial-gradient(360px 150px at 50% -30%, rgba(79,141,255,.16), transparent 70%); }
+.intel-card:nth-child(2)::before { background: radial-gradient(360px 150px at 50% -30%, rgba(157,123,255,.18), transparent 70%); }
+.intel-card:nth-child(3)::before { background: radial-gradient(360px 150px at 50% -30%, rgba(70,211,154,.15), transparent 70%); }
+.intel-card .ic { position: relative; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center;
+  margin-bottom: 18px; background: rgba(79,141,255,.12); color: var(--accent); border: 1px solid rgba(79,141,255,.28); }
+.intel-card:nth-child(2) .ic { background: rgba(157,123,255,.12); color: var(--accent-2); border-color: rgba(157,123,255,.28); }
+.intel-card:nth-child(3) .ic { background: rgba(70,211,154,.12); color: var(--ok); border-color: rgba(70,211,154,.28); }
+.intel-card .ic svg { width: 24px; height: 24px; }
+.intel-card h3 { position: relative; margin: 0 0 9px; font-size: 19px; }
+.intel-card p { position: relative; margin: 0; color: var(--ink-2); font-size: 15px; }
+
 /* ------------------------------------------------------------- downloads */
 .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .dl-card {
@@ -366,7 +404,7 @@ footer a.f { color: var(--muted); font-size: 14px; transition: color .15s; }
 footer a.f:hover { color: var(--ink); }
 
 @media (max-width: 860px) {
-  .steps, .features, .products, .dl-grid { grid-template-columns: 1fr; }
+  .steps, .features, .products, .dl-grid, .intel-grid { grid-template-columns: 1fr; }
   section { padding: 56px 0; }
 }
 

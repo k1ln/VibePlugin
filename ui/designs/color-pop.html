@@ -950,10 +950,15 @@ function makeKeyboard(host){
     k.style.left=((blacks[semi]+o*7+1)*wpc-2.3)+"%"; host.append(k); }
   let down=null;
   const press=n=>{ noteOn(n,100); host.querySelector(`[data-note="${n}"]`)?.classList.add("down"); };
-  const release=n=>{ noteOff(n); host.querySelector(`[data-note="${n}"]`)?.classList.remove("down"); };
+  const release=()=>{ if(down==null) return; noteOff(down); host.querySelector(`[data-note="${down}"]`)?.classList.remove("down"); down=null; };
   host.addEventListener("pointerdown",e=>{ const n=e.target.dataset.note; if(n){ down=+n; press(down); host.setPointerCapture(e.pointerId);} });
-  host.addEventListener("pointerup",()=>{ if(down!=null){ release(down); down=null; } });
-  host.addEventListener("pointerleave",()=>{ if(down!=null){ release(down); down=null; } });
+  host.addEventListener("pointerup",release);
+  host.addEventListener("pointerleave",release);
+  // WKWebView can drop the captured pointerup (notably when the plugin window itself has
+  // focus), leaving a key stuck "on". mouseup is a separate channel that still fires; also
+  // release on pointercancel/blur. Mirrors the makeMomentary workaround above.
+  addEventListener("pointerup",release,true); addEventListener("mouseup",release,true);
+  addEventListener("pointercancel",release,true); addEventListener("blur",release);
   onParam(()=>{});
 }
 
