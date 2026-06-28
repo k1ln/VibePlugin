@@ -9,7 +9,10 @@
       "Bash(node -e ' *)",
       "Bash(node --check player.js)",
       "Bash(./scripts/test.sh)",
-      "Bash(./scripts/build.sh 2>&1 | grep -iE \"error:|signForExport|signed & valid|✅ Done\" | head *)"
+      "Bash(./scripts/build.sh 2>&1 | grep -iE \"error:|signForExport|signed & valid|✅ Done\" | head *)",
+      "Bash(node scripts/seeds/pack-moog.mjs)",
+      "Bash(LC_ALL=C awk 'NR>=755 && NR<=792' src/Prompt.h)",
+      "Bash(node scripts/seeds/pack-references.mjs)"
     ],
     "additionalDirectories": [
       "/private/tmp/claude-501/-Users-k-projects-VibePlugin/8768562d-d4aa-4287-93ac-8bdafdf5bcd3/scratchpad"

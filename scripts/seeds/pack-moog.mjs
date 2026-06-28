@@ -26,6 +26,9 @@ if (r.status !== 0) { console.error("asc compile failed"); process.exit(1); }
 
 const wasmBase64 = (await fs.readFile(tmpWasm)).toString("base64");
 const html = await fs.readFile(path.join(HERE, "moog.html"), "utf8");
+// Ship the AssemblyScript source too, so anyone who downloads this .vstai can open
+// it in the editor and iterate on the DSP (not just play the compiled WASM).
+const assembly = await fs.readFile(path.join(HERE, "moog.ts"), "utf8");
 
 const params = [
   ["Tune", 0, -12, 12, 0], ["Glide", 1, 0, 1, 0.05],
@@ -48,6 +51,7 @@ const doc = {
   isInstrument: true,
   explanation: "A monophonic analog-style synthesizer: three anti-aliased oscillators with per-osc octave and detune, a noise source, a four-pole resonant ladder filter with drive, independent filter and amplifier ADSR envelopes, and portamento glide. A stereo effects rack adds chorus, ping-pong delay and reverb, with live oscilloscope + spectrum displays. Play it with the keyboard, your computer keys (a–k), or MIDI.",
   params,
+  assembly,
   wasmBase64,
   html,
   publishedAt: 1750000002000,

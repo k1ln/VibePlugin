@@ -441,12 +441,12 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             s.add ("");
         }
 
-        if (currentAssembly.isNotEmpty() || currentHtml.isNotEmpty())
+        if (currentAssembly.isNotEmpty())
         {
             s.add ("Here is the current plugin. Apply the change request that follows.");
             s.add ("");
             s.add ("=== CURRENT AssemblyScript (assembly/index.ts) ===");
-            s.add (currentAssembly.isNotEmpty() ? currentAssembly : juce::String ("(none)"));
+            s.add (currentAssembly);
             s.add ("");
             s.add ("=== CURRENT HTML GUI ===");
             s.add (currentHtml.isNotEmpty() ? currentHtml : juce::String ("(none)"));
@@ -457,6 +457,24 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             s.add ("Return an `edits` patch (find/replace snippets), NOT the whole files — this");
             s.add ("is a small change to existing code and resending full files wastes output.");
             s.add ("Resend a complete file ONLY if the change rewrites most of it; if so, say why.");
+        }
+        else if (currentHtml.isNotEmpty())
+        {
+            // A shared/published/exported creation loaded without its DSP source —
+            // only the compiled WASM + GUI travelled, so there is nothing to patch.
+            // Rebuild the DSP from the GUI (its controls reveal the parameters) plus
+            // the change request, and return COMPLETE files.
+            s.add ("This plugin was shared without its AssemblyScript source, so there is no");
+            s.add ("DSP code to patch — only the GUI below is available. Write a COMPLETE new");
+            s.add ("assembly/index.ts that realises this plugin for the GUI shown (match its");
+            s.add ("controls to the SAME parameter indices they already use), then apply the");
+            s.add ("change request. Return full files (assembly + html + params), not an edits patch.");
+            s.add ("");
+            s.add ("=== CURRENT HTML GUI (wired to the parameter indices to reuse) ===");
+            s.add (currentHtml);
+            s.add ("");
+            s.add ("=== CHANGE REQUEST ===");
+            s.add (prompt);
         }
         else
         {
