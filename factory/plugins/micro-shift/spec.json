@@ -1,0 +1,17 @@
+{
+  "name": "Micro Shift",
+  "isInstrument": false,
+  "explanation": "A micro-pitch detune doubler that fattens and widens a source into a lush stereo double. Two pitch-shifted voices are detuned a few cents up and down (below a semitone), each given its own short delay tap, panned hard left/right and blended with the dry signal. Fractional delay-line pitch shifting keeps it smooth with no zipper noise. Controls: Detune (cent spread), Delay (tap time), Width (stereo spread), Feedback (subtle regen) and dry/wet Mix.",
+  "assembly": "factory/plugins/micro-shift/assembly.ts",
+  "out": "factory/plugins/micro-shift/x.vstai",
+  "publishedAt": 1751000102000,
+  "theme": { "accent": "#3de0c4", "accent2": "#6a8cff" },
+  "guiFile": "factory/plugins/micro-shift/gui.html",
+  "params": [
+    { "name": "Detune",   "index": 0, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Delay",     "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Width",     "index": 2, "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Feedback",  "index": 3, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

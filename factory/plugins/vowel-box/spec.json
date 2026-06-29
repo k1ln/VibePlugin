@@ -1,0 +1,17 @@
+{
+  "name": "Vowel Box",
+  "isInstrument": false,
+  "explanation": "A talk-box-style formant filter that makes your input sing vowels. Three resonant band-pass formant filters track the F1/F2/F3 peaks of the vowels A-E-I-O-U; sweep the Vowel control and the peaks morph smoothly between vowel shapes. Drive adds harmonics for the formants to bite into, Resonance sharpens the peaks, and Mix blends against the dry signal. Best on rich, harmonic sources.",
+  "assembly": "factory/plugins/vowel-box/assembly.ts",
+  "out": "factory/plugins/vowel-box/x.vstai",
+  "publishedAt": 1751000090000,
+  "theme": { "accent": "#ff7ac0", "accent2": "#ffd36a" },
+  "guiFile": "factory/plugins/vowel-box/gui.html",
+  "params": [
+    { "name": "Vowel",     "index": 0, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Drive",     "index": 2, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mix",       "index": 3, "min": 0, "max": 1, "default": 1.0 },
+    { "name": "Level",     "index": 4, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

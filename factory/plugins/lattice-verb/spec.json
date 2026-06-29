@@ -1,0 +1,17 @@
+{
+  "name": "Lattice Verb",
+  "isInstrument": false,
+  "explanation": "A classic algorithmic reverb built from the textbook Schroeder/Moorer topology: four parallel feedback comb filters with prime delay lengths are summed, each with a one-pole high-frequency damper in its feedback path, then passed through two series allpass diffusers that smear the echoes into a smooth, controllable tail. Controls: Mix, Size (scales the comb delay lengths), Decay (comb feedback / RT60), Damping (HF loss per pass) and Pre-Delay.",
+  "assembly": "factory/plugins/lattice-verb/assembly.ts",
+  "out": "factory/plugins/lattice-verb/x.vstai",
+  "publishedAt": 1751000087000,
+  "theme": { "accent": "#34e0c4", "accent2": "#6ad6ff" },
+  "guiFile": "factory/plugins/lattice-verb/gui.html",
+  "params": [
+    { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Size",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay",     "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Damping",   "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Pre-Delay", "index": 4, "min": 0, "max": 1, "default": 0.0 }
+  ]
+}

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tine Piano</title>
+<style>
+  :root {
+    --accent: #e0a060;
+    --accent2: #ffcf8a;
+    --wood: #3a2417;
+    --wood-hi: #4e3220;
+    --panel: #1c1410;
+    --panel-2: #251a13;
+    --ink: #f3e6d2;
+    --ink-dim: #b79b7e;
+    --line: rgba(255, 207, 138, 0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a1d14 0%, #150f0b 60%, #0c0805 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 18px 16px 26px;
+  }
+
+  /* ---- the suitcase-piano cabinet ---- */
+  .cabinet {
+    position: relative;
+    border-radius: 18px;
+    padding: 0;
+    background:
+      linear-gradient(180deg, var(--wood-hi), var(--wood) 14%, #2c1b11 100%);
+    box-shadow:
+      0 26px 60px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 220, 170, 0.18),
+      inset 0 -2px 14px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+
+  /* wood grain texture overlay */
+  .cabinet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    background:
+      repeating-linear-gradient(91deg,
+        rgba(0,0,0,0.0) 0px,
+        rgba(0,0,0,0.10) 2px,
+        rgba(255,200,150,0.04) 4px,
+        rgba(0,0,0,0.0) 7px);
+    mix-blend-mode: overlay;
+  }
+
+  /* ---- header / nameplate ---- */
+  .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px 12px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0) 70%);
+    border-bottom: 1px solid rgba(0,0,0,0.45);
+  }
+
+  .brand { display: flex; align-items: center; gap: 14px; }
+
+  .nameplate {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .nameplate .title {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .nameplate .sub {
+    margin-top: 5px;
+    font-size: 9.5px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* glowing power lamp that pulses with tremolo */
+  .lamp-wrap { display: flex; align-items: center; gap: 9px; }
+  .lamp-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .lamp {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--accent2), var(--accent) 55%, #6b3d12 100%);
+    box-shadow: 0 0 10px 2px rgba(224,160,96,0.7), inset 0 -1px 2px rgba(0,0,0,0.4);
+  }
+
+  /* ---- the tine harp (animated) ---- */
+  .harp-frame {
+    position: relative;
+    margin: 14px 16px 6px;
+    border-radius: 12px;
+    padding: 10px 12px 6px;
+    background:
+      linear-gradient(180deg, #120c08, #1c130c);
+    box-shadow:
+      inset 0 2px 10px rgba(0,0,0,0.7),
+      inset 0 -1px 0 rgba(255,200,150,0.06);
+    border: 1px solid rgba(0,0,0,0.55);
+  }
+  .harp-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    background: radial-gradient(60% 120% at 50% 0%, rgba(224,160,96,0.16), transparent 70%);
+  }
+  svg.harp { display: block; width: 100%; height: 116px; }
+
+  /* ---- controls ---- */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 14px 18px 18px;
+  }
+  @media (max-width: 620px) {
+    .controls { grid-template-columns: repeat(3, 1fr); gap: 14px 6px; }
+  }
+
+  .knob-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 2px 4px;
+    border-radius: 12px;
+  }
+  .knob-cell .label {
+    font-size: 9.5px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .knob {
+    position: relative;
+    width: 70px; height: 70px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; }
+  .knob .readout {
+    margin-top: 2px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .knob:focus { outline: none; }
+  .knob:focus-visible .ring,
+  .knob:hover .ring { filter: drop-shadow(0 0 5px rgba(224,160,96,0.55)); }
+
+  /* ---- keyboard ---- */
+  .kbd-wrap {
+    margin: 0 16px 16px;
+    padding: 10px 12px 12px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #0f0a07, #181009);
+    box-shadow: inset 0 2px 9px rgba(0,0,0,0.7);
+    border: 1px solid rgba(0,0,0,0.5);
+  }
+  .kbd-title {
+    font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--ink-dim); margin: 0 2px 8px;
+  }
+  .keys {
+    position: relative;
+    display: flex;
+    height: 92px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    background: linear-gradient(180deg, #f6ecdb, #d9c8ab 92%, #b9a585 100%);
+    border-right: 1px solid #b09a78;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    transition: background 0.06s, transform 0.05s;
+  }
+  .wkey:last-child { border-right: none; }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), var(--accent) 95%);
+    transform: translateY(1px);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 9%;
+    height: 58%;
+    background: linear-gradient(180deg, #2a1d14, #110b07 90%);
+    border: 1px solid #000;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.6), inset 0 -3px 4px rgba(255,200,150,0.05);
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.06s, transform 0.05s;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #8a5520 95%);
+    transform: translateY(1px);
+  }
+  .hint {
+    margin: 9px 2px 0;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--ink-dim);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="cabinet">
+
+      <div class="header">
+        <div class="brand">
+          <div class="nameplate">
+            <span class="title">Tine&nbsp;Piano</span>
+            <span class="sub">Electric &middot; Suitcase &middot; FM Tine</span>
+          </div>
+        </div>
+        <div class="lamp-wrap">
+          <span class="lamp-label">Tremolo</span>
+          <div class="lamp" id="lamp"></div>
+        </div>
+      </div>
+
+      <!-- animated tine harp -->
+      <div class="harp-frame">
+        <div class="harp-glow"></div>
+        <svg class="harp" id="harp" viewBox="0 0 640 116" preserveAspectRatio="none"></svg>
+      </div>
+
+      <!-- knobs -->
+      <div class="controls" id="controls"></div>
+
+      <!-- keyboard -->
+      <div class="kbd-wrap">
+        <div class="kbd-title">Keyboard</div>
+        <div class="keys" id="keys"></div>
+        <div class="hint">Drag a knob (double-click to reset) &middot; click or press A&ndash;K to play</div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- param model (indices match assembly.ts) ----
+  var PARAMS = [
+    { name: "Bell",     index: 0, min: 0, max: 1, def: 0.55, fmt: pct },
+    { name: "Decay",    index: 1, min: 0, max: 1, def: 0.55, fmt: pct },
+    { name: "Tone",     index: 2, min: 0, max: 1, def: 0.5,  fmt: pct },
+    { name: "Trem Dep", index: 3, min: 0, max: 1, def: 0.35, fmt: pct },
+    { name: "Trem Rate",index: 4, min: 0, max: 1, def: 0.3,  fmt: rateFmt },
+    { name: "Level",    index: 5, min: 0, max: 1, def: 0.7,  fmt: pct }
+  ];
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function rateFmt(v) { return (0.5 + v * 6.5).toFixed(1) + " Hz"; }
+
+  var values = {};
+  var SVGNS = "http://www.w3.org/2000/svg";
+
+  // ---- host bridge ----
+  function pushParam(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+  function noteOn(n, vel) {
+    if (window.vstai && typeof window.vstai.noteOn === "function") window.vstai.noteOn(n, vel);
+  }
+  function noteOff(n) {
+    if (window.vstai && typeof window.vstai.noteOff === "function") window.vstai.noteOff(n);
+  }
+
+  // ===========================================================
+  //  KNOBS — hand-drawn SVG, drag vertically, double-click reset
+  // ===========================================================
+  var ARC_START = 135;     // degrees, sweep 270
+  var ARC_SWEEP = 270;
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var p0 = polar(cx, cy, r, a0);
+    var p1 = polar(cx, cy, r, a1);
+    var large = (a1 - a0) % 360 > 180 ? 1 : 0;
+    return "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " + p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  function buildKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "knob-cell";
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.setAttribute("tabindex", "0");
+    knob.setAttribute("role", "slider");
+    knob.setAttribute("aria-label", p.name);
+
+    var svg = document.createElementNS(SVGNS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    var cx = 50, cy = 50, rTrack = 38, rBody = 30;
+
+    // track (full)
+    var track = document.createElementNS(SVGNS, "path");
+    track.setAttribute("d", arcPath(cx, cy, rTrack, ARC_START, ARC_START + ARC_SWEEP));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(0,0,0,0.55)");
+    track.setAttribute("stroke-width", "6");
+    track.setAttribute("stroke-linecap", "round");
+
+    // value arc (accent)
+    var ring = document.createElementNS(SVGNS, "path");
+    ring.setAttribute("class", "ring");
+    ring.setAttribute("fill", "none");
+    ring.setAttribute("stroke", "url(#kgrad)");
+    ring.setAttribute("stroke-width", "6");
+    ring.setAttribute("stroke-linecap", "round");
+
+    // body
+    var bodyOuter = document.createElementNS(SVGNS, "circle");
+    bodyOuter.setAttribute("cx", cx); bodyOuter.setAttribute("cy", cy);
+    bodyOuter.setAttribute("r", rBody);
+    bodyOuter.setAttribute("fill", "url(#kbody)");
+    bodyOuter.setAttribute("stroke", "rgba(0,0,0,0.6)");
+    bodyOuter.setAttribute("stroke-width", "1");
+
+    var bodyHi = document.createElementNS(SVGNS, "circle");
+    bodyHi.setAttribute("cx", cx); bodyHi.setAttribute("cy", cy - 1);
+    bodyHi.setAttribute("r", rBody - 3);
+    bodyHi.setAttribute("fill", "none");
+    bodyHi.setAttribute("stroke", "rgba(255,220,170,0.12)");
+    bodyHi.setAttribute("stroke-width", "1");
+
+    // pointer notch
+    var notch = document.createElementNS(SVGNS, "line");
+    notch.setAttribute("stroke", "var(--accent2)");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+
+    svg.appendChild(track);
+    svg.appendChild(ring);
+    svg.appendChild(bodyOuter);
+    svg.appendChild(bodyHi);
+    svg.appendChild(notch);
+
+    var readout = document.createElement("div");
+    readout.className = "readout";
+
+    knob.appendChild(svg);
+    cell.appendChild(label);
+    cell.appendChild(knob);
+    cell.appendChild(readout);
+
+    function render() {
+      var v = values[p.index];
+      var norm = (v - p.min) / (p.max - p.min);
+      var a1 = ARC_START + ARC_SWEEP * norm;
+      ring.setAttribute("d", arcPath(cx, cy, rTrack, ARC_START, a1 + 0.001));
+      var np = polar(cx, cy, rBody - 6, a1);
+      var ni = polar(cx, cy, 9, a1);
+      notch.setAttribute("x1", ni[0]); notch.setAttribute("y1", ni[1]);
+      notch.setAttribute("x2", np[0]); notch.setAttribute("y2", np[1]);
+      readout.textContent = p.fmt(v);
+      knob.setAttribute("aria-valuenow", v.toFixed(3));
+    }
+
+    function setNorm(norm) {
+      norm = Math.max(0, Math.min(1, norm));
+      var v = p.min + (p.max - p.min) * norm;
+      values[p.index] = v;
+      pushParam(p.index, v);
+      render();
+    }
+
+    // drag
+    var dragging = false, startY = 0, startNorm = 0;
+    function curNorm() { return (values[p.index] - p.min) / (p.max - p.min); }
+
+    function onDown(e) {
+      dragging = true;
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startNorm = curNorm();
+      knob.focus();
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = startY - y;
+      var fine = e.shiftKey ? 0.25 : 1;
+      setNorm(startNorm + dy / 200 * fine);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    knob.addEventListener("touchmove", onMove, { passive: false });
+    knob.addEventListener("touchend", onUp);
+
+    knob.addEventListener("wheel", function (e) {
+      setNorm(curNorm() - e.deltaY / 1500);
+      e.preventDefault();
+    }, { passive: false });
+
+    knob.addEventListener("dblclick", function () {
+      setNorm((p.def - p.min) / (p.max - p.min));
+    });
+
+    knob.addEventListener("keydown", function (e) {
+      var step = e.shiftKey ? 0.01 : 0.05;
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") { setNorm(curNorm() + step); e.preventDefault(); }
+      else if (e.key === "ArrowDown" || e.key === "ArrowLeft") { setNorm(curNorm() - step); e.preventDefault(); }
+    });
+
+    values[p.index] = p.def;
+    render();
+    return cell;
+  }
+
+  // shared gradient defs (added to the first knob svg via a hidden defs svg)
+  function injectDefs() {
+    var defsSvg = document.createElementNS(SVGNS, "svg");
+    defsSvg.setAttribute("width", "0");
+    defsSvg.setAttribute("height", "0");
+    defsSvg.style.position = "absolute";
+    defsSvg.innerHTML =
+      '<defs>' +
+        '<linearGradient id="kgrad" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0" stop-color="#ffcf8a"/>' +
+          '<stop offset="1" stop-color="#e0a060"/>' +
+        '</linearGradient>' +
+        '<radialGradient id="kbody" cx="0.4" cy="0.32" r="0.85">' +
+          '<stop offset="0" stop-color="#3a2a1d"/>' +
+          '<stop offset="0.6" stop-color="#251a12"/>' +
+          '<stop offset="1" stop-color="#120c08"/>' +
+        '</radialGradient>' +
+      '</defs>';
+    document.body.appendChild(defsSvg);
+  }
+
+  // ===========================================================
+  //  TINE HARP — vibrating metal tines struck by little hammers
+  // ===========================================================
+  var TINES = 13;
+  var harp = document.getElementById("harp");
+  var tineEls = [];   // { line, hammer, base, vib (0..1), gloss }
+
+  function buildHarp() {
+    var W = 640, H = 116;
+    var pad = 24;
+    var span = (W - pad * 2) / (TINES - 1);
+
+    // resonator bar at the bottom
+    var bar = document.createElementNS(SVGNS, "rect");
+    bar.setAttribute("x", "10"); bar.setAttribute("y", H - 16);
+    bar.setAttribute("width", W - 20); bar.setAttribute("height", "10");
+    bar.setAttribute("rx", "3");
+    bar.setAttribute("fill", "url(#barGrad)");
+    harp.appendChild(bar);
+
+    for (var i = 0; i < TINES; i++) {
+      var x = pad + span * i;
+      var len = 64 + (TINES - 1 - i) * 1.6;   // longer (lower) on the left
+      var topY = H - 22 - len;
+
+      // tine: vertical metal rod with a tip
+      var line = document.createElementNS(SVGNS, "path");
+      line.setAttribute("stroke", "url(#tineGrad)");
+      line.setAttribute("stroke-width", "3");
+      line.setAttribute("stroke-linecap", "round");
+      line.setAttribute("fill", "none");
+
+      // glossy tip
+      var tip = document.createElementNS(SVGNS, "circle");
+      tip.setAttribute("r", "3.2");
+      tip.setAttribute("fill", "url(#tipGrad)");
+
+      // little felt hammer below
+      var hammer = document.createElementNS(SVGNS, "rect");
+      hammer.setAttribute("x", (x - 4).toFixed(1));
+      hammer.setAttribute("y", (H - 22).toFixed(1));
+      hammer.setAttribute("width", "8");
+      hammer.setAttribute("height", "7");
+      hammer.setAttribute("rx", "2.5");
+      hammer.setAttribute("fill", "#5a3a22");
+
+      harp.appendChild(line);
+      harp.appendChild(tip);
+      harp.appendChild(hammer);
+
+      tineEls.push({ line: line, tip: tip, hammer: hammer, x: x, topY: topY, baseY: H - 22, vib: 0, hammerHit: 0 });
+    }
+
+    var defs = document.createElementNS(SVGNS, "defs");
+    defs.innerHTML =
+      '<linearGradient id="tineGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#fff0d8"/>' +
+        '<stop offset="0.5" stop-color="#cdb38c"/>' +
+        '<stop offset="1" stop-color="#7a5e3e"/>' +
+      '</linearGradient>' +
+      '<radialGradient id="tipGrad" cx="0.35" cy="0.3" r="0.8">' +
+        '<stop offset="0" stop-color="#ffffff"/>' +
+        '<stop offset="0.5" stop-color="#ffcf8a"/>' +
+        '<stop offset="1" stop-color="#a06a2c"/>' +
+      '</radialGradient>' +
+      '<linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#4e3220"/>' +
+        '<stop offset="1" stop-color="#1c120b"/>' +
+      '</linearGradient>';
+    harp.appendChild(defs);
+  }
+
+  // map a midi note to nearest tine for the strike animation
+  function tineForNote(note) {
+    var idx = ((note % 12) * TINES / 12) | 0;
+    if (idx >= TINES) idx = TINES - 1;
+    return idx;
+  }
+
+  function strikeTine(idx, vel) {
+    var t = tineEls[idx];
+    if (!t) return;
+    t.vib = Math.max(t.vib, 0.55 + vel * 0.45);
+    t.hammerHit = 1;
+  }
+
+  // ---- animation loop ----
+  var lamp = document.getElementById("lamp");
+  var lastTime = performance.now();
+  var lfoPhase = 0;
+  var running = true;
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+
+    // tremolo LFO mirrors the DSP mapping (rate 0.5..7 Hz)
+    var rate = 0.5 + values[4] * 6.5;
+    var depth = values[3];
+    lfoPhase += dt * rate;
+    if (lfoPhase > 1e6) lfoPhase = 0;
+    var lfo = Math.sin(lfoPhase * 2 * Math.PI);
+
+    // lamp sways with tremolo
+    var glow = 0.5 + 0.5 * lfo;
+    var intensity = 0.35 + depth * 0.65 * glow + (1 - depth) * 0.3;
+    lamp.style.boxShadow =
+      "0 0 " + (6 + 14 * intensity).toFixed(1) + "px " +
+      (1 + 3 * intensity).toFixed(1) + "px rgba(224,160,96," + (0.45 + 0.5 * intensity).toFixed(2) + ")";
+    lamp.style.opacity = (0.55 + 0.45 * intensity).toFixed(2);
+
+    // update tines
+    var freq = 0.0;
+    for (var i = 0; i < tineEls.length; i++) {
+      var t = tineEls[i];
+      if (t.vib > 0.0005) {
+        t.vib *= Math.pow(0.12, dt);   // decay vibration
+        // each tine vibrates at its own visual rate; wobble amplitude scales w/ vib
+        var amp = t.vib * 7;
+        var ph = now / 1000 * (9 + i * 1.4);
+        var sway = Math.sin(ph * 2 * Math.PI) * amp;
+        // a curved tine: tip displaced sideways
+        var midX = t.x + sway * 0.4;
+        var tipX = t.x + sway;
+        var d = "M " + t.x.toFixed(1) + " " + t.baseY.toFixed(1) +
+                " Q " + midX.toFixed(1) + " " + ((t.topY + t.baseY) / 2).toFixed(1) +
+                " " + tipX.toFixed(1) + " " + t.topY.toFixed(1);
+        t.line.setAttribute("d", d);
+        t.tip.setAttribute("cx", tipX.toFixed(1));
+        t.tip.setAttribute("cy", t.topY.toFixed(1));
+        t.tip.setAttribute("r", (3.2 + t.vib * 2).toFixed(1));
+        t.line.setAttribute("stroke-width", (3 + t.vib * 1.2).toFixed(1));
+      } else {
+        // resting tine (straight)
+        t.line.setAttribute("d", "M " + t.x.toFixed(1) + " " + t.baseY.toFixed(1) +
+          " L " + t.x.toFixed(1) + " " + t.topY.toFixed(1));
+        t.tip.setAttribute("cx", t.x.toFixed(1));
+        t.tip.setAttribute("cy", t.topY.toFixed(1));
+        t.tip.setAttribute("r", "3.2");
+        t.line.setAttribute("stroke-width", "3");
+      }
+      // hammer recoil
+      if (t.hammerHit > 0.001) {
+        t.hammerHit *= Math.pow(0.02, dt);
+        t.hammer.setAttribute("y", (t.baseY - t.hammerHit * 5).toFixed(1));
+      } else {
+        t.hammer.setAttribute("y", t.baseY.toFixed(1));
+      }
+    }
+
+    if (running) requestAnimationFrame(frame);
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { running = false; }
+    else if (!running) { running = true; lastTime = performance.now(); requestAnimationFrame(frame); }
+  });
+
+  // ===========================================================
+  //  KEYBOARD
+  // ===========================================================
+  var BASE_NOTE = 60;          // C4
+  var WHITE = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+  var BLACK_AFTER = { 0:1, 2:3, 5:6, 7:8, 9:10, 12:13, 14:15, 17:18, 19:20, 21:22 };
+
+  var keysEl = document.getElementById("keys");
+  var heldKeys = {};
+
+  function buildKeyboard() {
+    var whiteCount = WHITE.length;
+    var whiteEls = [];
+    for (var w = 0; w < whiteCount; w++) {
+      var note = BASE_NOTE + WHITE[w];
+      var key = document.createElement("div");
+      key.className = "wkey";
+      key.dataset.note = note;
+      keysEl.appendChild(key);
+      whiteEls.push(key);
+      bindKey(key, note);
+    }
+    // black keys, positioned over white-key boundaries
+    for (var i = 0; i < whiteCount; i++) {
+      var semi = WHITE[i];
+      if (BLACK_AFTER.hasOwnProperty(semi)) {
+        var bnote = BASE_NOTE + BLACK_AFTER[semi];
+        var bk = document.createElement("div");
+        bk.className = "bkey";
+        bk.dataset.note = bnote;
+        var leftPct = ((i + 1) / whiteCount) * 100;
+        bk.style.left = "calc(" + leftPct + "% - 4.5%)";
+        keysEl.appendChild(bk);
+        bindKey(bk, bnote);
+      }
+    }
+  }
+
+  function pressNote(el, note, vel) {
+    if (heldKeys[note]) return;
+    heldKeys[note] = true;
+    el.classList.add("down");
+    noteOn(note, vel);
+    strikeTine(tineForNote(note), vel);
+  }
+  function releaseNote(el, note) {
+    if (!heldKeys[note]) return;
+    delete heldKeys[note];
+    el.classList.remove("down");
+    noteOff(note);
+  }
+
+  function bindKey(el, note) {
+    el.addEventListener("mousedown", function (e) { pressNote(el, note, 0.85); e.preventDefault(); });
+    el.addEventListener("mouseup", function () { releaseNote(el, note); });
+    el.addEventListener("mouseleave", function () { releaseNote(el, note); });
+    el.addEventListener("touchstart", function (e) { pressNote(el, note, 0.85); e.preventDefault(); }, { passive: false });
+    el.addEventListener("touchend", function (e) { releaseNote(el, note); e.preventDefault(); });
+  }
+
+  // computer keyboard A..K
+  var KEYMAP = { a:60, w:61, s:62, e:63, d:64, f:65, t:66, g:67, y:68, h:69, u:70, j:71, k:72 };
+  function elForNote(note) { return keysEl.querySelector('[data-note="' + note + '"]'); }
+
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var note = KEYMAP[e.key.toLowerCase()];
+    if (note == null) return;
+    var el = elForNote(note);
+    if (el) pressNote(el, note, 0.9);
+  });
+  window.addEventListener("keyup", function (e) {
+    var note = KEYMAP[e.key.toLowerCase()];
+    if (note == null) return;
+    var el = elForNote(note);
+    if (el) releaseNote(el, note);
+  });
+
+  // ===========================================================
+  //  BOOT
+  // ===========================================================
+  function boot() {
+    injectDefs();
+    var controls = document.getElementById("controls");
+    for (var i = 0; i < PARAMS.length; i++) {
+      controls.appendChild(buildKnob(PARAMS[i]));
+      // push default to engine on load
+      pushParam(PARAMS[i].index, PARAMS[i].def);
+    }
+    buildHarp();
+    buildKeyboard();
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "Cosmo Poly",
+  "isInstrument": true,
+  "explanation": "A lush eight-voice analog poly synthesizer with a cinematic ring-modulated character. Each voice layers a saw and a pulse oscillator plus a sub-octave into a smooth resonant low-pass shaped by its own filter envelope, then an amplitude envelope; chords ring with independent contours across a wide stereo field. A built-in ring modulator multiplies each voice against a detuned carrier to add clangy, inharmonic metallic shimmer, while Brilliance tilts the top end open for a glassy string-pad sheen. Controls: Cutoff, Resonance, Env Amount, Ring, Brilliance, Attack, Release and Level.",
+  "assembly": "factory/plugins/cosmo-poly/assembly.ts",
+  "out": "factory/plugins/cosmo-poly/x.vstai",
+  "publishedAt": 1751000100000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#b08cff" },
+  "guiFile": "factory/plugins/cosmo-poly/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Ring",       "index": 3, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Brilliance", "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Attack",     "index": 5, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Release",    "index": 6, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",      "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

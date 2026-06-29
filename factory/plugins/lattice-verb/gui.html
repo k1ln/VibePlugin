@@ -1,0 +1,363 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ac:#34e0c4;        /* teal accent */
+  --ac2:#6ad6ff;       /* cyan highlight */
+  --panel:#0a1620;
+  --panel2:#06101a;
+  --ink:#dffaf6;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(130% 100% at 50% -10%,#0c2330 0%,#081420 50%,#03080d 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:22px;overflow:auto;
+}
+
+.unit{
+  position:relative;
+  width:min(560px,96vw);
+  border-radius:22px;
+  padding:20px 22px 22px;
+  background:
+    linear-gradient(165deg,#102634 0%,var(--panel) 42%,var(--panel2) 100%);
+  box-shadow:
+    0 40px 90px -24px rgba(0,0,0,.8),
+    0 1px 0 rgba(120,230,255,.14) inset,
+    0 -26px 50px -22px rgba(0,0,0,.6) inset,
+    0 0 0 1px rgba(0,0,0,.5),
+    0 0 0 4px #04101a,
+    0 0 0 5px rgba(80,230,210,.06);
+  animation:rise .7s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+
+/* faint engraved circuit texture */
+.unit::before{
+  content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,rgba(106,214,255,.025) 0 1px,transparent 1px 26px),
+    radial-gradient(150% 70% at 30% 0%,rgba(120,240,255,.12),transparent 55%);
+  mix-blend-mode:screen;opacity:.55;
+}
+
+/* ===== header ===== */
+.head{position:relative;display:flex;align-items:flex-end;justify-content:space-between;margin:0 2px 14px}
+.brand{font-size:9px;letter-spacing:.42em;color:#7fd9d2;opacity:.7;text-transform:uppercase}
+h1{
+  margin:2px 0 0;font-size:25px;font-weight:900;letter-spacing:.01em;line-height:1;
+  background:linear-gradient(180deg,#eafffb,var(--ac) 55%,#1aa9b9);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 7px rgba(40,200,200,.4));
+}
+.sub{font-size:8.5px;letter-spacing:.26em;color:#76c9d6;opacity:.65;text-transform:uppercase;margin-top:4px}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.rtled{display:flex;align-items:center;gap:6px;font-size:7.5px;letter-spacing:.22em;color:#8fe3da;opacity:.75;text-transform:uppercase}
+.rtdot{width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#dffff8,var(--ac) 50%,#0a4a44 90%);
+  box-shadow:0 0 10px var(--ac);animation:dotpulse 2.4s ease-in-out infinite}
+@keyframes dotpulse{0%,100%{opacity:.55;box-shadow:0 0 5px var(--ac)}50%{opacity:1;box-shadow:0 0 14px var(--ac)}}
+
+/* ===== the lattice visualiser ===== */
+.viz{
+  position:relative;height:180px;margin:2px 0 18px;border-radius:14px;overflow:hidden;
+  background:
+    radial-gradient(120% 150% at 25% 120%,#06222a,#02080d 72%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),
+             0 0 0 2px rgba(106,214,255,.08),
+             inset 0 2px 14px rgba(0,0,0,.85),
+             inset 0 0 44px rgba(52,224,196,.08);
+}
+.viz svg{position:absolute;inset:0;width:100%;height:100%}
+.viz::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 26%)}
+
+.glow{filter:drop-shadow(0 0 5px var(--ac))}
+/* comb rail base line */
+.rail{stroke:rgba(106,214,255,.16);stroke-width:1.4}
+/* node tick on each comb line (the tapped delay points) */
+.tick{stroke:rgba(106,214,255,.30);stroke-width:1.4}
+/* glowing energy pulse travelling down each comb line */
+.pulse{fill:var(--ac);filter:drop-shadow(0 0 6px var(--ac))}
+/* feedback return arc */
+.fb{fill:none;stroke:var(--ac);stroke-width:1.6;opacity:.5;
+  stroke-dasharray:4 6;animation:fbflow 1.4s linear infinite}
+@keyframes fbflow{to{stroke-dashoffset:-20}}
+/* allpass diffuser rings */
+.apring{fill:none;stroke:var(--ac2);stroke-width:2.2;
+  filter:drop-shadow(0 0 7px var(--ac2));transform-origin:center}
+.apring2{fill:none;stroke:var(--ac);stroke-width:1.4;opacity:.45}
+.ringpulse{animation:ringPulse 2.6s ease-in-out infinite}
+@keyframes ringPulse{0%,100%{opacity:.55;transform:scale(.92)}50%{opacity:1;transform:scale(1.04)}}
+.label{fill:#79d4d8;font:7px ui-sans-serif,sans-serif;letter-spacing:.18em;opacity:.55;text-transform:uppercase}
+.sumline{stroke:var(--ac2);stroke-width:1.6;opacity:.6;filter:drop-shadow(0 0 4px var(--ac2))}
+
+/* ===== knob deck ===== */
+.deck{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 8px;margin:0 2px}
+@media (max-width:430px){.deck{grid-template-columns:repeat(3,1fr)}}
+.pot{display:flex;flex-direction:column;align-items:center;gap:7px;
+  animation:pop .5s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.knob{position:relative;width:76px;height:76px;cursor:ns-resize;touch-action:none;user-select:none}
+.arc{position:absolute;inset:2px;border-radius:50%;
+  background:conic-gradient(from 215deg,var(--ac) calc(var(--n)*270deg),rgba(120,200,220,.07) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n)*8px) var(--ac));
+  transition:--n .12s cubic-bezier(.2,.8,.25,1)}
+.skirt{position:absolute;inset:-2px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(150,230,240,.5) 0 1deg,transparent 1deg 13.846deg);
+  -webkit-mask:radial-gradient(circle,transparent 38px,#000 39px,#000 42px,transparent 43px);
+  mask:radial-gradient(circle,transparent 38px,#000 39px,#000 42px,transparent 43px)}
+.cap{position:absolute;top:11px;left:11px;width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 50% 28%,#1c3340 0%,#0c1922 60%,#06101a 100%);
+  box-shadow:inset 0 2px 6px rgba(140,220,240,.14),inset 0 -6px 14px rgba(0,0,0,.8),0 4px 10px rgba(0,0,0,.55)}
+.cap::before{content:"";position:absolute;inset:6px;border-radius:50%;
+  background:repeating-conic-gradient(#152631 0 9deg,#0a141c 9deg 18deg);opacity:.5}
+.cap::after{content:"";position:absolute;inset:13px;border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,#274652,#0c1820);
+  box-shadow:inset 0 1px 2px rgba(150,230,240,.2)}
+.ptr{position:absolute;top:7px;left:50%;width:4px;height:20px;margin-left:-2px;border-radius:3px;
+  background:linear-gradient(var(--ac2),var(--ac));
+  box-shadow:0 0 8px var(--ac),0 0 2px #fff;
+  transform-origin:50% 31px;
+  transform:rotate(calc((var(--n) - .5) * 270deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.pname{font-size:9px;font-weight:800;letter-spacing:.16em;color:#06181c;
+  background:linear-gradient(var(--ac2),var(--ac));padding:2px 9px;border-radius:999px;
+  text-transform:uppercase;box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 2px 5px rgba(0,0,0,.4);white-space:nowrap}
+.pval{font-size:11px;font-weight:800;color:#eafffb;font-variant-numeric:tabular-nums;
+  min-height:13px;text-shadow:0 0 8px rgba(52,224,196,.45)}
+.knob.act .cap{box-shadow:inset 0 2px 6px rgba(140,220,240,.14),inset 0 -6px 14px rgba(0,0,0,.8),0 4px 16px rgba(52,224,196,.55)}
+
+.footer{display:flex;justify-content:space-between;align-items:center;margin:16px 4px 0;
+  font-size:7px;letter-spacing:.18em;color:#5fa8b0;opacity:.5;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="unit">
+  <div class="head">
+    <div>
+      <div class="brand">Lattice Series</div>
+      <h1>Lattice Verb</h1>
+      <div class="sub">Schroeder / Moorer Algorithmic Reverb</div>
+    </div>
+    <div class="rt">
+      <div class="rtled"><span class="rtdot"></span><span id="rtTxt">RT 1.4s</span></div>
+      <div class="rtled" style="opacity:.5">Comb x4 &middot; AP x2</div>
+    </div>
+  </div>
+
+  <!-- ===== comb + allpass lattice ===== -->
+  <div class="viz">
+    <svg id="svg" viewBox="0 0 560 180" preserveAspectRatio="none">
+      <!-- comb rails + ticks + pulses built by JS -->
+      <g id="combs"></g>
+      <!-- summing bus -->
+      <line id="sumv" class="sumline" x1="372" y1="22" x2="372" y2="158"/>
+      <!-- series allpass diffuser rings -->
+      <g id="rings">
+        <g transform="translate(440,90)">
+          <circle class="apring ringpulse glow" r="30"/>
+          <circle class="apring2 ringpulse" r="20" style="animation-delay:.4s"/>
+          <text class="label" x="0" y="52" text-anchor="middle">Allpass 1</text>
+        </g>
+        <g transform="translate(508,90)">
+          <circle class="apring ringpulse glow" r="24" style="animation-delay:.9s"/>
+          <circle class="apring2 ringpulse" r="15" style="animation-delay:1.2s"/>
+          <text class="label" x="0" y="52" text-anchor="middle">Allpass 2</text>
+        </g>
+      </g>
+      <text class="label" x="14" y="14">Parallel Comb Bank</text>
+    </svg>
+  </div>
+
+  <!-- ===== knob deck ===== -->
+  <div class="deck" id="deck"></div>
+
+  <div class="footer">
+    <span>Algorithmic Reverb</span>
+    <span>LV-4C2A &middot; 8P7SXGP</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Mix",      index:0,min:0,max:1,def:0.35},
+    {name:"Size",     index:1,min:0,max:1,def:0.5},
+    {name:"Decay",    index:2,min:0,max:1,def:0.6},
+    {name:"Damping",  index:3,min:0,max:1,def:0.4},
+    {name:"Pre-Delay",index:4,min:0,max:1,def:0.0}
+  ];
+  var state={};
+  var deck=document.getElementById('deck');
+  var combsG=document.getElementById('combs');
+  var rtTxt=document.getElementById('rtTxt');
+
+  // ---- build the four comb rails (parallel lines, prime-ish relative lengths) ----
+  var COMB_REL=[1.557,1.617,1.491,1.422];        // relative prime lengths
+  var rails=[];                                   // {len, ticks[], pulse, baseLen}
+  var X0=92, X1=360, NTICK=7;                      // rail span + ticks
+  for(var i=0;i<4;i++){
+    var y=44+i*30;
+    // rail base line
+    var line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('class','rail');
+    line.setAttribute('x1',X0); line.setAttribute('y1',y);
+    line.setAttribute('x2',X1); line.setAttribute('y2',y);
+    combsG.appendChild(line);
+    // feedback return arc (tail end loops back to start — the comb feedback)
+    var fb=document.createElementNS('http://www.w3.org/2000/svg','path');
+    fb.setAttribute('class','fb');
+    var arcH=10+i*2;
+    fb.setAttribute('d','M '+X1+' '+y+' C '+(X1+18)+' '+(y-arcH)+', '+(X0-18)+' '+(y-arcH)+', '+X0+' '+y);
+    combsG.appendChild(fb);
+    // ticks
+    var ticks=[];
+    for(var t=0;t<NTICK;t++){
+      var tx=X0+(X1-X0)*(t/(NTICK-1));
+      var tk=document.createElementNS('http://www.w3.org/2000/svg','line');
+      tk.setAttribute('class','tick');
+      tk.setAttribute('x1',tx); tk.setAttribute('y1',y-4);
+      tk.setAttribute('x2',tx); tk.setAttribute('y2',y+4);
+      combsG.appendChild(tk);
+      ticks.push(tk);
+    }
+    // travelling energy pulse
+    var pl=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    pl.setAttribute('class','pulse');
+    pl.setAttribute('cx',X0); pl.setAttribute('cy',y); pl.setAttribute('r',3.2);
+    combsG.appendChild(pl);
+    // input feed line from left edge into the rail
+    var feed=document.createElementNS('http://www.w3.org/2000/svg','line');
+    feed.setAttribute('class','rail'); feed.setAttribute('x1',14); feed.setAttribute('y1',90);
+    feed.setAttribute('x2',X0); feed.setAttribute('y2',y); feed.setAttribute('opacity','.18');
+    combsG.appendChild(feed);
+    // output tap to sum bus
+    var tap=document.createElementNS('http://www.w3.org/2000/svg','line');
+    tap.setAttribute('class','rail'); tap.setAttribute('x1',X1); tap.setAttribute('y1',y);
+    tap.setAttribute('x2',372); tap.setAttribute('y2',90); tap.setAttribute('opacity','.20');
+    combsG.appendChild(tap);
+
+    rails.push({y:y, x0:X0, x1:X1, pulse:pl, ticks:ticks, rel:COMB_REL[i], phase:Math.random(), pos:Math.random()});
+  }
+
+  // ---- knob builder ----
+  function fmt(p,v){
+    var n=(v-p.min)/((p.max-p.min)||1);
+    if(p.name==='Pre-Delay') return Math.round(n*200)+' ms';
+    if(p.name==='Size'){ var m=Math.round((0.55+n*1.05)*100); return m+'%'; }
+    return Math.round(n*100)+'%';
+  }
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*70)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0">'+
+        '<i class="skirt"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var ptr=cell.querySelector('.ptr');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var n=norm();
+      arc.style.setProperty('--n',n);
+      ptr.style.setProperty('--n',n);
+      val.textContent=fmt(p,v);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      onChange();
+    }
+    function setNorm(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true; startY=e.clientY; startN=norm();
+      knob.classList.add('act'); knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?620:210;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){ drag=false; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault(); setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  // ---- visualiser reacts to params ----
+  function onChange(){
+    var size =state[1]!=null?state[1]:0.5;
+    var decay=state[2]!=null?state[2]:0.6;
+    var damp =state[3]!=null?state[3]:0.4;
+    // approximate RT60 readout (seconds) — scales with size + decay
+    var rt=(0.4+ (0.55+decay*0.4)*2.6*(0.55+size*1.05));
+    rtTxt.textContent='RT '+rt.toFixed(1)+'s';
+  }
+
+  PARAMS.forEach(buildKnob);
+
+  // ---- animation loop: energy pulses crawl down each comb line; speed = size ----
+  var raf=null;
+  function tick(){
+    var size =state[1]!=null?state[1]:0.5;
+    var decay=state[2]!=null?state[2]:0.6;
+    var damp =state[3]!=null?state[3]:0.4;
+    var span=X1-X0;
+    for(var i=0;i<rails.length;i++){
+      var r=rails[i];
+      // longer comb (longer rel * size) -> slower pulse
+      var lenFac=r.rel*(0.55+size*1.05);
+      var spd=0.010/lenFac;
+      r.pos+=spd;
+      if(r.pos>=1){ r.pos-=1; }
+      var x=r.x0+span*r.pos;
+      r.pulse.setAttribute('cx',x.toFixed(1));
+      // brightness fades as pulse travels (decay) and HF damp dims it further
+      var fade=1-r.pos*(1-(0.55+decay*0.4));
+      var op=Math.max(0.25, fade*(1-damp*0.45));
+      r.pulse.setAttribute('opacity',op.toFixed(2));
+      var rad=2.4+ (decay*2.2)*(1-r.pos*0.5);
+      r.pulse.setAttribute('r',rad.toFixed(1));
+    }
+    raf=requestAnimationFrame(tick);
+  }
+  function startLoop(){ if(!raf) raf=requestAnimationFrame(tick); }
+  function stopLoop(){ if(raf){ cancelAnimationFrame(raf); raf=null; } }
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden) stopLoop(); else startLoop();
+  });
+
+  function ready(){ onChange(); startLoop(); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tonewheel Organ</title>
+<style>
+  :root {
+    --accent:   #caa15a;
+    --accent2:  #8a5a2a;
+    --wood-1:   #3a2415;
+    --wood-2:   #57361f;
+    --wood-3:   #79492a;
+    --panel:    #1c1611;
+    --chrome-1: #f4efe6;
+    --ink:      #f3e7d2;
+    --ink-dim:  #b69a72;
+    --felt:     #15100b;
+    font-size: 15px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: radial-gradient(140% 120% at 50% -10%, #2a1d12 0%, #150d07 60%, #0c0805 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .shell {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 22px 18px 30px;
+  }
+
+  /* ---- console body : warm lacquered wood ---- */
+  .console {
+    position: relative;
+    border-radius: 18px;
+    padding: 20px 22px 24px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35)),
+      repeating-linear-gradient(92deg,
+        var(--wood-2) 0px, var(--wood-3) 6px, var(--wood-1) 11px, var(--wood-2) 17px),
+      linear-gradient(180deg, var(--wood-3), var(--wood-1));
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.8),
+      inset 0 2px 0 rgba(255,236,200,0.18),
+      inset 0 -3px 14px rgba(0,0,0,0.6);
+    border: 1px solid #2c1c10;
+  }
+
+  /* ---- header ---- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+
+  .rotor {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, #2a2118 0 30%, #0c0905 31% 100%);
+    border: 2px solid var(--accent2);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 0 14px rgba(202,161,90,0.25);
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .rotor::before, .rotor::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+      var(--accent) 0deg, transparent 40deg, transparent 180deg,
+      var(--accent) 200deg, transparent 240deg, transparent 360deg);
+    opacity: 0.85;
+    animation: spin var(--rot-dur, 1.6s) linear infinite;
+  }
+  .rotor::after {
+    inset: 13px;
+    animation-direction: reverse;
+    animation-duration: calc(var(--rot-dur, 1.6s) * 1.4);
+    opacity: 0.55;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .title h1 {
+    margin: 0;
+    font-size: 1.45rem;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: var(--ink);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.5), 0 0 18px rgba(202,161,90,0.25);
+  }
+  .title .sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 3px;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid rgba(202,161,90,0.4);
+    border-radius: 20px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.25);
+  }
+
+  /* ---- main grid ---- */
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(190px, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 720px) {
+    .body { grid-template-columns: 1fr; }
+  }
+
+  .bay {
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.65));
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    border: 1px solid rgba(0,0,0,0.6);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.7), inset 0 -1px 0 rgba(255,255,255,0.05);
+  }
+  .bay-title {
+    font-size: 0.6rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bay-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(202,161,90,0.5), transparent);
+  }
+
+  /* ---- DRAWBARS ---- */
+  .drawbars {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .bar {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+  }
+  .bar .rail {
+    position: relative;
+    width: 30px;
+    height: 178px;
+    border-radius: 8px;
+    background:
+      linear-gradient(90deg, rgba(0,0,0,0.6), rgba(255,255,255,0.04), rgba(0,0,0,0.6)),
+      var(--felt);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.85);
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  /* the sliding drawbar knob — coloured caps like a real organ */
+  .bar .cap {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 38px;
+    height: 30px;
+    border-radius: 6px;
+    background:
+      linear-gradient(180deg, var(--cap-hi, #e9e2d4) 0%, var(--cap-lo, #9c9486) 55%, #4c463c 100%);
+    box-shadow:
+      0 4px 8px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -2px 3px rgba(0,0,0,0.4);
+    border: 1px solid rgba(0,0,0,0.5);
+    transition: box-shadow 0.12s ease;
+  }
+  .bar .cap::after {
+    content: "";
+    position: absolute;
+    left: 6px; right: 6px; top: 50%;
+    height: 3px;
+    transform: translateY(-50%);
+    border-radius: 2px;
+    background: rgba(0,0,0,0.35);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 -4px 0 rgba(0,0,0,0.2);
+  }
+  /* the metal shaft above the cap */
+  .bar .shaft {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    top: 0;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #5a5448, #d8d0c0, #5a5448);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .bar .rail.drag .cap, .bar .rail:hover .cap {
+    box-shadow:
+      0 5px 12px rgba(0,0,0,0.6),
+      0 0 14px var(--cap-glow, rgba(202,161,90,0.5)),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .bar .foot {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    text-align: center;
+    line-height: 1.05;
+  }
+  .bar .lbl {
+    font-size: 0.5rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .bar .val {
+    font-size: 0.6rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- right column controls ---- */
+  .ctl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 12px;
+    justify-items: center;
+  }
+  .knobwrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .knob {
+    width: 70px; height: 70px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob .face { transition: filter 0.12s ease; }
+  .knob:hover .face, .knob.drag .face { filter: drop-shadow(0 0 7px rgba(202,161,90,0.6)); }
+  .knob-name {
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .knob-val {
+    font-size: 0.62rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- rocker switch (perc mode / vibrato look) ---- */
+  .rocker {
+    grid-column: span 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+  }
+  .rocker-name {
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .switch {
+    position: relative;
+    width: 132px;
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #14100b, #241a11);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.06);
+    display: flex;
+    padding: 3px;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.6);
+  }
+  .switch .opt {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    z-index: 2;
+    transition: color 0.18s ease;
+  }
+  .switch .opt.on { color: #1a120a; }
+  .switch .glide {
+    position: absolute;
+    top: 3px; bottom: 3px;
+    width: calc(50% - 3px);
+    border-radius: 6px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.5);
+    transition: left 0.2s cubic-bezier(0.4, 1.4, 0.5, 1);
+    left: 3px;
+  }
+  .switch.right .glide { left: 50%; }
+
+  /* ---- keyboard ---- */
+  .keyboard {
+    margin-top: 18px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+    border-radius: 10px;
+    padding: 12px 12px 14px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.7);
+    border: 1px solid rgba(0,0,0,0.6);
+  }
+  .keys {
+    position: relative;
+    height: 120px;
+    display: flex;
+    user-select: none;
+    touch-action: none;
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #faf3e6 0%, #e6dcc8 88%, #cdbfa4 100%);
+    box-shadow: inset 0 -4px 6px rgba(0,0,0,0.12), 0 2px 3px rgba(0,0,0,0.4);
+    border: 1px solid #b6a888;
+    cursor: pointer;
+    transition: background 0.05s ease, transform 0.05s ease;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent) 0%, #d9b878 90%);
+    transform: translateY(2px);
+    box-shadow: inset 0 -3px 8px rgba(0,0,0,0.25);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 60%;
+    height: 62%;
+    transform: translateX(-50%);
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a221a 0%, #0d0a07 100%);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.6), inset 0 -3px 4px rgba(255,255,255,0.06);
+    z-index: 3;
+    cursor: pointer;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent2) 0%, #1a120a 100%);
+    transform: translateX(-50%) translateY(1px);
+  }
+
+  .hint {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="console">
+
+      <div class="header">
+        <div class="brand">
+          <div class="rotor" id="rotor"></div>
+          <div class="title">
+            <h1>TONEWHEEL ORGAN</h1>
+            <div class="sub">Drawbar &middot; Percussion &middot; Rotary</div>
+          </div>
+        </div>
+        <div class="badge">Additive Console</div>
+      </div>
+
+      <div class="body">
+        <div class="bay">
+          <div class="bay-title">Drawbars</div>
+          <div class="drawbars" id="drawbars"></div>
+        </div>
+
+        <div class="bay">
+          <div class="bay-title">Voicing</div>
+          <div class="ctl-grid">
+            <div class="knobwrap" id="knob-perc"></div>
+            <div class="knobwrap" id="knob-drive"></div>
+            <div class="knobwrap" id="knob-rotary"></div>
+            <div class="knobwrap" id="knob-spare" style="visibility:hidden"></div>
+            <div class="rocker">
+              <div class="rocker-name">Percussion Harmonic</div>
+              <div class="switch" id="percSwitch">
+                <div class="glide"></div>
+                <div class="opt on">2nd</div>
+                <div class="opt">3rd</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="keyboard">
+        <div class="keys" id="keys"></div>
+        <div class="hint">Click &amp; drag the keys &middot; drag controls vertically &middot; double-click to reset</div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- host bridge (guard for late injection) -----------------------
+  var Q = [];
+  function setParam(i, v) {
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+    else Q.push([i, v]);
+  }
+  function flush() {
+    if (!(window.vstai && window.vstai.setParam)) return;
+    for (var k = 0; k < Q.length; k++) window.vstai.setParam(Q[k][0], Q[k][1]);
+    Q = [];
+  }
+
+  // ---- parameter model (indices MUST match the DSP) -----------------
+  // Drawbars 0..3 map to the four drawbar params; Upper is one fader that
+  // blends the bright footages. We render seven physical bars but the
+  // upper four share param index 3 (a real organ groups them as "brightness").
+  var BARS = [
+    { idx: 0, foot: "16'", lbl: "Sub",   def: 0.6,  hi: "#8b5a2b", lo: "#5a3a1c", glow: "rgba(139,90,43,0.6)" },
+    { idx: 1, foot: "8'",  lbl: "Fund",  def: 0.85, hi: "#f4efe6", lo: "#9c9486", glow: "rgba(244,239,230,0.6)" },
+    { idx: 2, foot: "5⅓'", lbl: "Third", def: 0.35, hi: "#caa15a", lo: "#8a5a2a", glow: "rgba(202,161,90,0.6)" },
+    { idx: 3, foot: "4'",  lbl: "Upper", def: 0.45, hi: "#caa15a", lo: "#8a5a2a", glow: "rgba(202,161,90,0.6)", shared: true },
+    { idx: 3, foot: "2⅔'", lbl: "Upper", def: 0.45, hi: "#9c5a8a", lo: "#5a2a4a", glow: "rgba(156,90,138,0.6)", shared: true },
+    { idx: 3, foot: "2'",  lbl: "Upper", def: 0.45, hi: "#f4efe6", lo: "#9c9486", glow: "rgba(244,239,230,0.5)", shared: true },
+    { idx: 3, foot: "1'",  lbl: "Upper", def: 0.45, hi: "#5a8aca", lo: "#2a4a7a", glow: "rgba(90,138,202,0.6)", shared: true }
+  ];
+
+  var paramDefaults = { 0: 0.6, 1: 0.85, 2: 0.35, 3: 0.45, 4: 0.5, 5: 0, 6: 0.25, 7: 0.3 };
+  var paramValues = {};
+  for (var pk in paramDefaults) paramValues[pk] = paramDefaults[pk];
+
+  function pushParam(idx, val) {
+    paramValues[idx] = val;
+    setParam(idx, val);
+  }
+
+  // ===================================================================
+  //  DRAWBARS
+  // ===================================================================
+  var drawbarsEl = document.getElementById("drawbars");
+  var RAIL_H = 178, CAP_H = 30, TRAVEL = RAIL_H - CAP_H;
+
+  function buildBar(spec) {
+    var bar = document.createElement("div");
+    bar.className = "bar";
+
+    var foot = document.createElement("div");
+    foot.className = "foot";
+    foot.textContent = spec.foot;
+
+    var rail = document.createElement("div");
+    rail.className = "rail";
+    rail.style.setProperty("--cap-hi", spec.hi);
+    rail.style.setProperty("--cap-lo", spec.lo);
+    rail.style.setProperty("--cap-glow", spec.glow);
+
+    var shaft = document.createElement("div");
+    shaft.className = "shaft";
+
+    var cap = document.createElement("div");
+    cap.className = "cap";
+
+    rail.appendChild(shaft);
+    rail.appendChild(cap);
+
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = spec.lbl;
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    bar.appendChild(foot);
+    bar.appendChild(rail);
+    bar.appendChild(lbl);
+    bar.appendChild(val);
+    drawbarsEl.appendChild(bar);
+
+    // a "pulled out" drawbar = louder; visually it sits LOWER (towards player)
+    function render(v) {
+      var top = (1 - v) * TRAVEL;            // v=1 -> cap at bottom (pulled out)
+      cap.style.top = top + "px";
+      shaft.style.height = top + "px";
+      val.textContent = Math.round(v * 8) + "/8";
+    }
+
+    function setVal(v) {
+      v = Math.max(0, Math.min(1, v));
+      pushParam(spec.idx, v);
+      render(v);
+    }
+
+    render(paramValues[spec.idx]);
+
+    // drag interaction
+    var dragging = false, startY = 0, startV = 0;
+    function down(e) {
+      dragging = true;
+      rail.classList.add("drag");
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = paramValues[spec.idx];
+      e.preventDefault();
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dv = (y - startY) / TRAVEL;         // drag down = louder (matches pull)
+      setVal(startV + dv);
+      e.preventDefault();
+    }
+    function up() { dragging = false; rail.classList.remove("drag"); }
+
+    rail.addEventListener("mousedown", down);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    rail.addEventListener("touchstart", down, { passive: false });
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", up);
+    rail.addEventListener("dblclick", function () { setVal(spec.def); });
+    rail.addEventListener("wheel", function (e) {
+      setVal(paramValues[spec.idx] - e.deltaY * 0.0008);
+      e.preventDefault();
+    }, { passive: false });
+
+    return { render: render, idx: spec.idx };
+  }
+
+  var barCtrls = BARS.map(buildBar);
+
+  // when a shared (Upper) bar moves, mirror the other shared bars
+  function syncShared() {
+    var v = paramValues[3];
+    barCtrls.forEach(function (b) { if (b.idx === 3) b.render(v); });
+  }
+
+  // ===================================================================
+  //  KNOBS (SVG)
+  // ===================================================================
+  function buildKnob(mount, spec) {
+    var wrap = document.getElementById(mount);
+    var NS = "http://www.w3.org/2000/svg";
+
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("class", "knob");
+
+    var g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "face");
+
+    var track = document.createElementNS(NS, "circle");
+    track.setAttribute("cx", "50"); track.setAttribute("cy", "50"); track.setAttribute("r", "40");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(0,0,0,0.55)");
+    track.setAttribute("stroke-width", "7");
+
+    var arc = document.createElementNS(NS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "var(--accent)");
+    arc.setAttribute("stroke-width", "7");
+    arc.setAttribute("stroke-linecap", "round");
+
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "30");
+    body.setAttribute("fill", "url(#kbody)");
+    body.setAttribute("stroke", "#100b07");
+    body.setAttribute("stroke-width", "1.5");
+
+    var defs = document.createElementNS(NS, "defs");
+    defs.innerHTML =
+      '<radialGradient id="kbody" cx="50%" cy="34%" r="70%">' +
+      '<stop offset="0%" stop-color="#403329"/>' +
+      '<stop offset="60%" stop-color="#241a11"/>' +
+      '<stop offset="100%" stop-color="#0d0905"/></radialGradient>';
+
+    var notch = document.createElementNS(NS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "26");
+    notch.setAttribute("stroke", "var(--accent)");
+    notch.setAttribute("stroke-width", "3.5");
+    notch.setAttribute("stroke-linecap", "round");
+
+    g.appendChild(track); g.appendChild(arc); g.appendChild(body); g.appendChild(notch);
+    svg.appendChild(defs); svg.appendChild(g);
+
+    var name = document.createElement("div");
+    name.className = "knob-name"; name.textContent = spec.name;
+    var val = document.createElement("div");
+    val.className = "knob-val";
+
+    wrap.appendChild(svg);
+    wrap.appendChild(name);
+    wrap.appendChild(val);
+
+    var A0 = -135, A1 = 135; // sweep range in degrees
+    function render(v) {
+      var ang = A0 + (A1 - A0) * v;
+      var rad = ang * Math.PI / 180;
+      // notch
+      var nx = 50 + Math.sin(rad) * 24;
+      var ny = 50 - Math.cos(rad) * 24;
+      notch.setAttribute("x2", nx.toFixed(2));
+      notch.setAttribute("y2", ny.toFixed(2));
+      // arc from A0 to ang
+      var r = 40;
+      var sa = (A0 - 90) * Math.PI / 180;
+      var ea = (ang - 90) * Math.PI / 180;
+      var x0 = 50 + r * Math.cos(sa), y0 = 50 + r * Math.sin(sa);
+      var x1 = 50 + r * Math.cos(ea), y1 = 50 + r * Math.sin(ea);
+      var large = (ang - A0) > 180 ? 1 : 0;
+      arc.setAttribute("d", "M " + x0.toFixed(2) + " " + y0.toFixed(2) +
+        " A " + r + " " + r + " 0 " + large + " 1 " + x1.toFixed(2) + " " + y1.toFixed(2));
+      val.textContent = spec.fmt ? spec.fmt(v) : Math.round(v * 100) + "%";
+    }
+
+    function setVal(v) {
+      v = Math.max(0, Math.min(1, v));
+      pushParam(spec.idx, v);
+      render(v);
+    }
+
+    render(paramValues[spec.idx]);
+
+    var dragging = false, startY = 0, startV = 0;
+    function down(e) {
+      dragging = true;
+      svg.classList.add("drag");
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = paramValues[spec.idx];
+      e.preventDefault();
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      setVal(startV - (y - startY) / 160);    // drag up = increase
+      e.preventDefault();
+    }
+    function up() { dragging = false; svg.classList.remove("drag"); }
+
+    svg.addEventListener("mousedown", down);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    svg.addEventListener("touchstart", down, { passive: false });
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", up);
+    svg.addEventListener("dblclick", function () { setVal(spec.def); });
+    svg.addEventListener("wheel", function (e) {
+      setVal(paramValues[spec.idx] - e.deltaY * 0.0008);
+      e.preventDefault();
+    }, { passive: false });
+
+    return { render: render, setVal: setVal };
+  }
+
+  buildKnob("knob-perc",   { idx: 4, name: "Perc",   def: 0.5 });
+  buildKnob("knob-drive",  { idx: 6, name: "Drive",  def: 0.25 });
+  var rotaryKnob = buildKnob("knob-rotary", {
+    idx: 7, name: "Rotary", def: 0.3,
+    fmt: function (v) { return (0.8 + v * 6.2).toFixed(1) + "Hz"; }
+  });
+
+  // ===================================================================
+  //  PERCUSSION HARMONIC ROCKER (param 5, discrete {0,1})
+  // ===================================================================
+  var sw = document.getElementById("percSwitch");
+  var opts = sw.querySelectorAll(".opt");
+  function setMode(m) {
+    pushParam(5, m);
+    if (m >= 0.5) { sw.classList.add("right"); opts[0].classList.remove("on"); opts[1].classList.add("on"); }
+    else          { sw.classList.remove("right"); opts[1].classList.remove("on"); opts[0].classList.add("on"); }
+  }
+  sw.addEventListener("click", function () { setMode(paramValues[5] >= 0.5 ? 0 : 1); });
+  setMode(paramValues[5]);
+
+  // ===================================================================
+  //  ROTOR animation — speed tracks the Rotary param
+  // ===================================================================
+  var rotorEl = document.getElementById("rotor");
+  function updateRotor() {
+    var hz = 0.8 + paramValues[7] * 6.2;
+    var dur = (1 / hz).toFixed(3) + "s";
+    rotorEl.style.setProperty("--rot-dur", dur);
+  }
+  // hook rotary knob to update rotor live
+  var origRotorSet = rotaryKnob.setVal;
+  rotaryKnob.setVal = function (v) { origRotorSet(v); updateRotor(); };
+  // also patch pushParam so any rotary change refreshes the rotor
+  var basePush = pushParam;
+  pushParam = function (idx, val) {
+    basePush(idx, val);
+    if (idx === 3) syncShared();
+    if (idx === 7) updateRotor();
+  };
+  updateRotor();
+
+  // ===================================================================
+  //  KEYBOARD — two octaves, click & drag to play
+  // ===================================================================
+  var keysEl = document.getElementById("keys");
+  var BASE_NOTE = 48; // C3
+  var NUM_WHITE = 14; // two octaves of white keys
+  var whitePattern = [0, 2, 4, 5, 7, 9, 11]; // semitone offsets within an octave
+  var blackAfter   = [0, 1, 3, 4, 5];        // which white-key index has a black to its right
+
+  function noteOn(n, v) {
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(n, v == null ? 0.85 : v);
+  }
+  function noteOff(n) {
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(n);
+  }
+
+  var whiteEls = [];
+  for (var w = 0; w < NUM_WHITE; w++) {
+    var oct = Math.floor(w / 7);
+    var deg = w % 7;
+    var note = BASE_NOTE + oct * 12 + whitePattern[deg];
+    var key = document.createElement("div");
+    key.className = "wkey";
+    key.dataset.note = note;
+    keysEl.appendChild(key);
+    whiteEls.push(key);
+  }
+
+  // black keys positioned over the white-key boundaries
+  function placeBlacks() {
+    // remove old
+    var olds = keysEl.querySelectorAll(".bkey");
+    olds.forEach(function (b) { b.remove(); });
+    var whiteW = whiteEls[0].getBoundingClientRect().width + 2; // + margins
+    for (var o = 0; o < 2; o++) {
+      for (var i = 0; i < blackAfter.length; i++) {
+        var wi = o * 7 + blackAfter[i];
+        if (wi + 1 >= NUM_WHITE && o === 1 && blackAfter[i] === 5) { /* keep */ }
+        var note = parseInt(whiteEls[wi].dataset.note, 10) + 1;
+        var bk = document.createElement("div");
+        bk.className = "bkey";
+        bk.dataset.note = note;
+        bk.style.left = ((wi + 1) * whiteW) + "px";
+        keysEl.appendChild(bk);
+      }
+    }
+  }
+
+  var heldKeys = {};
+  function pressEl(el) {
+    if (!el || el.dataset.note == null) return;
+    var n = parseInt(el.dataset.note, 10);
+    if (heldKeys[n]) return;
+    heldKeys[n] = el;
+    el.classList.add("down");
+    noteOn(n, 0.85);
+  }
+  function releaseEl(el) {
+    if (!el || el.dataset.note == null) return;
+    var n = parseInt(el.dataset.note, 10);
+    if (!heldKeys[n]) return;
+    el.classList.remove("down");
+    delete heldKeys[n];
+    noteOff(n);
+  }
+  function releaseAll() {
+    for (var n in heldKeys) {
+      heldKeys[n].classList.remove("down");
+      noteOff(parseInt(n, 10));
+    }
+    heldKeys = {};
+  }
+
+  var mouseDown = false;
+  function keyAt(x, y) {
+    var el = document.elementFromPoint(x, y);
+    if (el && (el.classList.contains("wkey") || el.classList.contains("bkey"))) return el;
+    return null;
+  }
+
+  keysEl.addEventListener("mousedown", function (e) {
+    mouseDown = true;
+    pressEl(keyAt(e.clientX, e.clientY));
+    e.preventDefault();
+  });
+  keysEl.addEventListener("mousemove", function (e) {
+    if (!mouseDown) return;
+    var el = keyAt(e.clientX, e.clientY);
+    // release keys no longer under cursor (mono-ish drag glide)
+    for (var n in heldKeys) {
+      if (heldKeys[n] !== el) releaseEl(heldKeys[n]);
+    }
+    pressEl(el);
+  });
+  window.addEventListener("mouseup", function () { mouseDown = false; releaseAll(); });
+
+  keysEl.addEventListener("touchstart", function (e) {
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      var t = e.changedTouches[i];
+      pressEl(keyAt(t.clientX, t.clientY));
+    }
+    e.preventDefault();
+  }, { passive: false });
+  keysEl.addEventListener("touchend", function (e) { releaseAll(); e.preventDefault(); }, { passive: false });
+
+  // computer-keyboard row for convenience (a s d f ...)
+  var keyMap = { a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12 };
+  var kbHeld = {};
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var off = keyMap[e.key];
+    if (off == null) return;
+    var n = BASE_NOTE + off;
+    if (kbHeld[n]) return;
+    kbHeld[n] = true;
+    var el = keysEl.querySelector('[data-note="' + n + '"]');
+    if (el) el.classList.add("down");
+    noteOn(n, 0.85);
+  });
+  window.addEventListener("keyup", function (e) {
+    var off = keyMap[e.key];
+    if (off == null) return;
+    var n = BASE_NOTE + off;
+    if (!kbHeld[n]) return;
+    delete kbHeld[n];
+    var el = keysEl.querySelector('[data-note="' + n + '"]');
+    if (el) el.classList.remove("down");
+    noteOff(n);
+  });
+
+  // ---- boot: place blacks once layout is known, init all params -----
+  function boot() {
+    flush();
+    // push every default into the engine
+    for (var pk in paramValues) setParam(parseInt(pk, 10), paramValues[pk]);
+    placeBlacks();
+    updateRotor();
+  }
+
+  window.addEventListener("resize", placeBlacks);
+
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(boot);
+  else boot();
+
+  // also flush queued params once vstai appears (poll briefly)
+  var tries = 0;
+  var poll = setInterval(function () {
+    if (window.vstai && window.vstai.setParam) { flush(); clearInterval(poll); }
+    if (++tries > 40) clearInterval(poll);
+  }, 50);
+
+})();
+</script>
+</body>
+</html>

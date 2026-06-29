@@ -1,0 +1,19 @@
+{
+  "name": "Unison Four",
+  "isInstrument": true,
+  "explanation": "A four-VCO unison mono/poly synthesizer. Every note stacks four band-limited saw/pulse oscillators that fan apart as Detune rises, piling into one fat, beating unison lead or bass — or spreading across a chord when several notes are held. Oscillator 1 hard-syncs the others (Sync) for resonant-formant grit, and the stack runs through a resonant 4-pole low-pass with its own decay envelope. Controls: Detune, Cutoff, Resonance, Env Amount, Sync, Decay and Level.",
+  "assembly": "factory/plugins/unison-four/assembly.ts",
+  "out": "factory/plugins/unison-four/x.vstai",
+  "publishedAt": 1751000099000,
+  "theme": { "accent": "#ff6a3d", "accent2": "#ffe14a" },
+  "guiFile": "factory/plugins/unison-four/gui.html",
+  "params": [
+    { "name": "Detune",    "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Cutoff",    "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance", "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "EnvAmount", "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Sync",      "index": 4, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Decay",     "index": 5, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",     "index": 6, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Opto Trem",
+  "isInstrument": false,
+  "explanation": "An optical stereo tremolo: a low-frequency oscillator drives a smoothed photocell-style gain cell, modelling the gentle lag of a light-dependent resistor so even hard shapes pulse musically. Shape selects the LFO contour (sine, triangle, square or ramp), Rate and Depth set the throb, and Stereo morphs from a mono tremolo to an auto-pan where the L/R cells run in anti-phase to sweep the image side to side. Clean amplitude modulation with no distortion. Controls: Rate, Depth, Shape, Stereo and Mix.",
+  "assembly": "factory/plugins/opto-trem/assembly.ts",
+  "out": "factory/plugins/opto-trem/x.vstai",
+  "publishedAt": 1751000105000,
+  "theme": { "accent": "#62d6a0", "accent2": "#ffd86a" },
+  "guiFile": "factory/plugins/opto-trem/gui.html",
+  "params": [
+    { "name": "Rate",   "index": 0, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Depth",  "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Shape",  "index": 2, "min": 0, "max": 3, "default": 0, "step": 1 },
+    { "name": "Stereo", "index": 3, "min": 0, "max": 1, "default": 0 },
+    { "name": "Mix",    "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diode Comp</title>
+<style>
+  :root {
+    --accent:  #b0b8c0;
+    --accent2: #d96a6a;
+    --panel:   #c9cdce;
+    --panel-d: #a7adae;
+    --ink:     #2a2e30;
+    --screw:   #6f7577;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #1b1d1e;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage {
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(217,106,106,0.10), transparent 55%),
+      radial-gradient(140% 120% at 50% 120%, rgba(0,0,0,0.55), transparent 60%),
+      #18191a;
+  }
+
+  /* ---------- the console module ---------- */
+  .module {
+    width: clamp(540px, 96vw, 880px);
+    border-radius: 14px;
+    padding: 20px 22px 24px;
+    position: relative;
+    background:
+      linear-gradient(180deg, #d4d7d8 0%, #c2c6c7 18%, #b2b7b8 50%, #c2c6c7 82%, #d0d3d4 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.65) inset,
+      0 -2px 6px rgba(0,0,0,0.22) inset,
+      0 22px 50px rgba(0,0,0,0.55),
+      0 4px 0 #6f7375;
+    border: 1px solid #8d9293;
+  }
+
+  /* brushed-metal sheen */
+  .module::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,0.05) 0px,
+        rgba(255,255,255,0.05) 1px,
+        rgba(0,0,0,0.025) 2px,
+        rgba(0,0,0,0.025) 3px);
+    mix-blend-mode: overlay;
+    opacity: 0.5;
+  }
+
+  .screw {
+    position: absolute;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #babfc0, var(--screw) 70%, #4d5152);
+    box-shadow: 0 1px 1px rgba(255,255,255,0.5) inset, 0 1px 2px rgba(0,0,0,0.45);
+  }
+  .screw::after {
+    content: "";
+    position: absolute;
+    left: 2px; top: 50%;
+    width: 9px; height: 1.6px;
+    background: rgba(0,0,0,0.45);
+    transform: translateY(-50%) rotate(40deg);
+    border-radius: 1px;
+  }
+  .screw.tl { top: 9px; left: 9px; }
+  .screw.tr { top: 9px; right: 9px; }
+  .screw.bl { bottom: 9px; left: 9px; }
+  .screw.br { bottom: 9px; right: 9px; }
+
+  /* ---------- header ---------- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.18);
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand .mark {
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    color: var(--ink);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.55);
+  }
+  .brand .mark b { color: var(--accent2); }
+  .brand .sub {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #5a5f60;
+  }
+  .badge {
+    font-size: 8.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #6a6f70;
+    border: 1px solid rgba(0,0,0,0.22);
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(0,0,0,0.05));
+  }
+
+  /* ---------- main layout ---------- */
+  .body {
+    display: grid;
+    grid-template-columns: 1.15fr 1.4fr;
+    gap: 22px;
+    align-items: stretch;
+  }
+  @media (max-width: 620px) {
+    .body { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- VU meter ---------- */
+  .meter-wrap {
+    background: linear-gradient(180deg, #2b2d2e, #1a1c1d);
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid #0c0d0d;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5) inset, 0 1px 0 rgba(255,255,255,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .vu-face {
+    position: relative;
+    border-radius: 7px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 130% at 50% 120%, #f4ead0, #efe2c0 55%, #e6d4a8 100%);
+    box-shadow: 0 0 0 2px #0a0b0b, 0 4px 10px rgba(0,0,0,0.4) inset;
+    aspect-ratio: 2 / 1.18;
+  }
+  .vu-glass {
+    position: absolute; inset: 0;
+    background: linear-gradient(140deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 40%);
+    pointer-events: none;
+    z-index: 4;
+  }
+  .vu-label {
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 2.5px;
+    color: #7a715a;
+    text-transform: uppercase;
+  }
+
+  /* ---------- controls grid ---------- */
+  .controls {
+    background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(255,255,255,0.18));
+    border-radius: 10px;
+    padding: 16px 14px 12px;
+    border: 1px solid rgba(0,0,0,0.14);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset;
+  }
+  .section-title {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #5a5f60;
+    margin-bottom: 14px;
+    padding-left: 4px;
+  }
+  .knobs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 520px) {
+    .knobs { grid-template-columns: repeat(3, 1fr); row-gap: 18px; }
+  }
+
+  .knob-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .knob {
+    width: 74px; height: 74px;
+    position: relative;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; }
+  .knob .arc-bg { stroke: rgba(0,0,0,0.22); }
+  .knob .arc-fg {
+    stroke: var(--accent2);
+    transition: stroke 0.15s;
+    filter: drop-shadow(0 0 3px rgba(217,106,106,0.55));
+  }
+  .knob.active .arc-fg { stroke: #ec8585; }
+
+  .knob-cap {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 46px; height: 46px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 38% 30%, #6a6f71 0%, #4a4e50 45%, #34383a 100%);
+    box-shadow:
+      0 2px 5px rgba(0,0,0,0.5),
+      0 1px 0 rgba(255,255,255,0.18) inset,
+      0 -3px 6px rgba(0,0,0,0.4) inset;
+    pointer-events: none;
+  }
+  /* stepped knurling ring */
+  .knob-cap::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background:
+      repeating-conic-gradient(from 0deg,
+        rgba(255,255,255,0.10) 0deg 4deg,
+        rgba(0,0,0,0.22) 4deg 8deg);
+    -webkit-mask: radial-gradient(circle, transparent 56%, #000 57%);
+            mask: radial-gradient(circle, transparent 56%, #000 57%);
+    opacity: 0.55;
+  }
+  .knob-pointer {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 3px; height: 22px;
+    background: linear-gradient(180deg, var(--accent2), #b04a4a);
+    border-radius: 2px;
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotate(0deg);
+    box-shadow: 0 0 4px rgba(217,106,106,0.7);
+    pointer-events: none;
+  }
+
+  .knob-name {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4c5051;
+    font-weight: 600;
+  }
+  .knob-val {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: linear-gradient(180deg, #e7eaea, #cfd3d4);
+    border-radius: 4px;
+    padding: 2px 7px;
+    min-width: 52px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25) inset;
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+
+  /* power lamp */
+  .lamp {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff9a9a, var(--accent2));
+    box-shadow: 0 0 8px var(--accent2), 0 0 2px #fff inset;
+    animation: pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 6px var(--accent2), 0 0 2px #fff inset; }
+    50%      { box-shadow: 0 0 13px var(--accent2), 0 0 3px #fff inset; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="module">
+      <span class="screw tl"></span>
+      <span class="screw tr"></span>
+      <span class="screw bl"></span>
+      <span class="screw br"></span>
+
+      <div class="header">
+        <div class="brand">
+          <span class="mark">DIODE<b> COMP</b></span>
+          <span class="sub">Diode-Bridge Compressor</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="lamp"></span>
+          <span class="badge">Type 33 · Bus Dynamics</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="meter-wrap">
+          <div class="vu-face">
+            <svg viewBox="0 0 200 118" id="vu" aria-label="gain reduction meter">
+              <!-- arc ticks -->
+              <g id="vu-ticks" stroke="#8c7c54" stroke-width="1"></g>
+              <text x="100" y="40" text-anchor="middle" font-size="9"
+                    fill="#8a7a52" letter-spacing="1.5" font-family="ui-sans-serif">GAIN REDUCTION</text>
+              <text x="36" y="100" font-size="7" fill="#9a8a60" font-family="ui-sans-serif">0</text>
+              <text x="158" y="100" font-size="7" fill="#b85a3a" font-family="ui-sans-serif">-20 dB</text>
+              <!-- needle -->
+              <line id="needle" x1="100" y1="110" x2="100" y2="30"
+                    stroke="#3a2f24" stroke-width="2.4" stroke-linecap="round"/>
+              <circle cx="100" cy="110" r="6" fill="#2c2620"/>
+              <circle cx="100" cy="110" r="2.4" fill="#c9b888"/>
+            </svg>
+            <div class="vu-glass"></div>
+          </div>
+          <div class="vu-label">VU · Diode Bridge · Even-Harmonic Warmth</div>
+        </div>
+
+        <div class="controls">
+          <div class="section-title">Compression</div>
+          <div class="knobs" id="knobs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Threshold", index: 0, def: 0.32, fmt: function (v) { return (-42 + v * 42).toFixed(1) + " dB"; } },
+    { name: "Ratio",     index: 1, def: 0.40, fmt: function (v) { return (1.5 + v * 10.5).toFixed(1) + ":1"; } },
+    { name: "Attack",    index: 2, def: 0.30, fmt: function (v) { return (0.3 + v * v * 119.7).toFixed(1) + " ms"; } },
+    { name: "Release",   index: 3, def: 0.35, fmt: function (v) {
+        var ms = 50 + v * v * 1450;
+        return ms >= 1000 ? (ms / 1000).toFixed(2) + " s" : ms.toFixed(0) + " ms";
+      } },
+    { name: "Makeup",    index: 4, def: 0.28, fmt: function (v) { return "+" + (v * 24).toFixed(1) + " dB"; } }
+  ];
+
+  var ARC_LO = -135, ARC_HI = 135; // degrees for the pointer sweep
+
+  var state = PARAMS.map(function (p) { return p.def; });
+
+  // ---- host bridge ----
+  function pushParam(i, v) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(i, v);
+    }
+  }
+
+  // ---- build the VU tick marks ----
+  function buildTicks() {
+    var g = document.getElementById("vu-ticks");
+    var cx = 100, cy = 110, r = 78;
+    for (var i = 0; i <= 8; i++) {
+      var a = (-130 + (260 / 8) * i) * Math.PI / 180;
+      var x1 = cx + Math.sin(a) * r;
+      var y1 = cy - Math.cos(a) * r;
+      var x2 = cx + Math.sin(a) * (r - (i % 2 ? 5 : 9));
+      var y2 = cy - Math.cos(a) * (r - (i % 2 ? 5 : 9));
+      var ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      ln.setAttribute("x1", x1.toFixed(1));
+      ln.setAttribute("y1", y1.toFixed(1));
+      ln.setAttribute("x2", x2.toFixed(1));
+      ln.setAttribute("y2", y2.toFixed(1));
+      ln.setAttribute("stroke", i >= 6 ? "#b85a3a" : "#8c7c54");
+      g.appendChild(ln);
+    }
+  }
+
+  // ---- VU needle animation (eased, follows estimated gain reduction) ----
+  var needle = document.getElementById("needle");
+  var grShown = 0, grTarget = 0, phase = 0;
+
+  function estimateGR() {
+    // Visualise expected gain reduction from the current settings + a slow
+    // synthetic programme envelope, so the meter feels alive without audio taps.
+    var thr = state[0];          // 0..1 (higher = less reduction)
+    var ratio = 1.5 + state[1] * 10.5;
+    var slope = 1 - 1 / ratio;
+    phase += 0.018;
+    var prog = 0.5 + 0.5 * Math.sin(phase) * Math.sin(phase * 0.37 + 1.1); // 0..1 swell
+    // "over threshold" amount: more when threshold is low
+    var over = Math.max(0, (prog * 26) - thr * 30); // dB above threshold-ish
+    return Math.min(20, slope * over); // dB GR, capped at meter range
+  }
+
+  var lastTick = 0;
+  function tick(now) {
+    if (document.hidden) { rafId = requestAnimationFrame(tick); return; }
+    if (now - lastTick > 30) {
+      lastTick = now;
+      grTarget = estimateGR();
+      // attack/release tint the needle ballistics: faster attack = snappier
+      // fall toward more GR; longer release = slower recovery
+      var follow = grTarget > grShown
+        ? 0.30 - state[2] * 0.22   // attack: 0.30 (fast) .. 0.08 (slow)
+        : 0.12 - state[3] * 0.10;  // release: 0.12 (fast) .. 0.02 (slow)
+      grShown += (grTarget - grShown) * follow;
+      var frac = grShown / 20;                  // 0..1
+      var deg = -130 + frac * 260;              // sweep left->right
+      needle.setAttribute("transform", "rotate(" + deg.toFixed(2) + " 100 110)");
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+  var rafId = 0;
+
+  // ---- builders ----
+  function buildAll() {
+    var host = document.getElementById("knobs");
+    PARAMS.forEach(function (p) {
+      buildOne(host, p);
+    });
+    PARAMS.forEach(function (p) { pushParam(p.index, state[p.index]); });
+    buildTicks();
+    if (!rafId) rafId = requestAnimationFrame(tick);
+  }
+
+  function buildOne(host, p) {
+    var cell = document.createElement("div");
+    cell.className = "knob-cell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.setAttribute("tabindex", "0");
+
+    var R = 31, CIRC = 2 * Math.PI * R, SWEEP = 0.74;
+    knob.innerHTML =
+      '<svg viewBox="0 0 74 74">' +
+        '<circle class="arc-bg" cx="37" cy="37" r="' + R + '" fill="none" stroke-width="5"' +
+          ' stroke-linecap="round" transform="rotate(135 37 37)"' +
+          ' stroke-dasharray="' + (CIRC * SWEEP).toFixed(2) + ' ' + CIRC + '"></circle>' +
+        '<circle class="arc-fg" cx="37" cy="37" r="' + R + '" fill="none" stroke-width="5"' +
+          ' stroke-linecap="round" transform="rotate(135 37 37)"' +
+          ' stroke-dasharray="0 ' + CIRC + '"></circle>' +
+      '</svg>' +
+      '<div class="knob-cap"></div>' +
+      '<div class="knob-pointer"></div>';
+
+    var arcFg = knob.querySelector(".arc-fg");
+    var pointer = knob.querySelector(".knob-pointer");
+
+    var name = document.createElement("div");
+    name.className = "knob-name";
+    name.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "knob-val";
+
+    cell.appendChild(knob);
+    cell.appendChild(name);
+    cell.appendChild(val);
+    host.appendChild(cell);
+
+    function render() {
+      var v = state[p.index];
+      var deg = ARC_LO + (ARC_HI - ARC_LO) * v;
+      pointer.style.transform = "translate(-50%, -100%) rotate(" + deg.toFixed(1) + "deg)";
+      arcFg.setAttribute("stroke-dasharray", (CIRC * SWEEP * v).toFixed(2) + " " + CIRC);
+      val.textContent = p.fmt(v);
+    }
+
+    function commit(v) {
+      v = Math.max(0, Math.min(1, v));
+      state[p.index] = v;
+      pushParam(p.index, v);
+      render();
+    }
+
+    var dragging = false, startY = 0, startV = 0;
+    knob.addEventListener("mousedown", function (e) {
+      dragging = true; knob.classList.add("active");
+      startY = e.clientY; startV = state[p.index]; e.preventDefault();
+    });
+    window.addEventListener("mousemove", function (e) {
+      if (!dragging) return;
+      commit(startV + (startY - e.clientY) / 200);
+    });
+    window.addEventListener("mouseup", function () {
+      dragging = false; knob.classList.remove("active");
+    });
+    knob.addEventListener("touchstart", function (e) {
+      dragging = true; knob.classList.add("active");
+      startY = e.touches[0].clientY; startV = state[p.index]; e.preventDefault();
+    }, { passive: false });
+    window.addEventListener("touchmove", function (e) {
+      if (!dragging) return;
+      commit(startV + (startY - e.touches[0].clientY) / 200); e.preventDefault();
+    }, { passive: false });
+    window.addEventListener("touchend", function () {
+      dragging = false; knob.classList.remove("active");
+    });
+    knob.addEventListener("wheel", function (e) {
+      commit(state[p.index] - Math.sign(e.deltaY) * 0.02); e.preventDefault();
+    }, { passive: false });
+    knob.addEventListener("dblclick", function () { commit(p.def); });
+    knob.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") { commit(state[p.index] + 0.02); e.preventDefault(); }
+      else if (e.key === "ArrowDown" || e.key === "ArrowLeft") { commit(state[p.index] - 0.02); e.preventDefault(); }
+    });
+
+    render();
+  }
+
+  function boot() {
+    buildAll();
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && !rafId) rafId = requestAnimationFrame(tick);
+  });
+})();
+</script>
+</body>
+</html>

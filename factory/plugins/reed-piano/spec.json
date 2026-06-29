@@ -1,0 +1,18 @@
+{
+  "name": "Reed Piano",
+  "isInstrument": true,
+  "explanation": "A polyphonic electric reed-piano instrument modelled on the warm 60s struck-steel-reed school pianos. Each voice is a hollow reed-tone oscillator run through an asymmetric soft clipper whose drive tracks velocity and a fast 'bark' envelope, so hard hits growl and bark on the attack then mellow into a hollow sustain — distinct from a tine Rhodes. A snappy amp envelope with adjustable body decay, a one-pole tone tilt and a built-in sine tremolo finish the voice. Up to 12 voices, so chords ring out. Controls: Bark, Decay, Tone, Tremolo Depth, Tremolo Rate and Level.",
+  "assembly": "factory/plugins/reed-piano/assembly.ts",
+  "out": "factory/plugins/reed-piano/x.vstai",
+  "publishedAt": 1751000083000,
+  "theme": { "accent": "#8ad0a0", "accent2": "#d0e8b0" },
+  "guiFile": "factory/plugins/reed-piano/gui.html",
+  "params": [
+    { "name": "Bark",          "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Decay",         "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Tone",          "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tremolo Depth", "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Tremolo Rate",  "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",         "index": 5, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

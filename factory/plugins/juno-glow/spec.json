@@ -1,0 +1,20 @@
+{
+  "name": "Juno Glow",
+  "isInstrument": true,
+  "explanation": "A warm 6-voice DCO polyphonic synthesizer. Each voice runs ONE rock-stable digitally-controlled oscillator (a band-limited saw blended with a variable-width pulse driven by PWM), a square sub-oscillator an octave down and a sip of noise, into a resonant low-pass shaped by its own envelope (Cutoff, Env Amount, Resonance) and a snappy amp contour. The whole bus then passes through the signature lush BBD-style stereo ENSEMBLE CHORUS that gives the shimmering width. Controls: Cutoff, Resonance, Env Amount, PWM, Sub, Chorus, Release and Level.",
+  "assembly": "factory/plugins/juno-glow/assembly.ts",
+  "out": "factory/plugins/juno-glow/x.vstai",
+  "publishedAt": 1751000095000,
+  "theme": { "accent": "#ff8a3d", "accent2": "#ffd24a" },
+  "guiFile": "factory/plugins/juno-glow/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "PWM",        "index": 3, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "Sub",        "index": 4, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Chorus",     "index": 5, "min": 0, "max": 1, "default": 0.60 },
+    { "name": "Release",    "index": 6, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Level",      "index": 7, "min": 0, "max": 1, "default": 0.70 }
+  ]
+}

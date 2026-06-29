@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Combo Organ</title>
+<style>
+  :root{
+    --accent:#ff5c6e;
+    --accent2:#ffd0d6;
+    --panel:#1d1116;
+    --panel2:#2a161c;
+    --cream:#f3e7d6;
+    --chrome1:#e9eef2;
+    --chrome2:#9aa6ad;
+    --chrome3:#5a6469;
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Futura","Avenir Next",Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #3a1f27 0%, #1a0d11 55%, #0c0608 100%);
+    color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100%;padding:26px 18px 40px;
+    overflow:hidden;
+  }
+
+  /* ---- the organ cabinet ---- */
+  .organ{position:relative;width:660px;max-width:96vw;}
+  .cabinet{
+    position:relative;
+    border-radius:18px 18px 10px 10px;
+    padding:20px 22px 26px;
+    background:
+      linear-gradient(180deg,#36202a 0%, #2a161c 42%, #200f15 100%);
+    box-shadow:
+      0 28px 60px -18px rgba(0,0,0,.8),
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 -22px 40px -30px rgba(255,92,110,.5) inset;
+    border:1px solid #120a0d;
+  }
+  /* top brushed strip + logo */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .logo{
+    display:flex;align-items:baseline;gap:9px;
+    letter-spacing:.18em;
+  }
+  .logo .mark{
+    font-weight:800;font-size:22px;
+    color:var(--cream);
+    text-shadow:0 1px 0 #000, 0 0 14px rgba(255,92,110,.35);
+  }
+  .logo .mark b{color:var(--accent)}
+  .logo .sub{
+    font-size:9px;letter-spacing:.32em;color:#b79aa1;text-transform:uppercase;
+  }
+  .badge{
+    font-size:9px;letter-spacing:.28em;text-transform:uppercase;
+    color:#0c0608;background:linear-gradient(180deg,var(--accent2),#ffb7c0);
+    padding:5px 11px;border-radius:20px;font-weight:700;
+    box-shadow:0 2px 6px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.6) inset;
+  }
+
+  /* ---- tab console (the rocker bank) ---- */
+  .console{
+    background:
+      linear-gradient(180deg,#0e0709 0%, #160b0f 100%);
+    border-radius:10px;
+    padding:16px 16px 18px;
+    border:1px solid #0a0507;
+    box-shadow:0 10px 26px -10px rgba(0,0,0,.7) inset, 0 1px 0 rgba(255,255,255,.04);
+  }
+  .tabs{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:12px;
+  }
+  @media (max-width:560px){ .tabs{grid-template-columns:repeat(4,1fr)} }
+
+  .tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .tab .rock{
+    position:relative;width:100%;height:108px;border-radius:7px;
+    background:linear-gradient(180deg,#241318,#160c0f);
+    box-shadow:0 6px 14px -6px rgba(0,0,0,.7) inset;
+    padding:6px;cursor:grab;touch-action:none;
+    border:1px solid #0a0506;
+  }
+  .tab .rock:active{cursor:grabbing}
+  /* the cream lever face that tilts */
+  .cap{
+    position:absolute;left:6px;right:6px;
+    height:62px;border-radius:6px;
+    background:linear-gradient(180deg,var(--cream),#d8c6b0);
+    box-shadow:0 4px 8px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.8) inset;
+    transition:transform .12s cubic-bezier(.3,1.4,.5,1);
+    transform-origin:center bottom;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  /* the lit colour band that grows with value */
+  .lit{
+    position:absolute;left:6px;right:6px;bottom:6px;
+    border-radius:6px;
+    background:linear-gradient(180deg,var(--accent),#c43448);
+    box-shadow:0 0 16px rgba(255,92,110,.55), 0 1px 0 rgba(255,255,255,.35) inset;
+    transition:height .04s linear, opacity .15s;
+    height:0;
+  }
+  .tab.color2 .lit{background:linear-gradient(180deg,#9aa6ff,#5566cc);box-shadow:0 0 16px rgba(120,140,255,.5)}
+  .tab.color3 .lit{background:linear-gradient(180deg,var(--accent2),#ff8da0);box-shadow:0 0 16px rgba(255,160,180,.5)}
+  .cap .ft{
+    font-size:14px;font-weight:800;color:#23121a;letter-spacing:.04em;
+  }
+  .tab .name{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#caa9b1;font-weight:700}
+  .tab .val{font-size:10px;color:var(--accent2);font-variant-numeric:tabular-nums;min-height:12px}
+  .tab.color2 .val{color:#aeb6ff}
+  .tab.color3 .val{color:var(--accent2)}
+
+  /* ---- vibrato section with the wobbling toggle ---- */
+  .vibrato{
+    margin-top:16px;
+    display:grid;grid-template-columns:auto 1fr 1fr;gap:18px;align-items:center;
+    background:linear-gradient(180deg,#2a161c,#1c0f14);
+    border-radius:10px;padding:14px 18px;border:1px solid #0a0506;
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+  }
+  .vibToggle{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .rocker{
+    width:74px;height:34px;border-radius:20px;cursor:pointer;
+    background:linear-gradient(180deg,#160b0f,#241318);
+    box-shadow:0 4px 9px -4px rgba(0,0,0,.7) inset;
+    position:relative;border:1px solid #0a0506;
+  }
+  .rocker .knob{
+    position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;
+    background:linear-gradient(180deg,var(--chrome1),var(--chrome2) 60%,var(--chrome3));
+    box-shadow:0 2px 5px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.7) inset;
+    transition:left .18s cubic-bezier(.3,1.5,.5,1), background .2s;
+  }
+  .rocker.on{background:linear-gradient(180deg,#5a1b27,#7a2030)}
+  .rocker.on .knob{
+    left:43px;
+    background:linear-gradient(180deg,#fff,var(--accent));
+    box-shadow:0 0 14px rgba(255,92,110,.7), 0 1px 0 rgba(255,255,255,.8) inset;
+  }
+  .vibToggle.on{ animation:wobble 1.05s ease-in-out infinite }
+  @keyframes wobble{
+    0%,100%{transform:rotate(0deg) translateY(0)}
+    25%{transform:rotate(-2.2deg) translateY(-1px)}
+    50%{transform:rotate(0deg) translateY(0)}
+    75%{transform:rotate(2.2deg) translateY(-1px)}
+  }
+  .vibLabel{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#caa9b1;font-weight:700}
+
+  /* round chrome knobs for depth/rate */
+  .knobctl{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .dial{
+    width:62px;height:62px;border-radius:50%;cursor:grab;touch-action:none;
+    background:
+      radial-gradient(circle at 50% 38%, #fff 0%, var(--chrome2) 55%, var(--chrome3) 100%);
+    box-shadow:0 5px 12px -3px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.7) inset;
+    position:relative;border:2px solid #1a1014;
+  }
+  .dial:active{cursor:grabbing}
+  .dial .ptr{
+    position:absolute;left:50%;top:7px;width:3px;height:20px;border-radius:2px;
+    background:var(--accent);transform-origin:50% 24px;
+    box-shadow:0 0 6px rgba(255,92,110,.8);
+  }
+  .dial .ring{
+    position:absolute;inset:-9px;border-radius:50%;pointer-events:none;
+  }
+  .knobctl .name{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#caa9b1;font-weight:700}
+  .knobctl .val{font-size:10px;color:var(--accent2);font-variant-numeric:tabular-nums}
+
+  /* ---- master row: tone + level ---- */
+  .master{
+    margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:18px;
+  }
+  .slot{
+    background:linear-gradient(180deg,#2a161c,#1c0f14);border-radius:10px;
+    padding:14px 18px;border:1px solid #0a0506;display:flex;align-items:center;gap:16px;
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+  }
+
+  /* ---- chrome legs hint ---- */
+  .legs{position:relative;height:34px;margin-top:-4px}
+  .leg{
+    position:absolute;top:0;width:9px;height:34px;border-radius:0 0 5px 5px;
+    background:linear-gradient(90deg,var(--chrome3),var(--chrome1) 50%,var(--chrome3));
+    box-shadow:0 8px 12px -6px rgba(0,0,0,.7);
+  }
+  .leg.l{left:46px;transform:skewX(8deg)} .leg.r{right:46px;transform:skewX(-8deg)}
+  .leg::after{content:"";position:absolute;bottom:-5px;left:-3px;width:15px;height:6px;border-radius:50%;
+    background:radial-gradient(circle,#000 0%,transparent 70%)}
+
+  .footer{margin-top:14px;text-align:center;font-size:8.5px;letter-spacing:.3em;
+    color:#7a5a62;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <div class="organ">
+    <div class="cabinet">
+      <div class="topbar">
+        <div class="logo">
+          <span class="mark">COMBO<b>·</b>ORGAN</span>
+          <span class="sub">Transistor · Divide-Down</span>
+        </div>
+        <span class="badge">Combo 60</span>
+      </div>
+
+      <div class="console">
+        <div class="tabs" id="tabs"></div>
+
+        <div class="vibrato">
+          <div class="vibToggle" id="vibToggle">
+            <div class="rocker" id="vibRocker"><div class="knob"></div></div>
+            <span class="vibLabel">Vibrato</span>
+          </div>
+          <div class="knobctl" data-dial="3">
+            <div class="dial" id="dial3"><div class="ptr"></div><svg class="ring" viewBox="0 0 80 80"><circle id="ring3" cx="40" cy="40" r="36" fill="none" stroke="#ff5c6e" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg></div>
+            <span class="name">Depth</span><span class="val" id="val3"></span>
+          </div>
+          <div class="knobctl" data-dial="4">
+            <div class="dial" id="dial4"><div class="ptr"></div><svg class="ring" viewBox="0 0 80 80"><circle id="ring4" cx="40" cy="40" r="36" fill="none" stroke="#ffd0d6" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg></div>
+            <span class="name">Rate</span><span class="val" id="val4"></span>
+          </div>
+        </div>
+
+        <div class="master">
+          <div class="slot knobctl" data-dial="5" style="flex-direction:row;justify-content:center">
+            <div class="dial" id="dial5"><div class="ptr"></div><svg class="ring" viewBox="0 0 80 80"><circle id="ring5" cx="40" cy="40" r="36" fill="none" stroke="#ff5c6e" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg></div>
+            <div><div class="name">Tone</div><div class="val" id="val5"></div></div>
+          </div>
+          <div class="slot knobctl" data-dial="6" style="flex-direction:row;justify-content:center">
+            <div class="dial" id="dial6"><div class="ptr"></div><svg class="ring" viewBox="0 0 80 80"><circle id="ring6" cx="40" cy="40" r="36" fill="none" stroke="#ffd0d6" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg></div>
+            <div><div class="name">Level</div><div class="val" id="val6"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">Polyphonic · Plays via host MIDI</div>
+    </div>
+    <div class="legs"><div class="leg l"></div><div class="leg r"></div></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ---- host bridge ----
+  var HOST = (window.vstai && typeof window.vstai.setParam === "function") ? window.vstai : null;
+  function setParam(i,v){ if(HOST) HOST.setParam(i, v); }
+
+  // ---- param model ----
+  var P = [
+    {i:0, name:"16′ Bass",  ft:"16′", def:0.70, col:""      , type:"tab"},
+    {i:1, name:"8′ Mid",    ft:"8′",  def:0.85, col:""      , type:"tab"},
+    {i:2, name:"4′ Bright", ft:"4′",  def:0.60, col:"color3", type:"tab"},
+    {i:3, name:"Depth",     def:0.35, type:"dial"},
+    {i:4, name:"Rate",      def:0.45, type:"dial"},
+    {i:5, name:"Tone",      def:0.60, type:"dial"},
+    {i:6, name:"Level",     def:0.50, type:"dial"}
+  ];
+  var value = {};
+
+  function fmt(v){ return Math.round(v*100) + "%"; }
+
+  // ---- TABS ----
+  var tabHost = document.getElementById("tabs");
+  P.forEach(function(p){
+    if(p.type!=="tab") return;
+    var el = document.createElement("div");
+    el.className = "tab " + (p.col||"");
+    el.innerHTML =
+      '<div class="rock" data-i="'+p.i+'">'+
+        '<div class="lit"></div>'+
+        '<div class="cap"><span class="ft">'+p.ft+'</span></div>'+
+      '</div>'+
+      '<div class="name">'+p.name+'</div>'+
+      '<div class="val" id="val'+p.i+'"></div>';
+    tabHost.appendChild(el);
+  });
+
+  function paintTab(p){
+    var v = value[p.i];
+    var rock = tabHost.querySelector('.rock[data-i="'+p.i+'"]');
+    if(!rock) return;
+    var lit = rock.querySelector('.lit');
+    var cap = rock.querySelector('.cap');
+    // available travel inside rock (108 - pads 12 - lit min)
+    var H = 96; // px region
+    lit.style.height = (8 + v*78) + "px";
+    lit.style.opacity = v>0.01 ? 1 : 0.25;
+    // cap tilts: high value = lever pressed up (rocked on), brighter
+    var tilt = (v-0.5)*-9; // degrees
+    cap.style.transform = "translateY("+ (2 - v*4) +"px) rotateX("+ tilt +"deg)";
+    document.getElementById("val"+p.i).textContent = fmt(v);
+  }
+
+  // ---- DIALS ----
+  function paintDial(p){
+    var v = value[p.i];
+    var dial = document.getElementById("dial"+p.i);
+    if(!dial) return;
+    var ptr = dial.querySelector(".ptr");
+    var deg = -135 + v*270;
+    ptr.style.transform = "translateX(-50%) rotate("+deg+"deg)";
+    var ring = document.getElementById("ring"+p.i);
+    if(ring){
+      var C = 2*Math.PI*36;
+      ring.style.strokeDasharray = C;
+      ring.style.strokeDashoffset = C*(1-v*0.75);
+      ring.setAttribute("transform","rotate(135 40 40)");
+    }
+    var vd = document.getElementById("val"+p.i);
+    if(vd) vd.textContent = fmt(v);
+  }
+
+  function paint(p){ if(p.type==="tab") paintTab(p); else paintDial(p); }
+
+  function commit(p, v, send){
+    v = v<0?0:(v>1?1:v);
+    value[p.i] = v;
+    paint(p);
+    if(send!==false) setParam(p.i, v);
+  }
+
+  // ---- vibrato wobble toggle (depth>0 => on, animates) ----
+  var vibToggle = document.getElementById("vibToggle");
+  var vibRocker = document.getElementById("vibRocker");
+  var prevDepth = 0.35;
+  function syncVib(){
+    var on = value[3] > 0.01;
+    vibRocker.classList.toggle("on", on);
+    vibToggle.classList.toggle("on", on);
+    // sync animation speed to Rate
+    var hz = 4.5 + value[4]*3.0;
+    vibToggle.style.animationDuration = (1/hz*2).toFixed(3)+"s";
+  }
+  vibRocker.addEventListener("click", function(){
+    var p = P[3];
+    if(value[3] > 0.01){ prevDepth = value[3]; commit(p, 0); }
+    else commit(p, prevDepth>0.01?prevDepth:0.35);
+    syncVib();
+  });
+
+  // ---- drag handling (shared) ----
+  function attachDrag(el, p, sens){
+    var startY, startV, dragging=false;
+    function down(e){
+      dragging=true; startY=(e.touches?e.touches[0].clientY:e.clientY); startV=value[p.i];
+      e.preventDefault();
+      window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false}); window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      commit(p, startV + (startY-y)*sens);
+      if(p.i===3||p.i===4) syncVib();
+      e.preventDefault();
+    }
+    function up(){ dragging=false;
+      window.removeEventListener("mousemove",move); window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move); window.removeEventListener("touchend",up);
+    }
+    el.addEventListener("mousedown",down);
+    el.addEventListener("touchstart",down,{passive:false});
+    el.addEventListener("dblclick",function(){ commit(p,p.def); if(p.i===3||p.i===4) syncVib(); });
+  }
+
+  // ---- init / wire ----
+  function start(){
+    P.forEach(function(p){ value[p.i]=p.def; });
+    P.forEach(function(p){
+      if(p.type==="tab"){
+        var rock = tabHost.querySelector('.rock[data-i="'+p.i+'"]');
+        attachDrag(rock, p, 1/120);
+      } else {
+        attachDrag(document.getElementById("dial"+p.i), p, 1/180);
+      }
+      commit(p, p.def);   // push default to host + paint
+    });
+    syncVib();
+  }
+
+  if(HOST && typeof HOST.onReady === "function") HOST.onReady(start);
+  else start();
+})();
+</script>
+</body>
+</html>

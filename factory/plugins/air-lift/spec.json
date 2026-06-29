@@ -1,0 +1,17 @@
+{
+  "name": "Air Lift",
+  "isInstrument": false,
+  "explanation": "An air-band shelving EQ: the silky high-shelf specialist. A gentle, wide AIR high shelf opens and brightens the very top without harshness, with a selectable corner that climbs up into the highs (2.5k / 5k / 10k / 20k / 40k). Beneath it sit a musical LOW shelf and a broad MID bell, plus an OUTPUT trim. All bands are clean, stable biquads — boost-only air with a soft slope so the top lifts instead of spiking. Controls: Air, Air Freq, Low, Mid and Output.",
+  "assembly": "factory/plugins/air-lift/assembly.ts",
+  "out": "factory/plugins/air-lift/x.vstai",
+  "publishedAt": 1751000092000,
+  "theme": { "accent": "#8fdcff", "accent2": "#cdebff" },
+  "guiFile": "factory/plugins/air-lift/gui.html",
+  "params": [
+    { "name": "Air",      "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Air Freq", "index": 1, "min": 0, "max": 4, "step": 1, "default": 2 },
+    { "name": "Low",      "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mid",      "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output",   "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

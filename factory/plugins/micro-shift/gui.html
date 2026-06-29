@@ -1,0 +1,352 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Micro Shift</title>
+<style>
+:root{
+  --ac:#3de0c4;        /* teal */
+  --ac2:#6a8cff;       /* indigo */
+  --rack:#11161f;
+  --rack2:#0a0e15;
+  --panel:#161d29;
+  --ink:#cfe9f2;
+  --dim:#7f93a8;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(130% 100% at 50% -20%,#16202e 0%,#0a0e15 55%,#05070b 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;min-height:100%;
+}
+
+/* ============ the rack unit ============ */
+.rack{
+  position:relative;
+  width:min(640px,94vw);
+  border-radius:16px;
+  padding:18px 20px 22px;
+  background:
+    linear-gradient(180deg,#1b2433 0%,var(--rack) 16%,var(--rack2) 100%);
+  box-shadow:
+    0 40px 90px -28px rgba(0,0,0,.85),
+    0 1px 0 rgba(255,255,255,.10) inset,
+    0 -30px 60px -30px rgba(0,0,0,.7) inset,
+    0 0 0 1px rgba(0,0,0,.6),
+    0 0 0 4px #0c1119,
+    0 0 0 5px rgba(61,224,196,.06);
+  animation:rise .7s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+/* rack ears with rivets */
+.ear{position:absolute;top:0;bottom:0;width:14px;
+  background:linear-gradient(90deg,#222d3d,#10151e);}
+.ear.l{left:0;border-radius:16px 0 0 16px}
+.ear.r{right:0;border-radius:0 16px 16px 0}
+.rivet{position:absolute;left:50%;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#cfe0ec,#5a6a7a 55%,#283340);
+  box-shadow:0 1px 1px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.4) inset}
+.rivet.a{top:14px}.rivet.b{bottom:14px}
+/* faint brushed sheen */
+.rack::before{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;
+  background:
+    repeating-linear-gradient(98deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px),
+    radial-gradient(120% 60% at 25% 0%,rgba(120,200,255,.10),transparent 55%);
+  mix-blend-mode:screen}
+
+/* ============ header ============ */
+.head{display:flex;align-items:flex-end;justify-content:space-between;
+  margin:0 8px 14px;padding-left:6px}
+.brand{font-size:8.5px;letter-spacing:.4em;color:var(--dim);text-transform:uppercase}
+h1{margin:2px 0 0;font-size:23px;font-weight:800;letter-spacing:.04em;line-height:1;
+  background:linear-gradient(95deg,var(--ac) 0%,#bff6ec 35%,var(--ac2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 8px rgba(61,224,196,.25))}
+.tag{font-size:8px;letter-spacing:.26em;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.power{display:flex;align-items:center;gap:8px}
+.led{width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#d9fff6,var(--ac) 50%,#0c4a40 90%);
+  box-shadow:0 0 12px var(--ac),0 0 3px #fff inset;animation:ledp 2.4s ease-in-out infinite}
+@keyframes ledp{0%,100%{opacity:.7;box-shadow:0 0 7px var(--ac),0 0 3px #fff inset}
+  50%{opacity:1;box-shadow:0 0 16px var(--ac),0 0 5px #fff inset}}
+.modelno{font-size:8px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+
+/* ============ stereo width field (signature visual) ============ */
+.field{
+  position:relative;height:150px;margin:0 6px 16px;border-radius:12px;overflow:hidden;
+  background:
+    radial-gradient(120% 130% at 50% 120%,#0e2a30 0%,#091018 65%,#05080d 100%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),
+             0 0 0 2px rgba(61,224,196,.07),
+             inset 0 2px 14px rgba(0,0,0,.9),
+             inset 0 0 50px rgba(61,224,196,.06);
+}
+.field svg{position:absolute;inset:0;width:100%;height:100%}
+.field::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 26%)}
+.scan{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(120,200,255,.04) 0 2px,transparent 2px 4px);
+  opacity:.5}
+/* axis labels */
+.flbl{position:absolute;font-size:7.5px;letter-spacing:.22em;color:var(--dim);
+  text-transform:uppercase;opacity:.8}
+.flbl.l{left:8px;top:6px}.flbl.r{right:8px;top:6px}
+.flbl.c{left:50%;transform:translateX(-50%);bottom:5px}
+
+.gridln{stroke:rgba(120,200,255,.10);stroke-width:1}
+.axis{stroke:rgba(61,224,196,.18);stroke-width:1}
+.dryline{fill:none;stroke:rgba(207,233,242,.45);stroke-width:1.6;stroke-linecap:round}
+.voice0{fill:none;stroke:var(--ac);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 5px var(--ac))}
+.voice1{fill:none;stroke:var(--ac2);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 5px var(--ac2))}
+.dot{filter:drop-shadow(0 0 6px currentColor)}
+.cents{font:700 9px ui-sans-serif,system-ui;letter-spacing:.04em;
+  font-variant-numeric:tabular-nums}
+
+/* ============ knob deck ============ */
+.deck{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 4px}
+.pot{display:flex;flex-direction:column;align-items:center;gap:6px;
+  animation:pop .5s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.knob{position:relative;width:74px;height:74px;cursor:ns-resize;touch-action:none;user-select:none}
+/* outer tick ring */
+.ring{position:absolute;inset:-2px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(170,210,235,.40) 0 1deg,transparent 1deg 16.875deg);
+  -webkit-mask:radial-gradient(circle,transparent 36px,#000 37px,#000 40px,transparent 41px);
+  mask:radial-gradient(circle,transparent 36px,#000 37px,#000 40px,transparent 41px)}
+/* glowing value arc */
+.arc{position:absolute;inset:2px;border-radius:50%;
+  background:conic-gradient(from 215deg,var(--ac) 0,var(--ac2) calc(var(--n)*270deg),
+            rgba(255,255,255,.05) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n)*7px) var(--ac));
+  transition:--n .12s cubic-bezier(.2,.8,.25,1)}
+.cap{position:absolute;top:10px;left:10px;width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 50% 26%,#2a3646 0%,#141b25 62%,#0a0f16 100%);
+  box-shadow:inset 0 2px 6px rgba(255,255,255,.10),
+             inset 0 -6px 14px rgba(0,0,0,.85),
+             0 4px 10px rgba(0,0,0,.55)}
+.cap::after{content:"";position:absolute;inset:13px;border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,#33414f,#121822);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.16)}
+.ptr{position:absolute;top:6px;left:50%;width:3.5px;height:20px;margin-left:-1.75px;border-radius:3px;
+  background:linear-gradient(var(--ac2),var(--ac));
+  box-shadow:0 0 8px var(--ac),0 0 2px #fff;
+  transform-origin:50% 31px;
+  transform:rotate(calc((var(--n) - .5) * 270deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.knob.act .cap{box-shadow:inset 0 2px 6px rgba(255,255,255,.10),
+  inset 0 -6px 14px rgba(0,0,0,.85),0 4px 16px rgba(61,224,196,.55)}
+.pname{font-size:9px;font-weight:800;letter-spacing:.16em;color:#0a141c;
+  background:linear-gradient(var(--ac),#8fe9dc);padding:2px 9px;border-radius:999px;
+  text-transform:uppercase;box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 2px 5px rgba(0,0,0,.4)}
+.pval{font-size:11px;font-weight:800;color:#eafffb;font-variant-numeric:tabular-nums;
+  min-height:13px;text-shadow:0 0 8px rgba(61,224,196,.4)}
+
+@media(max-width:560px){
+  .deck{grid-template-columns:repeat(3,1fr);gap:14px}
+  .knob{width:80px;height:80px}
+}
+</style>
+</head>
+<body>
+<div class="rack">
+  <span class="ear l"><i class="rivet a"></i><i class="rivet b"></i></span>
+  <span class="ear r"><i class="rivet a"></i><i class="rivet b"></i></span>
+
+  <div class="head">
+    <div>
+      <div class="brand">Studio Rack Series</div>
+      <h1>Micro Shift</h1>
+      <div class="tag">Micro-Pitch Detune Doubler</div>
+    </div>
+    <div class="power">
+      <div style="text-align:right">
+        <div class="modelno">MS&middot;3000</div>
+        <div class="tag" style="margin-top:2px">Dual Voice</div>
+      </div>
+      <div class="led" title="Powered"></div>
+    </div>
+  </div>
+
+  <!-- stereo width field: two mirrored detuned voices over a doubled waveform -->
+  <div class="field">
+    <div class="scan"></div>
+    <span class="flbl l">L &middot; Voice &minus;</span>
+    <span class="flbl r">Voice + &middot; R</span>
+    <span class="flbl c">Stereo Width Field</span>
+    <svg viewBox="0 0 600 150" preserveAspectRatio="none">
+      <line class="gridln" x1="150" y1="0" x2="150" y2="150"/>
+      <line class="gridln" x1="450" y1="0" x2="450" y2="150"/>
+      <line class="axis"   x1="300" y1="0" x2="300" y2="150"/>
+      <line class="gridln" x1="0" y1="75" x2="600" y2="75"/>
+      <!-- dry reference (centre) -->
+      <path id="dry" class="dryline" d=""/>
+      <!-- two detuned voices -->
+      <path id="v0" class="voice0" d=""/>
+      <path id="v1" class="voice1" d=""/>
+      <!-- voice position dots on the width field -->
+      <circle id="d0" class="dot" style="color:#3de0c4" cx="220" cy="40" r="5" fill="#3de0c4"/>
+      <circle id="d1" class="dot" style="color:#6a8cff" cx="380" cy="40" r="5" fill="#6a8cff"/>
+      <text id="c0" class="cents" x="220" y="26" fill="#3de0c4" text-anchor="middle">-6c</text>
+      <text id="c1" class="cents" x="380" y="26" fill="#6a8cff" text-anchor="middle">+6c</text>
+    </svg>
+  </div>
+
+  <div class="deck" id="deck"></div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Detune",  index:0,min:0,max:1,def:0.4},
+    {name:"Delay",   index:1,min:0,max:1,def:0.3},
+    {name:"Width",   index:2,min:0,max:1,def:0.8},
+    {name:"Feedback",index:3,min:0,max:1,def:0.15},
+    {name:"Mix",     index:4,min:0,max:1,def:0.5}
+  ];
+  var state={};
+  var deck=document.getElementById('deck');
+
+  // ----- format helpers (real-world value readouts) -----
+  function fmtVal(p,v){
+    if(p.index===0) return (v*30).toFixed(1)+" c";      // total cent spread
+    if(p.index===1) return (1+v*39).toFixed(1)+" ms";   // delay tap
+    if(p.index===2) return Math.round(v*100)+"%";       // width
+    if(p.index===3) return Math.round(v*100)+"%";       // feedback
+    return Math.round(v*100)+"%";                       // mix
+  }
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*70)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0" title="Drag vertically &middot; double-click resets">'+
+        '<i class="ring"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var ptr=cell.querySelector('.ptr');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var nrm=norm();
+      arc.style.setProperty('--n',nrm);
+      ptr.style.setProperty('--n',nrm);
+      val.textContent=fmtVal(p,v);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      onChange();
+    }
+    function setNorm(nrm){
+      nrm=nrm<0?0:nrm>1?1:nrm;
+      v=p.min+(p.max-p.min)*nrm;
+      paint();
+    }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true;startY=e.clientY;startN=norm();
+      knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?700:220;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){drag=false;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){v=p.def;paint();});
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault();setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  // ----- live visual: two detuned voices drifting on the width field -----
+  var dryEl=document.getElementById('dry');
+  var v0El=document.getElementById('v0');
+  var v1El=document.getElementById('v1');
+  var d0=document.getElementById('d0'), d1=document.getElementById('d1');
+  var c0=document.getElementById('c0'), c1=document.getElementById('c1');
+  var t0=0;
+
+  function onChange(){ /* params changed — animation loop reads state live */ }
+
+  function buildPath(amp,phaseOff,centreY,centsRatio){
+    var pts=[],N=90;
+    for(var x=0;x<=N;x++){
+      var fr=x/N;
+      var ph=fr*Math.PI*5 + phaseOff;
+      // detune makes the two voices slowly drift in/out of phase -> beating
+      var y=Math.sin(ph*centsRatio)*amp;
+      var px=fr*600;
+      var py=centreY - y;
+      pts.push(px.toFixed(1)+","+py.toFixed(1));
+    }
+    return 'M'+pts.join(' L');
+  }
+
+  function frame(){
+    if(document.hidden){ t0+=0.016; requestAnimationFrame(frame); return; }
+    t0+=0.016;
+    var detune=state[0]!=null?state[0]:0.4;
+    var width =state[2]!=null?state[2]:0.8;
+    var mix   =state[4]!=null?state[4]:0.5;
+    var fb    =state[3]!=null?state[3]:0.15;
+
+    var cents=detune*30;            // total spread
+    var half=cents*0.5;
+    // beating speed from detune; voices drift apart over time
+    var driftA=t0*(0.4+detune*2.2);
+    var amp=10+mix*18+fb*8;
+
+    // dry reference centred
+    dryEl.setAttribute('d',buildPath(amp*0.6,t0*0.6,75,1.0));
+    // voice 0 (down) sits in upper area, voice 1 (up) lower — mirrored
+    v0El.setAttribute('d',buildPath(amp,driftA,55,1-half*0.0008));
+    v1El.setAttribute('d',buildPath(amp,-driftA,95,1+half*0.0008));
+
+    // width: dots spread from centre (300) toward L(150)/R(450)
+    var spread=width*150;
+    var bob0=Math.sin(t0*1.3)*6;
+    var bob1=Math.cos(t0*1.1)*6;
+    var x0=300-spread, x1=300+spread;
+    d0.setAttribute('cx',x0.toFixed(1)); d0.setAttribute('cy',(46+bob0).toFixed(1));
+    d1.setAttribute('cx',x1.toFixed(1)); d1.setAttribute('cy',(46+bob1).toFixed(1));
+    var r=3+detune*4+Math.sin(t0*4)*0.6;
+    d0.setAttribute('r',r.toFixed(1)); d1.setAttribute('r',r.toFixed(1));
+    c0.setAttribute('x',x0.toFixed(1)); c0.setAttribute('y',(34+bob0).toFixed(1));
+    c1.setAttribute('x',x1.toFixed(1)); c1.setAttribute('y',(34+bob1).toFixed(1));
+    c0.textContent='-'+half.toFixed(1)+'c';
+    c1.textContent='+'+half.toFixed(1)+'c';
+
+    requestAnimationFrame(frame);
+  }
+
+  PARAMS.forEach(buildKnob);
+
+  function ready(){ requestAnimationFrame(frame); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

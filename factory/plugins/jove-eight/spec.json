@@ -1,0 +1,20 @@
+{
+  "name": "Jove Eight",
+  "isInstrument": true,
+  "explanation": "A lush eight-voice analog-style polyphonic synthesizer in the flagship-poly lineage. Each voice stacks TWO oscillators (a band-limited saw and a variable-width pulse with slow PWM) plus a sub-oscillator one octave down, spread by a subtle unison detune for the big stacked-string-pad character. The mixed oscillators feed a resonant 24 dB/oct low-pass driven by its own envelope (Cutoff, Env Amount, Resonance), then an amplitude envelope. Chords ring with independent contours. Controls: Cutoff, Resonance, Env Amount, PW, Detune, Attack, Release and Level.",
+  "assembly": "factory/plugins/jove-eight/assembly.ts",
+  "out": "factory/plugins/jove-eight/x.vstai",
+  "publishedAt": 1751000089000,
+  "theme": { "accent": "#6a8cff", "accent2": "#b06aff" },
+  "guiFile": "factory/plugins/jove-eight/gui.html",
+  "params": [
+    { "name": "Cutoff",    "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "EnvAmount", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "PW",        "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Detune",    "index": 4, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "Attack",    "index": 5, "min": 0, "max": 1, "default": 0.08 },
+    { "name": "Release",   "index": 6, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",     "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

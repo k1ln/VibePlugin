@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juno Glow</title>
+<style>
+  :root {
+    --bg0: #1a1714;
+    --bg1: #242019;
+    --panel: #2c2620;
+    --panel-hi: #3a332a;
+    --ink: #f3e9dd;
+    --ink-dim: #b6a892;
+    --accent: #ff8a3d;
+    --accent2: #ffd24a;
+    --slot: #100d0a;
+    --line: #443c31;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #322a22 0%, var(--bg0) 60%),
+      var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 18px 18px 26px;
+    min-height: 100%;
+  }
+
+  /* ---- chassis ---- */
+  .chassis {
+    border-radius: 16px;
+    padding: 18px;
+    background:
+      linear-gradient(180deg, #322b23 0%, #25201a 38%, #211c16 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.06) inset,
+      0 -2px 0 rgba(0,0,0,.5) inset,
+      0 24px 60px rgba(0,0,0,.55);
+    border: 1px solid #0d0b08;
+    position: relative;
+  }
+
+  /* warm brushed-metal sheen on top edge */
+  .chassis::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 14px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(180deg, rgba(255,210,150,.16), transparent);
+    pointer-events: none;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .logo {
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: 1.5px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 18px rgba(255,138,61,.25);
+  }
+
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .badge {
+    font-size: 9.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: rgba(0,0,0,.25);
+  }
+
+  /* ---- waveform scope ---- */
+  .scope {
+    height: 86px;
+    border-radius: 11px;
+    background:
+      linear-gradient(180deg, #0c0a08, #14110d);
+    border: 1px solid #000;
+    box-shadow: 0 2px 0 rgba(255,255,255,.04) inset, 0 -8px 18px rgba(0,0,0,.5) inset;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scope svg { display: block; width: 100%; height: 100%; }
+
+  /* ---- slider panel ---- */
+  .panel {
+    background:
+      linear-gradient(180deg, var(--panel-hi), var(--panel) 30%, #241f19);
+    border: 1px solid #0e0c09;
+    border-radius: 13px;
+    padding: 16px 14px 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 14px 26px rgba(0,0,0,.4);
+  }
+
+  .faders {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+  }
+
+  .fader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    user-select: none;
+  }
+
+  .slot {
+    position: relative;
+    width: 34px;
+    height: 168px;
+    border-radius: 8px;
+    background:
+      linear-gradient(90deg, #050403, #1c1712 18%, #1c1712 82%, #050403);
+    box-shadow:
+      0 0 0 1px #0a0805,
+      0 3px 7px rgba(0,0,0,.5) inset;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+
+  /* center groove */
+  .slot::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    transform: translateX(-50%);
+    border-radius: 4px;
+    background: linear-gradient(180deg, #000, #221c16);
+    box-shadow: 0 0 3px #000 inset;
+  }
+
+  /* lit fill below the cap */
+  .fill {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    width: 4px;
+    transform: translateX(-50%);
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 8px rgba(255,138,61,.7);
+    pointer-events: none;
+  }
+
+  /* tick marks */
+  .ticks {
+    position: absolute;
+    right: 3px;
+    top: 8px;
+    bottom: 8px;
+    width: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    opacity: .5;
+  }
+  .ticks i {
+    display: block;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* the cap */
+  .cap {
+    position: absolute;
+    left: 50%;
+    width: 30px;
+    height: 20px;
+    margin-left: -15px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #5a5046, #342d25 55%, #1f1a15);
+    box-shadow:
+      0 1px 0 rgba(255,235,200,.35) inset,
+      0 -2px 3px rgba(0,0,0,.6) inset,
+      0 5px 9px rgba(0,0,0,.55);
+    border: 1px solid #14100c;
+    transition: box-shadow .12s ease;
+  }
+  .cap::after {
+    content: "";
+    position: absolute;
+    left: 4px; right: 4px;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent2), transparent);
+    box-shadow: 0 0 6px var(--accent);
+    opacity: .85;
+  }
+  .fader.active .cap,
+  .fader:hover .cap {
+    box-shadow:
+      0 1px 0 rgba(255,235,200,.45) inset,
+      0 -2px 3px rgba(0,0,0,.6) inset,
+      0 6px 12px rgba(0,0,0,.6),
+      0 0 14px rgba(255,138,61,.55);
+  }
+
+  .lbl {
+    font-size: 9.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+    height: 12px;
+  }
+  .val {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+    text-shadow: 0 0 8px rgba(255,210,74,.35);
+  }
+
+  /* ---- bottom row: chorus + keyboard ---- */
+  .row {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 16px;
+    margin-top: 16px;
+    align-items: stretch;
+  }
+
+  .chorus-bay {
+    background: linear-gradient(180deg, var(--panel-hi), #241f19);
+    border: 1px solid #0e0c09;
+    border-radius: 13px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset;
+  }
+  .chorus-bay .lbl { font-size: 10px; letter-spacing: 2.5px; }
+
+  .chorus-btn {
+    position: relative;
+    width: 92px;
+    height: 50px;
+    border-radius: 9px;
+    border: 1px solid #0d0b08;
+    background: linear-gradient(180deg, #2c261f, #1c1813);
+    cursor: pointer;
+    color: var(--ink-dim);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+    transition: all .18s ease;
+    box-shadow: 0 3px 7px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.05) inset;
+  }
+  .chorus-btn .led {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #3a2f22;
+    box-shadow: 0 0 0 1px #000 inset;
+    transition: all .18s ease;
+  }
+  .chorus-btn .txt { position: absolute; bottom: 9px; left: 0; right: 0; text-align: center; }
+  .chorus-btn.on {
+    color: var(--accent2);
+    border-color: var(--accent);
+    background: linear-gradient(180deg, #4a3318, #2a1d0e);
+    box-shadow:
+      0 3px 7px rgba(0,0,0,.45),
+      0 1px 0 rgba(255,235,200,.18) inset,
+      0 0 22px rgba(255,138,61,.5);
+  }
+  .chorus-btn.on .led {
+    background: var(--accent2);
+    box-shadow: 0 0 10px var(--accent2), 0 0 18px var(--accent);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--accent2), 0 0 14px var(--accent); }
+    50%      { box-shadow: 0 0 14px var(--accent2), 0 0 26px var(--accent); }
+  }
+
+  /* keyboard */
+  .keybay {
+    background: linear-gradient(180deg, #1d1813, #15110d);
+    border: 1px solid #0d0b08;
+    border-radius: 13px;
+    padding: 10px;
+    box-shadow: 0 2px 0 rgba(255,255,255,.04) inset;
+  }
+  .keys {
+    position: relative;
+    height: 116px;
+    display: flex;
+    gap: 3px;
+  }
+  .wkey {
+    flex: 1;
+    border-radius: 0 0 6px 6px;
+    background: linear-gradient(180deg, #efe7da, #c7bba8);
+    border: 1px solid #0d0b08;
+    box-shadow: 0 -3px 6px rgba(0,0,0,.25) inset, 0 3px 5px rgba(0,0,0,.4);
+    cursor: pointer;
+    position: relative;
+    transition: background .07s ease;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 16px rgba(255,138,61,.6) inset;
+  }
+  .bkeys {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 68px;
+    pointer-events: none;
+  }
+  .bkey {
+    position: absolute;
+    width: 5.4%;
+    height: 100%;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #2a241d, #0c0a07);
+    border: 1px solid #000;
+    box-shadow: 0 3px 5px rgba(0,0,0,.6);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background .07s ease;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #b3551f);
+    box-shadow: 0 0 14px rgba(255,138,61,.7) inset;
+  }
+
+  footer {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  footer b { color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="chassis">
+      <header>
+        <div class="brand">
+          <span class="logo">JUNO GLOW</span>
+          <span class="tagline">6-Voice DCO Poly</span>
+        </div>
+        <span class="badge">Ensemble Chorus</span>
+      </header>
+
+      <div class="scope">
+        <svg viewBox="0 0 600 86" preserveAspectRatio="none" aria-hidden="true">
+          <path id="waveA" fill="none" stroke="var(--accent)" stroke-width="2"></path>
+          <path id="waveB" fill="none" stroke="var(--accent2)" stroke-width="1.6" opacity="0.7"></path>
+        </svg>
+      </div>
+
+      <div class="panel">
+        <div class="faders" id="faders"></div>
+      </div>
+
+      <div class="row">
+        <div class="chorus-bay">
+          <span class="lbl">Chorus</span>
+          <button class="chorus-btn" id="chorusBtn" title="Toggle ensemble chorus (double-click a fader to reset)">
+            <span class="led"></span>
+            <span class="txt" id="chorusTxt">Off</span>
+          </button>
+          <span class="val" id="chorusVal">0%</span>
+        </div>
+
+        <div class="keybay">
+          <div class="keys" id="keys"></div>
+        </div>
+      </div>
+
+      <footer>Play with your <b>mouse</b> or computer keys <b>A&ndash;K</b> &middot; drag faders, double-click to reset</footer>
+    </div>
+  </div>
+
+<script>
+  "use strict";
+
+  // ---- parameter model (indices match assembly.ts / spec.json) ----
+  var PARAMS = [
+    { name: "Cutoff",  index: 0, min: 0, max: 1, def: 0.55 },
+    { name: "Reso",    index: 1, min: 0, max: 1, def: 0.30 },
+    { name: "Env Amt", index: 2, min: 0, max: 1, def: 0.55 },
+    { name: "PWM",     index: 3, min: 0, max: 1, def: 0.40 },
+    { name: "Sub",     index: 4, min: 0, max: 1, def: 0.45 },
+    { name: "Chorus",  index: 5, min: 0, max: 1, def: 0.60 },
+    { name: "Release", index: 6, min: 0, max: 1, def: 0.35 },
+    { name: "Level",   index: 7, min: 0, max: 1, def: 0.70 }
+  ];
+
+  var CHORUS_I = 5;
+  var values = {};
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+  function pushParam(p, v) {
+    values[p.index] = v;
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(p.index, v);
+    }
+  }
+
+  // ---- build faders ----
+  var fadersEl = document.getElementById("faders");
+  var fillEls = {};
+  var capEls = {};
+  var valEls = {};
+
+  PARAMS.forEach(function (p) {
+    var col = document.createElement("div");
+    col.className = "fader";
+
+    var slot = document.createElement("div");
+    slot.className = "slot";
+
+    var ticks = document.createElement("div");
+    ticks.className = "ticks";
+    for (var t = 0; t < 9; t++) { ticks.appendChild(document.createElement("i")); }
+    slot.appendChild(ticks);
+
+    var fill = document.createElement("div");
+    fill.className = "fill";
+    slot.appendChild(fill);
+
+    var cap = document.createElement("div");
+    cap.className = "cap";
+    slot.appendChild(cap);
+
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    col.appendChild(slot);
+    col.appendChild(lbl);
+    col.appendChild(val);
+    fadersEl.appendChild(col);
+
+    fillEls[p.index] = fill;
+    capEls[p.index] = cap;
+    valEls[p.index] = val;
+
+    function norm(v) { return (v - p.min) / (p.max - p.min); }
+
+    function paint(v) {
+      var n = clamp(norm(v), 0, 1);
+      var travel = 168 - 16 - 20;       // slot height - padding - cap
+      var y = (1 - n) * travel + 8;     // top offset of cap
+      cap.style.top = y + "px";
+      var fh = n * (168 - 16);
+      fill.style.height = fh + "px";
+      val.textContent = Math.round(n * 100) + "%";
+      if (p.index === CHORUS_I) { syncChorus(v); }
+    }
+
+    function setVal(v) {
+      v = clamp(v, p.min, p.max);
+      pushParam(p, v);
+      paint(v);
+    }
+
+    // drag
+    var dragging = false, startY = 0, startV = 0;
+    slot.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      startY = e.clientY;
+      startV = values[p.index];
+      col.classList.add("active");
+      slot.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    slot.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var travel = 168;
+      var dv = (startY - e.clientY) / travel * (p.max - p.min);
+      setVal(startV + dv);
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      col.classList.remove("active");
+      try { slot.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    slot.addEventListener("pointerup", endDrag);
+    slot.addEventListener("pointercancel", endDrag);
+
+    slot.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var step = (p.max - p.min) * 0.02;
+      setVal(values[p.index] - Math.sign(e.deltaY) * step);
+    }, { passive: false });
+
+    // double-click reset
+    slot.addEventListener("dblclick", function () { setVal(p.def); });
+
+    p._setVal = setVal;
+    setVal(p.def);
+  });
+
+  // ---- chorus toggle ----
+  var chorusBtn = document.getElementById("chorusBtn");
+  var chorusTxt = document.getElementById("chorusTxt");
+  var chorusValEl = document.getElementById("chorusVal");
+  var chorusParam = PARAMS[CHORUS_I];
+  var lastChorusOn = chorusParam.def;   // remembered amount when toggled back on
+
+  function syncChorus(v) {
+    var on = v > 0.001;
+    chorusBtn.classList.toggle("on", on);
+    chorusTxt.textContent = on ? "On" : "Off";
+    chorusValEl.textContent = Math.round((v - chorusParam.min) / (chorusParam.max - chorusParam.min) * 100) + "%";
+    if (on) { lastChorusOn = v; }
+  }
+
+  chorusBtn.addEventListener("click", function () {
+    var cur = values[CHORUS_I];
+    if (cur > 0.001) {
+      chorusParam._setVal(0);
+    } else {
+      chorusParam._setVal(lastChorusOn > 0.05 ? lastChorusOn : chorusParam.def);
+    }
+  });
+
+  // ---- on-screen keyboard ----
+  var keysEl = document.getElementById("keys");
+  // one octave + a bit, starting at C4 (MIDI 60)
+  var WHITE = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76];
+  var BLACK = [
+    { midi: 61, after: 0 }, { midi: 63, after: 1 },
+    { midi: 66, after: 3 }, { midi: 68, after: 4 }, { midi: 70, after: 5 },
+    { midi: 73, after: 7 }, { midi: 75, after: 8 }
+  ];
+  var keyEl = {};
+
+  WHITE.forEach(function (m) {
+    var k = document.createElement("div");
+    k.className = "wkey";
+    k.dataset.midi = m;
+    keysEl.appendChild(k);
+    keyEl[m] = k;
+  });
+
+  var bwrap = document.createElement("div");
+  bwrap.className = "bkeys";
+  keysEl.appendChild(bwrap);
+  var whiteCount = WHITE.length;
+  BLACK.forEach(function (b) {
+    var k = document.createElement("div");
+    k.className = "bkey";
+    k.dataset.midi = b.midi;
+    // place between white keys: center at boundary
+    var leftPct = ((b.after + 1) / whiteCount) * 100;
+    k.style.left = "calc(" + leftPct + "% - 2.7%)";
+    bwrap.appendChild(k);
+    keyEl[b.midi] = k;
+  });
+
+  var down = {};
+
+  function noteOn(m) {
+    if (down[m]) return;
+    down[m] = true;
+    if (keyEl[m]) keyEl[m].classList.add("down");
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(m, 0.9);
+    scopeKick();
+  }
+  function noteOff(m) {
+    if (!down[m]) return;
+    down[m] = false;
+    if (keyEl[m]) keyEl[m].classList.remove("down");
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(m);
+  }
+
+  function bindKey(el) {
+    var m = parseInt(el.dataset.midi, 10);
+    el.addEventListener("pointerdown", function (e) { e.preventDefault(); noteOn(m); el.setPointerCapture(e.pointerId); });
+    el.addEventListener("pointerup", function () { noteOff(m); });
+    el.addEventListener("pointerleave", function () { noteOff(m); });
+    el.addEventListener("pointercancel", function () { noteOff(m); });
+  }
+  Object.keys(keyEl).forEach(function (m) { bindKey(keyEl[m]); });
+
+  // computer keyboard A..K row -> C major-ish
+  var KEYMAP = { a: 60, w: 61, s: 62, e: 63, d: 64, f: 65, t: 66, g: 67, y: 68, h: 69, u: 70, j: 71, k: 72 };
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var m = KEYMAP[e.key.toLowerCase()];
+    if (m) noteOn(m);
+  });
+  window.addEventListener("keyup", function (e) {
+    var m = KEYMAP[e.key.toLowerCase()];
+    if (m) noteOff(m);
+  });
+
+  // ---- animated doubled-waveform scope ----
+  var waveA = document.getElementById("waveA");
+  var waveB = document.getElementById("waveB");
+  var W = 600, H = 86, MID = H / 2;
+  var phase = 0;
+  var energy = 0.18;   // visual amplitude that swells when notes play
+
+  function scopeKick() { energy = 0.95; }
+
+  function buildPath(off, ampScale) {
+    var cutoff = values[0];          // brightness -> more harmonics
+    var pwm = values[3];             // pulse width adds a step
+    var chorus = values[5];          // width -> phase split between A/B
+    var amp = (0.22 + 0.55 * energy) * ampScale;
+    var harm = 1 + Math.round(cutoff * 5);
+    var pts = [];
+    for (var x = 0; x <= W; x += 6) {
+      var t = x / W * Math.PI * 2 * 2;           // 2 cycles across
+      var s = Math.sin(t + phase + off);
+      // add harmonics for brightness
+      for (var hN = 2; hN <= harm; hN++) {
+        s += Math.sin(t * hN + phase * hN + off) * (1 / hN) * 0.7;
+      }
+      // pulse-ish shaping from PWM
+      s += (Math.sin(t * 0.5 + off) > (pwm - 0.5) ? 0.18 : -0.18) * pwm;
+      var y = MID - s * amp * MID;
+      pts.push(x + "," + y.toFixed(1));
+    }
+    return "M" + pts.join(" L");
+  }
+
+  function frame() {
+    if (!document.hidden) {
+      phase += 0.06;
+      energy += (0.18 - energy) * 0.02;          // ease back to idle
+      var split = values[5] * 0.9;               // chorus widens the two traces
+      waveA.setAttribute("d", buildPath(0, 1));
+      waveB.setAttribute("d", buildPath(split + 0.4, 0.92));
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- host handshake ----
+  function pushAll() {
+    PARAMS.forEach(function (p) { pushParam(p, values[p.index]); });
+  }
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(pushAll);
+  } else {
+    pushAll();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Additive</title>
+<style>
+  :root{
+    --accent:#54d1ff;
+    --accent2:#b0e0ff;
+    --bg:#04080d;
+    --panel:#0a131c;
+    --grid:#0e2230;
+    --ink:#dff3ff;
+    --dim:#5b7b8c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 70% -10%, rgba(84,209,255,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 120%, rgba(176,224,255,.07), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"SF Mono",ui-monospace,"Roboto Mono",Menlo,Consolas,monospace;
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    height:100%;
+  }
+  .unit{
+    width:760px;max-width:96vw;
+    border:1px solid #11303f;
+    border-radius:18px;
+    background:linear-gradient(180deg,#08121b,#050b12);
+    box-shadow:0 30px 80px rgba(0,0,0,.7), inset 0 1px 0 rgba(176,224,255,.06);
+    padding:20px 22px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  /* faint moving scan sheen */
+  .unit::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 40%,rgba(84,209,255,.05) 50%,transparent 60%);
+    background-size:300% 300%;
+    animation:sheen 9s linear infinite;
+  }
+  @keyframes sheen{0%{background-position:120% 0}100%{background-position:-120% 0}}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;position:relative;z-index:2;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .logo{
+    width:30px;height:30px;border-radius:8px;
+    border:1px solid rgba(84,209,255,.5);
+    display:grid;place-items:center;
+    background:radial-gradient(circle at 50% 30%,rgba(84,209,255,.25),transparent 70%);
+  }
+  .logo span{width:3px;height:16px;background:var(--accent);border-radius:2px;box-shadow:0 0 8px var(--accent);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{transform:scaleY(.5);opacity:.6}50%{transform:scaleY(1);opacity:1}}
+  .title h1{font-size:17px;letter-spacing:3px;font-weight:600;}
+  .title small{font-size:9.5px;letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;}
+  .badge{font-size:9px;letter-spacing:2px;color:var(--accent2);border:1px solid #163a4c;border-radius:20px;padding:5px 11px;text-transform:uppercase;}
+
+  .scope-wrap{
+    position:relative;z-index:2;
+    border:1px solid var(--grid);border-radius:12px;
+    background:linear-gradient(180deg,#061018,#040a10);
+    padding:8px 10px 4px;margin-bottom:14px;
+    overflow:hidden;
+  }
+  .scope-wrap .tag{position:absolute;top:7px;left:11px;font-size:8.5px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;z-index:3;}
+  svg{display:block;width:100%;}
+
+  .row{display:grid;grid-template-columns:1fr 300px;gap:16px;position:relative;z-index:2;}
+  .card{border:1px solid var(--grid);border-radius:12px;background:linear-gradient(180deg,#08121a,#050c13);padding:11px 12px;}
+  .card h2{font-size:9px;letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;margin-bottom:9px;display:flex;justify-content:space-between;}
+
+  /* harmonic bars */
+  .bars{display:flex;align-items:flex-end;gap:4px;height:118px;}
+  .bar{
+    flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;
+    height:100%;border-radius:3px 3px 0 0;cursor:default;
+  }
+  .bar i{
+    display:block;width:100%;border-radius:3px 3px 0 0;
+    background:linear-gradient(180deg,var(--accent),#1d7aa8);
+    box-shadow:0 0 7px rgba(84,209,255,.45);
+    transition:height .12s cubic-bezier(.2,.8,.2,1),background .2s;
+  }
+  .bar.even i{background:linear-gradient(180deg,var(--accent2),#3a6f93);}
+  .bar:hover i{filter:brightness(1.35);}
+  .bar b{position:absolute;bottom:-13px;left:0;right:0;text-align:center;font-size:7px;color:var(--dim);}
+
+  /* knobs */
+  .knobs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;}
+  .knob{display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .dial{
+    width:52px;height:52px;border-radius:50%;position:relative;cursor:ns-resize;
+    background:radial-gradient(circle at 50% 35%,#15303f,#091820);
+    border:1px solid #1c4256;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.6), 0 0 0 1px rgba(84,209,255,.06);
+    touch-action:none;
+  }
+  .dial::after{
+    content:"";position:absolute;inset:6px;border-radius:50%;
+    background:conic-gradient(from -135deg,var(--accent) var(--deg,0deg),#0c1c26 0);
+    -webkit-mask:radial-gradient(circle,transparent 56%,#000 57%);
+    mask:radial-gradient(circle,transparent 56%,#000 57%);
+    opacity:.9;
+  }
+  .dial .ptr{
+    position:absolute;left:50%;top:50%;width:2px;height:18px;
+    background:var(--accent2);border-radius:2px;transform-origin:50% 100%;
+    transform:translate(-50%,-100%) rotate(var(--rot,0deg));
+    box-shadow:0 0 6px var(--accent);
+  }
+  .dial:hover{border-color:var(--accent);}
+  .knob label{font-size:8.5px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;text-align:center;}
+  .knob .val{font-size:10px;color:var(--accent2);letter-spacing:.5px;font-variant-numeric:tabular-nums;}
+
+  .foot{margin-top:13px;display:flex;justify-content:space-between;align-items:center;font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;position:relative;z-index:2;}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 7px var(--accent);animation:blink 2s ease-in-out infinite;margin-right:6px;vertical-align:middle;}
+  @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="unit">
+  <header>
+    <div class="brand">
+      <div class="logo"><span></span></div>
+      <div class="title"><h1>ADDITIVE</h1><small>Fourier Voice Engine</small></div>
+    </div>
+    <div class="badge">32 partials · 8 voices</div>
+  </header>
+
+  <div class="scope-wrap">
+    <div class="tag">Summed Waveform</div>
+    <svg id="scope" viewBox="0 0 720 120" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wf" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#b0e0ff"/>
+          <stop offset="1" stop-color="#54d1ff"/>
+        </linearGradient>
+        <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="rgba(84,209,255,.28)"/>
+          <stop offset="1" stop-color="rgba(84,209,255,0)"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="60" x2="720" y2="60" stroke="#0e2230" stroke-width="1"/>
+      <path id="wfFill" fill="url(#fill)" d=""/>
+      <path id="wfLine" fill="none" stroke="url(#wf)" stroke-width="2" d=""/>
+    </svg>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2><span>Harmonic Spectrum</span><span id="specInfo">live</span></h2>
+      <div class="bars" id="bars"></div>
+      <div style="height:14px"></div>
+    </div>
+    <div class="card">
+      <h2><span>Voice</span><span>drag · dbl-click reset</span></h2>
+      <div class="knobs" id="knobs"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div><span class="dot"></span>Additive Synthesis</div>
+    <div>cyan lab · #54d1ff</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NHARM = 16;
+
+  // ---- param model (index must match assembly.ts / spec.json) -------
+  var PARAMS = [
+    { name:"Odd",      idx:0, def:0.85 },
+    { name:"Even",     idx:1, def:0.45 },
+    { name:"Bright",   idx:2, def:0.55 },
+    { name:"S.Decay",  idx:3, def:0.40 },
+    { name:"Attack",   idx:4, def:0.04 },
+    { name:"Release",  idx:5, def:0.45 },
+    { name:"Level",    idx:6, def:0.60 }
+  ];
+  var val = PARAMS.map(function(p){ return p.def; });
+
+  function send(i,v){
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+  function pushAll(){ for(var i=0;i<PARAMS.length;i++) send(PARAMS[i].idx, val[i]); }
+
+  // ---- harmonic bars (visual model of the spectral shape) ----------
+  var barsEl = document.getElementById("bars");
+  var barInner = [];
+  for(var h=0; h<NHARM; h++){
+    var b = document.createElement("div");
+    b.className = "bar" + (((h+1)&1)===0 ? " even" : "");
+    var inn = document.createElement("i");
+    var lbl = document.createElement("b");
+    lbl.textContent = (h+1);
+    b.appendChild(inn); b.appendChild(lbl);
+    barsEl.appendChild(b);
+    barInner.push(inn);
+  }
+
+  // compute the static harmonic amplitude profile exactly like the DSP
+  function harmAmps(){
+    var odd=val[0], even=val[1], bright=val[2];
+    var tilt = 0.35 + bright*1.35;
+    var a = new Array(NHARM), norm=0;
+    for(var h=0; h<NHARM; h++){
+      var hn=h+1, isOdd=(hn&1)===1;
+      var oe = isOdd?odd:even;
+      var roll = Math.pow(hn, -tilt);
+      var v = oe*roll;
+      a[h]=v; norm+=v;
+    }
+    var inv = norm>1e-4 ? 1/norm : 1;
+    for(var k=0;k<NHARM;k++) a[k]*=inv;
+    return a;
+  }
+
+  function drawBars(){
+    var a = harmAmps();
+    var mx = 0; for(var i=0;i<a.length;i++) mx=Math.max(mx,a[i]);
+    mx = mx>1e-4?mx:1;
+    for(var h=0;h<NHARM;h++){
+      var pct = Math.max(2, (a[h]/mx)*100);
+      barInner[h].style.height = pct + "%";
+    }
+    return a;
+  }
+
+  // ---- summed-waveform scope (animated) ----------------------------
+  var line = document.getElementById("wfLine");
+  var fill = document.getElementById("wfFill");
+  var W=720, H=120, MID=60, N=240;
+  var t=0;
+  function drawScope(amps){
+    var sdecay = val[3];
+    var d = "M0 "+MID, fd = "M0 "+H;
+    for(var x=0; x<=N; x++){
+      var ph = x/N; // one fundamental cycle across the view
+      var s=0;
+      for(var h=0;h<NHARM;h++){
+        var hn=h+1;
+        // animated spectral fade: highs shimmer with S.Decay
+        var fade = 1 - (hn/NHARM)*(1-sdecay)*0.5*(0.5+0.5*Math.sin(t*0.9 + hn*0.4));
+        s += amps[h]*fade*Math.sin(2*Math.PI*hn*ph);
+      }
+      var px = (x/N)*W;
+      var py = MID - s*48;
+      d  += " L"+px.toFixed(1)+" "+py.toFixed(1);
+      fd += " L"+px.toFixed(1)+" "+py.toFixed(1);
+    }
+    fd += " L"+W+" "+H+" Z";
+    line.setAttribute("d", d);
+    fill.setAttribute("d", fd);
+  }
+
+  var cachedAmps = null;
+  function refreshVisual(){ cachedAmps = drawBars(); }
+  function loop(){ t+=0.05; if(cachedAmps) drawScope(cachedAmps); requestAnimationFrame(loop); }
+
+  // ---- knobs --------------------------------------------------------
+  var knobsEl = document.getElementById("knobs");
+  var dials = [];
+  PARAMS.forEach(function(p, i){
+    var wrap = document.createElement("div"); wrap.className="knob";
+    var dial = document.createElement("div"); dial.className="dial";
+    var ptr  = document.createElement("div"); ptr.className="ptr";
+    dial.appendChild(ptr);
+    var label= document.createElement("label"); label.textContent=p.name;
+    var vEl  = document.createElement("div"); vEl.className="val";
+    wrap.appendChild(dial); wrap.appendChild(label); wrap.appendChild(vEl);
+    knobsEl.appendChild(wrap);
+
+    function paint(){
+      var v = val[i];
+      var deg = v*270;             // arc fill
+      var rot = -135 + v*270;      // pointer
+      dial.style.setProperty("--deg", deg+"deg");
+      dial.style.setProperty("--rot", rot+"deg");
+      vEl.textContent = v.toFixed(2);
+    }
+    function set(v, push){
+      v = v<0?0:(v>1?1:v);
+      val[i]=v; paint();
+      refreshVisual();
+      if(push!==false) send(p.idx, v);
+    }
+    dials.push({ paint:paint, set:set });
+
+    // vertical drag
+    var dragging=false, startY=0, startV=0;
+    function down(e){
+      dragging=true;
+      startY=(e.touches?e.touches[0].clientY:e.clientY);
+      startV=val[i];
+      e.preventDefault();
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      set(startV + (startY-y)/180);
+      e.preventDefault();
+    }
+    function up(){ dragging=false; }
+    dial.addEventListener("mousedown", down);
+    dial.addEventListener("touchstart", down, {passive:false});
+    window.addEventListener("mousemove", move);
+    window.addEventListener("touchmove", move, {passive:false});
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchend", up);
+    dial.addEventListener("dblclick", function(){ set(p.def); });
+    dial.addEventListener("wheel", function(e){ set(val[i] - e.deltaY*0.0008); e.preventDefault(); }, {passive:false});
+
+    paint();
+  });
+
+  // ---- boot ---------------------------------------------------------
+  function ready(){
+    for(var i=0;i<PARAMS.length;i++){ dials[i].paint(); }
+    refreshVisual();
+    pushAll();
+    loop();
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
+  else ready();
+})();
+</script>
+</body>
+</html>

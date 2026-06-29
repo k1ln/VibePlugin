@@ -1,0 +1,17 @@
+{
+  "name": "Diode Comp",
+  "isInstrument": false,
+  "explanation": "A diode-bridge style bus compressor with a smooth, slightly coloured character. A stereo-linked peak/RMS detector feeds a dB-domain gain computer with a wide over-easy soft knee; Attack and Release shape the gain-reduction envelope. The signal passes through a gentle asymmetric diode-bridge transfer that adds a touch of even-harmonic warmth, so loud material is squeezed and coloured more than quiet passages for a classy, glued sound. Controls: Threshold, Ratio, Attack, Release and Makeup.",
+  "assembly": "factory/plugins/diode-comp/assembly.ts",
+  "out": "factory/plugins/diode-comp/x.vstai",
+  "publishedAt": 1751000085000,
+  "theme": { "accent": "#b0b8c0", "accent2": "#d96a6a" },
+  "guiFile": "factory/plugins/diode-comp/gui.html",
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "Ratio",     "index": 1, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "Attack",    "index": 2, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Release",   "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Makeup",    "index": 4, "min": 0, "max": 1, "default": 0.28 }
+  ]
+}

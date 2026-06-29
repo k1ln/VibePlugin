@@ -1,0 +1,18 @@
+{
+  "name": "Tine Piano",
+  "isInstrument": true,
+  "explanation": "A polyphonic electric tine-piano instrument. Each voice is a struck metal tine modelled with two-operator FM — a sine carrier at pitch plus a higher-ratio modulator whose index decays fast for the bright bell/bark attack that melts into a mellow sine body. Velocity drives the bark amount and brightness, a natural two-stage decay keeps notes singing, and a gentle opposed-phase stereo tremolo adds the classic suitcase sway. Controls: Bell (attack FM amount), Decay, Tone, Tremolo Depth, Tremolo Rate and Level.",
+  "assembly": "factory/plugins/tine-piano/assembly.ts",
+  "out": "factory/plugins/tine-piano/x.vstai",
+  "publishedAt": 1751000080000,
+  "theme": { "accent": "#e0a060", "accent2": "#ffcf8a" },
+  "guiFile": "factory/plugins/tine-piano/gui.html",
+  "params": [
+    { "name": "Bell",          "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Decay",         "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Tone",          "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tremolo Depth", "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Tremolo Rate",  "index": 4, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Level",         "index": 5, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

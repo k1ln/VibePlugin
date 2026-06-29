@@ -1,0 +1,17 @@
+{
+  "name": "Drip Tank",
+  "isInstrument": false,
+  "explanation": "A drippy outboard spring-reverb tank — the long, boingy surf-amp spring sound, not a tight studio plate. Three parallel spring lines, each a chain of dispersive allpass filters (high frequencies arrive before low ones, giving the signature chirpy 'drip' and flutter) feeding a short damped delay loop. A built-in transient detector fires an excitation burst into the tank, so hard hits audibly boing. Controls: Mix, Dwell (send/level into the tank), Boing (excitation/drip intensity), Tone (dark to bright) and Decay (tail length). Bounded feedback — it never runs away.",
+  "assembly": "factory/plugins/drip-tank/assembly.ts",
+  "out": "factory/plugins/drip-tank/x.vstai",
+  "publishedAt": 1751000106000,
+  "theme": { "accent": "#d98a4a", "accent2": "#ffd86a" },
+  "guiFile": "factory/plugins/drip-tank/gui.html",
+  "params": [
+    { "name": "Mix",   "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Dwell", "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Boing", "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tone",  "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Decay", "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

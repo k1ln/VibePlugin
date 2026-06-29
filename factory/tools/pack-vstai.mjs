@@ -188,7 +188,9 @@ ${cells}
 // =====================================================================
 function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   const accent = (opts && opts.accent) || "#ffb454";
-  const shim = '<script>window.vstai={onReady:function(f){f()},setParam:function(i,v){parent.postMessage({t:"p",i:i,v:v},"*")},noteOn:function(id,f,v){parent.postMessage({t:"on",id:id,f:f,v:v},"*")},noteOff:function(id){parent.postMessage({t:"off",id:id},"*")}};<\/script>';
+  // GUIs (and the gallery contract) call noteOn(midiNote, velocity); the bench
+  // turns the MIDI note into Hz in the message handler below.
+  const shim = '<script>window.vstai={onReady:function(f){f()},setParam:function(i,v){parent.postMessage({t:"p",i:i,v:v},"*")},noteOn:function(n,v){parent.postMessage({t:"on",id:n,v:v},"*")},noteOff:function(id){parent.postMessage({t:"off",id:id},"*")}};<\/script>';
   // use the plugin's own (bespoke) GUI if supplied, else the default generator;
   // inject the vstai shim robustly wherever the doc lets us.
   let gui = guiHtml || genHtml(name, params, opts);
@@ -197,7 +199,8 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   else gui = shim + gui;
   const guiLit = JSON.stringify(gui).replace(/<\//g, "<\\/");
   const keys = isInstrument
-    ? `<div class="kb" id="kb"></div>`
+    ? `<div class="krow"><span class="klabel">Octave</span><button id="octdn" class="oct" type="button">−</button><span id="octval" class="octval">4</span><button id="octup" class="oct" type="button">+</button><span class="khint">or Z / X keys</span></div>
+       <div class="kb" id="kb"></div>`
     : `<div class="row"><label>Source
          <select id="src"><option value="riff">Musical riff</option><option value="mic">Microphone</option><option value="file">Audio file…</option></select></label>
          <input type="file" id="file" accept="audio/*" style="display:none"></div>`;
@@ -224,6 +227,11 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   select,input[type=file]{font:inherit;color:#e7eef6;background:#10151e;border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:7px 9px}
   label{display:flex;gap:8px;align-items:center;color:#aeb9cc}
   .st{font-size:12px;color:#8da0bd;min-height:16px}
+  .krow{display:flex;gap:8px;align-items:center;color:#aeb9cc;font-size:12px}
+  .krow .klabel{font-weight:600;letter-spacing:.03em}
+  .krow .oct{padding:4px 13px;font-size:16px;line-height:1;background:#28313f;color:#e7eef6;border-radius:8px}
+  .krow .octval{min-width:22px;text-align:center;font-weight:800;color:var(--ac);font-variant-numeric:tabular-nums}
+  .krow .khint{margin-left:4px;color:#7c8aa3;font-size:11px}
   .kb{display:flex;gap:3px;flex-wrap:wrap}
   .kb .key{width:30px;height:80px;border-radius:0 0 7px 7px;background:linear-gradient(#f4f7fb,#cdd5e0);
     border:1px solid #2a3344;cursor:pointer;color:#1a2230;font-size:9px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;transition:.08s}
@@ -245,7 +253,7 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   function memF(){return new Float32Array(ex.memory.buffer);}
   window.addEventListener('message',function(e){var d=e.data||{};
     if(d.t==='p'){pcache[d.i]=d.v; if(ex) memF()[parPtr+d.i]=d.v;}
-    else if(d.t==='on'&&ex&&ex.noteOn) ex.noteOn(d.id,d.f,d.v);
+    else if(d.t==='on'&&ex&&ex.noteOn) ex.noteOn(d.id,440*Math.pow(2,(d.id-69)/12),d.v==null?0.9:d.v);
     else if(d.t==='off'&&ex&&ex.noteOff) ex.noteOff(d.id);});
   function st(m){document.getElementById('st').textContent=m;}
   var cv=document.getElementById('scope'), g=cv.getContext('2d');
@@ -303,16 +311,23 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   ${isInstrument ? `
   var KB=document.getElementById('kb'), KEYS=[['C',60,0],['C#',61,1],['D',62,0],['D#',63,1],['E',64,0],['F',65,0],['F#',66,1],['G',67,0],['G#',68,1],['A',69,0],['A#',70,1],['B',71,0],['C',72,0]];
   var KMAP={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
+  var oct=0;                                              // octave offset (−4..+4), applied at note-on
   function hz(m){return 440*Math.pow(2,(m-69)/12);}
+  function setOct(o){ oct=o<-4?-4:(o>4?4:o); var ov=document.getElementById('octval'); if(ov)ov.textContent=(4+oct); }
   function down(m,el){ ensure().then(function(){ if(ctx.state==='suspended')ctx.resume(); if(ex&&ex.noteOn) ex.noteOn(m,hz(m),0.9); }); if(el)el.classList.add('dn'); }
   function up(m,el){ if(ex&&ex.noteOff) ex.noteOff(m); if(el)el.classList.remove('dn'); }
   KEYS.forEach(function(k){ var el=document.createElement('div'); el.className='key'+(k[2]?' bk':''); el.textContent=k[0];
-    el.addEventListener('pointerdown',function(e){e.preventDefault();down(k[1],el);});
-    el.addEventListener('pointerup',function(){up(k[1],el);}); el.addEventListener('pointerleave',function(){up(k[1],el);});
+    el.addEventListener('pointerdown',function(e){e.preventDefault();el._n=k[1]+oct*12;down(el._n,el);});
+    el.addEventListener('pointerup',function(){up(el._n,el);}); el.addEventListener('pointerleave',function(){if(el.classList.contains('dn'))up(el._n,el);});
     KB.appendChild(el); });
-  var held={};
-  window.addEventListener('keydown',function(e){ var m=KMAP[e.key]; if(m&&!held[m]){held[m]=1;down(m,null);} });
-  window.addEventListener('keyup',function(e){ var m=KMAP[e.key]; if(m){held[m]=0;up(m,null);} });
+  document.getElementById('octdn').addEventListener('click',function(){setOct(oct-1);});
+  document.getElementById('octup').addEventListener('click',function(){setOct(oct+1);});
+  var held={};                                            // base note -> actual note played (so releases survive an octave change)
+  window.addEventListener('keydown',function(e){ if(e.repeat)return;
+    if(e.key==='z'||e.key==='Z'){setOct(oct-1);return;} if(e.key==='x'||e.key==='X'){setOct(oct+1);return;}
+    var b=KMAP[e.key]; if(b&&!held[b]){var m=b+oct*12;held[b]=m;down(m,null);} });
+  window.addEventListener('keyup',function(e){ var b=KMAP[e.key]; if(b&&held[b]!=null){up(held[b],null);held[b]=null;} });
+  setOct(0);
   ` : `
   document.getElementById('src').addEventListener('change',function(){
     var v=this.value, fi=document.getElementById('file'); fi.style.display=v==='file'?'inline-block':'none';

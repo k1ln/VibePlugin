@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Drip Tank</title>
+<style>
+  :root{
+    --accent:#d98a4a;
+    --accent2:#ffd86a;
+    --tweed1:#c9a96a;
+    --tweed2:#8a6d3f;
+    --steel:#cdd2d8;
+    --steel-dk:#7e858d;
+    --panel:#1a1410;
+    --ink:#f6e9cf;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Futura","Avenir Next",-apple-system,Segoe UI,Roboto,sans-serif;
+    background:
+      radial-gradient(120% 120% at 50% -20%, #2a2017 0%, #140f0a 60%, #0a0705 100%);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    padding:18px;user-select:none;overflow:hidden;
+  }
+  .amp{
+    width:min(560px,96vw);
+    border-radius:18px;
+    position:relative;
+    /* worn tweed cabinet */
+    background:
+      repeating-linear-gradient(48deg, rgba(0,0,0,.10) 0 3px, rgba(255,255,255,.04) 3px 6px),
+      repeating-linear-gradient(-48deg, rgba(0,0,0,.10) 0 3px, rgba(255,255,255,.03) 3px 6px),
+      linear-gradient(160deg, var(--tweed1), var(--tweed2));
+    box-shadow:
+      0 28px 60px rgba(0,0,0,.6),
+      inset 0 0 0 6px #2c2014,
+      inset 0 0 0 9px #463318,
+      inset 0 0 40px rgba(0,0,0,.45);
+    padding:16px;
+  }
+  /* leather handle */
+  .handle{
+    position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+    width:120px;height:22px;border-radius:12px;
+    background:linear-gradient(#3a2a16,#241809);
+    box-shadow:0 3px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  .handle:before,.handle:after{
+    content:"";position:absolute;top:8px;width:8px;height:8px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,#e9d7a6,#7a5c2c);
+  }
+  .handle:before{left:8px}.handle:after{right:8px}
+
+  /* faceplate */
+  .face{
+    border-radius:12px;
+    background:
+      linear-gradient(180deg, #e8923f 0%, #d98a4a 35%, #b96d33 100%);
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.35),
+      inset 0 -3px 8px rgba(0,0,0,.35),
+      0 2px 6px rgba(0,0,0,.4);
+    padding:14px 16px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .face:before{ /* grime / wear */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(60% 40% at 80% 110%, rgba(0,0,0,.28), transparent 70%),
+      radial-gradient(40% 30% at 10% -10%, rgba(255,255,255,.18), transparent 70%);
+    mix-blend-mode:multiply;opacity:.7;
+  }
+  .brand{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:10px;position:relative;z-index:2;
+  }
+  .logo{
+    font-weight:800;letter-spacing:.18em;font-size:20px;
+    color:#2a1708;
+    text-shadow:0 1px 0 rgba(255,255,255,.35);
+  }
+  .logo b{color:#3a200a}
+  .sub{font-size:9px;letter-spacing:.34em;color:#5a3414;opacity:.85;margin-top:2px}
+
+  /* DRIP lamp */
+  .lamp-wrap{display:flex;align-items:center;gap:7px}
+  .lamp-label{font-size:9px;letter-spacing:.28em;color:#3a200a;font-weight:700}
+  .lamp{
+    width:15px;height:15px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #7a2a12, #2a0c04);
+    box-shadow:inset 0 0 4px #000, 0 0 0 2px #1c0d05;
+    transition:none;
+  }
+  .lamp.on{
+    background:radial-gradient(circle at 35% 30%, #fff2c4, var(--accent2) 40%, #e07a2a 100%);
+    box-shadow:0 0 14px 4px rgba(255,216,106,.85), inset 0 0 4px #fff, 0 0 0 2px #1c0d05;
+  }
+
+  /* ===== spring tank window (top-down view) ===== */
+  .tank{
+    position:relative;border-radius:9px;height:178px;margin:6px 0 16px;
+    background:
+      linear-gradient(180deg,#11171c,#070b0e 60%,#04070a);
+    box-shadow:
+      inset 0 0 0 2px #05080b,
+      inset 0 0 24px rgba(0,0,0,.8),
+      inset 0 2px 10px rgba(0,0,0,.7);
+    overflow:hidden;
+  }
+  .tank:before{ /* glass reflection */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg, rgba(255,255,255,.10) 0%, transparent 22%, transparent 80%, rgba(255,255,255,.05) 100%);
+  }
+  /* transducer end blocks */
+  .end{position:absolute;top:8px;bottom:8px;width:16px;border-radius:4px;
+    background:linear-gradient(90deg,#3a3f45,#1d2126);
+    box-shadow:inset 0 0 0 1px #0b0d10, 0 0 6px rgba(0,0,0,.6);z-index:4}
+  .end.l{left:8px}.end.r{right:8px}
+  .springs{position:absolute;left:24px;right:24px;top:0;bottom:0}
+  .springs svg{width:100%;height:100%;display:block}
+  .spring-path{
+    fill:none;stroke-linecap:round;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));
+  }
+
+  /* ===== knob row ===== */
+  .knobs{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
+    position:relative;z-index:2;
+  }
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .knob{
+    --ang:-135deg;
+    width:62px;height:62px;border-radius:50%;
+    position:relative;cursor:grab;touch-action:none;
+    background:
+      radial-gradient(circle at 38% 30%, #4a4f55 0%, #2b2f34 55%, #15181b 100%);
+    box-shadow:
+      0 5px 10px rgba(0,0,0,.55),
+      inset 0 2px 3px rgba(255,255,255,.18),
+      inset 0 -4px 8px rgba(0,0,0,.6),
+      0 0 0 3px #0c0e10, 0 0 0 4px rgba(255,216,106,.12);
+    transition:box-shadow .15s ease;
+  }
+  .knob:active{cursor:grabbing}
+  .knob.drag{
+    box-shadow:
+      0 5px 14px rgba(0,0,0,.6),
+      inset 0 2px 3px rgba(255,255,255,.2),
+      inset 0 -4px 8px rgba(0,0,0,.6),
+      0 0 0 3px #0c0e10, 0 0 0 5px rgba(255,216,106,.55);
+  }
+  .knob .skirt{ /* tick ring */
+    position:absolute;inset:-9px;border-radius:50%;
+    background:conic-gradient(from -135deg,
+      var(--accent) 0deg, var(--accent2) var(--fill,0deg), transparent var(--fill,0deg) 270deg, transparent 360deg);
+    -webkit-mask:radial-gradient(circle, transparent 0 31px, #000 32px 34px, transparent 35px);
+            mask:radial-gradient(circle, transparent 0 31px, #000 32px 34px, transparent 35px);
+    opacity:.95;
+  }
+  .knob .ptr{
+    position:absolute;left:50%;top:50%;width:3px;height:24px;border-radius:2px;
+    background:linear-gradient(#fff,#ffd86a);
+    transform-origin:50% 100%;
+    transform:translate(-50%,-100%) rotate(var(--ang));
+    box-shadow:0 0 5px rgba(255,216,106,.8);
+  }
+  .knob .cap{
+    position:absolute;inset:18px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #3b4046, #1c1f23);
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.15);
+  }
+  .lbl{font-size:10px;letter-spacing:.16em;font-weight:700;color:#2a1708;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+  .val{font-size:10px;font-variant-numeric:tabular-nums;color:#fff;
+    background:rgba(0,0,0,.32);padding:1px 7px;border-radius:8px;min-width:42px;text-align:center}
+
+  .hint{
+    text-align:center;font-size:8px;letter-spacing:.22em;color:#4a2c12;
+    margin-top:10px;opacity:.75;position:relative;z-index:2;
+  }
+
+  /* shimmer when struck */
+  @keyframes flutter{
+    0%{filter:none}
+    50%{filter:drop-shadow(0 0 4px var(--accent2)) brightness(1.4)}
+    100%{filter:none}
+  }
+</style>
+</head>
+<body>
+  <div class="amp">
+    <div class="handle"></div>
+    <div class="face">
+      <div class="brand">
+        <div>
+          <div class="logo">DRIP <b>TANK</b></div>
+          <div class="sub">OUTBOARD SPRING REVERB</div>
+        </div>
+        <div class="lamp-wrap">
+          <span class="lamp-label">DRIP</span>
+          <span class="lamp" id="lamp"></span>
+        </div>
+      </div>
+
+      <div class="tank">
+        <div class="end l"></div>
+        <div class="end r"></div>
+        <div class="springs">
+          <svg id="svg" viewBox="0 0 500 170" preserveAspectRatio="none">
+            <path class="spring-path" id="sp0" stroke="#aeb6bf" stroke-width="2.4"/>
+            <path class="spring-path" id="sp1" stroke="#c7cdd4" stroke-width="2.0"/>
+            <path class="spring-path" id="sp2" stroke="#8f969e" stroke-width="2.6"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="knobs" id="knobs"></div>
+      <div class="hint">DRAG VERTICALLY · DOUBLE-CLICK TO RESET</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- param model (indices match assembly.ts) ----
+  var PARAMS = [
+    { name:"Mix",   index:0, min:0, max:1, def:0.35 },
+    { name:"Dwell", index:1, min:0, max:1, def:0.55 },
+    { name:"Boing", index:2, min:0, max:1, def:0.5 },
+    { name:"Tone",  index:3, min:0, max:1, def:0.45 },
+    { name:"Decay", index:4, min:0, max:1, def:0.5 }
+  ];
+  var values = PARAMS.map(function(p){ return p.def; });
+
+  function host(){ return (typeof window!=="undefined" && window.vstai) ? window.vstai : null; }
+  function send(i,v){ var h=host(); if(h && typeof h.setParam==="function"){ try{ h.setParam(i,v); }catch(e){} } }
+
+  // ---- build knobs ----
+  var knobsEl = document.getElementById("knobs");
+  var widgets = [];
+  PARAMS.forEach(function(p,i){
+    var cell = document.createElement("div"); cell.className="cell";
+    var knob = document.createElement("div"); knob.className="knob"; knob.tabIndex=0;
+    var skirt=document.createElement("div"); skirt.className="skirt";
+    var cap=document.createElement("div"); cap.className="cap";
+    var ptr=document.createElement("div"); ptr.className="ptr";
+    knob.appendChild(skirt); knob.appendChild(cap); knob.appendChild(ptr);
+    var lbl=document.createElement("div"); lbl.className="lbl"; lbl.textContent=p.name;
+    var val=document.createElement("div"); val.className="val";
+    cell.appendChild(knob); cell.appendChild(lbl); cell.appendChild(val);
+    knobsEl.appendChild(cell);
+    widgets.push({knob:knob,ptr:ptr,skirt:skirt,val:val,p:p});
+
+    bindDrag(knob, i);
+  });
+
+  function norm(i){ var p=PARAMS[i]; return (values[i]-p.min)/(p.max-p.min); }
+  function render(i){
+    var w=widgets[i], t=norm(i);
+    var ang = -135 + t*270;
+    w.knob.style.setProperty("--ang", ang+"deg");
+    w.skirt.style.setProperty("--fill", (t*270)+"deg");
+    w.val.textContent = Math.round(t*100) + "%";
+  }
+  function setVal(i,v,push){
+    var p=PARAMS[i];
+    if(v<p.min)v=p.min; if(v>p.max)v=p.max;
+    values[i]=v; render(i);
+    if(push) send(i,v);
+  }
+
+  function bindDrag(knob,i){
+    var dragging=false, startY=0, startV=0;
+    function down(e){
+      dragging=true; knob.classList.add("drag");
+      startY = (e.touches?e.touches[0].clientY:e.clientY);
+      startV = norm(i);
+      e.preventDefault();
+      window.addEventListener("mousemove",move);
+      window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false});
+      window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var fine = e.shiftKey?0.25:1;
+      var dt = (startY - y)/220 * fine;
+      var p=PARAMS[i];
+      setVal(i, p.min + (startV+dt)*(p.max-p.min), true);
+      e.preventDefault();
+    }
+    function up(){
+      dragging=false; knob.classList.remove("drag");
+      window.removeEventListener("mousemove",move);
+      window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move);
+      window.removeEventListener("touchend",up);
+    }
+    knob.addEventListener("mousedown",down);
+    knob.addEventListener("touchstart",down,{passive:false});
+    knob.addEventListener("dblclick",function(){ setVal(i,PARAMS[i].def,true); });
+    knob.addEventListener("wheel",function(e){
+      var p=PARAMS[i];
+      setVal(i, values[i] - (e.deltaY>0?1:-1)*(p.max-p.min)*0.04, true);
+      e.preventDefault();
+    },{passive:false});
+    knob.addEventListener("keydown",function(e){
+      var p=PARAMS[i], step=(p.max-p.min)*0.04;
+      if(e.key==="ArrowUp"||e.key==="ArrowRight"){ setVal(i,values[i]+step,true); e.preventDefault(); }
+      else if(e.key==="ArrowDown"||e.key==="ArrowLeft"){ setVal(i,values[i]-step,true); e.preventDefault(); }
+    });
+  }
+
+  // ---- animated spring tank ----
+  var lamp = document.getElementById("lamp");
+  var paths = [document.getElementById("sp0"),document.getElementById("sp1"),document.getElementById("sp2")];
+  var W=500,H=170;
+  var rows=[44,85,126];
+  // each spring: a coil drawn as a sine of small loops along x
+  var t0=performance.now();
+  var lastPeak=0, lampHold=0;
+
+  function readPeak(){
+    var h=host();
+    if(h && typeof h.getWetPeak==="function"){ try{ return h.getWetPeak()||0; }catch(e){} }
+    return null;
+  }
+  function readBoing(){
+    var h=host();
+    if(h && typeof h.getBoing==="function"){ try{ return h.getBoing()||0; }catch(e){} }
+    return null;
+  }
+
+  function buildSpring(yc, amp, coils, phase, sag){
+    // dispersive coil: loops get tighter chirp toward the right
+    var n=200, d="M";
+    for(var k=0;k<=n;k++){
+      var x = 8 + (k/n)*(W-16);
+      var u = k/n;
+      // coil wobble + a traveling wave (the "drip" shimmer)
+      var coil = Math.sin(u*coils*6.2831853 + phase*3.0);
+      var wave = Math.sin(u*9.0 - phase*2.0) * (1-u*0.4);
+      var y = yc + sag*Math.sin(u*Math.PI) + amp*(coil*0.6 + wave*0.4);
+      d += (k===0?"":"L") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+    }
+    return d;
+  }
+
+  function frame(now){
+    var t=(now-t0)/1000;
+    var peak = readPeak();
+    // when no host telemetry, gently breathe so it's clearly alive
+    var energy;
+    if(peak===null){ energy = 0.18 + 0.12*Math.abs(Math.sin(t*1.3)); }
+    else { energy = Math.min(1, peak*1.8); }
+
+    var boing = readBoing();
+    if(boing===null){ boing = (Math.sin(t*0.9)>0.86)?0.8:0; }
+
+    // lamp: lit on boing / loud wet
+    var lit = (boing>0.04) || energy>0.55;
+    if(lit) lampHold = 8;
+    if(lampHold>0){ lamp.classList.add("on"); lampHold--; }
+    else lamp.classList.remove("on");
+
+    // Decay knob widens the wobble persistence, Boing scales the amplitude
+    var decay = values[4], boingK = values[2], tone = values[3];
+    var ampBase = 4 + energy*16*(0.5+boingK) ;
+    var jitter = (1+boing*3.0);
+
+    for(var s=0;s<3;s++){
+      var ph = t*(0.7 + s*0.22 + decay*0.6) + s*1.7;
+      var amp = (ampBase*(1 - s*0.18)) * jitter;
+      var coils = 26 - s*4 + tone*8;   // brighter tone => more visible chirp
+      var sag = 6 + s*3;
+      paths[s].setAttribute("d", buildSpring(rows[s], amp, coils, ph, sag));
+      // brightness shimmer tied to energy
+      var b = 0.5 + energy*0.8 + (boing>0.05?0.4:0);
+      paths[s].style.filter = "drop-shadow(0 1px 1px rgba(0,0,0,.6)) brightness("+b.toFixed(2)+")";
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---- init ----
+  function start(){
+    PARAMS.forEach(function(p,i){ setVal(i, values[i], true); });
+    requestAnimationFrame(frame);
+  }
+  var h=host();
+  if(h && typeof h.onReady==="function"){ h.onReady(start); }
+  else { start(); }
+})();
+</script>
+</body>
+</html>

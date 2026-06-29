@@ -22,13 +22,13 @@ Legend for the "Docs" column:
 | 3 | EMT 140 | Plate | M, P |
 | 4 | ✅ ~~EMT 250~~ → **Pearl Reverb** | Early digital | P |
 | 5 | AKG BX20 | Spring | M, S |
-| 6 | Fender outboard spring tank (Accutronics) | Spring | S, P |
+| 6 | ✅ ~~Fender outboard spring tank (Accutronics)~~ → **Drip Tank** | Spring | S, P |
 | 7 | ✅ ~~Spring reverb (generic 2/3-spring tank)~~ → **Spring Verb** | Spring | P, O |
-| 8 | Schroeder/Moorer reverb | Algorithmic FDN | P, O |
+| 8 | ✅ ~~Schroeder/Moorer reverb~~ → **Lattice Verb** | Algorithmic FDN | P, O |
 | 9 | ✅ ~~Freeverb~~ → **Open Room** | Algorithmic | O |
 | 10 | ✅ ~~Dattorro plate (1997 paper)~~ → **Steel Plate** | Algorithmic plate | P, O |
-| 11 | Eventide SP2016 | Digital room | O |
-| 12 | Ursa Major Space Station | Multitap | S |
+| 11 | ✅ ~~Eventide SP2016~~ → **Stereo Room** | Digital room | O |
+| 12 | ✅ ~~Ursa Major Space Station~~ → **Star Field** | Multitap | S |
 | 13 | Quantec QRS | Digital room | P |
 | 14 | Convolution reverb (partitioned) | Convolution | P, O |
 
@@ -65,7 +65,7 @@ Legend for the "Docs" column:
 | 38 | Boss DC-2 Dimension C | Dimensional chorus | S |
 | 39 | ✅ ~~Roland Dimension D (SDD-320)~~ → **Dimensional** | Chorus | S, O |
 | 40 | Boss BF-2 | Flanger | S |
-| 41 | Demeter Tremulator | Tremolo | S |
+| 41 | ✅ ~~Demeter Tremulator~~ → **Opto Trem** | Tremolo | S |
 | 42 | ✅ ~~Optical/bias tremolo (Fender amp)~~ → **Bias Tremolo** | Tremolo | S, O |
 
 ### Distortion / Drive / Fuzz (43–58)
@@ -84,7 +84,7 @@ Legend for the "Docs" column:
 | 53 | ✅ ~~Octavia~~ → **Octave Up** | Octave fuzz | S |
 | 54 | Diode/tube clipping stage (generic VA) | Drive | P, O |
 | 55 | ✅ ~~Tape saturation model~~ → **Reel Saturator** | Saturation | P, O |
-| 56 | Transformer/iron saturation | Saturation | P |
+| 56 | ✅ ~~Transformer/iron saturation~~ → **Iron Drive** | Saturation | P |
 | 57 | ✅ ~~Wavefolder (West Coast)~~ → **Wave Folder** | Distortion | P, O |
 | 58 | ✅ ~~Bitcrusher / sample-rate reducer~~ → **Bit Crusher** | Digital | O |
 
@@ -95,11 +95,11 @@ Legend for the "Docs" column:
 | 60 | ✅ ~~Universal Audio 1176~~ → **FET Squeeze** | FET comp | S, P, O |
 | 61 | ✅ ~~dbx 160~~ → **Punch Comp** | VCA comp | S, P |
 | 62 | ✅ ~~SSL bus compressor~~ → **Bus Glue** | VCA comp | S, O |
-| 63 | API 2500 | VCA comp | S |
+| 63 | ✅ ~~API 2500~~ → **Bus Glue** | VCA comp | S |
 | 64 | ✅ ~~Fairchild 670~~ → **Vari-Mu** | Vari-mu | S, P |
 | 65 | Empirical Labs Distressor | Comp | S |
-| 66 | Vari-mu tube compressor (generic) | Vari-mu | P, O |
-| 67 | Diode-bridge compressor (Neve 33609) | Comp | S |
+| 66 | ✅ ~~Vari-mu tube compressor~~ → **Mu Leveler** (generic) | Vari-mu | P, O |
+| 67 | ✅ ~~Diode-bridge compressor (Neve 33609)~~ → **Diode Comp** | Comp | S |
 | 68 | Optical compressor model (generic) | Opto | P, O |
 | 69 | ✅ ~~Brickwall limiter (look-ahead)~~ → **Brickwall** | Limiter | P, O |
 | 70 | ✅ ~~Multiband compressor~~ → **Multiband** | Dynamics | P, O |
@@ -113,7 +113,7 @@ Legend for the "Docs" column:
 | 74 | ✅ ~~Neve 1073~~ → **Console EQ** | Console EQ/pre | S, O |
 | 75 | ✅ ~~API 550A~~ → **Discrete EQ** | Console EQ | S, O |
 | 76 | SSL 4000 channel EQ | Console EQ | S, O |
-| 77 | Maag EQ4 (air band) | EQ | S |
+| 77 | ✅ ~~Maag EQ4 (air band)~~ → **Air Lift** | EQ | S |
 | 78 | ✅ ~~Moog ladder filter~~ → **Ladder Filter** | Resonant LPF | P, O |
 | 79 | ✅ ~~Roland TB-303 filter~~ → **Squelch Filter** | Resonant filter | P, O |
 | 80 | ✅ ~~MS-20 Sallen-Key filter~~ → **Scream Filter** | Filter | P, O |
@@ -128,11 +128,11 @@ Legend for the "Docs" column:
 | # | Unit | Type | Docs |
 |---|------|------|------|
 | 87 | ✅ ~~Eventide H910 Harmonizer~~ → **Pitch Shifter** | Pitch shift | S, P |
-| 88 | Eventide H3000 | Multi-FX/pitch | P |
+| 88 | ✅ ~~Eventide H3000~~ → **Micro Shift** | Multi-FX/pitch | P |
 | 89 | Antares Auto-Tune | Pitch correction | P |
 | 90 | ✅ ~~DigiTech Whammy~~ → **Whammy** | Pitch shift | P |
 | 91 | PSOLA / phase-vocoder pitch shift | Pitch | P, O |
-| 92 | Talk box | Formant | S |
+| 92 | ✅ ~~Talk box~~ → **Vowel Box** | Formant | S |
 | 93 | ✅ ~~Vocoder (channel, EMS-style)~~ → **Robot Voice** | Spectral | P, O |
 | 94 | ✅ ~~Roland Bee Baa / ring modulator~~ → **Ring Mod** | Ring mod | P, O |
 | 95 | ✅ ~~Frequency shifter (Bode/single-sideband)~~ → **Freq Shifter** | Spectral | P, O |
@@ -167,31 +167,31 @@ Legend for the "Docs" column:
 | 12 | ✅ ~~Roland TR-808~~ → **Voltage Drums** | Drum machine | S, O |
 | 13 | ✅ ~~Roland TR-909~~ → **Pulse Drums** | Drum machine | S, O |
 | 14 | Roland TR-606 | Drum machine | S, O |
-| 15 | Roland Juno-60 | Poly | S, O |
+| 15 | ✅ ~~Roland Juno-60~~ → **Juno Glow** | Poly | S, O |
 | 16 | Roland Juno-106 | Poly | S, O |
-| 17 | Roland Jupiter-8 | Poly | S, O |
+| 17 | ✅ ~~Roland Jupiter-8~~ → **Jove Eight** | Poly | S, O |
 | 18 | Roland Jupiter-6 | Poly | S |
 | 19 | Roland SH-101 | Mono | S, O |
 | 20 | Roland SH-2 | Mono | S |
 | 21 | Roland System-100 | Semi-modular | S |
 | 22 | Roland D-50 | LA synthesis | S, O |
-| 23 | Roland Alpha Juno | Poly | S, O |
+| 23 | ✅ ~~Roland Alpha Juno~~ → **Storm Juno** | Poly | S, O |
 | 24 | Roland JX-3P | Poly | S |
 | 25 | Roland JX-8P | Poly | S |
 | 26 | Roland CR-78 | Drum machine | S, O |
 | 27 | Roland MC-202 | Mono/sequencer | S |
-| 28 | Roland VP-330 Vocoder Plus | String/vocoder | S |
+| 28 | ✅ ~~Roland VP-330 Vocoder Plus~~ → **Vox Strings** | String/vocoder | S |
 
 ### Sequential / Oberheim / US poly (29–40)
 | # | Synth | Era / type | Docs |
 |---|-------|-----------|------|
 | 29 | ✅ ~~Sequential Prophet-5~~ → **Analog Poly** | Poly | S, O |
 | 30 | Sequential Prophet-600 | Poly | S, O |
-| 31 | Sequential Pro-One | Mono | S, O |
-| 32 | Oberheim OB-X | Poly | S |
+| 31 | ✅ ~~Sequential Pro-One~~ → **Solo One** | Mono | S, O |
+| 32 | ✅ ~~Oberheim OB-X~~ → **Oberon** | Poly | S |
 | 33 | Oberheim OB-Xa | Poly | S, O |
 | 34 | Oberheim OB-8 | Poly | S |
-| 35 | Oberheim SEM | Mono/duo | S, O |
+| 35 | ✅ ~~Oberheim SEM~~ → **Sem Voice** | Mono/duo | S, O |
 | 36 | Oberheim Matrix-12 | Poly | S |
 | 37 | Oberheim Four/Eight Voice | Poly | S |
 | 38 | Sequential Prophet VS | Vector | S |
@@ -205,9 +205,9 @@ Legend for the "Docs" column:
 | 42 | ✅ ~~ARP Odyssey~~ → **Duo Synth** | Duo | S, O |
 | 43 | ARP Axxe | Mono | S |
 | 44 | ✅ ~~ARP Solina String Ensemble~~ → **String Ensemble** | String machine | S, O |
-| 45 | EMS VCS3 / Synthi A | Modular | S, O |
+| 45 | ✅ ~~EMS VCS3 / Synthi A~~ → **Pin Matrix** | Modular | S, O |
 | 46 | EMS Synthi 100 | Modular | S |
-| 47 | Buchla 100/200 (West Coast) | Modular | P, O |
+| 47 | ✅ ~~Buchla 100/200 (West Coast)~~ → **West Cell** | Modular | P, O |
 | 48 | Serge modular | Modular | O |
 | 49 | Crumar Performer | String/poly | S |
 | 50 | Elka Synthex | Poly | S |
@@ -216,16 +216,16 @@ Legend for the "Docs" column:
 | # | Synth | Era / type | Docs |
 |---|-------|-----------|------|
 | 51 | ✅ ~~Yamaha DX7~~ → **FM Tines** | FM | S, P, O |
-| 52 | Yamaha DX21/27/100 | FM | S, O |
+| 52 | ✅ ~~Yamaha DX21/27/100~~ → **FM Four** | FM | S, O |
 | 53 | ✅ ~~Yamaha CS-80~~ → **Cinematic Poly** | Poly | S, O |
-| 54 | Yamaha CS-60 / CS-50 | Poly | S |
+| 54 | ✅ ~~Yamaha CS-60 / CS-50~~ → **Cosmo Poly** | Poly | S |
 | 55 | Yamaha CS-15 / CS-10 | Mono | S |
 | 56 | Yamaha TX81Z | FM | S, O |
 | 57 | Yamaha SY77 / SY99 | FM+sample | S |
 | 58 | Native FM (Chowning algorithm, generic) | FM | P, O |
 | 59 | ✅ ~~Casio CZ-101 (phase distortion)~~ → **Phase Synth** | PD synthesis | S, P, O |
 | 60 | Casio VL-1 | Mini digital | S, O |
-| 61 | Kawai K5 (additive) | Additive | S |
+| 61 | ✅ ~~Kawai K5 (additive)~~ → **Additive** | Additive | S |
 | 62 | Korg DW-8000 | Hybrid digital | S |
 
 ### Korg (63–72)
@@ -233,12 +233,12 @@ Legend for the "Docs" column:
 |---|-------|-----------|------|
 | 63 | ✅ ~~Korg MS-20~~ → **Patch Mono** | Semi-modular | S, P, O |
 | 64 | Korg MS-10 | Mono | S |
-| 65 | Korg MonoPoly | Poly | S, O |
+| 65 | ✅ ~~Korg MonoPoly~~ → **Unison Four** | Poly | S, O |
 | 66 | Korg Polysix | Poly | S, O |
 | 67 | Korg Poly-800 | Poly | S |
 | 68 | Korg Mini-Pops / Rhythm | Drum machine | S, O |
 | 69 | Korg M1 | PCM workstation | S, O |
-| 70 | Korg Wavestation | Vector/wave seq | S, O |
+| 70 | ✅ ~~Korg Wavestation~~ → **Vector Wave** | Vector/wave seq | S, O |
 | 71 | Korg PS-3200 | Poly | S |
 | 72 | Korg Lambda / Sigma | Ensemble | S |
 
@@ -270,18 +270,18 @@ Legend for the "Docs" column:
 | # | Synth | Era / type | Docs |
 |---|-------|-----------|------|
 | 89 | ✅ ~~Mellotron~~ → **Tape Choir** | Tape replay | M, O |
-| 90 | Hammond B3 (+ Leslie) | Tonewheel organ | P, O |
-| 91 | Farfisa Compact | Combo organ | S, O |
+| 90 | ✅ ~~Hammond B3 (+ Leslie)~~ → **Tonewheel Organ** | Tonewheel organ | P, O |
+| 91 | ✅ ~~Farfisa Compact~~ → **Combo Organ** | Combo organ | S, O |
 | 92 | Vox Continental | Combo organ | S, O |
-| 93 | Fender Rhodes | Electric piano | M, P, O |
-| 94 | Wurlitzer 200A | Electric piano | M, P, O |
-| 95 | Hohner Clavinet D6 | Electromech | M, O |
+| 93 | ✅ ~~Fender Rhodes~~ → **Tine Piano** | Electric piano | M, P, O |
+| 94 | ✅ ~~Wurlitzer 200A~~ → **Reed Piano** | Electric piano | M, P, O |
+| 95 | ✅ ~~Hohner Clavinet D6~~ → **Clav** | Electromech | M, O |
 | 96 | Roland RS-09 / Logan String Melody | String machine | S, O |
 
 ### Modern / digital classics (97–100)
 | # | Synth | Era / type | Docs |
 |---|-------|-----------|------|
-| 97 | Access Virus (A/B/C) | VA | O |
+| 97 | ✅ ~~Access Virus (A/B/C)~~ → **Hyper VA** | VA | O |
 | 98 | Clavia Nord Lead | VA | O |
 | 99 | Waldorf Blofeld / Q | Wavetable/VA | O |
 | 100 | Novation Bass Station | VA/analog | S, O |

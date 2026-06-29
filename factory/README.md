@@ -138,6 +138,18 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 62 | SSL bus compressor (VCA bus compressor) | **Bus Glue** | ✅ PASS |
 | 70 | Multiband compressor (multiband compressor) | **Multiband** | ✅ PASS |
 | 75 | API 550A (discrete proportional-Q console EQ) | **Discrete EQ** | ✅ PASS |
+| 56 | Transformer/iron saturation (transformer/iron saturation) | **Iron Drive** | ✅ PASS |
+| 12 | Ursa Major Space Station (multitap space reverb) | **Star Field** | ✅ PASS |
+| 67 | Diode-bridge compressor (Neve 33609) (diode-bridge compressor) | **Diode Comp** | ✅ PASS |
+| 11 | Eventide SP2016 (early-digital stereo room reverb) | **Stereo Room** | ✅ PASS |
+| 8 | Schroeder/Moorer reverb (algorithmic FDN) (Schroeder-Moorer algorithmic reverb) | **Lattice Verb** | ✅ PASS |
+| 63 | API 2500 VCA bus compressor (VCA bus compressor) | **Bus Glue** | ✅ PASS |
+| 92 | Talk box (formant) (talk-box formant filter) | **Vowel Box** | ✅ PASS |
+| 66 | Vari-mu tube compressor (vari-mu tube compressor) | **Mu Leveler** | ✅ PASS |
+| 77 | Maag EQ4 (air band) (air-band shelving EQ) | **Air Lift** | ✅ PASS |
+| 88 | Eventide H3000 (micro-pitch detune doubler) | **Micro Shift** | ✅ PASS |
+| 41 | Demeter Tremulator (optical multi-shape stereo tremolo) | **Opto Trem** | ✅ PASS |
+| 6 | Fender outboard spring tank (Accutronics) (drippy outboard spring reverb) | **Drip Tank** | ✅ PASS |
 
 ### Synths
 | # | Original | → New name | Status |
@@ -159,5 +171,25 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 59 | Casio CZ-101 (phase distortion) (phase-distortion digital synth) | **Phase Synth** | ✅ PASS |
 | 79 | PPG Wave 2.2 / 2.3 (wavetable synth) | **Wave Table** | ✅ PASS |
 | 41 | ARP 2600 (semi-modular synth) | **Patch 2600** | ✅ PASS |
+| 70 | Korg Wavestation (vector / wave-sequencing synth) | **Vector Wave** | ✅ PASS |
+| 28 | Roland VP-330 Vocoder Plus (string + voice ensemble) | **Vox Strings** | ✅ PASS |
+| 90 | Hammond B3 (+ Leslie) (tonewheel drawbar organ) | **Tonewheel Organ** | ✅ PASS |
+| 93 | Fender Rhodes (electric tine piano) | **Tine Piano** | ✅ PASS |
+| 95 | Hohner Clavinet D6 (clavinet (plucked string)) | **Clav** | ✅ PASS |
+| 91 | Farfisa Compact (combo organ (divide-down)) | **Combo Organ** | ✅ PASS |
+| 94 | Wurlitzer 200A (electric reed piano) | **Reed Piano** | ✅ PASS |
+| 61 | Kawai K5 (additive) (additive synth) | **Additive** | ✅ PASS |
+| 17 | Roland Jupiter-8 (8-voice analog poly synth) | **Jove Eight** | ✅ PASS |
+| 31 | Sequential Pro-One (aggressive mono synth) | **Solo One** | ✅ PASS |
+| 32 | Oberheim OB-X (fat discrete-oscillator analog poly) | **Oberon** | ✅ PASS |
+| 15 | Roland Juno-60 (DCO poly synth with chorus) | **Juno Glow** | ✅ PASS |
+| 47 | Buchla 100/200 (West Coast) (west-coast wavefolding synth) | **West Cell** | ✅ PASS |
+| 45 | EMS VCS3 / Synthi A (patch-matrix mono synth with ring mod) | **Pin Matrix** | ✅ PASS |
+| 52 | Yamaha DX21 / DX100 (4-operator FM synth) | **FM Four** | ✅ PASS |
+| 65 | Korg MonoPoly (4-VCO unison mono/poly synth) | **Unison Four** | ✅ PASS |
+| 54 | Yamaha CS-60 (lush ring-mod analog poly) | **Cosmo Poly** | ✅ PASS |
+| 23 | Roland Alpha Juno (DCO poly with PWM "hoover" pad) | **Storm Juno** | ✅ PASS |
+| 97 | Access Virus (hypersaw virtual-analog poly) | **Hyper VA** | ✅ PASS |
+| 35 | Oberheim SEM (multimode state-variable-filter mono/duo synth) | **Sem Voice** | ✅ PASS |
 
-**Done: 74 / 200.** Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.
+**Done: 106 / 200.** Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.

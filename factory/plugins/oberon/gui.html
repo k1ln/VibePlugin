@@ -1,0 +1,288 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@property --p{syntax:'<number>';inherits:false;initial-value:0}
+:root{
+  --ac:#caa6ff; --ac2:#ff8fb0;
+  --cream:#f3ead6; --cream2:#e6d8ba; --ink:#33291f;
+  --wood:#6a4327; --wood2:#3f2614; --woodHi:#8a5d39;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:radial-gradient(130% 100% at 50% -12%,#221b14 0%,#120d08 60%,#070503 100%);
+  display:flex;align-items:center;justify-content:center;padding:18px;-webkit-font-smoothing:antialiased;
+}
+
+/* ============ chassis: cream panel between two wood end-cheeks ======= */
+.synth{
+  position:relative;width:100%;max-width:820px;display:flex;
+  border-radius:13px;
+  box-shadow:0 40px 90px rgba(0,0,0,.66),0 2px 0 rgba(255,255,255,.05) inset;
+  animation:rise .75s cubic-bezier(.2,.85,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.984)}to{opacity:1;transform:none}}
+
+/* the two wooden end-cheeks */
+.cheek{flex:0 0 28px;position:relative;
+  background:
+    repeating-linear-gradient(176deg,rgba(0,0,0,.16) 0 3px,rgba(255,255,255,.045) 3px 7px),
+    linear-gradient(160deg,var(--woodHi),var(--wood) 40%,var(--wood2) 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.1) inset,0 -2px 10px rgba(0,0,0,.5) inset;
+}
+.cheek.l{border-radius:13px 0 0 13px}
+.cheek.r{border-radius:0 13px 13px 0}
+.cheek::after{content:"";position:absolute;inset:5px 6px;border-radius:7px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.25),0 0 0 2px rgba(255,255,255,.06)}
+
+.surface{
+  position:relative;flex:1 1 auto;border-radius:4px;overflow:hidden;
+  background:linear-gradient(180deg,#f7efdd,#ebe0c6 60%,#ddceac 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 -12px 30px rgba(120,90,48,.2) inset,0 0 0 1px rgba(80,52,30,.35);
+}
+.surface::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.55;
+  background:
+    repeating-linear-gradient(91deg,rgba(120,90,48,.04) 0 2px,transparent 2px 6px),
+    radial-gradient(150% 70% at 50% 0%,rgba(255,255,255,.5),transparent 62%);
+  mix-blend-mode:multiply}
+
+/* ---------------- header / brand plate ---------------- */
+.head{position:relative;z-index:2;display:flex;align-items:flex-end;gap:14px;
+  padding:16px 24px 12px;border-bottom:2px solid rgba(80,52,30,.26)}
+.brand{display:flex;flex-direction:column;line-height:1}
+.brand .mk{font-size:9px;letter-spacing:.46em;color:#9a7c4c;font-weight:700;text-transform:uppercase}
+.brand h1{margin:4px 0 0;font-size:27px;font-weight:900;letter-spacing:.04em;color:#33291f;
+  text-shadow:0 1px 0 rgba(255,255,255,.6),0 -1px 0 rgba(80,52,30,.18)}
+.brand h1 em{font-style:normal;background:linear-gradient(90deg,var(--ac),var(--ac2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 8px rgba(202,166,255,.35))}
+.tag{font-size:9px;letter-spacing:.3em;color:#a98a58;text-transform:uppercase;margin-top:4px}
+
+/* ---- the breathing stacked-saw scope (the motif) ---- */
+.scope{margin-left:auto;width:230px;height:62px;border-radius:8px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#241c12,#0f0a05);
+  box-shadow:0 1px 0 rgba(255,255,255,.16),0 -2px 8px rgba(0,0,0,.55) inset,0 2px 6px rgba(0,0,0,.4)}
+.scope svg{position:absolute;inset:0;width:100%;height:100%}
+.scope .sgrid{stroke:rgba(255,255,255,.05)}
+.swave{fill:none;stroke-linejoin:round;stroke-linecap:round}
+.swave.a{stroke:var(--ac);stroke-width:2;filter:drop-shadow(0 0 5px var(--ac));animation:breathe 3.4s ease-in-out infinite}
+.swave.b{stroke:var(--ac2);stroke-width:1.6;opacity:.8;filter:drop-shadow(0 0 5px var(--ac2));animation:breathe 3.4s ease-in-out infinite .9s}
+.swave.c{stroke:color-mix(in srgb,var(--ac) 60%,var(--ac2));stroke-width:1.2;opacity:.55;animation:breathe 3.4s ease-in-out infinite 1.8s}
+@keyframes breathe{0%,100%{transform:translateX(0) scaleY(.9)}50%{transform:translateX(-6px) scaleY(1.12)}}
+.scope .glo{position:absolute;inset:0;background:radial-gradient(90% 120% at 30% 50%,rgba(202,166,255,.14),transparent 70%);
+  animation:sweepg 3.4s ease-in-out infinite}
+@keyframes sweepg{0%,100%{opacity:.4;transform:translateX(-12%)}50%{opacity:.9;transform:translateX(12%)}}
+
+/* ---------------- body ---------------- */
+.body{position:relative;z-index:2;padding:18px 24px 8px}
+.row{display:flex;gap:20px;align-items:stretch;flex-wrap:wrap}
+.module{flex:1 1 0;min-width:210px;position:relative;padding:14px 18px 18px;border-radius:9px;
+  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0));
+  box-shadow:0 0 0 1px rgba(80,52,30,.16),0 1px 0 rgba(255,255,255,.5) inset}
+.module>.mt{font-size:9px;letter-spacing:.32em;color:#9a7c4c;text-transform:uppercase;font-weight:800;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.module>.mt::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(80,52,30,.3) 0 5px,transparent 5px 9px)}
+.knobs{display:flex;gap:6px;justify-content:space-around;flex-wrap:wrap}
+
+/* ---------------- bakelite/ivory knob ---------------- */
+.cell{display:flex;flex-direction:column;align-items:center;gap:8px;width:78px;
+  animation:pop .55s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+.knob{--p:0;position:relative;width:60px;height:60px;cursor:ns-resize;touch-action:none;user-select:none}
+.knob .scale{position:absolute;inset:-9px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(80,52,30,.5) 0 1.1deg,transparent 1.1deg 13.5deg);
+  -webkit-mask:radial-gradient(circle,transparent 32px,#000 33px,#000 35px,transparent 36px);
+  mask:radial-gradient(circle,transparent 32px,#000 33px,#000 35px,transparent 36px)}
+.knob .arc{position:absolute;inset:-5px;border-radius:50%;
+  background:conic-gradient(from 215deg,
+    var(--ac) calc(var(--p)*290deg),
+    color-mix(in srgb,var(--ac2) 65%,var(--ac)) calc(var(--p)*290deg),
+    rgba(80,52,30,.13) calc(var(--p)*290deg) 290deg,
+    transparent 290deg);
+  -webkit-mask:radial-gradient(circle,transparent 29px,#000 30px,#000 32.5px,transparent 33.5px);
+  mask:radial-gradient(circle,transparent 29px,#000 30px,#000 32.5px,transparent 33.5px);
+  filter:drop-shadow(0 0 calc(2px + var(--p)*8px) color-mix(in srgb,var(--ac) 72%,transparent));
+  transition:--p .13s cubic-bezier(.2,.8,.25,1)}
+.knob .cap{position:absolute;inset:8px;border-radius:50%;
+  background:radial-gradient(circle at 40% 28%,#fdf7ea,#e8dcc4 52%,#bca882 100%);
+  box-shadow:0 2px 6px rgba(55,38,24,.45),0 1px 0 rgba(255,255,255,.85) inset,0 -4px 9px rgba(120,90,48,.34) inset}
+.knob.act .cap{box-shadow:0 2px 6px rgba(55,38,24,.45),0 1px 0 rgba(255,255,255,.85) inset,0 -4px 9px rgba(120,90,48,.34) inset,0 0 0 2px color-mix(in srgb,var(--ac) 62%,transparent)}
+.knob .ptr{position:absolute;left:50%;top:9px;width:3px;height:17px;margin-left:-1.5px;border-radius:2px;
+  background:linear-gradient(var(--ink),#6a4327);box-shadow:0 0 0 1px rgba(255,255,255,.3);
+  transform-origin:50% 21px;transform:rotate(calc((var(--p) - .5)*290deg));
+  transition:transform .13s cubic-bezier(.2,.8,.25,1)}
+.cnm{font-size:9px;letter-spacing:.12em;color:#7a623e;text-transform:uppercase;font-weight:800;text-align:center}
+.cval{font-size:11px;font-weight:800;color:#33291f;font-variant-numeric:tabular-nums;
+  background:rgba(80,52,30,.1);padding:1px 8px;border-radius:5px;min-width:42px;text-align:center}
+.cell:hover .cval{background:color-mix(in srgb,var(--ac) 30%,rgba(80,52,30,.1))}
+
+/* ---------------- voice LED bank ---------------- */
+.voices{display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center;padding:0 4px}
+.voices .vlbl{font-size:8px;letter-spacing:.32em;color:#9a7c4c;text-transform:uppercase;font-weight:700}
+.bank{display:flex;gap:9px;padding:9px 11px;border-radius:9px;
+  background:linear-gradient(180deg,#2a2114,#15100a);
+  box-shadow:0 1px 0 rgba(255,255,255,.16),0 -2px 6px rgba(0,0,0,.5) inset,0 2px 5px rgba(0,0,0,.4)}
+.voice{position:relative;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#5e564a,#221d15 75%);
+  box-shadow:0 1px 1px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.07)}
+.voice::after{content:"";position:absolute;inset:2px;border-radius:50%;background:var(--ac);opacity:0;transform:scale(.5);
+  box-shadow:0 0 9px var(--ac),0 0 18px var(--ac2);transition:opacity .12s,transform .12s}
+.voice.on::after{opacity:1;transform:scale(1)}
+
+footer{position:relative;z-index:2;display:flex;align-items:center;gap:10px;
+  padding:11px 24px 16px;font-size:10px;color:#9a7c4c;letter-spacing:.04em}
+footer .dotL{width:7px;height:7px;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 8px var(--ac);animation:bp 2.4s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:.5}50%{opacity:1}}
+footer b{color:#7a623e;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+footer .sp{margin-left:auto;font-style:italic;color:#a98a58;max-width:420px;text-align:right;line-height:1.4}
+</style></head><body>
+<div class="synth">
+ <div class="cheek l"></div>
+ <div class="surface">
+  <div class="head">
+    <div class="brand">
+      <span class="mk">Vibe Instruments</span>
+      <h1>Ober<em>on</em></h1>
+      <span class="tag">6-Voice · Discrete Dual-Osc · SEM-Flavour</span>
+    </div>
+    <div class="scope">
+      <div class="glo"></div>
+      <svg viewBox="0 0 230 62" preserveAspectRatio="none">
+        <line class="sgrid" x1="0" y1="31" x2="230" y2="31"/>
+        <path class="swave c" id="wc"></path>
+        <path class="swave b" id="wb"></path>
+        <path class="swave a" id="wa"></path>
+      </svg>
+    </div>
+  </div>
+
+  <div class="body">
+   <div class="row">
+      <div class="module">
+        <div class="mt">Filter</div>
+        <div class="knobs" id="filtK"></div>
+      </div>
+      <div class="module">
+        <div class="mt">Oscillators</div>
+        <div class="knobs" id="oscK"></div>
+      </div>
+   </div>
+   <div class="row">
+      <div class="module">
+        <div class="mt">Envelope</div>
+        <div class="knobs" id="envK"></div>
+      </div>
+      <div class="module" style="flex:0 0 150px;min-width:150px">
+        <div class="mt">Output</div>
+        <div class="knobs" id="outK"></div>
+      </div>
+      <div class="module" style="flex:0 0 130px;min-width:130px">
+        <div class="mt">Voices</div>
+        <div class="voices"><div class="bank" id="bank"></div></div>
+      </div>
+   </div>
+  </div>
+
+  <footer>
+    <span class="dotL"></span><b>Oberon</b>
+    <span class="sp" id="sp"></span>
+  </footer>
+ </div>
+ <div class="cheek r"></div>
+</div>
+
+<script>
+(function(){
+  var P=[
+    {name:"Cutoff",    index:0,min:0,max:1,def:0.5 },
+    {name:"Resonance", index:1,min:0,max:1,def:0.4 },
+    {name:"EnvAmount", index:2,min:0,max:1,def:0.55},
+    {name:"Spread",    index:3,min:0,max:1,def:0.4 },
+    {name:"Attack",    index:4,min:0,max:1,def:0.04},
+    {name:"Release",   index:5,min:0,max:1,def:0.35},
+    {name:"Level",     index:6,min:0,max:1,def:0.6 }
+  ];
+  var byName={}; P.forEach(function(p){byName[p.name]=p;});
+  var live={}; P.forEach(function(p){ live[p.name]=(p.def-p.min)/(p.max-p.min); });
+  document.getElementById('sp').textContent="Fat discrete dual-oscillator poly — raw resonant filter, wide unison spread.";
+
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function fmtPct(v){ return Math.round(v*100)+"%"; }
+  function fmtMs(v){ var ms=Math.round((v*v)*3500)+1; return ms>=1000?(ms/1000).toFixed(2)+"s":ms+"ms"; }
+  function labelFor(p,v){
+    if(p.name==="Attack"||p.name==="Release") return fmtMs(v);
+    if(p.name==="Cutoff"){ var hz=Math.round(70*Math.pow(214,v)); return hz>=1000?(hz/1000).toFixed(1)+"k":hz+"Hz"; }
+    return fmtPct(v);
+  }
+
+  function makeKnob(host,p){
+    var cell=document.createElement('div'); cell.className='cell';
+    cell.style.setProperty('--d',(p.index*55)+'ms');
+    cell.innerHTML='<div class="knob"><i class="scale"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i></div>'+
+      '<div class="cnm">'+(p.name==="EnvAmount"?"Env Amt":p.name)+'</div><div class="cval"></div>';
+    host.appendChild(cell);
+    var knob=cell.querySelector('.knob'), val=cell.querySelector('.cval');
+    var v=p.def;
+    function norm(){ return (v-p.min)/(p.max-p.min||1); }
+    function paint(){ var n=norm(); knob.style.setProperty('--p',n); val.textContent=labelFor(p,n); live[p.name]=n; send(p.index,v); reshape(); }
+    function setN(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
+    knob.addEventListener('pointerdown',function(e){ knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault(); });
+    knob.addEventListener('pointermove',function(e){ if(!knob._d)return; var spd=e.shiftKey?640:200; setN(knob._n+(knob._y-e.clientY)/spd); });
+    function end(){ knob._d=0; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end); knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
+    paint();
+  }
+
+  makeKnob(document.getElementById('filtK'), byName["Cutoff"]);
+  makeKnob(document.getElementById('filtK'), byName["Resonance"]);
+  makeKnob(document.getElementById('filtK'), byName["EnvAmount"]);
+  makeKnob(document.getElementById('oscK'),  byName["Spread"]);
+  makeKnob(document.getElementById('envK'),  byName["Attack"]);
+  makeKnob(document.getElementById('envK'),  byName["Release"]);
+  makeKnob(document.getElementById('outK'),  byName["Level"]);
+
+  // ---- stacked-saw scope reshaped live by Spread + Cutoff ----
+  var wa=document.getElementById('wa'),wb=document.getElementById('wb'),wc=document.getElementById('wc');
+  function sawPath(off,amp,duty){
+    // 3 stacked detuned saw teeth across the width
+    var W=230,Hm=31, teeth=4, d=document; var s="M 0 "+Hm;
+    var step=W/teeth;
+    for(var k=0;k<=teeth;k++){
+      var x=k*step+off;
+      var open=Hm-amp; // top
+      var close=Hm+amp*duty; // bottom
+      s+=" L "+(x).toFixed(1)+" "+open.toFixed(1)+" L "+(x).toFixed(1)+" "+close.toFixed(1);
+    }
+    return s;
+  }
+  function reshape(){
+    var sp=live["Spread"]||0, cut=live["Cutoff"]||0;
+    var amp=8+cut*16;            // brighter cutoff -> taller teeth
+    var duty=0.5+sp*0.4;
+    wa.setAttribute('d',sawPath(0,amp,duty));
+    wb.setAttribute('d',sawPath(6+sp*10,amp*0.85,duty));
+    wc.setAttribute('d',sawPath(12+sp*20,amp*0.7,duty));
+  }
+  reshape();
+
+  // ---- voice LED bank (6) ----
+  var BANK=document.getElementById('bank'), voices=[];
+  for(var i=0;i<6;i++){ var vv=document.createElement('div'); vv.className='voice'; BANK.appendChild(vv); voices.push(vv); }
+  var voiceOfNote={}, nextV=0;
+  function lightOn(note){ if(voiceOfNote[note]!=null)return; var v=nextV; nextV=(nextV+1)%6; voiceOfNote[note]=v; voices[v].classList.add('on'); }
+  function lightOff(note){ var v=voiceOfNote[note]; if(v!=null){ voices[v].classList.remove('on'); delete voiceOfNote[note]; } }
+  window.addEventListener('message',function(e){ var d=e.data||{}; if(d.t==='on')lightOn(d.id); else if(d.t==='off')lightOff(d.id); });
+  var idleV=-1, idleT=0;
+  function idle(now){ requestAnimationFrame(idle);
+    if(Object.keys(voiceOfNote).length) return;
+    if(now-idleT>560){ idleT=now; if(idleV>=0)voices[idleV].classList.remove('on'); idleV=(idleV+1)%6; voices[idleV].classList.add('on'); } }
+  requestAnimationFrame(idle);
+
+  function ready(){}
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

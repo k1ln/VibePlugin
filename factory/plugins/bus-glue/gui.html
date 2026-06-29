@@ -6,394 +6,397 @@
 <title>Bus Glue</title>
 <style>
   :root{
-    --accent:#c0c8d0;
-    --accent2:#9aa6b4;
-    --panel:#3a3d42;
-    --panel-hi:#4a4e54;
-    --panel-lo:#2a2c30;
-    --ink:#d8dde3;
-    --ink-dim:#8b9298;
+    --accent:#ffb347;
+    --accent2:#ff6b6b;
+    --charcoal:#191613;
+    --panel:#2a2521;
+    --panel-hi:#3a342d;
+    --panel-lo:#15120f;
+    --ink:#f4e6cf;
+    --ink-dim:#9c8f7a;
+    --red:#ff5a47;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;}
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
   body{
     font-family:"Helvetica Neue",Arial,sans-serif;
     background:
-      radial-gradient(120% 90% at 50% -10%, #43474d 0%, #2e3034 55%, #232528 100%);
+      radial-gradient(120% 90% at 50% -10%, #3a322a 0%, #1b1714 55%, #100d0b 100%);
     color:var(--ink);
-    display:flex;align-items:center;justify-content:center;
-    padding:18px;overflow:hidden;-webkit-font-smoothing:antialiased;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; padding:18px; overflow:hidden;
+    user-select:none; -webkit-user-select:none;
   }
 
-  /* ---------- console chassis ---------- */
-  .unit{
-    width:560px;max-width:100%;
+  /* ---- the console module chassis ------------------------------------ */
+  .module{
+    width:560px; max-width:96vw;
+    background:
+      linear-gradient(180deg,var(--panel-hi) 0%,var(--panel) 18%,var(--panel) 82%,var(--panel-lo) 100%);
     border-radius:14px;
-    background:linear-gradient(180deg,var(--panel-hi),var(--panel) 18%,var(--panel) 82%,var(--panel-lo));
-    box-shadow:
-      0 1px 0 rgba(255,255,255,.10) inset,
-      0 -2px 0 rgba(0,0,0,.45) inset,
-      0 22px 50px rgba(0,0,0,.55),
-      0 2px 4px rgba(0,0,0,.4);
     padding:18px 20px 22px;
+    box-shadow:
+      0 1px 0 rgba(255,210,140,.10) inset,
+      0 -2px 0 rgba(0,0,0,.6) inset,
+      0 30px 60px -20px rgba(0,0,0,.8),
+      0 0 0 2px #0c0a08;
     position:relative;
-    border:1px solid rgba(0,0,0,.45);
   }
-  /* rack screws */
-  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#6a6e74,#34363a 70%,#1c1d20);
-    box-shadow:0 1px 1px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.4) inset;}
-  .screw::after{content:"";position:absolute;inset:3px;border-top:1px solid rgba(0,0,0,.55);
-    transform:rotate(28deg);}
-  .screw.tl{top:9px;left:9px}.screw.tr{top:9px;right:9px}
-  .screw.bl{bottom:9px;left:9px}.screw.br{bottom:9px;right:9px}
+  /* corner rack screws */
+  .screw{
+    position:absolute; width:13px; height:13px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#5b5249,#211d18 70%,#000);
+    box-shadow:0 1px 1px rgba(0,0,0,.7), 0 0 0 1px #0a0806;
+  }
+  .screw::after{ content:""; position:absolute; inset:3px; border-top:1.5px solid rgba(0,0,0,.55);
+    transform:rotate(35deg); }
+  .screw.tl{ top:9px; left:9px; } .screw.tr{ top:9px; right:9px; }
+  .screw.bl{ bottom:9px; left:9px; } .screw.br{ bottom:9px; right:9px; }
 
-  .brand{
-    display:flex;align-items:baseline;justify-content:space-between;
-    padding:0 6px 12px;border-bottom:1px solid rgba(0,0,0,.35);
-    margin-bottom:14px;
-  }
-  .brand h1{
-    font-size:15px;letter-spacing:.42em;font-weight:700;
-    color:var(--accent);text-transform:uppercase;
-    text-shadow:0 1px 0 rgba(0,0,0,.6);
-  }
-  .brand .sub{font-size:9px;letter-spacing:.32em;color:var(--ink-dim);text-transform:uppercase;}
+  .head{ display:flex; align-items:baseline; justify-content:space-between; padding:2px 6px 12px; }
+  .brand{ font-weight:800; letter-spacing:2.5px; font-size:18px;
+    color:var(--ink);
+    text-shadow:0 1px 0 #000, 0 0 14px rgba(255,179,71,.25); }
+  .brand b{ color:var(--accent); }
+  .model{ font-size:9.5px; letter-spacing:3px; color:var(--ink-dim); text-transform:uppercase; }
 
-  /* ---------- VU meter ---------- */
+  /* ---- the VU meter --------------------------------------------------- */
   .meter-wrap{
-    display:flex;justify-content:center;margin-bottom:18px;
+    background:linear-gradient(180deg,#211d18,#15120f);
+    border-radius:9px; padding:10px 12px 8px;
+    box-shadow:0 0 0 1px #0a0806, 0 3px 8px rgba(0,0,0,.5) inset;
+    position:relative;
   }
   .vu{
-    width:300px;height:152px;border-radius:8px;
-    background:linear-gradient(180deg,#f4ecd6,#e7dcbf 60%,#d8cba6);
-    box-shadow:
-      0 0 0 4px #1d1e21,
-      0 0 0 6px #45484e,
-      0 4px 10px rgba(0,0,0,.5) inset,
-      0 1px 0 rgba(255,255,255,.3);
-    position:relative;overflow:hidden;
-  }
-  .vu .glass{position:absolute;inset:0;border-radius:8px;pointer-events:none;
-    background:linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,0) 40%);}
-  .vu svg{display:block;width:100%;height:100%;}
-  .vu .label{
-    position:absolute;left:0;right:0;bottom:8px;text-align:center;
-    font-size:8px;letter-spacing:.3em;color:#7c6f4f;text-transform:uppercase;
-  }
-  .vu .gr-num{
-    position:absolute;top:8px;left:0;right:0;text-align:center;
-    font-size:9px;letter-spacing:.18em;color:#8a7c58;
-  }
-  /* needle sway idle animation */
-  #needle{transform-box:fill-box;transform-origin:150px 138px;
-    transition:transform .09s cubic-bezier(.3,.7,.4,1);}
-  .idle #needle{animation:sway 5.5s ease-in-out infinite;}
-  @keyframes sway{
-    0%,100%{transform:rotate(-2deg);}
-    50%{transform:rotate(2.5deg);}
-  }
-  .vu .lamp{position:absolute;top:10px;right:12px;width:8px;height:8px;border-radius:50%;
-    background:radial-gradient(circle at 40% 35%,#ffe7a8,#e2b24a 60%,#7a5b1c);
-    box-shadow:0 0 8px 1px rgba(255,200,90,.6);animation:flick 6s ease-in-out infinite;}
-  @keyframes flick{0%,100%{opacity:.55}50%{opacity:1}}
-
-  /* ---------- control row ---------- */
-  .row{
-    display:flex;justify-content:space-between;gap:8px;
-    background:linear-gradient(180deg,#26282b,#303338);
-    border-radius:9px;padding:16px 14px 14px;
-    box-shadow:0 2px 5px rgba(0,0,0,.5) inset,0 1px 0 rgba(255,255,255,.06);
-  }
-  .cell{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;}
-  .cell .cap{font-size:9px;letter-spacing:.18em;color:var(--ink-dim);text-transform:uppercase;}
-  .cell .val{font-size:10px;color:var(--accent);font-variant-numeric:tabular-nums;
-    letter-spacing:.04em;min-height:12px;}
-
-  /* knob */
-  .knob{
-    --ang:0deg;
-    width:62px;height:62px;border-radius:50%;position:relative;cursor:grab;
+    position:relative; width:100%; height:148px; border-radius:6px;
     background:
-      radial-gradient(circle at 50% 38%,#5a5e64,#3c3f44 62%,#26282b);
-    box-shadow:
-      0 3px 6px rgba(0,0,0,.55),
-      0 1px 0 rgba(255,255,255,.12) inset,
-      0 -3px 5px rgba(0,0,0,.4) inset;
-    touch-action:none;user-select:none;
+      radial-gradient(140% 150% at 50% 130%, #fff6e4 0%, #f4dca8 38%, #d8b878 70%, #b8945a 100%);
+    box-shadow:0 0 0 1px #0a0806, 0 2px 6px rgba(0,0,0,.6) inset;
+    overflow:hidden;
   }
-  .knob:active{cursor:grabbing;}
-  .knob .face{position:absolute;inset:9px;border-radius:50%;
-    background:conic-gradient(from 140deg,#33363b 0 8%,#43474d 8% 92%,#33363b 92%);
-    box-shadow:0 1px 2px rgba(0,0,0,.5) inset;}
-  .knob .grip{position:absolute;inset:9px;border-radius:50%;
-    transform:rotate(var(--ang));transition:transform .04s linear;}
-  .knob .grip::before{content:"";position:absolute;left:50%;top:5px;
-    width:3px;height:15px;margin-left:-1.5px;border-radius:2px;
-    background:linear-gradient(180deg,var(--accent),var(--accent2));
-    box-shadow:0 0 5px var(--accent);}
-  /* tick ring */
-  .knob .ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;}
+  /* warm back-light glow that pulses with reduction */
+  .vu .backlight{
+    position:absolute; inset:0;
+    background:radial-gradient(80% 120% at 50% 120%, rgba(255,179,71,.55), rgba(255,179,71,0) 60%);
+    mix-blend-mode:screen; opacity:.5; transition:opacity .1s linear;
+  }
+  .vu svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .vu .glass{
+    position:absolute; inset:0; border-radius:6px; pointer-events:none;
+    background:linear-gradient(155deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 28%);
+  }
+  .vu .label{
+    position:absolute; left:50%; top:12px; transform:translateX(-50%);
+    font-size:8px; letter-spacing:3px; color:#5c4a2c; font-weight:700;
+  }
+  .vu .units{
+    position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
+    font-size:7px; letter-spacing:2px; color:#7a6038; font-weight:700;
+  }
+  .needle{ transform-origin:200px 150px; transition:transform .06s cubic-bezier(.4,1.4,.5,1); }
 
-  /* stepped ratio switch */
-  .switch{
-    width:84px;display:flex;flex-direction:column;gap:5px;
-    padding:7px 6px;border-radius:7px;background:#24262a;
-    box-shadow:0 1px 2px rgba(0,0,0,.5) inset;
+  /* ---- GR bar meter (vertical, glows) -------------------------------- */
+  .panel{ display:flex; gap:16px; margin-top:14px; }
+  .grcol{
+    width:46px; flex:0 0 auto;
+    background:linear-gradient(180deg,#211d18,#15120f);
+    border-radius:8px; padding:8px 0 6px;
+    box-shadow:0 0 0 1px #0a0806, 0 2px 6px rgba(0,0,0,.5) inset;
+    display:flex; flex-direction:column; align-items:center;
   }
-  .switch button{
-    font:inherit;font-size:11px;letter-spacing:.04em;
-    border:none;cursor:pointer;border-radius:4px;padding:5px 0;
-    color:var(--ink-dim);background:linear-gradient(180deg,#3a3d42,#2c2f33);
-    box-shadow:0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.4);
-    transition:all .14s ease;
+  .grcap{ font-size:7px; letter-spacing:1.5px; color:var(--ink-dim); margin-bottom:5px; }
+  .grbar{
+    position:relative; width:14px; height:118px; border-radius:7px;
+    background:#0c0a08; box-shadow:0 0 0 1px #000 inset;
+    overflow:hidden;
   }
-  .switch button:hover{color:var(--ink);}
-  .switch button.on{
-    color:#1c1d20;font-weight:700;
-    background:linear-gradient(180deg,var(--accent),var(--accent2));
-    box-shadow:0 0 10px rgba(192,200,208,.55),0 1px 0 rgba(255,255,255,.4) inset;
+  .grfill{
+    position:absolute; left:0; right:0; top:0; height:0%;
+    background:linear-gradient(180deg,var(--accent2),var(--accent));
+    box-shadow:0 0 10px rgba(255,107,107,.7);
+    transition:height .07s linear;
   }
-  .ratio-cell{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1.15;}
+  .grnum{ font-size:9px; color:var(--accent); margin-top:5px; font-variant-numeric:tabular-nums;
+    text-shadow:0 0 8px rgba(255,179,71,.5); }
 
-  .hint{margin-top:12px;text-align:center;font-size:8.5px;letter-spacing:.16em;
-    color:var(--ink-dim);text-transform:uppercase;opacity:.7;}
+  /* ---- knob deck ------------------------------------------------------ */
+  .deck{ flex:1; display:grid; grid-template-columns:repeat(3,1fr); gap:14px 10px;
+    align-content:center; }
+  .cell{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .knob{
+    position:relative; width:78px; height:78px; cursor:grab; outline:none;
+    touch-action:none;
+  }
+  .knob.act{ cursor:grabbing; }
+  .knob .ring{
+    position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(circle at 50% 35%, #4a423a, #211c18 72%, #100d0b);
+    box-shadow:0 4px 10px rgba(0,0,0,.6), 0 1px 0 rgba(255,210,140,.12) inset, 0 0 0 1px #0a0806;
+  }
+  /* progress arc drawn with conic gradient masked to a ring */
+  .knob .arc{
+    position:absolute; inset:4px; border-radius:50%;
+    background:conic-gradient(from -135deg,
+      var(--accent) 0deg, var(--accent2) calc(var(--n,0)*270deg),
+      rgba(0,0,0,.55) calc(var(--n,0)*270deg), rgba(0,0,0,.55) 270deg,
+      transparent 270deg);
+    -webkit-mask:radial-gradient(circle, transparent 30px, #000 31px);
+    mask:radial-gradient(circle, transparent 30px, #000 31px);
+    filter:drop-shadow(0 0 5px rgba(255,179,71,.45));
+  }
+  /* chicken-head cap */
+  .cap{
+    position:absolute; inset:14px; border-radius:50%;
+    background:linear-gradient(150deg,#2c2722,#16120f);
+    box-shadow:0 2px 6px rgba(0,0,0,.7), 0 1px 0 rgba(255,210,140,.10) inset;
+    transform:rotate(calc(-135deg + var(--n,0)*270deg));
+    transition:transform .05s linear;
+  }
+  .cap::before{ /* the pointed chicken-head beak */
+    content:""; position:absolute; left:50%; top:-3px; transform:translateX(-50%);
+    width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent;
+    border-bottom:18px solid var(--accent);
+    filter:drop-shadow(0 0 4px rgba(255,179,71,.7));
+  }
+  .cap::after{ content:""; position:absolute; inset:9px; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#3a342d,#181410); }
+  .pname{ font-size:9.5px; letter-spacing:1.5px; color:var(--ink-dim); text-transform:uppercase; }
+  .pval{ font-size:11px; color:var(--accent); font-variant-numeric:tabular-nums;
+    text-shadow:0 0 8px rgba(255,179,71,.4); min-height:13px; }
+
+  /* ratio = stepped detent ring */
+  .knob.stepped .arc{ background:conic-gradient(from -135deg,
+      var(--accent2) 0deg, var(--accent2) calc(var(--n,0)*270deg),
+      rgba(0,0,0,.55) calc(var(--n,0)*270deg), rgba(0,0,0,.55) 270deg, transparent 270deg); }
+
+  .footer{ display:flex; justify-content:space-between; align-items:center;
+    margin-top:14px; padding:0 4px; }
+  .led{ display:flex; align-items:center; gap:6px; font-size:8px; letter-spacing:1.5px; color:var(--ink-dim); }
+  .led i{ width:8px; height:8px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffd9a0, var(--accent) 60%, #7a4a10);
+    box-shadow:0 0 8px rgba(255,179,71,.8); animation:pwr 2.6s ease-in-out infinite; }
+  @keyframes pwr{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+  .tag{ font-size:8px; letter-spacing:2px; color:var(--ink-dim); }
 </style>
 </head>
 <body>
-  <div class="unit idle" id="unit">
-    <span class="screw tl"></span><span class="screw tr"></span>
-    <span class="screw bl"></span><span class="screw br"></span>
+  <div class="module">
+    <i class="screw tl"></i><i class="screw tr"></i><i class="screw bl"></i><i class="screw br"></i>
 
-    <div class="brand">
-      <h1>Bus&nbsp;Glue</h1>
-      <span class="sub">Stereo VCA Bus Compressor</span>
+    <div class="head">
+      <div class="brand"><b>BUS</b> GLUE</div>
+      <div class="model">STEREO · VCA BUS COMPRESSOR</div>
     </div>
 
     <div class="meter-wrap">
-      <div class="vu" id="vu">
-        <span class="lamp"></span>
-        <svg viewBox="0 0 300 152" preserveAspectRatio="xMidYMid meet">
-          <!-- arc -->
-          <path d="M 40 120 A 120 120 0 0 1 260 120" fill="none" stroke="#b7a877" stroke-width="1.2" opacity=".6"/>
-          <path d="M 60 108 A 100 100 0 0 1 240 108" fill="none" stroke="#9c5a3c" stroke-width="2.4"
-                stroke-dasharray="0 96 200"/>
-          <!-- ticks -->
-          <g id="ticks" stroke="#6f6446" stroke-width="1.4"></g>
-          <!-- scale numbers -->
-          <g id="nums" fill="#7c6f4f" font-size="9" font-family="Helvetica,Arial" text-anchor="middle"></g>
-          <text x="150" y="60" fill="#9c5a3c" font-size="9" text-anchor="middle" font-family="Helvetica,Arial" letter-spacing="2">GAIN REDUCTION</text>
-          <!-- needle -->
-          <g id="needle">
-            <line x1="150" y1="138" x2="150" y2="34" stroke="#23252a" stroke-width="2.4" stroke-linecap="round"/>
-            <circle cx="150" cy="138" r="7" fill="#23252a"/>
-            <circle cx="150" cy="138" r="3" fill="#54585e"/>
+      <div class="vu">
+        <div class="backlight" id="backlight"></div>
+        <svg viewBox="0 0 400 160" preserveAspectRatio="xMidYMid meet">
+          <!-- scale ticks: 0 (left) to heavy reduction (right/red) -->
+          <g id="ticks" stroke="#5c4a2c" stroke-width="1.4" fill="#5c4a2c" font-size="10"
+             font-family="Helvetica,Arial" text-anchor="middle"></g>
+          <!-- red zone arc -->
+          <path id="redzone" fill="none" stroke="#d6422f" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+          <!-- the needle -->
+          <g class="needle" id="needle">
+            <line x1="200" y1="150" x2="200" y2="30" stroke="#1d1a16" stroke-width="3.2" stroke-linecap="round"/>
+            <line x1="200" y1="150" x2="200" y2="34" stroke="#3a2f1c" stroke-width="1.2"/>
           </g>
+          <circle cx="200" cy="150" r="9" fill="#1d1a16"/>
+          <circle cx="200" cy="150" r="4" fill="#5c4a2c"/>
         </svg>
+        <div class="label">GAIN REDUCTION</div>
+        <div class="units">dB · VU</div>
         <div class="glass"></div>
-        <div class="gr-num" id="grNum">−0.0 dB</div>
-        <div class="label">VU · dB</div>
       </div>
     </div>
 
-    <div class="row" id="row">
-      <div class="cell">
-        <div class="knob" id="k0" data-idx="0"><div class="face"></div><div class="grip"></div></div>
-        <div class="cap">Threshold</div><div class="val" id="v0"></div>
+    <div class="panel">
+      <div class="grcol">
+        <div class="grcap">GR</div>
+        <div class="grbar"><div class="grfill" id="grfill"></div></div>
+        <div class="grnum" id="grnum">0.0</div>
       </div>
-
-      <div class="ratio-cell">
-        <div class="switch" id="ratio">
-          <button data-v="0">2 : 1</button>
-          <button data-v="1">4 : 1</button>
-          <button data-v="2">10 : 1</button>
-        </div>
-        <div class="cap">Ratio</div><div class="val" id="v1"></div>
-      </div>
-
-      <div class="cell">
-        <div class="knob" id="k2" data-idx="2"><div class="face"></div><div class="grip"></div></div>
-        <div class="cap">Attack</div><div class="val" id="v2"></div>
-      </div>
-      <div class="cell">
-        <div class="knob" id="k3" data-idx="3"><div class="face"></div><div class="grip"></div></div>
-        <div class="cap">Release</div><div class="val" id="v3"></div>
-      </div>
-      <div class="cell">
-        <div class="knob" id="k4" data-idx="4"><div class="face"></div><div class="grip"></div></div>
-        <div class="cap">Makeup</div><div class="val" id="v4"></div>
-      </div>
+      <div class="deck" id="deck"></div>
     </div>
 
-    <div class="hint">Drag knobs · double-click to reset · click ratio to switch</div>
+    <div class="footer">
+      <div class="led"><i></i> POWER · GLUE ENGAGED</div>
+      <div class="tag">FEED-FORWARD · STEREO-LINKED</div>
+    </div>
   </div>
 
 <script>
 (function(){
   "use strict";
 
-  // ---- host bridge -------------------------------------------------
-  function host(){ return (typeof window!=="undefined" && window.vstai) ? window.vstai : null; }
-  function send(idx,val){ const h=host(); if(h && typeof h.setParam==="function") h.setParam(idx, val); }
+  // ---- parameter definitions (must match assembly.ts indices) ----------
+  var PARAMS=[
+    { name:"Threshold", index:0, min:0, max:1, def:0.45, fmt:function(v){ return (-40+v*40).toFixed(1)+" dB"; } },
+    { name:"Ratio",     index:1, min:0, max:2, def:1,    step:1,
+      fmt:function(v){ var s=Math.round(v); return ["2:1","4:1","10:1"][s]; } },
+    { name:"Attack",    index:2, min:0, max:1, def:0.4,
+      fmt:function(v){ return (30*Math.pow(0.0033333,v)).toFixed(2)+" ms"; } },
+    { name:"Release",   index:3, min:0, max:1, def:0.4,
+      fmt:function(v){ return (0.1+v*1.1).toFixed(2)+" s"; } },
+    { name:"Makeup",    index:4, min:0, max:1, def:0.3,
+      fmt:function(v){ return "+"+(24*v).toFixed(1)+" dB"; } },
+    { name:"Mix",       index:5, min:0, max:1, def:1,
+      fmt:function(v){ return Math.round(v*100)+"%"; } }
+  ];
 
-  // ---- param model -------------------------------------------------
-  // (min,max,default,fmt) — Ratio handled separately as a stepped switch
-  var P = {
-    0:{def:0.45, fmt:function(v){ return (-40*v).toFixed(1)+" dB"; }},
-    2:{def:0.40, fmt:function(v){ var ms=30*Math.pow(0.0033333,v); return ms.toFixed(ms<1?2:1)+" ms"; }},
-    3:{def:0.50, fmt:function(v){ if(v>0.92) return "AUTO"; return (0.1+v*1.1).toFixed(2)+" s"; }},
-    4:{def:0.30, fmt:function(v){ return "+"+(24*v).toFixed(1)+" dB"; }}
-  };
-  var state = {0:0.45, 1:1, 2:0.40, 3:0.50, 4:0.30};
+  var state={}; // index -> value
 
-  // sweep -135deg..+135deg for the knob grip
-  function knobAngle(v){ return (-135 + v*270); }
+  var deck=document.getElementById('deck');
+  var needle=document.getElementById('needle');
+  var grfill=document.getElementById('grfill');
+  var grnum=document.getElementById('grnum');
+  var backlight=document.getElementById('backlight');
 
-  function paintKnob(idx){
-    var k=document.getElementById("k"+idx);
-    if(k) k.style.setProperty("--ang", knobAngle(state[idx])+"deg");
-    var vEl=document.getElementById("v"+idx);
-    if(vEl && P[idx]) vEl.textContent = P[idx].fmt(state[idx]);
-  }
-
-  function setParam(idx,val,silent){
-    val = Math.max(0, Math.min(1, val));
-    state[idx]=val;
-    paintKnob(idx);
-    if(!silent) send(idx, val);
-  }
-
-  // ---- continuous knob drag ---------------------------------------
-  function wireKnob(idx){
-    var k=document.getElementById("k"+idx);
-    if(!k) return;
-    var dragging=false, lastY=0;
-    function down(e){
-      dragging=true; lastY=(e.touches?e.touches[0].clientY:e.clientY);
-      k.style.cursor="grabbing"; e.preventDefault();
+  // ---- build VU scale (ticks + red zone) -------------------------------
+  (function buildScale(){
+    var ticks=document.getElementById('ticks');
+    var redzone=document.getElementById('redzone');
+    // needle sweeps from -50deg (rest, no GR) to +50deg (heavy GR)
+    var A0=-52, A1=52, cx=200, cy=150, R=118, Rt=98;
+    var marks=[ {gr:0,t:"0"},{gr:3,t:"3"},{gr:6,t:"6"},{gr:10,t:"10"},{gr:16,t:"20"} ];
+    var maxGr=16;
+    function ang(gr){ var n=gr/maxGr; return A0+(A1-A0)*n; }
+    function rad(a){ return (a-90)*Math.PI/180; }
+    var s="";
+    for(var i=0;i<marks.length;i++){
+      var a=rad(ang(marks[i].gr));
+      var x1=cx+Math.cos(a)*R, y1=cy+Math.sin(a)*R;
+      var x2=cx+Math.cos(a)*(R-9), y2=cy+Math.sin(a)*(R-9);
+      var tx=cx+Math.cos(a)*Rt, ty=cy+Math.sin(a)*Rt+3;
+      s+='<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'"/>';
+      s+='<text x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'">'+marks[i].t+'</text>';
     }
-    function move(e){
-      if(!dragging) return;
-      var y=(e.touches?e.touches[0].clientY:e.clientY);
-      var dy=lastY-y; lastY=y;
-      setParam(idx, state[idx] + dy*0.005);
+    ticks.innerHTML=s;
+    // red zone from 6 dB upward
+    var aa=rad(ang(6)), ab=rad(ang(maxGr));
+    var rr=R-2;
+    var p="M "+(cx+Math.cos(aa)*rr).toFixed(1)+" "+(cy+Math.sin(aa)*rr).toFixed(1)+
+          " A "+rr+" "+rr+" 0 0 1 "+(cx+Math.cos(ab)*rr).toFixed(1)+" "+(cy+Math.sin(ab)*rr).toFixed(1);
+    redzone.setAttribute('d',p);
+    needle.dataset.a0=A0; needle.dataset.a1=A1; needle.dataset.max=maxGr;
+  })();
+
+  function setNeedle(grDb){
+    var maxGr=16, A0=-52, A1=52;
+    var n=Math.max(0,Math.min(1,grDb/maxGr));
+    var a=A0+(A1-A0)*n;
+    needle.style.transform="rotate("+a.toFixed(2)+"deg)";
+    var p=Math.min(1,grDb/12);
+    grfill.style.height=(p*100).toFixed(1)+"%";
+    grnum.textContent="-"+grDb.toFixed(1);
+    backlight.style.opacity=(0.4+p*0.55).toFixed(2);
+  }
+
+  // ---- simulated detector so the needle/meter LIVE-track the settings --
+  // We model a moving program signal and run the same gain computer the
+  // DSP uses, so the meter responds to every knob in real time.
+  var simLevel=0;     // dB level of the imagined bus material (drifts)
+  var grSmooth=0;     // smoothed displayed GR
+  var tprev=0, phase=0;
+  function tick(ts){
+    if(!tprev) tprev=ts;
+    var dt=Math.min(0.05,(ts-tprev)/1000); tprev=ts;
+    phase+=dt;
+    // imagined program: a busy mix bobbing around -14 dBFS with transients
+    var prog=-14 + 8*Math.sin(phase*1.7) + 5*Math.sin(phase*4.3+1.1)
+                 + 4*Math.sin(phase*9.7);
+    // gain computer (matches assembly.ts: soft knee, ratio, threshold)
+    var thr=-40+(state[0]!=null?state[0]:0.45)*40;
+    var sel=Math.round(state[1]!=null?state[1]:1);
+    var ratio=[2,4,10][sel]||4;
+    var slope=1-1/ratio, knee=6, hk=knee/2;
+    var over=prog-thr, target;
+    if(over<=-hk) target=0;
+    else if(over>=hk) target=slope*over;
+    else target=slope*(over+hk)*(over+hk)/(2*knee);
+    // attack/release smoothing toward target
+    var atN=state[2]!=null?state[2]:0.4;
+    var relN=state[3]!=null?state[3]:0.4;
+    var atkMs=30*Math.pow(0.0033333,atN);
+    var relS=0.1+relN*1.1;
+    var coef= target>grSmooth ? 1-Math.exp(-dt/(atkMs*0.001)) : 1-Math.exp(-dt/relS);
+    grSmooth+=coef*(target-grSmooth);
+    if(grSmooth<0) grSmooth=0;
+    // Mix scales how much GR is visibly applied (parallel)
+    var mix=state[5]!=null?state[5]:1;
+    setNeedle(grSmooth*mix);
+    requestAnimationFrame(tick);
+  }
+
+  // ---- knob factory ----------------------------------------------------
+  function build(p){
+    var cell=document.createElement('div'); cell.className='cell';
+    var stepped=p.step?' stepped':'';
+    cell.innerHTML=
+      '<div class="knob'+stepped+'" tabindex="0" role="slider" aria-label="'+p.name+'">'+
+        '<i class="ring"></i><i class="arc"></i><i class="cap"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var cap=cell.querySelector('.cap');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var n=norm();
+      arc.style.setProperty('--n',n);
+      cap.style.setProperty('--n',n);
+      val.textContent=p.fmt?p.fmt(v):n.toFixed(2);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
+    function setNorm(n){
+      n=n<0?0:n>1?1:n;
+      var raw=p.min+(p.max-p.min)*n;
+      if(p.step) raw=Math.round(raw/p.step)*p.step;
+      v=raw; paint();
+    }
+
+    var drag=false, startY=0, startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true; startY=e.clientY; startN=norm();
+      knob.classList.add('act'); knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?700:230;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){ drag=false; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){
       e.preventDefault();
-    }
-    function up(){ dragging=false; k.style.cursor="grab"; }
-    k.addEventListener("mousedown",down);
-    k.addEventListener("touchstart",down,{passive:false});
-    window.addEventListener("mousemove",move);
-    window.addEventListener("touchmove",move,{passive:false});
-    window.addEventListener("mouseup",up);
-    window.addEventListener("touchend",up);
-    k.addEventListener("dblclick",function(){ setParam(idx, P[idx].def); });
-    k.addEventListener("wheel",function(e){
-      setParam(idx, state[idx] - Math.sign(e.deltaY)*0.02); e.preventDefault();
+      var dn=p.step?(p.step/((p.max-p.min)||1)):0.03;
+      setNorm(norm()+(e.deltaY<0?dn:-dn));
     },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      var dn=p.step?(p.step/((p.max-p.min)||1)):0.02;
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+dn);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-dn);e.preventDefault();}
+    });
+
+    paint();
   }
 
-  // ---- ratio stepped switch ---------------------------------------
-  function paintRatio(){
-    var sel = Math.round(state[1]);
-    var btns=document.querySelectorAll("#ratio button");
-    for(var i=0;i<btns.length;i++){
-      btns[i].classList.toggle("on", +btns[i].getAttribute("data-v")===sel);
-    }
-    var labels=["2 : 1","4 : 1","10 : 1"];
-    var v1=document.getElementById("v1"); if(v1) v1.textContent=labels[sel]||"";
-  }
-  function setRatio(v, silent){
-    state[1]=v; paintRatio();
-    if(!silent) send(1, v); // real value 0/1/2
-  }
-  (function(){
-    var btns=document.querySelectorAll("#ratio button");
-    for(var i=0;i<btns.length;i++){
-      (function(b){
-        b.addEventListener("click",function(){ setRatio(+b.getAttribute("data-v")); });
-      })(btns[i]);
-    }
-  })();
-
-  // ---- VU needle: sway driven by simulated gain reduction ----------
-  var unit=document.getElementById("unit");
-  var needle=document.getElementById("needle");
-  var grNum=document.getElementById("grNum");
-  var simGR=0;          // displayed GR in dB (0..-18)
-  var lastChange=0;
-
-  // build ticks + numbers 0 .. -20
-  (function(){
-    var ticks=document.getElementById("ticks");
-    var nums=document.getElementById("nums");
-    var cx=150, cy=138, r=104;
-    // needle maps 0 dB at -52deg .. -20 dB at +52deg
-    for(var d=0; d<=20; d+=2){
-      var t=d/20;
-      var a=(-52 + t*104) * Math.PI/180;
-      var x1=cx+Math.sin(a)*r, y1=cy-Math.cos(a)*r;
-      var x2=cx+Math.sin(a)*(r-(d%4===0?11:6)), y2=cy-Math.cos(a)*(r-(d%4===0?11:6));
-      var ln=document.createElementNS("http://www.w3.org/2000/svg","line");
-      ln.setAttribute("x1",x1);ln.setAttribute("y1",y1);
-      ln.setAttribute("x2",x2);ln.setAttribute("y2",y2);
-      ticks.appendChild(ln);
-      if(d%4===0){
-        var tx=document.createElementNS("http://www.w3.org/2000/svg","text");
-        var xx=cx+Math.sin(a)*(r-22), yy=cy-Math.cos(a)*(r-22)+3;
-        tx.setAttribute("x",xx);tx.setAttribute("y",yy);
-        tx.textContent = d===0?"0":("-"+d);
-        nums.appendChild(tx);
-      }
-    }
-  })();
-
-  function grToAngle(db){ // db is 0..20 (positive magnitude)
-    var t=Math.min(1, db/20);
-    return -52 + t*104;
-  }
-
-  // estimate steady-state GR from current settings + a pulsing "mix"
-  function estimateTargetGR(){
-    var thr = -40*state[0];          // threshold dB
-    var ratios=[2,4,10];
-    var ratio = ratios[Math.round(state[1])];
-    // pretend a mix sits around -8 dBFS with a slow breathing level
-    var lvl = -8 + 6*Math.sin(performance.now()/900) + 2*Math.sin(performance.now()/310);
-    var over = lvl - thr;
-    if(over<=0) return 0;
-    return over*(1 - 1/ratio);
-  }
-
-  function tick(){
-    var target=estimateTargetGR();
-    // smooth toward target using attack/release-flavoured coefficients
-    var atk = 0.18 + 0.5*state[2];
-    var rel = 0.02 + 0.05*(1-state[3]);
-    if(target>simGR) simGR += (target-simGR)*atk;
-    else simGR += (target-simGR)*rel;
-    var shown=Math.max(0,simGR);
-    needle.style.transform="rotate("+grToAngle(shown)+"deg)";
-    grNum.textContent = "−"+shown.toFixed(1)+" dB";
+  function ready(){
+    for(var i=0;i<PARAMS.length;i++) build(PARAMS[i]);
     requestAnimationFrame(tick);
   }
 
-  // ---- init --------------------------------------------------------
-  function boot(){
-    [0,2,3,4].forEach(function(i){ wireKnob(i); });
-    // initialise to defaults and push to host
-    setParam(0, state[0]);
-    setRatio(state[1]);
-    setParam(2, state[2]);
-    setParam(3, state[3]);
-    setParam(4, state[4]);
-    // disable idle CSS sway once the live needle takes over
-    unit.classList.remove("idle");
-    requestAnimationFrame(tick);
-  }
-
-  var h=host();
-  if(h && typeof h.onReady==="function"){ h.onReady(boot); }
-  else { boot(); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>
 </body>

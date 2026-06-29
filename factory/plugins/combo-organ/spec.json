@@ -1,0 +1,19 @@
+{
+  "name": "Combo Organ",
+  "isInstrument": true,
+  "explanation": "A polyphonic 1960s transistor combo organ. A divide-down design: every key fires one master pitch that is divided into octaves and re-summed through three bright rocker tabs — 16' Bass, 8' Mid and a 4'+reed Bright — for the hollow, buzzy, slightly reedy combo tone. Keys speak instantly (fast attack/release, no slow envelope), a scanner-style Vibrato wobbles the whole keyboard, and a Tone tilt runs the sound from dark and woody to bright and cutting. Controls: Bass (16'), Mid (8'), Bright (4'+reed), Vibrato Depth, Vibrato Rate, Tone and Level. Cheerful, bright, and fully polyphonic so chords ring.",
+  "assembly": "factory/plugins/combo-organ/assembly.ts",
+  "out": "factory/plugins/combo-organ/x.vstai",
+  "publishedAt": 1751000082000,
+  "theme": { "accent": "#ff5c6e", "accent2": "#ffd0d6" },
+  "guiFile": "factory/plugins/combo-organ/gui.html",
+  "params": [
+    { "name": "Bass",         "index": 0, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Mid",          "index": 1, "min": 0, "max": 1, "default": 0.85 },
+    { "name": "Bright",       "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "VibratoDepth", "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "VibratoRate",  "index": 4, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Tone",         "index": 5, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Level",        "index": 6, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solo One</title>
+<style>
+  :root {
+    --accent: #ff5a4d;
+    --accent2: #ffb13d;
+    --bg0: #1a0f0c;
+    --bg1: #2a1410;
+    --panel: #221310;
+    --ink: #ffe9df;
+    --ink-dim: #c99a8c;
+    --line: rgba(255,90,77,0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 560px;
+    border-radius: 18px;
+    padding: 18px 20px 22px;
+    background:
+      radial-gradient(120% 80% at 15% -10%, rgba(255,90,77,0.18), transparent 55%),
+      radial-gradient(140% 90% at 110% 120%, rgba(255,177,61,0.12), transparent 50%),
+      linear-gradient(160deg, var(--bg1), var(--bg0));
+    border: 1px solid var(--line);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 -2px 14px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* ---- header ---- */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  .sigil {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    position: relative;
+    background: linear-gradient(150deg, var(--accent), var(--accent2));
+    box-shadow:
+      0 0 18px rgba(255,90,77,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.4);
+    display: grid; place-items: center;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(255,90,77,0.45), inset 0 1px 0 rgba(255,255,255,0.4); }
+    50%      { box-shadow: 0 0 26px rgba(255,177,61,0.7), inset 0 1px 0 rgba(255,255,255,0.5); }
+  }
+  .sigil svg { width: 22px; height: 22px; display: block; }
+
+  .title { line-height: 1; }
+  .title .name {
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .title .sub {
+    margin-top: 4px;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .badge {
+    font-size: 8.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: rgba(255,90,77,0.06);
+  }
+
+  /* ---- visualisers ---- */
+  .viz {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .glass {
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.6);
+    padding: 8px 10px 6px;
+    position: relative;
+  }
+  .glass .lbl {
+    font-size: 8px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+  canvas { display: block; width: 100%; height: 78px; border-radius: 6px; }
+
+  /* ---- knobs ---- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px 6px;
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 4px 10px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.18));
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  }
+  .cell.hot {
+    border-color: var(--line);
+    box-shadow: 0 0 18px rgba(255,90,77,0.25);
+    transform: translateY(-1px);
+  }
+  .cell.big { grid-column: span 2; grid-row: span 2; }
+
+  .knob {
+    cursor: ns-resize;
+    touch-action: none;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  }
+  .knob svg { display: block; overflow: visible; }
+
+  .pname {
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .pval {
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+    letter-spacing: 0.5px;
+  }
+  .cell.big .pname { font-size: 11px; letter-spacing: 2.4px; color: var(--ink); }
+  .cell.big .pval  { font-size: 16px; }
+
+  /* ---- keyboard ---- */
+  .keys {
+    margin-top: 16px;
+    display: flex;
+    position: relative;
+    height: 78px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0c0705;
+    border: 1px solid var(--line);
+    box-shadow: inset 0 3px 10px rgba(0,0,0,0.7);
+    user-select: none;
+    touch-action: none;
+  }
+  .wkey {
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #f4e6df, #cbb6ac);
+    box-shadow: inset 0 -6px 8px rgba(0,0,0,0.18);
+    transition: background 0.06s, box-shadow 0.06s;
+  }
+  .wkey.on {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.3), 0 0 16px rgba(255,90,77,0.6);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 6.2%;
+    height: 60%;
+    margin-left: -3.1%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a1a15, #0a0504);
+    box-shadow: inset 0 -3px 5px rgba(255,255,255,0.06), 0 3px 6px rgba(0,0,0,0.6);
+    z-index: 3;
+    transition: background 0.06s;
+  }
+  .bkey.on {
+    background: linear-gradient(180deg, var(--accent), #b53026);
+    box-shadow: 0 0 14px rgba(255,90,77,0.7);
+  }
+
+  .foot {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="head">
+      <div class="brand">
+        <div class="sigil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2a0b06" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 14 L7 14 L9 5 L13 19 L15 14 L21 14"/>
+          </svg>
+        </div>
+        <div class="title">
+          <div class="name">Solo One</div>
+          <div class="sub">Mono Lead Engine</div>
+        </div>
+      </div>
+      <div class="badge">Monophonic</div>
+    </div>
+
+    <div class="viz">
+      <div class="glass">
+        <div class="lbl">Filter Envelope</div>
+        <canvas id="envCanvas"></canvas>
+      </div>
+      <div class="glass">
+        <div class="lbl">Lead Scope</div>
+        <canvas id="scopeCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <div class="keys" id="keys"></div>
+    <div class="foot">Drag knobs · double-click resets · play the keys</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- param model (indices match assembly.ts) ----
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.35, big: true,  unit: "%" },
+    { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.70, unit: "%" },
+    { name: "Env Amount", index: 2, min: 0, max: 1, def: 0.80, unit: "%" },
+    { name: "Decay",      index: 3, min: 0, max: 1, def: 0.30, unit: "%" },
+    { name: "Detune",     index: 4, min: 0, max: 1, def: 0.25, unit: "%" },
+    { name: "Drive",      index: 5, min: 0, max: 1, def: 0.40, unit: "%" },
+    { name: "Level",      index: 6, min: 0, max: 1, def: 0.80, unit: "%" }
+  ];
+
+  var values = {};
+  var bridge = null;
+
+  function pushParam(index, value) {
+    if (bridge && typeof bridge.setParam === "function") {
+      try { bridge.setParam(index, value); } catch (e) {}
+    }
+  }
+
+  // ---- knob factory ----
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "cell" + (p.big ? " big" : "");
+
+    var R = p.big ? 46 : 30;
+    var sw = p.big ? 12 : 8;
+    var size = (R + sw) * 2 + 8;
+    var cx = size / 2, cy = size / 2;
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.innerHTML =
+      '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
+        '<defs>' +
+          '<radialGradient id="g' + p.index + '" cx="50%" cy="35%" r="70%">' +
+            '<stop offset="0%" stop-color="#3a201a"/>' +
+            '<stop offset="100%" stop-color="#160c09"/>' +
+          '</radialGradient>' +
+          '<linearGradient id="arc' + p.index + '" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0%" stop-color="#ffb13d"/>' +
+            '<stop offset="100%" stop-color="#ff5a4d"/>' +
+          '</linearGradient>' +
+        '</defs>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + (R + sw / 2) + '" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="' + sw + '"/>' +
+        '<path id="track' + p.index + '" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="' + sw + '" stroke-linecap="round"/>' +
+        '<path id="fill' + p.index + '" fill="none" stroke="url(#arc' + p.index + ')" stroke-width="' + sw + '" stroke-linecap="round"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="url(#g' + p.index + ')" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="rgba(255,90,77,0.0)" stroke-width="2" id="glow' + p.index + '"/>' +
+        '<line id="ptr' + p.index + '" x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - R + sw * 0.4) + '" stroke="#ffe9df" stroke-width="' + (p.big ? 3 : 2.2) + '" stroke-linecap="round"/>' +
+      '</svg>';
+
+    var name = document.createElement("div");
+    name.className = "pname";
+    name.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "pval";
+
+    cell.appendChild(knob);
+    cell.appendChild(name);
+    cell.appendChild(val);
+
+    // arc geometry: 270deg sweep, gap at the bottom
+    var A0 = 135, A1 = 405; // degrees
+    function polar(ang, r) {
+      var rad = (ang - 90) * Math.PI / 180;
+      return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+    }
+    function arcPath(fromDeg, toDeg, r) {
+      var a = polar(fromDeg, r), b = polar(toDeg, r);
+      var large = (toDeg - fromDeg) > 180 ? 1 : 0;
+      return "M" + a[0] + " " + a[1] + " A" + r + " " + r + " 0 " + large + " 1 " + b[0] + " " + b[1];
+    }
+    knob.querySelector("#track" + p.index).setAttribute("d", arcPath(A0, A1, R + sw / 2));
+
+    var fillEl = knob.querySelector("#fill" + p.index);
+    var ptrEl = knob.querySelector("#ptr" + p.index);
+
+    function render() {
+      var v = values[p.index];
+      var t = (v - p.min) / (p.max - p.min);
+      var ang = A0 + t * (A1 - A0);
+      if (t > 0.001) fillEl.setAttribute("d", arcPath(A0, ang, R + sw / 2));
+      else fillEl.setAttribute("d", "");
+      var rad = (ang - 90) * Math.PI / 180;
+      ptrEl.setAttribute("transform", "rotate(" + (ang - 0) + " " + cx + " " + cy + ")");
+      val.textContent = Math.round(t * 100) + (p.unit || "");
+    }
+
+    function setVal(v, push) {
+      v = Math.max(p.min, Math.min(p.max, v));
+      values[p.index] = v;
+      render();
+      if (push !== false) pushParam(p.index, v);
+    }
+
+    // drag
+    var dragging = false, startY = 0, startV = 0;
+    function down(e) {
+      dragging = true;
+      cell.classList.add("hot");
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = values[p.index];
+      e.preventDefault();
+      window.addEventListener("mousemove", move);
+      window.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("mouseup", up);
+      window.addEventListener("touchend", up);
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var fine = e.shiftKey ? 0.25 : 1;
+      var dv = (startY - y) / 200 * fine * (p.max - p.min);
+      setVal(startV + dv);
+      e.preventDefault();
+    }
+    function up() {
+      dragging = false;
+      cell.classList.remove("hot");
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchend", up);
+    }
+    knob.addEventListener("mousedown", down);
+    knob.addEventListener("touchstart", down, { passive: false });
+    knob.addEventListener("dblclick", function () { setVal(p.def); });
+    knob.addEventListener("wheel", function (e) {
+      var fine = e.shiftKey ? 0.2 : 1;
+      setVal(values[p.index] - Math.sign(e.deltaY) * 0.02 * fine * (p.max - p.min));
+      e.preventDefault();
+    }, { passive: false });
+
+    values[p.index] = p.def;
+    setVal(p.def, false);
+    return { cell: cell, render: render };
+  }
+
+  var rack = document.getElementById("rack");
+  var knobs = [];
+  PARAMS.forEach(function (p) {
+    var k = makeKnob(p);
+    knobs.push(k);
+    rack.appendChild(k.cell);
+  });
+
+  // ---- keyboard ----
+  // build two octaves starting at C3 (MIDI 48)
+  var keysEl = document.getElementById("keys");
+  var WHITE = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10 }; // white-index -> black semitone offset
+  var BASE = 48;
+  var OCTAVES = 2;
+  var whiteEls = [];
+  var totalWhite = WHITE.length * OCTAVES;
+
+  for (var o = 0; o < OCTAVES; o++) {
+    for (var w = 0; w < WHITE.length; w++) {
+      var midi = BASE + o * 12 + WHITE[w];
+      var el = document.createElement("div");
+      el.className = "wkey";
+      el.dataset.midi = midi;
+      keysEl.appendChild(el);
+      whiteEls.push(el);
+    }
+  }
+  // black keys positioned after layout
+  function placeBlacks() {
+    var w = keysEl.clientWidth / totalWhite;
+    var idx = 0;
+    for (var o = 0; o < OCTAVES; o++) {
+      for (var i = 0; i < WHITE.length; i++) {
+        if (BLACK.hasOwnProperty(i)) {
+          var midi = BASE + o * 12 + BLACK[i];
+          var b = document.createElement("div");
+          b.className = "bkey";
+          b.dataset.midi = midi;
+          b.style.left = (w * (idx + 1)) + "px";
+          keysEl.appendChild(b);
+        }
+        idx++;
+      }
+    }
+  }
+  placeBlacks();
+  window.addEventListener("resize", function () {
+    var olds = keysEl.querySelectorAll(".bkey");
+    for (var i = 0; i < olds.length; i++) olds[i].remove();
+    placeBlacks();
+  });
+
+  var held = {};
+  function noteOn(midi, el) {
+    if (held[midi]) return;
+    held[midi] = el;
+    el.classList.add("on");
+    if (bridge && typeof bridge.noteOn === "function") {
+      try { bridge.noteOn(midi, 0.92); } catch (e) {}
+    }
+    scopeActive = true;
+  }
+  function noteOff(midi) {
+    var el = held[midi];
+    if (!el) return;
+    el.classList.remove("on");
+    delete held[midi];
+    if (bridge && typeof bridge.noteOff === "function") {
+      try { bridge.noteOff(midi); } catch (e) {}
+    }
+  }
+
+  var pointerDown = false;
+  function keyAt(target) {
+    if (!target || !target.dataset || !target.dataset.midi) return null;
+    return { midi: +target.dataset.midi, el: target };
+  }
+  keysEl.addEventListener("mousedown", function (e) {
+    pointerDown = true;
+    var k = keyAt(e.target);
+    if (k) noteOn(k.midi, k.el);
+    e.preventDefault();
+  });
+  keysEl.addEventListener("mouseover", function (e) {
+    if (!pointerDown) return;
+    var k = keyAt(e.target);
+    if (k) noteOn(k.midi, k.el);
+  });
+  keysEl.addEventListener("mouseout", function (e) {
+    var k = keyAt(e.target);
+    if (k && pointerDown) noteOff(k.midi);
+  });
+  window.addEventListener("mouseup", function () {
+    pointerDown = false;
+    for (var m in held) noteOff(+m);
+  });
+  keysEl.addEventListener("touchstart", function (e) {
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      var t = e.changedTouches[i];
+      var k = keyAt(document.elementFromPoint(t.clientX, t.clientY));
+      if (k) noteOn(k.midi, k.el);
+    }
+    e.preventDefault();
+  }, { passive: false });
+  keysEl.addEventListener("touchend", function (e) {
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      var t = e.changedTouches[i];
+      var k = keyAt(document.elementFromPoint(t.clientX, t.clientY));
+      if (k) noteOff(k.midi);
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  // computer keyboard mapping (a row -> white, w/e/t/y/u -> black)
+  var KEYMAP = { a: 48, w: 49, s: 50, e: 51, d: 52, f: 53, t: 54, g: 55, y: 56, h: 57, u: 58, j: 59, k: 60, o: 61, l: 62 };
+  document.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var midi = KEYMAP[e.key];
+    if (midi == null) return;
+    var el = document.querySelector('[data-midi="' + midi + '"]');
+    if (el) noteOn(midi, el);
+  });
+  document.addEventListener("keyup", function (e) {
+    var midi = KEYMAP[e.key];
+    if (midi != null) noteOff(midi);
+  });
+
+  // ---- visualisers ----
+  var envC = document.getElementById("envCanvas");
+  var scopeC = document.getElementById("scopeCanvas");
+  var envX = envC.getContext("2d");
+  var scopeX = scopeC.getContext("2d");
+
+  function fit(cv) {
+    var dpr = window.devicePixelRatio || 1;
+    var r = cv.getBoundingClientRect();
+    cv.width = Math.max(2, r.width * dpr);
+    cv.height = Math.max(2, r.height * dpr);
+    return dpr;
+  }
+  var envDpr = fit(envC), scopeDpr = fit(scopeC);
+  window.addEventListener("resize", function () { envDpr = fit(envC); scopeDpr = fit(scopeC); });
+
+  var t0 = performance.now();
+  var scopeActive = false;
+  var anyHeld = function () { for (var k in held) return true; return false; };
+
+  function drawEnv(now) {
+    var w = envC.width, h = envC.height;
+    envX.clearRect(0, 0, w, h);
+    // shape from Decay + Env Amount; spiking attack, exp decay
+    var decay = values[3];
+    var amt = values[2];
+    var attack = 0.04;
+    var decTime = 0.1 + decay * 0.85;
+    envX.lineWidth = 2 * envDpr;
+    // grid
+    envX.strokeStyle = "rgba(255,90,77,0.08)";
+    envX.lineWidth = 1 * envDpr;
+    for (var gx = 0; gx <= 4; gx++) {
+      var x = w * gx / 4;
+      envX.beginPath(); envX.moveTo(x, 0); envX.lineTo(x, h); envX.stroke();
+    }
+    // moving phase so it feels alive
+    var ph = ((now - t0) / 2200) % 1;
+    var grad = envX.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, "#ffb13d");
+    grad.addColorStop(1, "#ff5a4d");
+    envX.strokeStyle = grad;
+    envX.lineWidth = 2.4 * envDpr;
+    envX.beginPath();
+    var top = h * (0.92 - amt * 0.78);
+    for (var i = 0; i <= 120; i++) {
+      var tt = i / 120;
+      var v;
+      if (tt < attack) v = tt / attack;
+      else v = Math.exp(-(tt - attack) / decTime * 4.5);
+      var y = h - 4 - v * (h - top - 4);
+      var px = tt * w;
+      if (i === 0) envX.moveTo(px, y); else envX.lineTo(px, y);
+    }
+    envX.stroke();
+    // glowing playhead dot riding the curve
+    var tt = ph;
+    var vv = tt < attack ? tt / attack : Math.exp(-(tt - attack) / decTime * 4.5);
+    var hy = h - 4 - vv * (h - top - 4);
+    envX.fillStyle = "#fff3e6";
+    envX.shadowColor = "#ff5a4d";
+    envX.shadowBlur = 12 * envDpr;
+    envX.beginPath();
+    envX.arc(tt * w, hy, 3 * envDpr, 0, Math.PI * 2);
+    envX.fill();
+    envX.shadowBlur = 0;
+  }
+
+  var scopeEnv = 0;
+  function drawScope(now) {
+    var w = scopeC.width, h = scopeC.height;
+    scopeX.clearRect(0, 0, w, h);
+    var mid = h / 2;
+    // baseline
+    scopeX.strokeStyle = "rgba(255,90,77,0.10)";
+    scopeX.lineWidth = 1 * scopeDpr;
+    scopeX.beginPath(); scopeX.moveTo(0, mid); scopeX.lineTo(w, mid); scopeX.stroke();
+
+    // ease the trace amplitude toward whether a note is held
+    var target = anyHeld() ? 1 : 0;
+    scopeEnv += (target - scopeEnv) * 0.06;
+
+    // synth-derived waveform: saw + detuned pulse, filtered look
+    var cutoff = values[0], reso = values[1], detune = values[4], drive = values[5];
+    var tphase = (now - t0) / 1000;
+    var cycles = 3;
+    var grad = scopeX.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, "#ffb13d");
+    grad.addColorStop(1, "#ff5a4d");
+    scopeX.strokeStyle = grad;
+    scopeX.lineWidth = 2.2 * scopeDpr;
+    scopeX.shadowColor = "rgba(255,90,77,0.6)";
+    scopeX.shadowBlur = 8 * scopeDpr * scopeEnv;
+    scopeX.beginPath();
+    var amp = (0.18 + scopeEnv * 0.66) * mid;
+    for (var i = 0; i <= w; i += 2) {
+      var u = i / w;
+      var ph1 = (u * cycles + tphase) % 1;
+      var saw = ph1 * 2 - 1;
+      var ph2 = (u * cycles * (1 + detune * 0.04) + tphase) % 1;
+      var pulse = ph2 < 0.5 ? 1 : -1;
+      var sig = saw + pulse * 0.7;
+      // crude "filter": blend toward smooth as cutoff/reso change, drive sharpens
+      sig = sig * (0.5 + drive * 0.4);
+      // resonant ripple emphasis near the edges
+      sig += Math.sin(ph1 * Math.PI * 2) * reso * 0.35 * Math.exp(-cutoff * 1.5);
+      sig = Math.max(-1.4, Math.min(1.4, sig * (0.4 + cutoff * 0.7)));
+      var y = mid - sig * amp;
+      if (i === 0) scopeX.moveTo(i, y); else scopeX.lineTo(i, y);
+    }
+    scopeX.stroke();
+    scopeX.shadowBlur = 0;
+  }
+
+  function loop(now) {
+    if (!document.hidden) {
+      drawEnv(now);
+      drawScope(now);
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---- host bridge ----
+  function bind() {
+    bridge = window.vstai || null;
+    // (re)push all defaults to the engine
+    PARAMS.forEach(function (p) { pushParam(p.index, values[p.index]); });
+  }
+  function boot() {
+    if (window.vstai && typeof window.vstai.onReady === "function") {
+      window.vstai.onReady(bind);
+    } else {
+      bind();
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Mu Leveler",
+  "isInstrument": false,
+  "explanation": "A vari-mu tube-style compressor and leveler. It models a variable-mu valve gain stage, where the tube's effective gain falls as the signal gets louder, so compression is soft, rounded and program-dependent rather than the hard, fixed-ratio grab of a VCA or FET. Detection runs in the dB domain with a wide, soft knee; the recovery 'breathes', speeding up under dense program material and relaxing as the music opens out. A touch of warm, mostly even-harmonic valve saturation is added on the way out, growing with the Input drive. Controls: Input, Threshold, Recovery, Makeup and dry/wet Mix.",
+  "assembly": "factory/plugins/mu-leveler/assembly.ts",
+  "out": "factory/plugins/mu-leveler/x.vstai",
+  "publishedAt": 1751000091000,
+  "theme": { "accent": "#ffcf6a", "accent2": "#ff9a52" },
+  "guiFile": "factory/plugins/mu-leveler/gui.html",
+  "params": [
+    { "name": "Input",     "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Threshold", "index": 1, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "Recovery",  "index": 2, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "Makeup",    "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 1.0 }
+  ]
+}

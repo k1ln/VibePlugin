@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storm Juno</title>
+<style>
+  :root {
+    --accent: #9a7bff;
+    --accent2: #3de0ff;
+    --bg0: #0a0716;
+    --bg1: #160d2e;
+    --bg2: #1d1142;
+    --ink: #e7e3ff;
+    --dim: #8a82b8;
+    --panel: #120a26;
+    --line: rgba(154,123,255,0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* ---- stormy shell ------------------------------------------------ */
+  .shell {
+    position: relative;
+    border-radius: 18px;
+    padding: 18px 20px 20px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 20% -10%, rgba(154,123,255,0.22), transparent 55%),
+      radial-gradient(120% 120% at 110% 120%, rgba(61,224,255,0.18), transparent 55%),
+      linear-gradient(160deg, var(--bg2), var(--bg0) 70%);
+    border: 1px solid rgba(154,123,255,0.28);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  /* drifting storm clouds */
+  .shell::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background:
+      radial-gradient(40% 30% at 30% 40%, rgba(80,40,160,0.30), transparent 60%),
+      radial-gradient(35% 28% at 70% 60%, rgba(20,120,170,0.26), transparent 60%),
+      radial-gradient(30% 24% at 50% 20%, rgba(120,80,220,0.22), transparent 60%);
+    filter: blur(8px);
+    animation: drift 26s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes drift {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(-6%, 4%) scale(1.08); }
+  }
+
+  /* ---- header ------------------------------------------------------ */
+  header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .logo {
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(154,123,255,0.35);
+  }
+  .sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* rave LED strip */
+  .leds { display: flex; gap: 6px; }
+  .led {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: rgba(154,123,255,0.25);
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.6);
+  }
+  .led.on {
+    background: var(--accent2);
+    box-shadow: 0 0 10px var(--accent2), 0 0 18px rgba(61,224,255,0.6);
+  }
+
+  /* ---- visualiser -------------------------------------------------- */
+  .viz {
+    position: relative;
+    height: 132px;
+    border-radius: 12px;
+    background:
+      linear-gradient(180deg, rgba(8,4,20,0.9), rgba(20,10,44,0.55));
+    border: 1px solid var(--line);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .viz canvas { display: block; width: 100%; height: 100%; }
+  .viz .tag {
+    position: absolute; top: 8px; left: 10px;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* ---- control grid ------------------------------------------------ */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px 8px;
+    background: rgba(8,4,20,0.4);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 12px 14px;
+    margin-bottom: 16px;
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+  }
+  .knob {
+    width: 74px; height: 74px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob .glow { transition: opacity 0.18s; opacity: 0; }
+  .cell.active .knob .glow,
+  .knob:hover .glow { opacity: 1; }
+
+  .lbl {
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .val {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---- keyboard ---------------------------------------------------- */
+  .kbd {
+    position: relative;
+    height: 96px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #07040f, #120a26);
+    border: 1px solid var(--line);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .keys { position: relative; height: 100%; width: 100%; max-width: 660px; }
+  .wkey, .bkey {
+    position: absolute;
+    bottom: 0;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    transition: background 0.08s, box-shadow 0.08s, transform 0.05s;
+  }
+  .wkey {
+    top: 0;
+    background: linear-gradient(180deg, #efeaff, #cdc4ee);
+    border: 1px solid #1a1030;
+    box-shadow: inset 0 -6px 10px rgba(120,90,200,0.18);
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), #7ce8ff);
+    box-shadow: 0 0 16px rgba(61,224,255,0.7);
+    transform: translateY(1px);
+  }
+  .bkey {
+    top: 0;
+    height: 60%;
+    background: linear-gradient(180deg, #2a1a52, #0c0620);
+    border: 1px solid #000;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+    z-index: 2;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #6b4fd6);
+    box-shadow: 0 0 16px rgba(154,123,255,0.8);
+  }
+
+  .hint {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo">STORM JUNO</div>
+        <div class="sub">6-Voice DCO Hoover</div>
+      </div>
+      <div class="leds" id="leds"></div>
+    </header>
+
+    <div class="viz">
+      <div class="tag">Detuned Pulse Stack</div>
+      <canvas id="scope"></canvas>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <div class="kbd">
+      <div class="keys" id="keys"></div>
+    </div>
+    <div class="hint">Drag knobs vertically · double-click to reset · play the keys</div>
+  </div>
+</div>
+
+<script>
+  "use strict";
+
+  // ---- parameter model (indices must match the DSP module) ----------
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.45 },
+    { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.55 },
+    { name: "Env Amount", index: 2, min: 0, max: 1, def: 0.70 },
+    { name: "PWM Depth",  index: 3, min: 0, max: 1, def: 0.70 },
+    { name: "PWM Rate",   index: 4, min: 0, max: 1, def: 0.35 },
+    { name: "Chorus",     index: 5, min: 0, max: 1, def: 0.60 },
+    { name: "Release",    index: 6, min: 0, max: 1, def: 0.35 },
+    { name: "Level",      index: 7, min: 0, max: 1, def: 0.70 }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].index, values[i]);
+    }
+  }
+
+  // ---- build knobs --------------------------------------------------
+  var NS = "http://www.w3.org/2000/svg";
+
+  function makeKnob(i) {
+    var p = PARAMS[i];
+
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "knob");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    // glow halo (shown when active/hover)
+    var glow = document.createElementNS(NS, "circle");
+    glow.setAttribute("class", "glow");
+    glow.setAttribute("cx", "50");
+    glow.setAttribute("cy", "50");
+    glow.setAttribute("r", "44");
+    glow.setAttribute("fill", "none");
+    glow.setAttribute("stroke", "var(--accent2)");
+    glow.setAttribute("stroke-width", "2");
+    glow.setAttribute("opacity", "0");
+    glow.style.filter = "drop-shadow(0 0 6px var(--accent2))";
+    svg.appendChild(glow);
+
+    // track arc
+    var track = document.createElementNS(NS, "path");
+    track.setAttribute("d", arcPath(50, 50, 36, -135, 135));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(154,123,255,0.18)");
+    track.setAttribute("stroke-width", "6");
+    track.setAttribute("stroke-linecap", "round");
+    svg.appendChild(track);
+
+    // value arc
+    var arc = document.createElementNS(NS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#grad" + i + ")");
+    arc.setAttribute("stroke-width", "6");
+    arc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(arc);
+
+    // gradient def
+    var defs = document.createElementNS(NS, "defs");
+    var grad = document.createElementNS(NS, "linearGradient");
+    grad.setAttribute("id", "grad" + i);
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
+    var st1 = document.createElementNS(NS, "stop");
+    st1.setAttribute("offset", "0"); st1.setAttribute("stop-color", "var(--accent)");
+    var st2 = document.createElementNS(NS, "stop");
+    st2.setAttribute("offset", "1"); st2.setAttribute("stop-color", "var(--accent2)");
+    grad.appendChild(st1); grad.appendChild(st2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // body
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50");
+    body.setAttribute("r", "27");
+    body.setAttribute("fill", "#160d2e");
+    body.setAttribute("stroke", "rgba(255,255,255,0.07)");
+    svg.appendChild(body);
+
+    // pointer
+    var ptr = document.createElementNS(NS, "line");
+    ptr.setAttribute("stroke", "var(--accent2)");
+    ptr.setAttribute("stroke-width", "3");
+    ptr.setAttribute("stroke-linecap", "round");
+    svg.appendChild(ptr);
+
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = p.name;
+    var val = document.createElement("div");
+    val.className = "val";
+
+    cell.appendChild(svg);
+    cell.appendChild(lbl);
+    cell.appendChild(val);
+
+    function redraw() {
+      var t = (values[i] - p.min) / (p.max - p.min);
+      var ang = -135 + t * 270;
+      arc.setAttribute("d", arcPath(50, 50, 36, -135, ang));
+      var rad = (ang - 90) * Math.PI / 180;
+      ptr.setAttribute("x1", 50 + 12 * Math.cos(rad));
+      ptr.setAttribute("y1", 50 + 12 * Math.sin(rad));
+      ptr.setAttribute("x2", 50 + 24 * Math.cos(rad));
+      ptr.setAttribute("y2", 50 + 24 * Math.sin(rad));
+      val.textContent = Math.round(t * 100) + "%";
+    }
+
+    // ---- drag interaction ----
+    var dragging = false, lastY = 0;
+    function start(y) { dragging = true; lastY = y; cell.classList.add("active"); }
+    function move(y) {
+      if (!dragging) return;
+      var dy = lastY - y;
+      lastY = y;
+      var t = (values[i] - p.min) / (p.max - p.min);
+      t = Math.max(0, Math.min(1, t + dy / 180));
+      values[i] = p.min + t * (p.max - p.min);
+      redraw();
+      pushParam(i);
+    }
+    function end() { dragging = false; cell.classList.remove("active"); }
+
+    svg.addEventListener("mousedown", function (e) { e.preventDefault(); start(e.clientY); });
+    window.addEventListener("mousemove", function (e) { move(e.clientY); });
+    window.addEventListener("mouseup", end);
+    svg.addEventListener("touchstart", function (e) { start(e.touches[0].clientY); }, { passive: true });
+    svg.addEventListener("touchmove", function (e) { move(e.touches[0].clientY); }, { passive: true });
+    svg.addEventListener("touchend", end);
+    svg.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var t = (values[i] - p.min) / (p.max - p.min);
+      t = Math.max(0, Math.min(1, t - Math.sign(e.deltaY) * 0.02));
+      values[i] = p.min + t * (p.max - p.min);
+      redraw();
+      pushParam(i);
+    }, { passive: false });
+    svg.addEventListener("dblclick", function () {
+      values[i] = p.def;
+      redraw();
+      pushParam(i);
+    });
+
+    redraw();
+    return cell;
+  }
+
+  function arcPath(cx, cy, r, a0, a1) {
+    var r0 = (a0 - 90) * Math.PI / 180;
+    var r1 = (a1 - 90) * Math.PI / 180;
+    var x0 = cx + r * Math.cos(r0), y0 = cy + r * Math.sin(r0);
+    var x1 = cx + r * Math.cos(r1), y1 = cy + r * Math.sin(r1);
+    var large = (a1 - a0) > 180 ? 1 : 0;
+    return "M " + x0 + " " + y0 + " A " + r + " " + r + " 0 " + large + " 1 " + x1 + " " + y1;
+  }
+
+  var rack = document.getElementById("rack");
+  for (var i = 0; i < PARAMS.length; i++) rack.appendChild(makeKnob(i));
+
+  // ---- rave LEDs ----------------------------------------------------
+  var leds = [];
+  var ledHost = document.getElementById("leds");
+  for (var l = 0; l < 7; l++) {
+    var d = document.createElement("div");
+    d.className = "led";
+    ledHost.appendChild(d);
+    leds.push(d);
+  }
+
+  // ---- on-screen keyboard ------------------------------------------
+  var keysHost = document.getElementById("keys");
+  var FIRST = 48;        // C3
+  var OCTAVES = 2;
+  var WHITE = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
+  var heldKeys = {};
+
+  function buildKeys() {
+    var whiteCount = OCTAVES * 7 + 1;
+    var wW = 100 / whiteCount;
+    var whiteIdx = 0;
+    for (var oct = 0; oct <= OCTAVES; oct++) {
+      for (var s = 0; s < 7; s++) {
+        if (oct === OCTAVES && s > 0) break;
+        var note = FIRST + oct * 12 + WHITE[s];
+        var el = document.createElement("div");
+        el.className = "wkey";
+        el.style.left = (whiteIdx * wW) + "%";
+        el.style.width = (wW - 0.4) + "%";
+        bindKey(el, note);
+        keysHost.appendChild(el);
+        whiteIdx++;
+      }
+    }
+    whiteIdx = 0;
+    for (var oct2 = 0; oct2 <= OCTAVES; oct2++) {
+      for (var s2 = 0; s2 < 7; s2++) {
+        if (oct2 === OCTAVES) break;
+        var semi = WHITE[s2];
+        whiteIdx++;
+        if (semi === 0 || semi === 2 || semi === 5 || semi === 7 || semi === 9) {
+          var note2 = FIRST + oct2 * 12 + semi + 1;
+          var bk = document.createElement("div");
+          bk.className = "bkey";
+          bk.style.left = (whiteIdx * wW - wW * 0.3) + "%";
+          bk.style.width = (wW * 0.6) + "%";
+          bindKey(bk, note2);
+          keysHost.appendChild(bk);
+        }
+      }
+    }
+  }
+
+  function bindKey(el, note) {
+    function on(e) {
+      e.preventDefault();
+      if (heldKeys[note]) return;
+      heldKeys[note] = true;
+      el.classList.add("down");
+      if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(note, 0.9);
+    }
+    function off() {
+      if (!heldKeys[note]) return;
+      heldKeys[note] = false;
+      el.classList.remove("down");
+      if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(note);
+    }
+    el.addEventListener("mousedown", on);
+    el.addEventListener("mouseup", off);
+    el.addEventListener("mouseleave", off);
+    el.addEventListener("touchstart", on, { passive: false });
+    el.addEventListener("touchend", off);
+  }
+  buildKeys();
+
+  // ---- storm + waveform visualiser ---------------------------------
+  var scope = document.getElementById("scope");
+  var ctx = scope.getContext("2d");
+
+  function fit() {
+    var r = scope.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    scope.width = r.width * dpr;
+    scope.height = r.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", fit);
+  fit();
+
+  // lightning bolt path generator
+  function bolt(x0, y0, x1, y1, jag) {
+    var pts = [[x0, y0]];
+    var steps = 6;
+    for (var k = 1; k < steps; k++) {
+      var t = k / steps;
+      var x = x0 + (x1 - x0) * t + (Math.random() - 0.5) * jag;
+      var y = y0 + (y1 - y0) * t + (Math.random() - 0.5) * jag * 0.5;
+      pts.push([x, y]);
+    }
+    pts.push([x1, y1]);
+    return pts;
+  }
+
+  var t0 = performance.now();
+  var nextStrike = 0;
+  var strikes = [];
+
+  function frame(now) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var w = scope.clientWidth, h = scope.clientHeight;
+    var time = (now - t0) / 1000;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // background haze
+    var grd = ctx.createLinearGradient(0, 0, w, h);
+    grd.addColorStop(0, "rgba(40,20,90,0.25)");
+    grd.addColorStop(1, "rgba(20,80,120,0.18)");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, w, h);
+
+    // ---- morphing detuned-pulse waveform ----
+    var depth = values[3];      // PWM depth
+    var rate = values[4];       // PWM rate
+    var cutoff = values[0];
+    var pwmHz = 0.05 + rate * rate * 7.0;
+    var lfo = Math.sin(2 * Math.PI * pwmHz * time);
+    var pw = 0.5 + depth * 0.42 * lfo;
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(61,224,255,0.85)";
+    ctx.shadowColor = "var(--accent2)";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    var mid = h * 0.55;
+    var amp = h * 0.30 * (0.5 + cutoff * 0.5);
+    var cycles = 3;
+    for (var px = 0; px <= w; px++) {
+      var ph = (px / w) * cycles;
+      // sum of three slightly detuned pulses -> hollow stacked shape
+      var s = 0;
+      for (var d = 0; d < 3; d++) {
+        var dp = ph * (1 + (d - 1) * 0.012) + d * 0.18;
+        var fr = dp - Math.floor(dp);
+        var pwd = Math.min(0.92, Math.max(0.08, pw + (d - 1) * 0.06 * depth));
+        s += (fr < pwd ? 1 : -1);
+      }
+      s /= 3;
+      var y = mid - s * amp;
+      if (px === 0) ctx.moveTo(px, y); else ctx.lineTo(px, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // accent overlay line (the saw body), faint purple
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(154,123,255,0.35)";
+    ctx.beginPath();
+    for (var px2 = 0; px2 <= w; px2 += 2) {
+      var ph2 = (px2 / w) * cycles;
+      var fr2 = ph2 - Math.floor(ph2);
+      var y2 = mid - (fr2 * 2 - 1) * amp * 0.5;
+      if (px2 === 0) ctx.moveTo(px2, y2); else ctx.lineTo(px2, y2);
+    }
+    ctx.stroke();
+
+    // ---- charging lightning arcs ----
+    var charge = (depth + rate) * 0.5;
+    if (now > nextStrike && Math.random() < 0.04 + charge * 0.18) {
+      strikes.push({ pts: bolt(Math.random() * w, 0, Math.random() * w, h * 0.5, 22 + charge * 24), life: 1 });
+      nextStrike = now + 40;
+    }
+    for (var si = strikes.length - 1; si >= 0; si--) {
+      var st = strikes[si];
+      ctx.globalAlpha = st.life;
+      ctx.strokeStyle = "rgba(180,200,255,0.9)";
+      ctx.lineWidth = 1.6;
+      ctx.shadowColor = "var(--accent)";
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      for (var pi = 0; pi < st.pts.length; pi++) {
+        if (pi === 0) ctx.moveTo(st.pts[pi][0], st.pts[pi][1]);
+        else ctx.lineTo(st.pts[pi][0], st.pts[pi][1]);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      st.life -= 0.12;
+      if (st.life <= 0) strikes.splice(si, 1);
+    }
+
+    // ---- pulsing rave LEDs (run pattern keyed to PWM rate) ----
+    var pos = Math.floor(time * (1 + rate * 8)) % leds.length;
+    for (var li = 0; li < leds.length; li++) {
+      var anyHeld = Object.keys(heldKeys).some(function (k) { return heldKeys[k]; });
+      var lit = (li === pos) || (anyHeld && ((li + Math.floor(time * 6)) % 2 === 0));
+      leds[li].className = lit ? "led on" : "led";
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- init params to defaults -------------------------------------
+  function initParams() {
+    for (var i = 0; i < PARAMS.length; i++) pushParam(i);
+  }
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(initParams);
+  } else {
+    initParams();
+  }
+</script>
+</body>
+</html>

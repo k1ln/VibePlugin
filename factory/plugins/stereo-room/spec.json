@@ -1,0 +1,17 @@
+{
+  "name": "Stereo Room",
+  "isInstrument": false,
+  "explanation": "An early-digital stereo room reverb. A panned multitap network throws out tight, defined early reflections off the room walls, feeding a Schroeder allpass diffuser into a short-to-medium feedback delay network for a controlled diffuse tail. Gentle damping plus subtle feedback quantisation give the slightly grainy vintage-digital character. Controls: Mix, Size, Decay, Diffusion and Pre-Delay. Mix at 0 is the dry signal.",
+  "assembly": "factory/plugins/stereo-room/assembly.ts",
+  "out": "factory/plugins/stereo-room/x.vstai",
+  "publishedAt": 1751000086000,
+  "theme": { "accent": "#7ad0c0", "accent2": "#a0e0d0" },
+  "guiFile": "factory/plugins/stereo-room/gui.html",
+  "params": [
+    { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Size",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay",     "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Diffusion", "index": 3, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Pre-Delay", "index": 4, "min": 0, "max": 1, "default": 0.1 }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Solo One",
+  "isInstrument": true,
+  "explanation": "An aggressive monophonic lead/bass synth: two oscillators (saw + detuned pulse) hard-synced for biting grit, feeding a snappy resonant 4-pole low-pass driven by a fast, punchy filter envelope. Cutoff, Resonance and Env Amount sweep and bite the timbre; Decay sets the snap, Detune fattens, Drive adds pre-filter grit, and the voice is mono with last-note priority while pitch tracks the keyboard.",
+  "assembly": "factory/plugins/solo-one/assembly.ts",
+  "out": "factory/plugins/solo-one/x.vstai",
+  "guiFile": "factory/plugins/solo-one/gui.html",
+  "publishedAt": 1751000093000,
+  "theme": { "accent": "#ff5a4d", "accent2": "#ffb13d" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Decay",      "index": 3, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Detune",     "index": 4, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Drive",      "index": 5, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opto Trem</title>
+<style>
+  :root {
+    --accent: #62d6a0;
+    --accent2: #ffd86a;
+    --cream: #efe6d2;
+    --cream-d: #ddd0b3;
+    --ink: #2b2a26;
+    --ink-soft: #6a6555;
+    --panel: #f4ecda;
+    --shadow: rgba(40, 35, 20, 0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #3a4a3f 0%, #232a26 55%, #1a1f1c 100%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .pedal {
+    width: 100%;
+    max-width: 430px;
+    border-radius: 22px;
+    padding: 22px 22px 26px;
+    background:
+      linear-gradient(180deg, var(--panel) 0%, var(--cream) 45%, var(--cream-d) 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.7) inset,
+      0 -3px 14px rgba(120,100,60,0.25) inset,
+      0 22px 50px -12px rgba(0,0,0,0.7),
+      0 4px 10px rgba(0,0,0,0.4);
+    border: 1px solid rgba(120,100,60,0.35);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* faint speckled vintage texture */
+  .pedal::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(rgba(120,100,60,0.06) 1px, transparent 1.4px);
+    background-size: 6px 6px;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  /* corner screws */
+  .screw {
+    position: absolute;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #cfc3a4, #8c7f5d 70%, #6a5f42);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.5);
+  }
+  .screw::after {
+    content: "";
+    position: absolute;
+    left: 2px; right: 2px; top: 50%;
+    height: 1.5px; margin-top: -0.75px;
+    background: rgba(60,50,30,0.6);
+    transform: rotate(35deg);
+  }
+  .screw.tl { top: 10px; left: 10px; }
+  .screw.tr { top: 10px; right: 10px; }
+  .screw.bl { bottom: 10px; left: 10px; }
+  .screw.br { bottom: 10px; right: 10px; }
+
+  header {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 14px;
+  }
+  .brand {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+  .title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--ink);
+    line-height: 1;
+    margin-top: 2px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .title .o { color: var(--accent); }
+  .sub {
+    font-size: 9.5px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 5px;
+  }
+
+  /* ---- lamp + meter window ---- */
+  .window {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background:
+      linear-gradient(180deg, #20251f, #161a15);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.7),
+      inset 0 -1px 0 rgba(255,255,255,0.05),
+      0 1px 0 rgba(255,255,255,0.4);
+    border: 1px solid rgba(0,0,0,0.5);
+  }
+
+  .lamp-wrap {
+    position: relative;
+    width: 84px; height: 84px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lamp-glow {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, rgba(98,214,160,0.35) 40%, transparent 70%);
+    filter: blur(4px);
+    opacity: var(--lamp, 0.4);
+    transition: opacity 0.04s linear;
+  }
+
+  /* Real CSS @keyframes: a slow breathing halo behind the photocell so the
+     lamp always has a living, optical shimmer even before the rAF loop runs.
+     This sits behind .lamp-glow (which carries the audio-reactive opacity). */
+  .lamp-halo {
+    position: absolute;
+    width: 132%; height: 132%;
+    left: -16%; top: -16%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,216,106,0.30) 0%, transparent 62%);
+    pointer-events: none;
+    animation: opto-breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes opto-breathe {
+    0%   { transform: scale(0.86); opacity: 0.35; }
+    50%  { transform: scale(1.08); opacity: 0.7;  }
+    100% { transform: scale(0.86); opacity: 0.35; }
+  }
+
+  /* Real CSS @keyframes: the active shape button border glows in a steady
+     opto pulse, echoing the photocell's rhythmic light. */
+  @keyframes opto-shimmer {
+    0%   { box-shadow: 0 0 8px  rgba(98,214,160,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
+    50%  { box-shadow: 0 0 16px rgba(98,214,160,0.75), inset 0 1px 0 rgba(255,255,255,0.10); }
+    100% { box-shadow: 0 0 8px  rgba(98,214,160,0.35), inset 0 1px 0 rgba(255,255,255,0.08); }
+  }
+  .lamp {
+    position: relative;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 38% 34%, #fff 0%, var(--accent2) 18%, var(--accent) 60%, #2f7a59 100%);
+    box-shadow:
+      inset 0 0 8px rgba(255,255,255,0.6),
+      0 0 calc(14px + var(--lamp,0.4) * 26px) rgba(98,214,160, calc(0.3 + var(--lamp,0.4) * 0.7)),
+      0 0 calc(6px + var(--lamp,0.4) * 12px) rgba(255,216,106, calc(0.2 + var(--lamp,0.4) * 0.5));
+    filter: brightness(calc(0.55 + var(--lamp,0.4) * 0.9));
+  }
+  .lamp::after {
+    content: "";
+    position: absolute;
+    top: 8px; left: 11px;
+    width: 12px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.75);
+    filter: blur(1px);
+  }
+  .ldr-label {
+    position: absolute;
+    bottom: -2px;
+    width: 100%;
+    text-align: center;
+    font-size: 7.5px;
+    letter-spacing: 2px;
+    color: rgba(98,214,160,0.7);
+    text-transform: uppercase;
+  }
+
+  /* ---- L/R see-saw meter ---- */
+  .meter {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ch .lbl {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: rgba(239,230,210,0.65);
+    width: 12px;
+  }
+  .bar {
+    flex: 1;
+    height: 12px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.55);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+    overflow: hidden;
+    position: relative;
+  }
+  .fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 50%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+    box-shadow: 0 0 8px rgba(98,214,160,0.5);
+    transition: width 0.04s linear;
+  }
+
+  /* ---- knob grid ---- */
+  .controls {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 8px;
+    justify-items: center;
+  }
+
+  .knob-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .knob {
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { display: block; overflow: visible; }
+  .knob .cap {
+    transition: filter 0.15s ease;
+  }
+  .knob:hover .cap { filter: drop-shadow(0 0 5px rgba(98,214,160,0.55)); }
+
+  .knob-name {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .knob-val {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    background: rgba(255,255,255,0.45);
+    padding: 1px 7px;
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px rgba(120,100,60,0.25);
+    min-width: 48px;
+    text-align: center;
+  }
+
+  /* ---- shape selector ---- */
+  .shape-cell {
+    grid-column: span 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    margin-top: 2px;
+  }
+  .shape-cell .knob-name { color: var(--ink-soft); }
+  .shapes {
+    display: flex;
+    gap: 8px;
+    background: rgba(0,0,0,0.12);
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 3px rgba(120,100,60,0.3), 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .shape-btn {
+    width: 56px; height: 40px;
+    border-radius: 9px;
+    border: 1px solid rgba(120,100,60,0.3);
+    background: linear-gradient(180deg, #f6efe0, #ddd0b3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .shape-btn svg { display: block; }
+  .shape-btn path, .shape-btn polyline {
+    stroke: var(--ink-soft);
+    stroke-width: 2.2;
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    transition: stroke 0.15s ease;
+  }
+  .shape-btn.active {
+    background: linear-gradient(180deg, #2b332c, #1d231e);
+    border-color: var(--accent);
+    transform: translateY(1px);
+    animation: opto-shimmer 2.6s ease-in-out infinite;
+  }
+  .shape-btn.active path,
+  .shape-btn.active polyline { stroke: var(--accent); }
+
+  footer {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 8px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(120,100,60,0.55);
+  }
+</style>
+</head>
+<body>
+  <div class="pedal">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <header>
+      <div class="brand">Vibe Audio Labs</div>
+      <div class="title"><span class="o">Opto</span> Trem</div>
+      <div class="sub">Optical Stereo Tremolo</div>
+    </header>
+
+    <div class="window">
+      <div class="lamp-wrap">
+        <div class="lamp-halo"></div>
+        <div class="lamp-glow"></div>
+        <div class="lamp"></div>
+        <div class="ldr-label">Photocell</div>
+      </div>
+      <div class="meter">
+        <div class="ch">
+          <span class="lbl">L</span>
+          <div class="bar"><div class="fill" id="fillL"></div></div>
+        </div>
+        <div class="ch">
+          <span class="lbl">R</span>
+          <div class="bar"><div class="fill" id="fillR"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls" id="controls">
+      <!-- knobs injected -->
+      <div class="shape-cell">
+        <div class="knob-name">Shape</div>
+        <div class="shapes" id="shapes"></div>
+      </div>
+    </div>
+
+    <footer>Light • Cell • Motion</footer>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- host bridge -------------------------------------------------
+  var bridge = {
+    setParam: function (i, v) {
+      if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+    }
+  };
+
+  // ---- parameter model --------------------------------------------
+  // Continuous knobs. Shape (index 2) handled separately as a selector.
+  var KNOBS = [
+    { idx: 0, name: "Rate",   min: 0, max: 1, def: 0.4, fmt: rateFmt },
+    { idx: 1, name: "Depth",  min: 0, max: 1, def: 0.7, fmt: pctFmt },
+    { idx: 3, name: "Stereo", min: 0, max: 1, def: 0.0, fmt: stereoFmt },
+    { idx: 4, name: "Mix",    min: 0, max: 1, def: 1.0, fmt: pctFmt }
+  ];
+
+  var SHAPES = ["Sine", "Triangle", "Square", "Ramp"];
+
+  var state = { rate: 0.4, depth: 0.7, stereo: 0.0, mix: 1.0, shape: 0 };
+
+  function pctFmt(v) { return Math.round(v * 100) + "%"; }
+  function rateFmt(v) {
+    var hz = 0.1 + v * v * 11.9;
+    return hz.toFixed(hz < 1 ? 2 : 1) + " Hz";
+  }
+  function stereoFmt(v) {
+    if (v < 0.02) return "Mono";
+    if (v > 0.98) return "Auto-Pan";
+    return Math.round(v * 100) + "%";
+  }
+
+  // ---- build knobs -------------------------------------------------
+  var controls = document.getElementById("controls");
+  var shapeCell = controls.querySelector(".shape-cell");
+
+  function makeKnob(spec) {
+    var cell = document.createElement("div");
+    cell.className = "knob-cell";
+
+    var kn = document.createElement("div");
+    kn.className = "knob";
+    kn.innerHTML =
+      '<svg viewBox="0 0 100 100">' +
+      '<defs>' +
+      '<radialGradient id="g_' + spec.idx + '" cx="38%" cy="32%" r="75%">' +
+      '<stop offset="0%" stop-color="#fbf6ea"/>' +
+      '<stop offset="55%" stop-color="#e7dcc1"/>' +
+      '<stop offset="100%" stop-color="#bfb18d"/>' +
+      '</radialGradient>' +
+      '</defs>' +
+      // track
+      '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(60,50,30,0.18)" stroke-width="6"/>' +
+      // value arc
+      '<path class="arc" fill="none" stroke="url(#arcgrad_' + spec.idx + ')" stroke-width="6" stroke-linecap="round"/>' +
+      // body
+      '<circle class="cap" cx="50" cy="50" r="33" fill="url(#g_' + spec.idx + ')" ' +
+      'stroke="rgba(120,100,60,0.4)" stroke-width="1"/>' +
+      // pointer
+      '<line class="ptr" x1="50" y1="50" x2="50" y2="24" stroke="#2b2a26" ' +
+      'stroke-width="3.5" stroke-linecap="round"/>' +
+      '<circle cx="50" cy="50" r="3" fill="#2b2a26"/>' +
+      '</svg>';
+
+    var name = document.createElement("div");
+    name.className = "knob-name";
+    name.textContent = spec.name;
+    var val = document.createElement("div");
+    val.className = "knob-val";
+
+    cell.appendChild(kn);
+    cell.appendChild(name);
+    cell.appendChild(val);
+    controls.insertBefore(cell, shapeCell);
+
+    var arc = kn.querySelector(".arc");
+    var ptr = kn.querySelector(".ptr");
+
+    // arc gradient (shared def via first knob; just inline a linear gradient)
+    var svg = kn.querySelector("svg");
+    var grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    grad.setAttribute("id", "arcgrad_" + spec.idx);
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
+    grad.innerHTML =
+      '<stop offset="0%" stop-color="#62d6a0"/>' +
+      '<stop offset="100%" stop-color="#ffd86a"/>';
+    svg.querySelector("defs").appendChild(grad);
+
+    var ARC_START = -135, ARC_SWEEP = 270;
+
+    function polar(cx, cy, r, deg) {
+      var a = (deg - 90) * Math.PI / 180;
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    }
+    function render(norm) {
+      var deg = ARC_START + ARC_SWEEP * norm;
+      // arc path
+      var endDeg = deg;
+      var s = polar(50, 50, 42, ARC_START);
+      var e = polar(50, 50, 42, endDeg);
+      var large = (endDeg - ARC_START) > 180 ? 1 : 0;
+      arc.setAttribute("d", "M " + s[0].toFixed(2) + " " + s[1].toFixed(2) +
+        " A 42 42 0 " + large + " 1 " + e[0].toFixed(2) + " " + e[1].toFixed(2));
+      // pointer rotation
+      ptr.setAttribute("transform", "rotate(" + deg + " 50 50)");
+    }
+
+    var cur = spec.def;
+    function commit(v) {
+      cur = Math.max(spec.min, Math.min(spec.max, v));
+      var norm = (cur - spec.min) / (spec.max - spec.min);
+      render(norm);
+      val.textContent = spec.fmt(cur);
+      bridge.setParam(spec.idx, cur);
+      setStateFor(spec.idx, cur);
+    }
+
+    // drag (vertical)
+    var dragging = false, lastY = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var range = spec.max - spec.min;
+      commit(cur + dy * range / 200);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    kn.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    kn.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    kn.addEventListener("dblclick", function () { commit(spec.def); });
+    kn.addEventListener("wheel", function (e) {
+      var range = spec.max - spec.min;
+      commit(cur - Math.sign(e.deltaY) * range * 0.02);
+      e.preventDefault();
+    }, { passive: false });
+
+    commit(spec.def);
+  }
+
+  function setStateFor(idx, v) {
+    if (idx === 0) state.rate = v;
+    else if (idx === 1) state.depth = v;
+    else if (idx === 3) state.stereo = v;
+    else if (idx === 4) state.mix = v;
+  }
+
+  // ---- shape selector ---------------------------------------------
+  var shapeSvgs = [
+    // sine
+    '<svg width="34" height="20" viewBox="0 0 34 20"><path d="M2 10 Q8 0 13 10 T24 10 T32 10"/></svg>',
+    // triangle
+    '<svg width="34" height="20" viewBox="0 0 34 20"><polyline points="2,18 9,2 17,18 25,2 32,18"/></svg>',
+    // square
+    '<svg width="34" height="20" viewBox="0 0 34 20"><polyline points="2,18 2,3 12,3 12,18 22,18 22,3 32,3"/></svg>',
+    // ramp
+    '<svg width="34" height="20" viewBox="0 0 34 20"><polyline points="2,18 12,3 12,18 22,3 22,18 32,3"/></svg>'
+  ];
+
+  var shapesEl = document.getElementById("shapes");
+  var shapeBtns = [];
+  function selectShape(i) {
+    state.shape = i;
+    for (var k = 0; k < shapeBtns.length; k++) {
+      shapeBtns[k].classList.toggle("active", k === i);
+    }
+    bridge.setParam(2, i); // real value 0..3
+  }
+  SHAPES.forEach(function (nm, i) {
+    var b = document.createElement("div");
+    b.className = "shape-btn";
+    b.title = nm;
+    b.innerHTML = shapeSvgs[i];
+    b.addEventListener("click", function () { selectShape(i); });
+    b.addEventListener("dblclick", function () { selectShape(0); });
+    shapesEl.appendChild(b);
+    shapeBtns.push(b);
+  });
+
+  // ---- animated lamp + see-saw meter ------------------------------
+  var lampGlow = document.querySelector(".lamp-glow");
+  var lamp = document.querySelector(".lamp");
+  var fillL = document.getElementById("fillL");
+  var fillR = document.getElementById("fillR");
+  var phase = 0;
+  var cellL = 1, cellR = 1;
+  var lastT = 0;
+
+  function lfo(p, shape) {
+    if (shape === 0) return 0.5 - 0.5 * Math.cos(2 * Math.PI * p);
+    if (shape === 1) return p < 0.5 ? p * 2 : 2 - p * 2;
+    if (shape === 2) return p < 0.5 ? 1 : 0;
+    return 1 - p;
+  }
+
+  function frame(t) {
+    if (document.hidden) { lastT = t; requestAnimationFrame(frame); return; }
+    var dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0.016;
+    lastT = t;
+
+    var hz = 0.1 + state.rate * state.rate * 11.9;
+    phase += hz * dt;
+    phase -= Math.floor(phase);
+
+    var pr = phase + 0.5 * state.stereo;
+    pr -= Math.floor(pr);
+
+    var bL = lfo(phase, state.shape);
+    var bR = lfo(pr, state.shape);
+    // cell lag (visual, eased)
+    var lag = Math.min(1, (25 + hz * 16) * dt * 0.6);
+    cellL += lag * (bL - cellL);
+    cellR += lag * (bR - cellR);
+
+    var gL = (1 - state.depth) + state.depth * cellL;
+    var gR = (1 - state.depth) + state.depth * cellR;
+    gL *= state.mix; gR *= state.mix;
+    gL += (1 - state.mix); gR += (1 - state.mix);
+
+    // lamp tracks the mono brightness when mono, the L cell when panning
+    var lampB = state.stereo < 0.5 ? cellL : (cellL + cellR) * 0.5;
+    lampB = (1 - state.depth) + state.depth * lampB;
+    var lv = (0.18 + lampB * 0.82);
+    lampGlow.style.setProperty("--lamp", lv.toFixed(3));
+    lamp.style.setProperty("--lamp", lv.toFixed(3));
+
+    fillL.style.width = (8 + gL * 92).toFixed(1) + "%";
+    fillR.style.width = (8 + gR * 92).toFixed(1) + "%";
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---- init --------------------------------------------------------
+  function boot() {
+    KNOBS.forEach(makeKnob);
+    selectShape(0);
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

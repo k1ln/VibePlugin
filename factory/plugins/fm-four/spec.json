@@ -1,0 +1,19 @@
+{
+  "name": "FM Four",
+  "isInstrument": true,
+  "explanation": "A programmable 4-operator FM synth. Four sine operators are wired by a selectable algorithm — a serial stack, two parallel FM pairs, or three modulators in parallel into one carrier — for everything from clangy basses to glassy bells and evolving pads. An exposed modulator ratio and FM depth set the timbre, operator feedback adds gritty 80s-digital edge, and an attack/release envelope shapes both the amplitude and the modulation index so the brightness evolves over each note. Controls: Ratio, FM Depth, Feedback, Algorithm, Attack, Release and Level.",
+  "assembly": "factory/plugins/fm-four/assembly.ts",
+  "out": "factory/plugins/fm-four/x.vstai",
+  "publishedAt": 1751000098000,
+  "theme": { "accent": "#7a86ff", "accent2": "#42e6c4" },
+  "guiFile": "factory/plugins/fm-four/gui.html",
+  "params": [
+    { "name": "Ratio",     "index": 0, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "FM Depth",  "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Feedback",  "index": 2, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Algorithm", "index": 3, "min": 0, "max": 2, "default": 0, "step": 1 },
+    { "name": "Attack",    "index": 4, "min": 0, "max": 1, "default": 0.02 },
+    { "name": "Release",   "index": 5, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",     "index": 6, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

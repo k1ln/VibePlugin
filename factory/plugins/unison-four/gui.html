@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unison Four</title>
+<style>
+  :root {
+    --accent:  #ff6a3d;
+    --accent2: #ffe14a;
+    --bg0: #16100c;
+    --bg1: #221610;
+    --panel: #2a1c13;
+    --panel2: #34241a;
+    --ink: #ffdfc4;
+    --ink-dim: #c79877;
+    --line: #4a3322;
+    --glow: rgba(255,106,61,0.55);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #3a2415 0%, var(--bg1) 45%, var(--bg0) 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 18px 18px 26px;
+  }
+
+  /* ---------- header ---------- */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--line);
+    border-bottom: none;
+    box-shadow: inset 0 1px 0 rgba(255,225,74,0.12);
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .logo {
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: 1px;
+    background: linear-gradient(92deg, var(--accent2), var(--accent) 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 22px rgba(255,106,61,0.25);
+  }
+  .logo b { font-weight: 800; }
+  .sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* mode toggle */
+  .mode {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    overflow: hidden;
+    background: #1c130d;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+  }
+  .mode button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ink-dim);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: color .2s, background .2s, box-shadow .2s;
+  }
+  .mode button.on {
+    color: #1a0e06;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 16px var(--glow);
+  }
+
+  /* ---------- scope panel ---------- */
+  .scopewrap {
+    border: 1px solid var(--line);
+    border-top: none;
+    background:
+      linear-gradient(180deg, #150d08, #100a06);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  svg.scope { display: block; width: 100%; height: 168px; }
+
+  /* the four oscillator bars overlay */
+  .vcobars {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0;
+    pointer-events: none;
+  }
+
+  /* ---------- body ---------- */
+  .body {
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(180deg, var(--panel), #1d130c);
+    padding: 18px 16px 8px;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .knob {
+    width: 92px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px 10px;
+    border-radius: 12px;
+    cursor: ns-resize;
+    user-select: none;
+    transition: background .2s;
+  }
+  .knob:hover { background: rgba(255,106,61,0.06); }
+  .knob .dial { position: relative; width: 70px; height: 70px; }
+  .knob .dial svg { display: block; }
+  .knob .label {
+    margin-top: 7px;
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .knob .val {
+    margin-top: 3px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---------- keyboard ---------- */
+  .keys {
+    margin-top: 14px;
+    position: relative;
+    height: 96px;
+    border-radius: 9px;
+    background: #0c0805;
+    border: 1px solid var(--line);
+    box-shadow: inset 0 3px 9px rgba(0,0,0,0.7);
+    overflow: hidden;
+    touch-action: none;
+  }
+  .wkey, .bkey {
+    position: absolute;
+    bottom: 0;
+    cursor: pointer;
+  }
+  .wkey {
+    top: 0;
+    background: linear-gradient(180deg, #efe2d2, #c9b59c);
+    border: 1px solid #2c1d12;
+    border-radius: 0 0 5px 5px;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.25);
+  }
+  .bkey {
+    top: 0;
+    height: 58%;
+    background: linear-gradient(180deg, #2a1c12, #100a06);
+    border: 1px solid #000;
+    border-radius: 0 0 4px 4px;
+    z-index: 3;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.6);
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #b23a16);
+    box-shadow: 0 0 14px var(--glow);
+  }
+
+  .foot {
+    margin-top: 9px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .stack-pill {
+    color: var(--accent2);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="head">
+    <div class="brand">
+      <div class="logo">UNISON<b>·</b>FOUR</div>
+      <div class="sub">4&times;VCO Unison Monster</div>
+    </div>
+    <div class="mode" id="mode">
+      <button data-m="mono" class="on">Mono</button>
+      <button data-m="poly">Poly</button>
+    </div>
+  </div>
+
+  <div class="scopewrap">
+    <div class="vcobars" id="vcobars"></div>
+    <svg class="scope" id="scope" viewBox="0 0 600 168" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gscope" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#ffe14a"/>
+          <stop offset="100%" stop-color="#ff6a3d"/>
+        </linearGradient>
+        <filter id="fglow" x="-20%" y="-60%" width="140%" height="220%">
+          <feGaussianBlur stdDeviation="2.4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <line x1="0" y1="84" x2="600" y2="84" stroke="#3a2616" stroke-width="1"/>
+      <path id="wave" fill="none" stroke="url(#gscope)" stroke-width="2.4"
+            stroke-linejoin="round" filter="url(#fglow)"/>
+    </svg>
+  </div>
+
+  <div class="body">
+    <div class="row" id="knobs"></div>
+
+    <div class="keys" id="keys"></div>
+
+    <div class="foot">
+      <span>Korg&nbsp;Mono/Poly&nbsp;lineage</span>
+      <span class="stack-pill" id="stacklabel">STACK &times;4 &middot; SPREAD 0.45</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----------------
+  var PARAMS = [
+    { name: "Detune",    index: 0, min: 0, max: 1, def: 0.45 },
+    { name: "Cutoff",    index: 1, min: 0, max: 1, def: 0.5  },
+    { name: "Resonance", index: 2, min: 0, max: 1, def: 0.4  },
+    { name: "Env Amt",   index: 3, min: 0, max: 1, def: 0.6  },
+    { name: "Sync",      index: 4, min: 0, max: 1, def: 0.0  },
+    { name: "Decay",     index: 5, min: 0, max: 1, def: 0.45 },
+    { name: "Level",     index: 6, min: 0, max: 1, def: 0.7  }
+  ];
+
+  var values = {};            // index -> current 0..1 value
+  var knobEls = {};           // index -> { arc, val, pointer }
+
+  function setParam(index, value) {
+    values[index] = value;
+    if (window.vstai && window.vstai.setParam) {
+      try { window.vstai.setParam(index, value); } catch (e) {}
+    }
+  }
+
+  // =====================================================================
+  //  KNOBS — hand-drawn SVG dials, drag vertically, dblclick reset, wheel
+  // =====================================================================
+  var KN = 70, CX = 35, CY = 35, R = 25;
+  var A0 = 135, A1 = 405;     // sweep arc in degrees (270 deg)
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(cx, cy, r, d0, d1) {
+    var p0 = polar(cx, cy, r, d0);
+    var p1 = polar(cx, cy, r, d1);
+    var large = (d1 - d0) > 180 ? 1 : 0;
+    return "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " +
+           p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  function fmtVal(p, v) {
+    if (p.name === "Sync") return v < 0.02 ? "off" : Math.round(v * 100) + "%";
+    return Math.round(v * 100) + "%";
+  }
+
+  function buildKnob(p) {
+    var wrap = document.createElement("div");
+    wrap.className = "knob";
+    wrap.innerHTML =
+      '<div class="dial">' +
+        '<svg width="' + KN + '" height="' + KN + '" viewBox="0 0 ' + KN + ' ' + KN + '">' +
+          '<defs>' +
+            '<radialGradient id="kb' + p.index + '" cx="50%" cy="38%" r="65%">' +
+              '<stop offset="0%" stop-color="#4a3525"/>' +
+              '<stop offset="100%" stop-color="#1c130c"/>' +
+            '</radialGradient>' +
+          '</defs>' +
+          '<path d="' + arcPath(CX, CY, R, A0, A1) + '" fill="none" ' +
+                'stroke="#3a2616" stroke-width="5" stroke-linecap="round"/>' +
+          '<path class="karc" d="" fill="none" stroke="url(#gscope)" ' +
+                'stroke-width="5" stroke-linecap="round" ' +
+                'style="filter:drop-shadow(0 0 4px var(--glow))"/>' +
+          '<circle cx="' + CX + '" cy="' + CY + '" r="18" fill="url(#kb' + p.index + ')" ' +
+                  'stroke="#0c0805" stroke-width="1.5"/>' +
+          '<line class="kpt" x1="' + CX + '" y1="' + CY + '" x2="' + CX + '" y2="' + (CY - 17) + '" ' +
+                'stroke="#ffe14a" stroke-width="2.5" stroke-linecap="round" ' +
+                'style="filter:drop-shadow(0 0 3px var(--glow))"/>' +
+        '</svg>' +
+      '</div>' +
+      '<div class="label">' + p.name + '</div>' +
+      '<div class="val">' + fmtVal(p, p.def) + '</div>';
+
+    var svg = wrap.querySelector("svg");
+    var arc = wrap.querySelector(".karc");
+    var ptr = wrap.querySelector(".kpt");
+    var val = wrap.querySelector(".val");
+
+    function render(v) {
+      var ang = A0 + (A1 - A0) * v;
+      arc.setAttribute("d", arcPath(CX, CY, R, A0, ang));
+      ptr.setAttribute("transform", "rotate(" + (ang - 270) + " " + CX + " " + CY + ")");
+      val.textContent = fmtVal(p, v);
+    }
+    knobEls[p.index] = { render: render };
+    render(p.def);
+    setParam(p.index, p.def);
+
+    // ---- drag interaction ----
+    var dragging = false, lastY = 0;
+    function apply(v) {
+      v = Math.max(0, Math.min(1, v));
+      setParam(p.index, v);
+      render(v);
+      if (p.index === 0) updateStackVisual();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var step = (e.shiftKey ? 0.0015 : 0.006);
+      apply((values[p.index] || 0) + dy * step);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onUp);
+    }
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+      document.addEventListener("touchmove", onMove, { passive: false });
+      document.addEventListener("touchend", onUp);
+      e.preventDefault();
+    }
+    wrap.addEventListener("mousedown", onDown);
+    wrap.addEventListener("touchstart", onDown, { passive: false });
+    wrap.addEventListener("dblclick", function () { apply(p.def); });
+    wrap.addEventListener("wheel", function (e) {
+      apply((values[p.index] || 0) - Math.sign(e.deltaY) * 0.03);
+      e.preventDefault();
+    }, { passive: false });
+
+    return wrap;
+  }
+
+  var knobRow = document.getElementById("knobs");
+  PARAMS.forEach(function (p) { knobRow.appendChild(buildKnob(p)); });
+
+  // =====================================================================
+  //  VCO BARS — four glowing oscillator bars that fan out with Detune
+  // =====================================================================
+  var bars = [];
+  var barsWrap = document.getElementById("vcobars");
+  for (var i = 0; i < 4; i++) {
+    var b = document.createElement("div");
+    b.style.position = "absolute";
+    b.style.bottom = "0";
+    b.style.width = "9px";
+    b.style.height = "0";
+    b.style.borderRadius = "4px 4px 0 0";
+    b.style.background = "linear-gradient(180deg, var(--accent2), var(--accent))";
+    b.style.boxShadow = "0 0 12px var(--glow)";
+    b.style.left = "50%";
+    b.style.transition = "left .18s ease, opacity .2s";
+    b.style.opacity = "0.9";
+    barsWrap.appendChild(b);
+    bars.push(b);
+  }
+  var stackLabel = document.getElementById("stacklabel");
+
+  function updateStackVisual() {
+    var d = values[0] || 0;
+    // fan the four bars symmetrically outward; offsets weighted like the DSP
+    var offs = [0, -1, 0.55, 1];
+    var spread = 16 + d * 150;      // px from center per unit
+    for (var i = 0; i < 4; i++) {
+      var px = offs[i] * spread;
+      bars[i].style.left = "calc(50% + " + px.toFixed(1) + "px - 4.5px)";
+    }
+    stackLabel.textContent = "STACK ×4 · SPREAD " + d.toFixed(2);
+  }
+  updateStackVisual();
+
+  // =====================================================================
+  //  MODE toggle (mono / poly) — visual character + held-note behaviour.
+  //  Mono retriggers a single fat unison stack; Poly lets notes ring.
+  // =====================================================================
+  var polyMode = false;
+  var modeWrap = document.getElementById("mode");
+  modeWrap.addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    polyMode = btn.dataset.m === "poly";
+    Array.prototype.forEach.call(modeWrap.children, function (b) {
+      b.classList.toggle("on", b === btn);
+    });
+  });
+
+  // =====================================================================
+  //  ANIMATED STACKED-SAW OSCILLOSCOPE — four detuned saws summed,
+  //  reshaped by the Sync / Cutoff knobs, drawn on rAF.
+  // =====================================================================
+  var wave = document.getElementById("wave");
+  var t = 0;
+  var energy = 0;          // eased "is something playing" level
+
+  function frac(x) { return x - Math.floor(x); }
+
+  function draw() {
+    if (document.hidden) { return; }
+    t += 0.018;
+    var detune = values[0] || 0;
+    var cutoff = values[1] || 0;
+    var reso   = values[2] || 0;
+    var sync   = values[4] || 0;
+
+    energy += ((heldCount > 0 ? 1 : 0.32) - energy) * 0.06;
+
+    var W = 600, H = 168, mid = 84;
+    var amp = (24 + 46 * energy);
+    var pts = "M 0 " + mid;
+    var spread = detune * 0.06;
+    var offs = [0, -1, 0.55, 1];
+    for (var x = 0; x <= W; x += 4) {
+      var ph = x / W;
+      var s = 0;
+      for (var o = 0; o < 4; o++) {
+        var f = (1.0 + offs[o] * spread) * (3 + cutoff * 5);
+        var p = frac(ph * f + t * (0.6 + offs[o] * 0.12));
+        // hard-sync bend: pull phase toward 0 by sync amount each master cycle
+        if (sync > 0 && o > 0) p = frac(p * (1 - sync * 0.85) + ph * (3 + cutoff * 5) * sync * 0.0);
+        var saw = 2 * p - 1;                       // saw
+        // a little resonant ripple near the edge driven by Resonance
+        saw += reso * 0.5 * Math.sin(p * Math.PI * 2 * (2 + cutoff * 6));
+        s += saw;
+      }
+      s *= 0.25;
+      var y = mid - s * amp;
+      pts += " L " + x + " " + y.toFixed(1);
+    }
+    wave.setAttribute("d", pts);
+
+    // pulse the bars with energy
+    for (var i = 0; i < 4; i++) {
+      var base = 30 + i * 6;
+      var h = base + energy * (60 + Math.sin(t * 4 + i) * 14);
+      bars[i].style.height = h.toFixed(0) + "px";
+    }
+    requestAnimationFrame(draw);
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) requestAnimationFrame(draw);
+  });
+  requestAnimationFrame(draw);
+
+  // =====================================================================
+  //  ON-SCREEN KEYBOARD — plays via window.vstai.noteOn / noteOff
+  // =====================================================================
+  var keysEl = document.getElementById("keys");
+  var FIRST = 48;          // C3
+  var OCTAVES = 2;
+  var WHITE = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10 }; // white-index -> black semitone
+  var heldCount = 0;
+  var pressed = {};
+
+  function buildKeyboard() {
+    keysEl.innerHTML = "";
+    var whiteCount = WHITE.length * OCTAVES;
+    var ww = 100 / whiteCount;     // percent width
+    var wi = 0;
+    for (var oc = 0; oc < OCTAVES; oc++) {
+      for (var k = 0; k < WHITE.length; k++) {
+        var note = FIRST + oc * 12 + WHITE[k];
+        var el = document.createElement("div");
+        el.className = "wkey";
+        el.style.left = (wi * ww) + "%";
+        el.style.width = ww + "%";
+        el.dataset.note = note;
+        keysEl.appendChild(el);
+        bindKey(el, note);
+        // black key after this white?
+        if (BLACK.hasOwnProperty(k)) {
+          var bnote = FIRST + oc * 12 + BLACK[k];
+          var bk = document.createElement("div");
+          bk.className = "bkey";
+          bk.style.left = "calc(" + ((wi + 1) * ww) + "% - " + (ww * 0.3) + "%)";
+          bk.style.width = (ww * 0.6) + "%";
+          bk.dataset.note = bnote;
+          keysEl.appendChild(bk);
+          bindKey(bk, bnote);
+        }
+        wi++;
+      }
+    }
+  }
+
+  function noteOn(note, el) {
+    if (pressed[note]) return;
+    pressed[note] = el;
+    el.classList.add("down");
+    heldCount++;
+    if (window.vstai && window.vstai.noteOn) {
+      try { window.vstai.noteOn(note, 0.9); } catch (e) {}
+    }
+  }
+  function noteOff(note) {
+    var el = pressed[note];
+    if (!el) return;
+    el.classList.remove("down");
+    delete pressed[note];
+    heldCount = Math.max(0, heldCount - 1);
+    if (window.vstai && window.vstai.noteOff) {
+      try { window.vstai.noteOff(note); } catch (e) {}
+    }
+  }
+
+  function bindKey(el, note) {
+    el.addEventListener("mousedown", function (e) { noteOn(note, el); e.preventDefault(); });
+    el.addEventListener("mouseup", function () { noteOff(note); });
+    el.addEventListener("mouseleave", function () { if (mouseDown) noteOff(note); });
+    el.addEventListener("mouseenter", function () { if (mouseDown) noteOn(note, el); });
+    el.addEventListener("touchstart", function (e) { noteOn(note, el); e.preventDefault(); }, { passive: false });
+    el.addEventListener("touchend", function (e) { noteOff(note); e.preventDefault(); });
+  }
+
+  var mouseDown = false;
+  document.addEventListener("mousedown", function () { mouseDown = true; });
+  document.addEventListener("mouseup", function () {
+    mouseDown = false;
+    for (var k in pressed) noteOff(+k);
+  });
+
+  buildKeyboard();
+
+  // computer keyboard: a..k row across two octaves
+  var KEYMAP = { a:48,w:49,s:50,e:51,d:52,f:53,t:54,g:55,y:56,h:57,u:58,j:59,k:60,o:61,l:62 };
+  document.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var n = KEYMAP[e.key];
+    if (n == null) return;
+    var el = keysEl.querySelector('[data-note="' + n + '"]');
+    if (el) noteOn(n, el);
+  });
+  document.addEventListener("keyup", function (e) {
+    var n = KEYMAP[e.key];
+    if (n != null) noteOff(n);
+  });
+
+  // =====================================================================
+  //  HOST CONTRACT — init params once vstai is ready
+  // =====================================================================
+  function pushAll() {
+    PARAMS.forEach(function (p) {
+      var v = (p.index in values) ? values[p.index] : p.def;
+      setParam(p.index, v);
+    });
+  }
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(pushAll);
+  } else {
+    pushAll();
+  }
+})();
+</script>
+</body>
+</html>

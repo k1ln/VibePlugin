@@ -1,0 +1,19 @@
+{
+  "name": "Oberon",
+  "isInstrument": true,
+  "explanation": "A fat discrete-oscillator analog polyphonic synthesizer with six independent voices. Each voice runs two oscillators — a band-limited saw and a hollow pulse — plus a wide-detuned fat layer, into a raw resonant 2-pole (12 dB/oct) low-pass shaped by its own envelope, then an amplitude envelope. A unison Spread detunes the layers and pans each voice across the stereo field for huge, brassy late-70s American-poly stabs — deliberately fatter and rawer than a clean ladder-filter poly. Controls: Cutoff, Resonance, Env Amount, Spread, Attack, Release and Level.",
+  "assembly": "factory/plugins/oberon/assembly.ts",
+  "out": "factory/plugins/oberon/x.vstai",
+  "publishedAt": 1751000094000,
+  "theme": { "accent": "#caa6ff", "accent2": "#ff8fb0" },
+  "guiFile": "factory/plugins/oberon/gui.html",
+  "params": [
+    { "name": "Cutoff",    "index": 0, "min": 0, "max": 1, "default": 0.5  },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.4  },
+    { "name": "EnvAmount", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Spread",    "index": 3, "min": 0, "max": 1, "default": 0.4  },
+    { "name": "Attack",    "index": 4, "min": 0, "max": 1, "default": 0.04 },
+    { "name": "Release",   "index": 5, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Level",     "index": 6, "min": 0, "max": 1, "default": 0.6  }
+  ]
+}

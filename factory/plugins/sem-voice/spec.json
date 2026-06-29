@@ -1,0 +1,19 @@
+{
+  "name": "Sem Voice",
+  "isInstrument": true,
+  "explanation": "A warm SEM-lineage duophonic synth voice. Two detuned oscillators (a saw and a variable-width pulse) feed a 12 dB/oct state-variable filter whose response morphs continuously from low-pass, through a notch, to high-pass via the Mode control. The filter has its own resonance and a decay envelope; Env Amount sets how far the cutoff sweeps, Detune thickens the two oscillators and opens the pulse, Decay shapes both the filter sweep and the amp tail, and Level sets output. The smooth low-pass -> notch -> high-pass sweep is the signature vocal, growling character.",
+  "assembly": "factory/plugins/sem-voice/assembly.ts",
+  "out": "factory/plugins/sem-voice/x.vstai",
+  "guiFile": "factory/plugins/sem-voice/gui.html",
+  "publishedAt": 1751000104000,
+  "theme": { "accent": "#e8c27a", "accent2": "#7ad0ff" },
+  "params": [
+    { "name": "Mode",       "index": 0, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Cutoff",     "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance",  "index": 2, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Env Amount", "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Detune",     "index": 4, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Decay",      "index": 5, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

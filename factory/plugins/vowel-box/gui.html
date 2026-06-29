@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vowel Box</title>
+  <style>
+    :root {
+      --accent: #ff7ac0;
+      --accent2: #ffd36a;
+      --bg0: #1a0d18;
+      --bg1: #2a1226;
+      --ink: #ffe9f6;
+      --ink-dim: #c79bb8;
+      --panel: #24101f;
+      --groove: #150812;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg0);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(120% 90% at 50% -10%, rgba(255,122,192,0.14), transparent 60%),
+        radial-gradient(100% 80% at 100% 120%, rgba(255,211,106,0.10), transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg0) 70%);
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 640px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18)),
+        linear-gradient(160deg, var(--panel), #1b0c17);
+      border: 1px solid rgba(255,122,192,0.22);
+      border-radius: 20px;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.08) inset,
+        0 24px 60px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(0,0,0,0.5);
+      padding: 20px 22px 24px;
+      overflow: hidden;
+    }
+
+    /* ---------- header ---------- */
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .logo {
+      width: 38px; height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(140deg, var(--accent), var(--accent2));
+      display: grid; place-items: center;
+      box-shadow: 0 6px 18px rgba(255,122,192,0.4), 0 0 0 1px rgba(255,255,255,0.18) inset;
+      animation: breathe 3.4s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%,100% { box-shadow: 0 6px 18px rgba(255,122,192,0.35), 0 0 0 1px rgba(255,255,255,0.18) inset; }
+      50%     { box-shadow: 0 6px 26px rgba(255,211,106,0.55), 0 0 0 1px rgba(255,255,255,0.28) inset; }
+    }
+    .logo svg { width: 24px; height: 24px; display: block; }
+
+    .titles h1 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .titles p {
+      margin: 2px 0 0;
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    .vowel-tag {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--accent2);
+      text-shadow: 0 0 18px rgba(255,211,106,0.5);
+      min-width: 44px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ---------- stage (mouth + spectrum) ---------- */
+    .stage {
+      position: relative;
+      border-radius: 16px;
+      background:
+        radial-gradient(80% 120% at 50% 0%, rgba(255,122,192,0.10), transparent 60%),
+        linear-gradient(180deg, #120710, #1d0b18);
+      border: 1px solid rgba(255,122,192,0.16);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45) inset, 0 1px 0 rgba(255,255,255,0.04);
+      padding: 14px;
+      margin-bottom: 18px;
+    }
+    .stage svg { width: 100%; height: auto; display: block; }
+
+    /* ---------- controls ---------- */
+    .rack {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 540px) {
+      .rack { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .cell {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(0,0,0,0.22));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 12px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px rgba(0,0,0,0.3);
+      transition: border-color 0.2s, transform 0.12s;
+    }
+    .cell:hover { border-color: rgba(255,122,192,0.4); }
+    .cell.active { border-color: var(--accent); transform: translateY(-1px); }
+
+    .knob {
+      position: relative;
+      width: 72px; height: 72px;
+      cursor: ns-resize;
+      touch-action: none;
+      user-select: none;
+    }
+    .knob svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+    .cap-label {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      font-weight: 600;
+    }
+    .cap-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+
+    .foot {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .foot .dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); margin-right: 6px;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 1.6s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="panel">
+
+      <div class="head">
+        <div class="brand">
+          <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3 12c3-6 15-6 18 0-3 6-15 6-18 0Z" stroke="#2a0d20" stroke-width="2" fill="rgba(0,0,0,0.25)"/>
+              <ellipse cx="12" cy="12" rx="4" ry="5" fill="#2a0d20"/>
+            </svg>
+          </div>
+          <div class="titles">
+            <h1>Vowel Box</h1>
+            <p>Formant Talker</p>
+          </div>
+        </div>
+        <div class="vowel-tag" id="vowelTag">A</div>
+      </div>
+
+      <!-- Stage: vocal-tract mouth + animated spectrum with 3 formant bumps -->
+      <div class="stage">
+        <svg id="scene" viewBox="0 0 600 230" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="gFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stop-color="#ff7ac0" stop-opacity="0.55"/>
+              <stop offset="55%" stop-color="#ff7ac0" stop-opacity="0.10"/>
+              <stop offset="100%" stop-color="#ffd36a" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="gLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"  stop-color="#ff7ac0"/>
+              <stop offset="100%" stop-color="#ffd36a"/>
+            </linearGradient>
+            <radialGradient id="gBump" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffd36a" stop-opacity="0.95"/>
+              <stop offset="100%" stop-color="#ff7ac0" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="gLip" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ff9bcf"/>
+              <stop offset="100%" stop-color="#d63a86"/>
+            </linearGradient>
+            <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="3"/>
+            </filter>
+          </defs>
+
+          <!-- baseline grid -->
+          <g stroke="rgba(255,122,192,0.10)" stroke-width="1">
+            <line x1="0" y1="170" x2="600" y2="170"/>
+            <line x1="150" y1="20" x2="150" y2="190"/>
+            <line x1="300" y1="20" x2="300" y2="190"/>
+            <line x1="450" y1="20" x2="450" y2="190"/>
+          </g>
+
+          <!-- spectrum fill + line -->
+          <path id="specFill" d="" fill="url(#gFill)"/>
+          <path id="specLine" d="" fill="none" stroke="url(#gLine)" stroke-width="2.5"
+                stroke-linejoin="round" stroke-linecap="round"/>
+
+          <!-- glowing formant peak markers -->
+          <g id="bumps">
+            <circle id="bumpGlow0" r="22" fill="url(#gBump)" filter="url(#soft)"/>
+            <circle id="bumpGlow1" r="22" fill="url(#gBump)" filter="url(#soft)"/>
+            <circle id="bumpGlow2" r="22" fill="url(#gBump)" filter="url(#soft)"/>
+            <circle id="bumpDot0" r="3.5" fill="#fff"/>
+            <circle id="bumpDot1" r="3.5" fill="#fff"/>
+            <circle id="bumpDot2" r="3.5" fill="#fff"/>
+          </g>
+
+          <!-- the talking mouth (lips reshape with Vowel) -->
+          <g id="mouth" transform="translate(300,205)">
+            <ellipse id="mouthHole" cx="0" cy="0" rx="40" ry="14" fill="#3a0c28"/>
+            <ellipse id="tongue" cx="0" cy="6" rx="26" ry="7" fill="#b8336e" opacity="0.85"/>
+            <path id="lipTop" d="" fill="url(#gLip)"/>
+            <path id="lipBot" d="" fill="url(#gLip)"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="rack" id="rack"></div>
+
+      <div class="foot">
+        <span><span class="dot"></span>Live</span>
+        <span>3-Band Formant · A E I O U</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ---- parameter map (indices MUST match assembly.ts) ----
+    var PARAMS = [
+      { name: "Vowel",     index: 0, min: 0, max: 1, def: 0.0,  fmt: vowelFmt },
+      { name: "Resonance", index: 1, min: 0, max: 1, def: 0.6,  fmt: pctFmt },
+      { name: "Drive",     index: 2, min: 0, max: 1, def: 0.45, fmt: pctFmt },
+      { name: "Mix",       index: 3, min: 0, max: 1, def: 1.0,  fmt: pctFmt },
+      { name: "Level",     index: 4, min: 0, max: 1, def: 0.7,  fmt: pctFmt }
+    ];
+
+    var VOWELS = ["A", "E", "I", "O", "U"];
+    // normalized formant centre positions (0..1 across the spectrum view) per vowel
+    var VF = [
+      [0.16, 0.34, 0.62],  // A
+      [0.12, 0.52, 0.63],  // E
+      [0.07, 0.62, 0.74],  // I
+      [0.13, 0.27, 0.61],  // O
+      [0.07, 0.27, 0.58]   // U
+    ];
+
+    var values = PARAMS.map(function (p) { return p.def; });
+
+    function pctFmt(v) { return Math.round(v * 100) + "%"; }
+    function vowelFmt(v) {
+      var pos = v * 4;
+      var i = Math.min(4, Math.floor(pos));
+      var t = pos - i;
+      var j = Math.min(4, i + 1);
+      var name = t < 0.5 ? VOWELS[i] : VOWELS[j];
+      return name;
+    }
+
+    // ---- host bridge ----
+    function pushParam(idx, val) {
+      if (window.vstai && window.vstai.setParam) {
+        try { window.vstai.setParam(idx, val); } catch (e) {}
+      }
+    }
+
+    function setValue(slot, v, push) {
+      var p = PARAMS[slot];
+      v = Math.max(p.min, Math.min(p.max, v));
+      values[slot] = v;
+      var cell = cells[slot];
+      cell.valEl.textContent = p.fmt(v);
+      drawKnob(cell, slot);
+      if (push) pushParam(p.index, v);
+      if (slot === 0) document.getElementById("vowelTag").textContent = vowelFmt(v);
+    }
+
+    // ---- knob construction ----
+    var cells = [];
+    var rack = document.getElementById("rack");
+
+    function makeKnob(slot) {
+      var p = PARAMS[slot];
+      var cell = document.createElement("div");
+      cell.className = "cell";
+
+      var knob = document.createElement("div");
+      knob.className = "knob";
+      knob.innerHTML =
+        '<svg viewBox="0 0 100 100">' +
+          '<circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="9"/>' +
+          '<circle class="arc" cx="50" cy="50" r="44" fill="none" stroke="url(#gArc' + slot + ')" ' +
+            'stroke-width="9" stroke-linecap="round" ' +
+            'transform="rotate(135 50 50)"/>' +
+          '<defs><linearGradient id="gArc' + slot + '" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0%" stop-color="#ff7ac0"/><stop offset="100%" stop-color="#ffd36a"/>' +
+          '</linearGradient>' +
+          '<radialGradient id="gBody' + slot + '" cx="50%" cy="35%" r="70%">' +
+            '<stop offset="0%" stop-color="#3a1730"/><stop offset="100%" stop-color="#1c0a16"/>' +
+          '</radialGradient></defs>' +
+          '<circle cx="50" cy="50" r="32" fill="url(#gBody' + slot + ')" ' +
+            'stroke="rgba(255,255,255,0.08)" stroke-width="1"/>' +
+          '<line class="ptr" x1="50" y1="50" x2="50" y2="24" ' +
+            'stroke="#ffd36a" stroke-width="3" stroke-linecap="round"/>' +
+        '</svg>';
+
+      var label = document.createElement("div");
+      label.className = "cap-label";
+      label.textContent = p.name;
+
+      var val = document.createElement("div");
+      val.className = "cap-val";
+
+      cell.appendChild(knob);
+      cell.appendChild(label);
+      cell.appendChild(val);
+      rack.appendChild(cell);
+
+      var rec = {
+        el: cell,
+        knobEl: knob,
+        valEl: val,
+        arc: knob.querySelector(".arc"),
+        ptr: knob.querySelector(".ptr")
+      };
+      cells[slot] = rec;
+
+      // ---- interaction: vertical drag ----
+      var dragging = false, startY = 0, startV = 0;
+
+      function onDown(e) {
+        dragging = true;
+        cell.classList.add("active");
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        startV = values[slot];
+        e.preventDefault();
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
+        window.addEventListener("touchmove", onMove, { passive: false });
+        window.addEventListener("touchend", onUp);
+      }
+      function onMove(e) {
+        if (!dragging) return;
+        var y = (e.touches ? e.touches[0].clientY : e.clientY);
+        var dy = startY - y;
+        var range = p.max - p.min;
+        var nv = startV + (dy / 200) * range;
+        setValue(slot, nv, true);
+        e.preventDefault();
+      }
+      function onUp() {
+        dragging = false;
+        cell.classList.remove("active");
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        window.removeEventListener("touchmove", onMove);
+        window.removeEventListener("touchend", onUp);
+      }
+
+      knob.addEventListener("mousedown", onDown);
+      knob.addEventListener("touchstart", onDown, { passive: false });
+      knob.addEventListener("dblclick", function () { setValue(slot, p.def, true); });
+      knob.addEventListener("wheel", function (e) {
+        var range = p.max - p.min;
+        setValue(slot, values[slot] - Math.sign(e.deltaY) * range * 0.02, true);
+        e.preventDefault();
+      }, { passive: false });
+
+      return rec;
+    }
+
+    function drawKnob(rec, slot) {
+      var p = PARAMS[slot];
+      var norm = (values[slot] - p.min) / (p.max - p.min);
+      // arc sweeps 270deg; circumference of r=44 = 276.46
+      var C = 2 * Math.PI * 44;
+      var sweep = 0.75; // 270 / 360
+      rec.arc.setAttribute("stroke-dasharray", (C * sweep * norm) + " " + C);
+      var ang = -135 + norm * 270; // degrees
+      var rad = ang * Math.PI / 180;
+      var x = 50 + Math.sin(rad) * 26;
+      var y = 50 - Math.cos(rad) * 26;
+      rec.ptr.setAttribute("x2", x);
+      rec.ptr.setAttribute("y2", y);
+    }
+
+    for (var i = 0; i < PARAMS.length; i++) makeKnob(i);
+
+    // =================================================================
+    //  Scene rendering: spectrum curve + 3 formant bumps + talking lips
+    // =================================================================
+    var W = 600, baseY = 170, topY = 24;
+    var specLine = document.getElementById("specLine");
+    var specFill = document.getElementById("specFill");
+    var bumpGlow = [0, 1, 2].map(function (k) { return document.getElementById("bumpGlow" + k); });
+    var bumpDot  = [0, 1, 2].map(function (k) { return document.getElementById("bumpDot" + k); });
+    var lipTop = document.getElementById("lipTop");
+    var lipBot = document.getElementById("lipBot");
+    var tongue = document.getElementById("tongue");
+    var mouthHole = document.getElementById("mouthHole");
+
+    // smoothed display state
+    var dCenters = [0.16, 0.34, 0.62];
+    var dOpen = 0.5;     // mouth openness 0..1
+    var dRound = 0.0;    // lip rounding 0..1
+
+    function morphFormants(vowel) {
+      var pos = vowel * 4;
+      var i = Math.min(4, Math.floor(pos));
+      var t = pos - i;
+      var j = Math.min(4, i + 1);
+      var out = [0, 0, 0];
+      for (var k = 0; k < 3; k++) out[k] = VF[i][k] + (VF[j][k] - VF[i][k]) * t;
+      return out;
+    }
+
+    // mouth shape per vowel: [openness, rounding]
+    var MOUTH = [
+      [1.0, 0.05],  // A  wide open
+      [0.6, 0.10],  // E  mid, spread
+      [0.35, 0.05], // I  narrow, spread
+      [0.7, 0.85],  // O  rounded
+      [0.4, 1.0]    // U  small, very rounded
+    ];
+
+    function mouthFor(vowel) {
+      var pos = vowel * 4;
+      var i = Math.min(4, Math.floor(pos));
+      var t = pos - i;
+      var j = Math.min(4, i + 1);
+      return [
+        MOUTH[i][0] + (MOUTH[j][0] - MOUTH[i][0]) * t,
+        MOUTH[i][1] + (MOUTH[j][1] - MOUTH[i][1]) * t
+      ];
+    }
+
+    var phase = 0;
+
+    function render() {
+      var vowel = values[0];
+      var res = values[1];
+      var drive = values[2];
+      var mix = values[3];
+
+      var targets = morphFormants(vowel);
+      var m = mouthFor(vowel);
+
+      // ease toward targets so motion feels alive
+      for (var k = 0; k < 3; k++) dCenters[k] += (targets[k] - dCenters[k]) * 0.18;
+      dOpen  += (m[0] - dOpen) * 0.18;
+      dRound += (m[1] - dRound) * 0.18;
+
+      phase += 0.045;
+
+      // --- build spectrum curve as sum of 3 gaussian formant bumps ---
+      var width = 0.085 - res * 0.05;   // sharper peaks at high resonance
+      width = Math.max(0.022, width);
+      var amps = [1.0, 0.78, 0.5];
+      var N = 80;
+      var lineD = "", fillD = "";
+      var wobble = 0.6 + drive * 1.2;   // a little life with drive
+
+      for (var s = 0; s <= N; s++) {
+        var fx = s / N;                 // 0..1 across spectrum
+        var v = 0;
+        for (var b = 0; b < 3; b++) {
+          var d = (fx - dCenters[b]) / width;
+          v += amps[b] * Math.exp(-0.5 * d * d);
+        }
+        // subtle animated shimmer
+        v *= 1 + 0.04 * Math.sin(phase + fx * 9);
+        v = Math.min(1.3, v) * (0.4 + 0.6 * mix);
+        var px = fx * W;
+        var py = baseY - v * (baseY - topY);
+        lineD += (s === 0 ? "M" : "L") + px.toFixed(1) + " " + py.toFixed(1) + " ";
+      }
+      fillD = "M0 " + baseY + " " + lineD.replace(/^M/, "L") + "L" + W + " " + baseY + " Z";
+      specLine.setAttribute("d", lineD);
+      specFill.setAttribute("d", fillD);
+
+      // --- position the glowing bumps on the curve ---
+      for (var bb = 0; bb < 3; bb++) {
+        var cx = dCenters[bb] * W;
+        var peak = amps[bb] * (0.4 + 0.6 * mix);
+        var cy = baseY - Math.min(1.3, peak) * (baseY - topY);
+        var glowR = 14 + res * 16 + 3 * Math.sin(phase * 1.3 + bb);
+        bumpGlow[bb].setAttribute("cx", cx);
+        bumpGlow[bb].setAttribute("cy", cy);
+        bumpGlow[bb].setAttribute("r", glowR);
+        bumpDot[bb].setAttribute("cx", cx);
+        bumpDot[bb].setAttribute("cy", cy);
+      }
+
+      // --- talking lips ---
+      var halfW = 38 + (1 - dRound) * 22;       // wide when spread, narrow when rounded
+      var gap = 4 + dOpen * 22;                  // vertical opening
+      var topThick = 8 + dRound * 6;
+      var botThick = 9 + dRound * 7;
+
+      // top lip
+      lipTop.setAttribute("d",
+        "M" + (-halfW) + " 0 " +
+        "Q0 " + (-gap - topThick) + " " + halfW + " 0 " +
+        "Q0 " + (-gap + 2) + " " + (-halfW) + " 0 Z");
+      // bottom lip
+      lipBot.setAttribute("d",
+        "M" + (-halfW) + " 0 " +
+        "Q0 " + (gap + botThick) + " " + halfW + " 0 " +
+        "Q0 " + (gap - 2) + " " + (-halfW) + " 0 Z");
+
+      mouthHole.setAttribute("rx", halfW * 0.85);
+      mouthHole.setAttribute("ry", Math.max(4, gap * 0.7));
+      tongue.setAttribute("rx", halfW * 0.6);
+      tongue.setAttribute("cy", gap * 0.4 + 4);
+
+      if (!document.hidden) requestAnimationFrame(render);
+    }
+
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) requestAnimationFrame(render);
+    });
+
+    // ---- init ----
+    function boot() {
+      for (var s = 0; s < PARAMS.length; s++) setValue(s, values[s], true);
+      requestAnimationFrame(render);
+    }
+
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(boot);
+    } else {
+      boot();
+    }
+  </script>
+</body>
+</html>

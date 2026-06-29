@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cosmo Poly</title>
+<style>
+  :root {
+    --accent: #5ad0ff;
+    --accent2: #b08cff;
+    --bg0: #060912;
+    --bg1: #0c1230;
+    --bg2: #161a44;
+    --ink: #dfe9ff;
+    --ink-dim: #8a96c8;
+    --line: rgba(120,150,255,0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    padding: clamp(14px, 2.6vw, 34px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 2vw, 26px);
+  }
+
+  /* ---- slow nebula / aurora behind everything ---- */
+  .nebula {
+    position: absolute;
+    inset: -20%;
+    z-index: 0;
+    background:
+      radial-gradient(40% 55% at 22% 28%, rgba(90,208,255,0.30), transparent 60%),
+      radial-gradient(45% 60% at 80% 30%, rgba(176,140,255,0.30), transparent 62%),
+      radial-gradient(60% 70% at 50% 95%, rgba(60,90,220,0.28), transparent 65%),
+      linear-gradient(160deg, var(--bg1), var(--bg0) 70%);
+    filter: saturate(1.15);
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(-3%, -2%, 0) scale(1.05) rotate(0deg); }
+    50%  { transform: translate3d(2%, 2%, 0) scale(1.12) rotate(2deg); }
+    100% { transform: translate3d(3%, -1%, 0) scale(1.06) rotate(-2deg); }
+  }
+  .stars {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.6), transparent),
+      radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.45), transparent),
+      radial-gradient(1px 1px at 55% 15%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1px 1px at 12% 70%, rgba(255,255,255,0.4), transparent);
+    opacity: 0.5;
+    animation: twinkle 6s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.25; } to { opacity: 0.6; } }
+
+  .stage > * { position: relative; z-index: 2; }
+
+  /* ---- header ---- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .halo {
+    position: relative;
+    width: 62px;
+    height: 62px;
+    flex: none;
+  }
+  .halo svg { display: block; width: 100%; height: 100%; }
+  .halo .ring-spin { transform-origin: 50% 50%; animation: spin 9s linear infinite; }
+  .halo .ring-spin-2 { transform-origin: 50% 50%; animation: spin 14s linear infinite reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .halo .core { animation: pulse 3.4s ease-in-out infinite; transform-origin: 50% 50%; }
+  @keyframes pulse { 0%,100% { opacity: 0.7; r: 7; } 50% { opacity: 1; r: 9.5; } }
+
+  .titles h1 {
+    margin: 0;
+    font-size: clamp(22px, 3.4vw, 38px);
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 30px rgba(90,208,255,0.25);
+  }
+  .titles .sub {
+    margin-top: 3px;
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* ---- luminous ribbon strip ---- */
+  .ribbon {
+    height: 8px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
+    background-size: 220% 100%;
+    box-shadow: 0 0 22px rgba(120,180,255,0.5);
+    animation: slide 7s linear infinite;
+  }
+  @keyframes slide { from { background-position: 0% 0; } to { background-position: 220% 0; } }
+
+  /* ---- control grid ---- */
+  .panel {
+    background: linear-gradient(180deg, rgba(22,26,68,0.62), rgba(8,12,30,0.62));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: clamp(16px, 2.4vw, 28px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 18px 50px rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+  }
+
+  .knobs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(12px, 2vw, 26px);
+  }
+  @media (max-width: 620px) { .knobs { grid-template-columns: repeat(2, 1fr); } }
+
+  .knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .knob .dial {
+    position: relative;
+    width: clamp(74px, 9vw, 104px);
+    height: clamp(74px, 9vw, 104px);
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob .dial svg { display: block; width: 100%; height: 100%; }
+  .knob .label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .knob .val {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .knob .dial:hover .arc { filter: drop-shadow(0 0 8px var(--accent)); }
+  .knob.active .arc { filter: drop-shadow(0 0 12px var(--accent)); }
+
+  /* ---- keyboard ---- */
+  .keys-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .keys-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .keys-head .tag {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .keyboard {
+    position: relative;
+    height: clamp(90px, 13vw, 128px);
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.55), inset 0 0 0 1px var(--line);
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    background: linear-gradient(180deg, #e9f1ff, #aebcdf);
+    border-right: 1px solid rgba(20,30,60,0.4);
+    cursor: pointer;
+    transition: background 0.08s;
+  }
+  .wkey:last-child { border-right: none; }
+  .wkey.down { background: linear-gradient(180deg, var(--accent), #6fa9d6); }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 5.6%;
+    height: 60%;
+    background: linear-gradient(180deg, #1a2244, #05070f);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+    cursor: pointer;
+    z-index: 3;
+    transition: background 0.08s;
+  }
+  .bkey.down { background: linear-gradient(180deg, var(--accent2), #5b46a0); }
+
+  .hint {
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="nebula"></div>
+    <div class="stars"></div>
+
+    <header>
+      <div class="halo">
+        <svg viewBox="0 0 64 64">
+          <defs>
+            <radialGradient id="g-core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="45%" stop-color="var(--accent)"/>
+              <stop offset="100%" stop-color="var(--accent2)"/>
+            </radialGradient>
+          </defs>
+          <g class="ring-spin">
+            <circle cx="32" cy="32" r="26" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 7" opacity="0.85"/>
+          </g>
+          <g class="ring-spin-2">
+            <circle cx="32" cy="32" r="20" fill="none" stroke="var(--accent2)" stroke-width="1.2" stroke-dasharray="2 9" opacity="0.8"/>
+          </g>
+          <circle class="core" cx="32" cy="32" r="7" fill="url(#g-core)"/>
+        </svg>
+      </div>
+      <div class="titles">
+        <h1>COSMO POLY</h1>
+        <div class="sub">Ring-Mod Analog Polysynth</div>
+      </div>
+    </header>
+
+    <div class="ribbon"></div>
+
+    <div class="panel">
+      <div class="knobs" id="knobs"></div>
+    </div>
+
+    <div class="keys-wrap">
+      <div class="keys-head">
+        <span class="tag">Polyphonic Keyboard</span>
+        <span class="hint">Drag knobs vertically · double-click to reset</span>
+      </div>
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+  </div>
+
+<script>
+  "use strict";
+
+  // ---- parameter model (indices match the DSP module) ---------------
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.5,  fmt: pct },
+    { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.3,  fmt: pct },
+    { name: "Env Amount", index: 2, min: 0, max: 1, def: 0.55, fmt: pct },
+    { name: "Ring",       index: 3, min: 0, max: 1, def: 0.25, fmt: pct },
+    { name: "Brilliance", index: 4, min: 0, max: 1, def: 0.5,  fmt: pct },
+    { name: "Attack",     index: 5, min: 0, max: 1, def: 0.25, fmt: secs(2.5, 0.002) },
+    { name: "Release",    index: 6, min: 0, max: 1, def: 0.45, fmt: secs(4.0, 0.02) },
+    { name: "Level",      index: 7, min: 0, max: 1, def: 0.7,  fmt: pct }
+  ];
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function secs(span, base) {
+    return function (v) {
+      var s = base + v * span;
+      return s < 1 ? (Math.round(s * 1000) + " ms") : (s.toFixed(2) + " s");
+    };
+  }
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // ---- host bridge --------------------------------------------------
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].index, values[i]);
+    }
+  }
+
+  // ---- knob rendering -----------------------------------------------
+  var A0 = -135, A1 = 135; // sweep degrees
+  function buildKnobs() {
+    var root = document.getElementById("knobs");
+    PARAMS.forEach(function (p, i) {
+      var cell = document.createElement("div");
+      cell.className = "knob";
+
+      var dial = document.createElement("div");
+      dial.className = "dial";
+      dial.innerHTML =
+        '<svg viewBox="0 0 100 100">' +
+        '  <defs>' +
+        '    <linearGradient id="arc' + i + '" x1="0" y1="0" x2="1" y2="1">' +
+        '      <stop offset="0%" stop-color="var(--accent)"/>' +
+        '      <stop offset="100%" stop-color="var(--accent2)"/>' +
+        '    </linearGradient>' +
+        '    <radialGradient id="body' + i + '" cx="50%" cy="38%" r="65%">' +
+        '      <stop offset="0%" stop-color="#27305f"/>' +
+        '      <stop offset="100%" stop-color="#0a0e22"/>' +
+        '    </radialGradient>' +
+        '  </defs>' +
+        '  <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(120,150,255,0.18)" stroke-width="6"/>' +
+        '  <path class="arc" data-arc="' + i + '" fill="none" stroke="url(#arc' + i + ')" stroke-width="6" stroke-linecap="round"/>' +
+        '  <circle cx="50" cy="50" r="32" fill="url(#body' + i + ')" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>' +
+        '  <line class="pointer" data-ptr="' + i + '" x1="50" y1="50" x2="50" y2="24" stroke="#eaf2ff" stroke-width="3" stroke-linecap="round"/>' +
+        '</svg>';
+
+      var label = document.createElement("div");
+      label.className = "label";
+      label.textContent = p.name;
+
+      var val = document.createElement("div");
+      val.className = "val";
+      val.setAttribute("data-val", i);
+
+      cell.appendChild(dial);
+      cell.appendChild(label);
+      cell.appendChild(val);
+      root.appendChild(cell);
+
+      attachDrag(dial, cell, i);
+      renderKnob(i);
+    });
+  }
+
+  function polar(cx, cy, r, deg) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  }
+
+  function renderKnob(i) {
+    var v = (values[i] - PARAMS[i].min) / (PARAMS[i].max - PARAMS[i].min);
+    var ang = A0 + (A1 - A0) * v;
+
+    var arc = document.querySelector('[data-arc="' + i + '"]');
+    var start = polar(50, 50, 42, A0);
+    var end = polar(50, 50, 42, ang);
+    var large = (ang - A0) > 180 ? 1 : 0;
+    arc.setAttribute("d", "M " + start[0].toFixed(2) + " " + start[1].toFixed(2) +
+      " A 42 42 0 " + large + " 1 " + end[0].toFixed(2) + " " + end[1].toFixed(2));
+
+    var ptr = document.querySelector('[data-ptr="' + i + '"]');
+    var tip = polar(50, 50, 26, ang);
+    ptr.setAttribute("x2", tip[0].toFixed(2));
+    ptr.setAttribute("y2", tip[1].toFixed(2));
+
+    var out = document.querySelector('[data-val="' + i + '"]');
+    out.textContent = PARAMS[i].fmt(values[i]);
+  }
+
+  function attachDrag(dial, cell, i) {
+    var dragging = false;
+    var lastY = 0;
+
+    function setVal(nv) {
+      var p = PARAMS[i];
+      nv = Math.max(p.min, Math.min(p.max, nv));
+      values[i] = nv;
+      renderKnob(i);
+      pushParam(i);
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      var y = e.touches ? e.touches[0].clientY : e.clientY;
+      var dy = lastY - y;
+      lastY = y;
+      var span = PARAMS[i].max - PARAMS[i].min;
+      var fine = (e.shiftKey ? 0.25 : 1);
+      setVal(values[i] + dy * 0.005 * span * fine);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      cell.classList.remove("active");
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    }
+    function onDown(e) {
+      dragging = true;
+      cell.classList.add("active");
+      lastY = e.touches ? e.touches[0].clientY : e.clientY;
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+      e.preventDefault();
+    }
+
+    dial.addEventListener("mousedown", onDown);
+    dial.addEventListener("touchstart", onDown, { passive: false });
+    dial.addEventListener("dblclick", function () { setVal(PARAMS[i].def); });
+    dial.addEventListener("wheel", function (e) {
+      var span = PARAMS[i].max - PARAMS[i].min;
+      setVal(values[i] - Math.sign(e.deltaY) * 0.02 * span);
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  // ---- keyboard -----------------------------------------------------
+  // two octaves starting at C3 (MIDI 48)
+  var START = 48;
+  var WHITE = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10 }; // white-index -> black semitone
+
+  function buildKeyboard() {
+    var kb = document.getElementById("keyboard");
+    var octaves = 2;
+    var whiteCount = WHITE.length * octaves;
+    var whiteEls = [];
+
+    for (var o = 0; o < octaves; o++) {
+      for (var w = 0; w < WHITE.length; w++) {
+        var midi = START + o * 12 + WHITE[w];
+        var key = document.createElement("div");
+        key.className = "wkey";
+        key.setAttribute("data-midi", midi);
+        kb.appendChild(key);
+        whiteEls.push(key);
+        bindKey(key, midi);
+      }
+    }
+
+    // black keys positioned over the white-key grid
+    var wPct = 100 / whiteCount;
+    for (var oo = 0; oo < octaves; oo++) {
+      for (var wi = 0; wi < WHITE.length; wi++) {
+        if (!(wi in BLACK)) continue;
+        var globalWhite = oo * WHITE.length + wi;
+        var bMidi = START + oo * 12 + BLACK[wi];
+        var bk = document.createElement("div");
+        bk.className = "bkey";
+        bk.setAttribute("data-midi", bMidi);
+        bk.style.left = ((globalWhite + 1) * wPct - 2.8) + "%";
+        kb.appendChild(bk);
+        bindKey(bk, bMidi);
+      }
+    }
+  }
+
+  function bindKey(el, midi) {
+    function down(e) {
+      el.classList.add("down");
+      if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(midi, 0.85);
+      e.preventDefault();
+    }
+    function up() {
+      el.classList.remove("down");
+      if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(midi);
+    }
+    el.addEventListener("mousedown", down);
+    el.addEventListener("mouseup", up);
+    el.addEventListener("mouseleave", function () {
+      if (el.classList.contains("down")) up();
+    });
+    el.addEventListener("touchstart", down, { passive: false });
+    el.addEventListener("touchend", function (e) { up(); e.preventDefault(); }, { passive: false });
+  }
+
+  // ---- init ---------------------------------------------------------
+  function start() {
+    buildKnobs();
+    buildKeyboard();
+    for (var i = 0; i < PARAMS.length; i++) pushParam(i);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+</script>
+</body>
+</html>

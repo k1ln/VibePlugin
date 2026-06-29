@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stereo Room</title>
+<style>
+  :root {
+    --accent: #7ad0c0;
+    --accent2: #a0e0d0;
+    --bg0: #0a1413;
+    --bg1: #0f1f1d;
+    --panel: #14201f;
+    --panel-hi: #1c2c2a;
+    --ink: #cfe9e3;
+    --ink-dim: #6f8a85;
+    --line: #233834;
+    --display-bg: #05100d;
+    --display-glow: #7ad0c0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background:
+      radial-gradient(120% 80% at 50% -10%, #16302c 0%, var(--bg0) 55%, #060d0c 100%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 18px 14px 26px;
+  }
+
+  .unit {
+    width: 100%;
+    max-width: 720px;
+    background:
+      linear-gradient(180deg, #1a2b29 0%, var(--panel) 18%, #101b1a 100%);
+    border: 1px solid #2a423e;
+    border-radius: 14px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.05) inset,
+      0 -2px 0 rgba(0,0,0,0.45) inset,
+      0 22px 50px rgba(0,0,0,0.6);
+    padding: 16px 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* brushed-metal sheen */
+  .unit::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,0.018) 0 2px,
+        rgba(0,0,0,0.02) 2px 4px);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* ---------------- header / rack ears ---------------- */
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .screw {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #3a524d, #0c1413 70%);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.6), 0 0 0 1px #243733 inset;
+    position: relative;
+    flex: 0 0 auto;
+  }
+  .screw::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-top: 1.5px solid rgba(0,0,0,0.55);
+    transform: rotate(35deg);
+  }
+
+  .title-block { flex: 1 1 auto; }
+  .brand {
+    font-size: 10px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 3px;
+  }
+  .model {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-shadow: 0 0 14px rgba(122,208,192,0.25);
+  }
+  .model b { color: var(--accent); font-weight: 700; }
+
+  .power {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .led {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 9px 2px rgba(122,208,192,0.8);
+    animation: pulse 3.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 0.35; }
+  }
+
+  /* ---------------- display (room view) ---------------- */
+  .display {
+    position: relative;
+    z-index: 2;
+    background:
+      radial-gradient(130% 120% at 50% 0%, #0a1f1a 0%, var(--display-bg) 70%);
+    border: 1px solid #06231c;
+    border-radius: 9px;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.6),
+      0 6px 18px rgba(0,0,0,0.55) inset,
+      0 0 26px rgba(122,208,192,0.06) inset;
+    padding: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  /* scanline / vintage CRT texture */
+  .display::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0 2px,
+      rgba(0,0,0,0.16) 2px 3px);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+
+  .display-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-shadow: 0 0 7px rgba(122,208,192,0.6);
+  }
+  .display-top .rt {
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+  }
+
+  .room-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    border-radius: 4px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #06140f, #04100c);
+  }
+  .room-svg { display: block; width: 100%; height: 100%; }
+
+  /* ---------------- controls ---------------- */
+  .panel {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 560px) {
+    .panel { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .cell {
+    background: linear-gradient(180deg, var(--panel-hi), #0f1817);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 12px 8px 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 -3px 6px rgba(0,0,0,0.3) inset;
+  }
+
+  .knob {
+    position: relative;
+    width: 76px; height: 76px;
+    cursor: ns-resize;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .knob .body-grad { transition: filter 0.18s ease; }
+  .knob.active .body-grad,
+  .knob:hover .body-grad { filter: drop-shadow(0 0 8px rgba(122,208,192,0.5)); }
+
+  .label {
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .value {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--accent2);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 8px rgba(122,208,192,0.3);
+  }
+
+  .foot {
+    position: relative;
+    z-index: 2;
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .foot .digital {
+    color: var(--accent);
+    text-shadow: 0 0 6px rgba(122,208,192,0.4);
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="head">
+      <div class="screw"></div>
+      <div class="title-block">
+        <div class="brand">Vibe&nbsp;&middot;&nbsp;Digital&nbsp;Reverb&nbsp;Processor</div>
+        <div class="model"><b>Stereo</b> Room</div>
+      </div>
+      <div class="power">
+        <span>On</span>
+        <span class="led"></span>
+      </div>
+      <div class="screw"></div>
+    </div>
+
+    <div class="display">
+      <div class="display-top">
+        <span>Room&nbsp;&middot;&nbsp;Top&nbsp;View</span>
+        <span class="rt" id="rt">RT 1.20 s</span>
+      </div>
+      <div class="room-wrap">
+        <svg class="room-svg" id="roomSvg" viewBox="0 0 320 140" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#0a221b"/>
+              <stop offset="1" stop-color="#040f0c"/>
+            </linearGradient>
+            <radialGradient id="src" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#dffff6"/>
+              <stop offset="0.5" stop-color="#7ad0c0"/>
+              <stop offset="1" stop-color="#7ad0c0" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <!-- floor -->
+          <rect x="0" y="0" width="320" height="140" fill="url(#floor)"/>
+
+          <!-- floor grid -->
+          <g stroke="#16352c" stroke-width="0.5" id="grid"></g>
+
+          <!-- room walls (the box). inset rect, scales with Size -->
+          <rect id="walls" x="26" y="16" width="268" height="108" rx="2"
+                fill="none" stroke="#3f7d70" stroke-width="1.4"
+                style="filter: drop-shadow(0 0 4px rgba(122,208,192,0.35));"/>
+
+          <!-- early-reflection rays -->
+          <g id="rays" stroke-linecap="round"></g>
+
+          <!-- wall impact sparks -->
+          <g id="sparks"></g>
+
+          <!-- source + two mic dots -->
+          <circle id="srcGlow" cx="160" cy="70" r="13" fill="url(#src)"/>
+          <circle id="srcDot" cx="160" cy="70" r="3.2" fill="#eafff9"/>
+
+          <circle class="mic" cx="120" cy="70" r="2.6" fill="#a0e0d0" opacity="0.9"/>
+          <circle class="mic" cx="200" cy="70" r="2.6" fill="#a0e0d0" opacity="0.9"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="panel" id="panel"></div>
+
+    <div class="foot">
+      <span>Multitap&nbsp;ER&nbsp;+&nbsp;Diffuse&nbsp;Tail</span>
+      <span class="digital">16&nbsp;Bit&nbsp;&middot;&nbsp;Stereo</span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model -------------------------------------------------
+  var PARAMS = [
+    { name: "Mix",       index: 0, min: 0, max: 1, def: 0.35, unit: "%",  fmt: pct },
+    { name: "Size",      index: 1, min: 0, max: 1, def: 0.50, unit: "",   fmt: sizeFmt },
+    { name: "Decay",     index: 2, min: 0, max: 1, def: 0.50, unit: "s",  fmt: decayFmt },
+    { name: "Diffusion", index: 3, min: 0, max: 1, def: 0.70, unit: "%",  fmt: pct },
+    { name: "Pre-Delay", index: 4, min: 0, max: 1, def: 0.10, unit: "ms", fmt: preFmt }
+  ];
+
+  var values = {};   // index -> normalized 0..1
+
+  function pct(v)      { return Math.round(v * 100) + " %"; }
+  function sizeFmt(v)  {
+    var labels = ["Booth", "Small", "Medium", "Large", "Hall"];
+    return labels[Math.min(4, Math.floor(v * 4.999))];
+  }
+  function decayFmt(v) { return (0.25 + v * 2.55).toFixed(2) + " s"; }
+  function preFmt(v)   { return Math.round(v * 120) + " ms"; }
+
+  // ---- host wiring -----------------------------------------------------
+  function pushParam(p) {
+    var v = values[p.index];
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(p.index, p.min + v * (p.max - p.min));
+    }
+  }
+
+  // ---- build knobs -----------------------------------------------------
+  var panel = document.getElementById("panel");
+  var knobEls = {};
+
+  function buildKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    // defs (gradient body)
+    var defs = document.createElementNS(ns, "defs");
+    var gid = "kbody" + p.index;
+    var lg = document.createElementNS(ns, "radialGradient");
+    lg.setAttribute("id", gid);
+    lg.setAttribute("cx", "38%"); lg.setAttribute("cy", "32%"); lg.setAttribute("r", "75%");
+    [["0", "#2b3f3c"], ["0.55", "#1a2725"], ["1", "#0c1413"]].forEach(function (s) {
+      var st = document.createElementNS(ns, "stop");
+      st.setAttribute("offset", s[0]); st.setAttribute("stop-color", s[1]);
+      lg.appendChild(st);
+    });
+    defs.appendChild(lg);
+    svg.appendChild(defs);
+
+    // track arc (background)
+    var track = document.createElementNS(ns, "path");
+    track.setAttribute("d", arcPath(50, 52, 38, -135, 135));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "#16302b");
+    track.setAttribute("stroke-width", "5");
+    track.setAttribute("stroke-linecap", "round");
+    svg.appendChild(track);
+
+    // value arc
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "var(--accent)");
+    arc.setAttribute("stroke-width", "5");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.style.filter = "drop-shadow(0 0 4px rgba(122,208,192,0.7))";
+    svg.appendChild(arc);
+
+    // body
+    var body = document.createElementNS(ns, "circle");
+    body.setAttribute("class", "body-grad");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "52");
+    body.setAttribute("r", "27");
+    body.setAttribute("fill", "url(#" + gid + ")");
+    body.setAttribute("stroke", "#33514b");
+    body.setAttribute("stroke-width", "1");
+    svg.appendChild(body);
+
+    // pointer notch
+    var notch = document.createElementNS(ns, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "52");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "30");
+    notch.setAttribute("stroke", "var(--accent2)");
+    notch.setAttribute("stroke-width", "2.6");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    knob.appendChild(svg);
+    cell.appendChild(knob);
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+    cell.appendChild(label);
+
+    var val = document.createElement("div");
+    val.className = "value";
+    cell.appendChild(val);
+
+    panel.appendChild(cell);
+
+    knobEls[p.index] = { knob: knob, arc: arc, notch: notch, val: val };
+    attachDrag(knob, p);
+    render(p);
+  }
+
+  function arcPath(cx, cy, r, a0deg, a1deg) {
+    var a0 = (a0deg - 90) * Math.PI / 180;
+    var a1 = (a1deg - 90) * Math.PI / 180;
+    var x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+    var x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+    var large = (a1deg - a0deg) > 180 ? 1 : 0;
+    return "M " + x0.toFixed(2) + " " + y0.toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " +
+           x1.toFixed(2) + " " + y1.toFixed(2);
+  }
+
+  function render(p) {
+    var v = values[p.index];
+    var el = knobEls[p.index];
+    var ang = -135 + v * 270;
+    // value arc
+    if (v <= 0.0001) {
+      el.arc.setAttribute("d", "");
+    } else {
+      el.arc.setAttribute("d", arcPath(50, 52, 38, -135, ang));
+    }
+    // notch rotation
+    el.notch.setAttribute("transform", "rotate(" + ang + " 50 52)");
+    el.val.textContent = p.fmt(v);
+  }
+
+  // ---- drag interaction ------------------------------------------------
+  function attachDrag(knob, p) {
+    var dragging = false, startY = 0, startV = 0;
+
+    function onDown(e) {
+      dragging = true;
+      knob.classList.add("active");
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = values[p.index];
+      e.preventDefault();
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = startY - y;
+      var fine = e.shiftKey ? 0.25 : 1;
+      var nv = startV + (dy / 180) * fine;
+      values[p.index] = clamp01(nv);
+      render(p); pushParam(p); updateRoom();
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      knob.classList.remove("active");
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    }
+
+    knob.addEventListener("mousedown", onDown);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    knob.addEventListener("dblclick", function () {
+      values[p.index] = (p.def - p.min) / (p.max - p.min);
+      render(p); pushParam(p); updateRoom();
+    });
+    knob.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var step = (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 0.005 : 0.02);
+      values[p.index] = clamp01(values[p.index] + step);
+      render(p); pushParam(p); updateRoom();
+    }, { passive: false });
+  }
+
+  function clamp01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+
+  // ---- room visualization ----------------------------------------------
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var raysG = document.getElementById("rays");
+  var sparksG = document.getElementById("sparks");
+  var walls = document.getElementById("walls");
+  var gridG = document.getElementById("grid");
+  var rtEl = document.getElementById("rt");
+
+  // floor grid lines (static)
+  (function makeGrid() {
+    for (var x = 0; x <= 320; x += 32) {
+      var l = document.createElementNS(SVG_NS, "line");
+      l.setAttribute("x1", x); l.setAttribute("y1", 0);
+      l.setAttribute("x2", x); l.setAttribute("y2", 140);
+      gridG.appendChild(l);
+    }
+    for (var y = 0; y <= 140; y += 28) {
+      var h = document.createElementNS(SVG_NS, "line");
+      h.setAttribute("x1", 0); h.setAttribute("y1", y);
+      h.setAttribute("x2", 320); h.setAttribute("y2", y);
+      gridG.appendChild(h);
+    }
+  })();
+
+  // 7 reflection rays (one per "wall bounce direction")
+  var RAY_DIRS = [];
+  var NUM_RAYS = 9;
+  for (var i = 0; i < NUM_RAYS; i++) {
+    RAY_DIRS.push((i / NUM_RAYS) * Math.PI * 2 + 0.18);
+  }
+  var rays = [];
+  RAY_DIRS.forEach(function () {
+    var ln = document.createElementNS(SVG_NS, "line");
+    ln.setAttribute("stroke", "var(--accent)");
+    ln.setAttribute("stroke-width", "1");
+    raysG.appendChild(ln);
+    rays.push(ln);
+  });
+
+  // current room rect (animated toward target by Size)
+  var room = { x: 26, y: 16, w: 268, h: 108 };
+
+  function updateRoom() {
+    var size = values[1];      // 0..1
+    var pad = 70 - size * 55;  // smaller pad => bigger room
+    room.tx = pad;
+    room.ty = pad * 0.42 + 8;
+    room.tw = 320 - 2 * (room.tx);
+    room.th = 140 - 2 * (room.ty);
+
+    // RT readout from Decay (mirrors decayFmt)
+    rtEl.textContent = "RT " + (0.25 + values[2] * 2.55).toFixed(2) + " s";
+  }
+  updateRoom();
+  // initialise current to target
+  room.x = room.tx; room.y = room.ty; room.w = room.tw; room.h = room.th;
+
+  var t0 = performance.now();
+  var sparkPool = [];
+
+  function frame(now) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var t = (now - t0) / 1000;
+
+    // ease room geometry toward target
+    room.x += (room.tx - room.x) * 0.12;
+    room.y += (room.ty - room.y) * 0.12;
+    room.w += (room.tw - room.w) * 0.12;
+    room.h += (room.th - room.h) * 0.12;
+    walls.setAttribute("x", room.x.toFixed(1));
+    walls.setAttribute("y", room.y.toFixed(1));
+    walls.setAttribute("width", room.w.toFixed(1));
+    walls.setAttribute("height", room.h.toFixed(1));
+
+    var cx = 160, cy = 70;
+    var mix = values[0];
+    var decay = values[2];
+    var diff = values[3];
+    var pre = values[4];
+
+    // speed of rays depends inversely on Size (bigger room = slower bounce);
+    // length/brightness on Mix + Decay; spread on Diffusion.
+    var speed = 26 + (1 - values[1]) * 34;
+    var maxReach = Math.min(room.w, room.h) * 0.5;
+
+    for (var k = 0; k < rays.length; k++) {
+      var phase = (t * speed * (0.6 + (k % 3) * 0.2) + k * 17) % 100 / 100;
+      // pre-delay shifts the start outward (rays appear later)
+      var startR = pre * 18;
+      var reach = startR + phase * maxReach;
+      var jitter = (diff * 0.5) * Math.sin(t * 3 + k * 2.1);
+      var dir = RAY_DIRS[k] + jitter;
+
+      var x1 = cx + Math.cos(dir) * startR;
+      var y1 = cy + Math.sin(dir) * startR * 0.6;
+      var x2 = cx + Math.cos(dir) * reach;
+      var y2 = cy + Math.sin(dir) * reach * 0.6;
+
+      // clamp endpoint to inside the walls
+      var halfW = room.w / 2 - 4, halfH = room.h / 2 - 4;
+      var dx = x2 - cx, dy = y2 - cy;
+      if (Math.abs(dx) > halfW) { var s = halfW / Math.abs(dx); dx *= s; dy *= s; }
+      if (Math.abs(dy) > halfH) { var s2 = halfH / Math.abs(dy); dx *= s2; dy *= s2; }
+      x2 = cx + dx; y2 = cy + dy;
+
+      rays[k].setAttribute("x1", x1.toFixed(1));
+      rays[k].setAttribute("y1", y1.toFixed(1));
+      rays[k].setAttribute("x2", x2.toFixed(1));
+      rays[k].setAttribute("y2", y2.toFixed(1));
+      // fade with travel; brighter at higher Mix, longer trail at higher Decay
+      var alpha = (1 - phase) * (0.25 + mix * 0.7) * (0.5 + decay * 0.5);
+      rays[k].setAttribute("stroke-opacity", alpha.toFixed(3));
+      rays[k].setAttribute("stroke-width", (0.6 + diff * 1.4).toFixed(2));
+    }
+
+    // source glow breathes with Mix
+    var glow = document.getElementById("srcGlow");
+    glow.setAttribute("r", (8 + mix * 8 + Math.sin(t * 4) * 1.5).toFixed(1));
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- init ------------------------------------------------------------
+  function init() {
+    PARAMS.forEach(function (p) {
+      values[p.index] = (p.def - p.min) / (p.max - p.min);
+      buildKnob(p);
+      pushParam(p);
+    });
+    updateRoom();
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

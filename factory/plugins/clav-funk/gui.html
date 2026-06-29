@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clav</title>
+<style>
+  :root {
+    --accent:  #d06a3a;
+    --accent2: #ffae5a;
+    --wood0:   #2a1a12;
+    --wood1:   #3a241a;
+    --panel0:  #1c130d;
+    --panel1:  #281a11;
+    --ink:     #f5e6d4;
+    --ink-dim: #b79a82;
+    --tab-off: #2d1d13;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: #140d08;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+
+  /* ---- the cabinet ------------------------------------------------ */
+  .cabinet {
+    position: relative;
+    border-radius: 16px;
+    padding: 18px 20px 20px;
+    background:
+      linear-gradient(180deg, #3a2519 0%, #2c1b11 55%, #1f130b 100%);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(255,200,150,.14),
+      inset 0 -2px 8px rgba(0,0,0,.55);
+    border: 1px solid #110a05;
+    overflow: hidden;
+  }
+  /* faint wood grain */
+  .cabinet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(92deg,
+        rgba(255,180,120,.035) 0px,
+        rgba(0,0,0,.04) 3px,
+        rgba(255,180,120,.02) 6px,
+        rgba(0,0,0,.05) 11px);
+    mix-blend-mode: overlay;
+    opacity: .8;
+  }
+
+  /* ---- header ----------------------------------------------------- */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .logo {
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: 3px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,.4);
+  }
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* the "wah-mouth" hint — an animated grille that opens/closes */
+  .mouth {
+    width: 120px;
+    height: 38px;
+    border-radius: 22px;
+    background: radial-gradient(ellipse at 50% 40%, #120b06 0%, #241710 70%);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,180,120,.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .mouth .bar {
+    width: 5px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    animation: wah 1.6s ease-in-out infinite;
+    opacity: .85;
+  }
+  @keyframes wah {
+    0%, 100% { height: 8px; }
+    50%      { height: 26px; }
+  }
+
+  /* ---- strings panel --------------------------------------------- */
+  .strings-wrap {
+    position: relative;
+    z-index: 2;
+    margin: 16px 0 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #160e08, #0f0905);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,170,110,.08);
+  }
+  #strings { display: block; width: 100%; height: 92px; }
+
+  /* ---- rocker tabs (params) -------------------------------------- */
+  .tabs {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .tab {
+    position: relative;
+    border-radius: 10px;
+    padding: 10px 8px 12px;
+    background: linear-gradient(180deg, #2c1c12, #1d120b);
+    box-shadow: inset 0 1px 0 rgba(255,190,140,.12), 0 4px 10px rgba(0,0,0,.45);
+    user-select: none;
+  }
+  .tab .name {
+    font-size: 9.5px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  /* the rocker switch body */
+  .rocker {
+    position: relative;
+    height: 66px;
+    margin: 0 auto;
+    width: 40px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #0e0805, #1a110a);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.8);
+    cursor: ns-resize;
+    overflow: hidden;
+  }
+  /* the lit fill that tracks the value (bottom-up) */
+  .rocker .fill {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 12px rgba(255,140,60,.55);
+    transition: height .04s linear;
+  }
+  /* the physical cap that rides on top of the fill */
+  .rocker .cap {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    height: 16px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #f3d8bd, #b98a63);
+    box-shadow: 0 2px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.6);
+    transition: bottom .04s linear;
+  }
+  .rocker:hover .fill { filter: brightness(1.12); }
+  .rocker.drag .cap { box-shadow: 0 0 14px var(--accent2), inset 0 1px 0 rgba(255,255,255,.7); }
+
+  .tab .val {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+    font-weight: 700;
+  }
+
+  /* ---- keyboard --------------------------------------------------- */
+  .kb-wrap {
+    position: relative;
+    z-index: 2;
+    margin-top: 16px;
+    padding: 10px 10px 12px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #20140c, #150d07);
+    box-shadow: inset 0 1px 0 rgba(255,180,120,.1), 0 6px 14px rgba(0,0,0,.5);
+  }
+  .kb-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .keys {
+    position: relative;
+    height: 110px;
+    display: flex;
+    user-select: none;
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 6px 6px;
+    background: linear-gradient(180deg, #fbf1e4 0%, #e9d6c0 88%, #d6bfa3 100%);
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,.18), 0 3px 5px rgba(0,0,0,.4);
+    cursor: pointer;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: inset 0 3px 8px rgba(120,40,0,.5);
+  }
+  .bkeys {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 66px;
+    pointer-events: none;
+  }
+  .bkey {
+    position: absolute;
+    width: 5.6%;
+    height: 100%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a1c12, #0c0703);
+    box-shadow: 0 3px 5px rgba(0,0,0,.6), inset 0 -2px 3px rgba(255,180,120,.12);
+    pointer-events: auto;
+    cursor: pointer;
+    transform: translateX(-50%);
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #8a3c14);
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="cabinet">
+
+    <div class="head">
+      <div class="brand">
+        <div class="logo">CLAV</div>
+        <div class="tagline">Funk&nbsp;Clavier&nbsp;·&nbsp;Plucked&nbsp;String</div>
+      </div>
+      <div class="mouth" id="mouth" title="wah">
+        <div class="bar" style="animation-delay:0s"></div>
+        <div class="bar" style="animation-delay:.12s"></div>
+        <div class="bar" style="animation-delay:.24s"></div>
+        <div class="bar" style="animation-delay:.36s"></div>
+        <div class="bar" style="animation-delay:.48s"></div>
+        <div class="bar" style="animation-delay:.60s"></div>
+        <div class="bar" style="animation-delay:.72s"></div>
+      </div>
+    </div>
+
+    <div class="strings-wrap">
+      <canvas id="strings"></canvas>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div class="kb-wrap">
+      <div class="kb-label"><span>Keyboard</span><span>drag tabs · double-click resets</span></div>
+      <div class="keys" id="keys">
+        <div class="bkeys" id="bkeys"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  "use strict";
+
+  // ---- parameter map (indices MUST match the DSP module) -----------
+  var PARAMS = [
+    { name: "Attack",     index: 0, min: 0, max: 1, def: 0.15 },
+    { name: "Decay",      index: 1, min: 0, max: 1, def: 0.55 },
+    { name: "Brightness", index: 2, min: 0, max: 1, def: 0.65 },
+    { name: "Pickup",     index: 3, min: 0, max: 1, def: 0.45 },
+    { name: "Damping",    index: 4, min: 0, max: 1, def: 0.30 },
+    { name: "Level",      index: 5, min: 0, max: 1, def: 0.70 }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // ---- safe bridge to the host ------------------------------------
+  function pushParam(idx, val) {
+    if (window.vstai && window.vstai.setParam) {
+      try { window.vstai.setParam(idx, val); } catch (e) {}
+    }
+  }
+  function fmt(v) { return Math.round(v * 100) + "%"; }
+
+  // ---- build the rocker tabs --------------------------------------
+  var tabEls = [];
+  function buildTabs() {
+    var host = document.getElementById("tabs");
+    PARAMS.forEach(function (p, i) {
+      var tab = document.createElement("div");
+      tab.className = "tab";
+
+      var name = document.createElement("div");
+      name.className = "name";
+      name.textContent = p.name;
+
+      var rocker = document.createElement("div");
+      rocker.className = "rocker";
+      var fill = document.createElement("div");
+      fill.className = "fill";
+      var cap = document.createElement("div");
+      cap.className = "cap";
+      rocker.appendChild(fill);
+      rocker.appendChild(cap);
+
+      var val = document.createElement("div");
+      val.className = "val";
+
+      tab.appendChild(name);
+      tab.appendChild(rocker);
+      tab.appendChild(val);
+      host.appendChild(tab);
+
+      var rec = { p: p, rocker: rocker, fill: fill, cap: cap, val: val };
+      tabEls.push(rec);
+      wireRocker(rec, i);
+      paint(i);
+    });
+  }
+
+  function norm(i) {
+    var p = PARAMS[i];
+    return (values[i] - p.min) / (p.max - p.min);
+  }
+
+  function paint(i) {
+    var rec = tabEls[i];
+    var t = norm(i);
+    var travel = 66 - 16 - 6; // track height minus cap minus padding
+    rec.fill.style.height = (6 + t * (66 - 12)) + "px";
+    rec.cap.style.bottom = (3 + t * travel) + "px";
+    rec.val.textContent = fmt(t);
+  }
+
+  function setValue(i, v) {
+    var p = PARAMS[i];
+    if (v < p.min) v = p.min;
+    if (v > p.max) v = p.max;
+    values[i] = v;
+    pushParam(p.index, v);
+    paint(i);
+  }
+
+  function wireRocker(rec, i) {
+    var dragging = false, startY = 0, startVal = 0;
+
+    function down(ev) {
+      dragging = true;
+      rec.rocker.classList.add("drag");
+      startY = (ev.touches ? ev.touches[0].clientY : ev.clientY);
+      startVal = norm(i);
+      ev.preventDefault();
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+      window.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("touchend", up);
+    }
+    function move(ev) {
+      if (!dragging) return;
+      var y = (ev.touches ? ev.touches[0].clientY : ev.clientY);
+      var dt = (startY - y) / 140;            // up = increase
+      var p = PARAMS[i];
+      var nv = startVal + dt;
+      if (nv < 0) nv = 0; if (nv > 1) nv = 1;
+      setValue(i, p.min + nv * (p.max - p.min));
+      ev.preventDefault();
+    }
+    function up() {
+      dragging = false;
+      rec.rocker.classList.remove("drag");
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    }
+
+    rec.rocker.addEventListener("mousedown", down);
+    rec.rocker.addEventListener("touchstart", down, { passive: false });
+    rec.rocker.addEventListener("dblclick", function () { setValue(i, rec.p.def); });
+    rec.rocker.addEventListener("wheel", function (ev) {
+      var p = PARAMS[i];
+      var step = (p.max - p.min) * 0.03;
+      setValue(i, values[i] - Math.sign(ev.deltaY) * step);
+      ev.preventDefault();
+    }, { passive: false });
+  }
+
+  // ---- animated strings canvas ------------------------------------
+  var canvas = document.getElementById("strings");
+  var ctx = canvas.getContext("2d");
+  var NSTRINGS = 9;
+  // each string: phase, amplitude (decays), pitch-ish freq
+  var sStr = [];
+  for (var s = 0; s < NSTRINGS; s++) {
+    sStr.push({ amp: 0, phase: Math.random() * 6.28, freq: 9 + s * 1.4 });
+  }
+
+  function pluckString(noteNumber) {
+    var idx = ((noteNumber % 12) * NSTRINGS / 12) | 0;
+    if (idx < 0) idx = 0; if (idx >= NSTRINGS) idx = NSTRINGS - 1;
+    sStr[idx].amp = 1;
+    sStr[idx].phase = 0;
+  }
+
+  function sizeCanvas() {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  var t0 = performance.now();
+  function drawStrings(now) {
+    if (document.hidden) { requestAnimationFrame(drawStrings); return; }
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    var bright = values[2];      // Brightness tints the glow
+    var decay = values[1];       // Decay controls visible ring length
+    var dt = (now - t0) / 1000;
+
+    for (var i = 0; i < NSTRINGS; i++) {
+      var st = sStr[i];
+      var y = (i + 0.5) * (h / NSTRINGS);
+      // vibration amplitude in px
+      var a = st.amp * (5 + bright * 9);
+      // string color: warm orange, brighter when freshly plucked
+      var g = ctx.createLinearGradient(0, 0, w, 0);
+      var lit = 0.35 + st.amp * 0.65;
+      g.addColorStop(0, "rgba(120,80,55," + (0.5 + 0.4 * lit) + ")");
+      g.addColorStop(0.5, "rgba(" + (208 + 40 * lit) + "," + (106 + 70 * lit) + "," + (58 + 40 * lit) + "," + (0.6 + 0.4 * lit) + ")");
+      g.addColorStop(1, "rgba(120,80,55," + (0.5 + 0.4 * lit) + ")");
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 1.4 + (1 - i / NSTRINGS) * 1.6 + st.amp * 0.8;
+      ctx.shadowBlur = st.amp * 10 * (0.4 + bright);
+      ctx.shadowColor = "rgba(255,150,70,0.7)";
+
+      ctx.beginPath();
+      var seg = 40;
+      for (var k = 0; k <= seg; k++) {
+        var x = (k / seg) * w;
+        // standing-wave-ish shape, fundamental + slight 2nd
+        var env = Math.sin((k / seg) * Math.PI);
+        var osc = Math.sin(dt * st.freq * 6.28 + st.phase) ;
+        var yy = y + env * a * osc;
+        if (k === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // decay the amplitude — slower when Decay is high
+      var d = 0.985 + decay * 0.012;
+      st.amp *= d;
+      if (st.amp < 0.001) st.amp = 0;
+    }
+    requestAnimationFrame(drawStrings);
+  }
+
+  // ---- on-screen keyboard -----------------------------------------
+  var BASE_NOTE = 48; // C3
+  var WHITE = [0, 2, 4, 5, 7, 9, 11];
+  var NUM_OCT = 2;
+  var heldKeys = {};
+
+  function buildKeyboard() {
+    var keys = document.getElementById("keys");
+    var bkeys = document.getElementById("bkeys");
+    var whiteCount = WHITE.length * NUM_OCT + 1; // +1 top C
+    var whiteEls = [];
+
+    for (var o = 0; o < NUM_OCT; o++) {
+      for (var wi = 0; wi < WHITE.length; wi++) {
+        var note = BASE_NOTE + o * 12 + WHITE[wi];
+        whiteEls.push(makeWhite(note, keys));
+      }
+    }
+    whiteEls.push(makeWhite(BASE_NOTE + NUM_OCT * 12, keys));
+
+    // black keys positioned relative to white-key slots
+    var blackPattern = [0, 1, 3, 4, 5]; // which gaps within an octave get a black key
+    var slot = 100 / whiteCount;
+    var wIndex = 0;
+    for (var oo = 0; oo < NUM_OCT; oo++) {
+      for (var bi = 0; bi < WHITE.length; bi++) {
+        var hasBlack = (bi === 0 || bi === 1 || bi === 3 || bi === 4 || bi === 5);
+        if (hasBlack) {
+          // semitone above the white note
+          var bnote = BASE_NOTE + oo * 12 + WHITE[bi] + 1;
+          var leftPct = (wIndex + 1) * slot;
+          makeBlack(bnote, leftPct, bkeys);
+        }
+        wIndex++;
+      }
+    }
+  }
+
+  function makeWhite(note, parent) {
+    var el = document.createElement("div");
+    el.className = "wkey";
+    bindKey(el, note);
+    // insert before the bkeys overlay so order is correct
+    parent.insertBefore(el, document.getElementById("bkeys"));
+    return el;
+  }
+  function makeBlack(note, leftPct, parent) {
+    var el = document.createElement("div");
+    el.className = "bkey";
+    el.style.left = leftPct + "%";
+    bindKey(el, note);
+    parent.appendChild(el);
+    return el;
+  }
+
+  function noteDown(note, el) {
+    if (heldKeys[note]) return;
+    heldKeys[note] = true;
+    el.classList.add("down");
+    if (window.vstai && window.vstai.noteOn) {
+      try { window.vstai.noteOn(note, 0.9); } catch (e) {}
+    }
+    pluckString(note);
+  }
+  function noteUp(note, el) {
+    if (!heldKeys[note]) return;
+    delete heldKeys[note];
+    el.classList.remove("down");
+    if (window.vstai && window.vstai.noteOff) {
+      try { window.vstai.noteOff(note); } catch (e) {}
+    }
+  }
+
+  function bindKey(el, note) {
+    el.addEventListener("mousedown", function (e) { noteDown(note, el); e.preventDefault(); });
+    el.addEventListener("mouseup", function () { noteUp(note, el); });
+    el.addEventListener("mouseleave", function () { noteUp(note, el); });
+    el.addEventListener("touchstart", function (e) { noteDown(note, el); e.preventDefault(); }, { passive: false });
+    el.addEventListener("touchend", function (e) { noteUp(note, el); e.preventDefault(); });
+  }
+
+  // computer keyboard row plays too (a..k as white keys)
+  var KEYMAP = { "a": 0, "s": 2, "d": 4, "f": 5, "g": 7, "h": 9, "j": 11, "k": 12 };
+  var allKeyEls = {};
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var k = e.key.toLowerCase();
+    if (KEYMAP[k] === undefined) return;
+    var note = BASE_NOTE + KEYMAP[k];
+    pluckString(note);
+    if (window.vstai && window.vstai.noteOn) { try { window.vstai.noteOn(note, 0.9); } catch (er) {} }
+    heldKeys[note] = true;
+  });
+  window.addEventListener("keyup", function (e) {
+    var k = e.key.toLowerCase();
+    if (KEYMAP[k] === undefined) return;
+    var note = BASE_NOTE + KEYMAP[k];
+    if (window.vstai && window.vstai.noteOff) { try { window.vstai.noteOff(note); } catch (er) {} }
+    delete heldKeys[note];
+  });
+
+  // ---- init -------------------------------------------------------
+  function init() {
+    buildTabs();
+    buildKeyboard();
+    sizeCanvas();
+    window.addEventListener("resize", sizeCanvas);
+    // push all defaults to the engine
+    PARAMS.forEach(function (p, i) { pushParam(p.index, values[i]); });
+    requestAnimationFrame(drawStrings);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+</script>
+</body>
+</html>

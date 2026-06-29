@@ -1,0 +1,19 @@
+{
+  "name": "Additive",
+  "isInstrument": true,
+  "explanation": "A polyphonic additive (Fourier) synthesizer with eight independent voices. Each voice sums up to 32 sine harmonics whose amplitudes follow a sculptable spectral shape: an Odd/Even partial balance (square-hollow vs. full saw-like timbres), a Brightness spectral tilt, and a Spectral Decay that lets higher harmonics fade faster than the fundamental over the life of the note. An amplitude Attack/Release contour gates each voice and chords ring with independent decays. Controls: Odd, Even, Brightness, Spectral Decay, Attack, Release and Level.",
+  "assembly": "factory/plugins/additive-synth/assembly.ts",
+  "out": "factory/plugins/additive-synth/x.vstai",
+  "publishedAt": 1751000084000,
+  "theme": { "accent": "#54d1ff", "accent2": "#b0e0ff" },
+  "guiFile": "factory/plugins/additive-synth/gui.html",
+  "params": [
+    { "name": "Odd",            "index": 0, "min": 0, "max": 1, "default": 0.85 },
+    { "name": "Even",           "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Brightness",     "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Spectral Decay", "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Attack",         "index": 4, "min": 0, "max": 1, "default": 0.04 },
+    { "name": "Release",        "index": 5, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",          "index": 6, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}
