@@ -1,0 +1,17 @@
+{
+  "name": "State Filter",
+  "isInstrument": false,
+  "explanation": "A 2-pole multimode state-variable filter built on a two-integrator core that yields low-pass, high-pass, band-pass and notch outputs at once; a Mode selector taps which one is heard. Resonance climbs all the way to self-oscillation while a soft saturator inside the loop keeps it bounded, and a gentle input Drive adds warmth. Controls: Cutoff, Resonance, Mode, Drive and dry/wet Mix.",
+  "assembly": "factory/plugins/state-filter/assembly.ts",
+  "out": "factory/plugins/state-filter/x.vstai",
+  "publishedAt": 1751000048000,
+  "theme": { "accent": "#66e0c0", "accent2": "#54d1ff" },
+  "guiFile": "factory/plugins/state-filter/gui.html",
+  "params": [
+    { "name": "Cutoff",    "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mode",      "index": 2, "min": 0, "max": 3, "default": 0, "step": 1 },
+    { "name": "Drive",     "index": 3, "min": 0, "max": 1, "default": 0.2 },
+    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

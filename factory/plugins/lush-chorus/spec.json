@@ -6,6 +6,7 @@
   "out": "factory/plugins/lush-chorus/x.vstai",
   "publishedAt": 1751000011000,
   "theme": { "accent": "#6ad0ff", "accent2": "#7a8cff" },
+  "guiFile": "factory/plugins/lush-chorus/gui.html",
   "params": [
     { "name": "Rate",      "index": 0, "min": 0, "max": 1, "default": 0.35 },
     { "name": "Depth",     "index": 1, "min": 0, "max": 1, "default": 0.5 },

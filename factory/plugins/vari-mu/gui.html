@@ -1,0 +1,363 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ac:#ffcf6b;        /* warm amber accent */
+  --ac2:#ff9e6b;       /* orange ember      */
+  --face:#3b2c20;      /* faceplate brown   */
+  --face2:#241913;
+  --brass:#caa24a;
+  --ink:#1a110a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px "Times New Roman",Georgia,ui-serif,serif;
+  color:#f4e4c4;
+  background:
+    radial-gradient(130% 100% at 50% -15%,#3a2a1c 0%,#1a120c 55%,#0a0705 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:22px;overflow:hidden;
+}
+
+/* ===== broadcast chassis ===== */
+.unit{
+  position:relative;
+  width:560px;
+  border-radius:14px;
+  padding:20px 26px 24px;
+  background:
+    linear-gradient(168deg,#4a382a 0%,var(--face) 34%,var(--face2) 100%);
+  box-shadow:
+    0 46px 90px -22px rgba(0,0,0,.8),
+    0 2px 0 rgba(255,230,180,.10) inset,
+    0 -26px 50px -20px rgba(0,0,0,.6) inset,
+    0 0 0 2px #160d07,
+    0 0 0 7px #2a1d12,
+    0 0 0 9px rgba(202,162,74,.35);
+  animation:rise .8s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+/* hammered-metal micro texture + top sheen */
+.unit::before{
+  content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;
+  background:
+    repeating-linear-gradient(122deg,rgba(255,255,255,.03) 0 1px,transparent 1px 4px),
+    radial-gradient(150% 60% at 28% -5%,rgba(255,235,190,.14),transparent 55%);
+  mix-blend-mode:screen;opacity:.7;border-radius:14px;
+}
+/* brass corner rivets */
+.rivet{position:absolute;width:15px;height:15px;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,#ffe7a8,var(--brass) 52%,#6e521d 92%);
+  box-shadow:0 1px 3px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.35) inset,0 0 6px rgba(255,205,107,.3);}
+.rivet.tl{top:11px;left:11px}.rivet.tr{top:11px;right:11px}
+.rivet.bl{bottom:11px;left:11px}.rivet.br{bottom:11px;right:11px}
+
+/* ===== header / brass nameplate ===== */
+.head{position:relative;text-align:center;margin:2px 0 16px}
+.brand{font-size:9px;letter-spacing:.5em;color:#d8b876;opacity:.8;text-transform:uppercase;font-family:ui-sans-serif,system-ui,sans-serif}
+h1{
+  margin:4px 0 0;font-size:30px;font-weight:700;letter-spacing:.06em;line-height:1;
+  font-variant:small-caps;
+  background:linear-gradient(180deg,#fff3d4,var(--ac) 48%,#b8801f);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 5px rgba(60,30,0,.6));
+}
+.sub{font-size:8.5px;letter-spacing:.34em;color:#cfa86a;opacity:.7;text-transform:uppercase;margin-top:5px;font-family:ui-sans-serif,system-ui,sans-serif}
+
+/* ===== top instrument row: tubes + VU meters ===== */
+.top{display:flex;align-items:stretch;justify-content:center;gap:18px;margin:0 4px 18px}
+
+/* glowing vacuum tubes */
+.tubes{display:flex;gap:14px;align-items:flex-end;padding:6px 2px 0}
+.tube{position:relative;width:42px;height:118px}
+.glass{position:absolute;inset:0;border-radius:21px 21px 16px 16px;
+  background:
+    linear-gradient(180deg,rgba(255,245,220,.20),rgba(120,90,50,.08) 40%,rgba(40,26,14,.5));
+  box-shadow:0 0 0 1px rgba(255,225,170,.18) inset,0 6px 14px rgba(0,0,0,.5);
+  overflow:hidden;backdrop-filter:blur(1px);}
+/* the hot filament / plate glow */
+.filament{position:absolute;left:50%;bottom:14px;width:8px;height:74px;margin-left:-4px;border-radius:4px;
+  background:linear-gradient(180deg,#ffd98a,var(--ac2) 60%,#c0521a);
+  box-shadow:0 0 16px 5px var(--ac),0 0 34px 12px rgba(255,158,107,.55);
+  animation:flicker 2.6s ease-in-out infinite;transform-origin:bottom}
+.tube:nth-child(2) .filament{animation-delay:.7s;animation-duration:3.1s}
+@keyframes flicker{
+  0%,100%{opacity:.85;transform:scaleY(1)}
+  18%{opacity:1;transform:scaleY(1.03)}
+  42%{opacity:.78;transform:scaleY(.985)}
+  63%{opacity:.97;transform:scaleY(1.02)}
+  80%{opacity:.82}
+}
+/* internal grid mesh */
+.grid{position:absolute;left:9px;right:9px;top:22px;bottom:20px;border-radius:6px;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 1px,transparent 1px 5px);
+  opacity:.4}
+/* glass specular highlight */
+.glass::after{content:"";position:absolute;top:6px;left:7px;width:11px;height:60px;border-radius:8px;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),transparent);filter:blur(1px);opacity:.6}
+/* socket base */
+.socket{position:absolute;bottom:-7px;left:50%;width:48px;height:18px;margin-left:-24px;border-radius:5px;
+  background:linear-gradient(180deg,#2a2018,#0e0a06);box-shadow:0 4px 8px rgba(0,0,0,.6),0 1px 0 rgba(255,220,160,.12) inset}
+.tlabel{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:7px;letter-spacing:.18em;
+  color:#caa24a;opacity:.7;font-family:ui-sans-serif,system-ui,sans-serif}
+
+/* backlit VU meter */
+.vuwrap{position:relative;width:212px;height:120px;border-radius:10px;
+  background:radial-gradient(120% 130% at 50% 8%,#fff4d6 0%,#f3dca2 45%,#cda85f 100%);
+  box-shadow:0 0 0 2px #1a110a,0 0 0 5px rgba(202,162,74,.4),
+    inset 0 3px 10px rgba(120,70,20,.4),inset 0 -8px 18px rgba(80,40,10,.3),
+    0 0 24px rgba(255,200,110,.12);
+  overflow:hidden}
+.vuwrap::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.45),transparent 28%);}
+.vuwrap svg{position:absolute;inset:0;width:100%;height:100%}
+.vutitle{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:7.5px;letter-spacing:.28em;
+  color:#7a4f1c;opacity:.85;font-family:ui-sans-serif,system-ui,sans-serif}
+.needle{transform-origin:106px 118px;transition:transform .09s cubic-bezier(.3,.7,.3,1)}
+.glasshine{fill:rgba(255,255,255,.06)}
+
+/* ===== knob deck ===== */
+.deck{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 8px;margin:4px 6px 2px}
+.pot{display:flex;flex-direction:column;align-items:center;gap:8px;
+  animation:pop .55s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.knob{position:relative;width:88px;height:88px;cursor:ns-resize;touch-action:none;user-select:none}
+/* tick skirt */
+.skirt{position:absolute;inset:-4px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(255,225,170,.6) 0 1deg,transparent 1deg 11.25deg);
+  -webkit-mask:radial-gradient(circle,transparent 44px,#000 45px,#000 48px,transparent 49px);
+  mask:radial-gradient(circle,transparent 44px,#000 45px,#000 48px,transparent 49px)}
+/* glowing value arc */
+.arc{position:absolute;inset:2px;border-radius:50%;
+  background:conic-gradient(from 215deg,var(--ac2),var(--ac) calc(var(--n)*270deg),rgba(255,255,255,.05) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n)*9px) var(--ac));
+  transition:--n .12s cubic-bezier(.2,.8,.25,1)}
+/* bakelite cap */
+.cap{position:absolute;top:12px;left:12px;width:64px;height:64px;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 26%,#5a4634 0%,#2c2016 58%,#15100a 100%);
+  box-shadow:
+    inset 0 2px 6px rgba(255,225,170,.16),
+    inset 0 -7px 16px rgba(0,0,0,.85),
+    0 5px 12px rgba(0,0,0,.6);
+}
+.cap::before{content:"";position:absolute;inset:7px;border-radius:50%;
+  background:repeating-conic-gradient(#33271b 0 10deg,#1a130c 10deg 20deg);opacity:.45}
+.cap::after{content:"";position:absolute;inset:16px;border-radius:50%;
+  background:radial-gradient(circle at 50% 28%,#6b5236,#1d150d);
+  box-shadow:inset 0 1px 2px rgba(255,225,170,.22)}
+/* brass pointer */
+.ptr{position:absolute;top:7px;left:50%;width:5px;height:24px;margin-left:-2.5px;border-radius:3px;
+  background:linear-gradient(var(--ac),var(--ac2));
+  box-shadow:0 0 9px var(--ac),0 0 2px #fff;
+  transform-origin:50% 37px;
+  transform:rotate(calc((var(--n) - .5) * 270deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.pname{font-size:9.5px;font-weight:700;letter-spacing:.14em;color:#1a110a;
+  background:linear-gradient(var(--ac),var(--ac2));padding:3px 11px;border-radius:999px;
+  text-transform:uppercase;box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 2px 5px rgba(0,0,0,.45);
+  font-family:ui-sans-serif,system-ui,sans-serif;white-space:nowrap}
+.pval{font-size:12px;font-weight:700;color:#ffe6b8;font-variant-numeric:tabular-nums;
+  min-height:14px;text-shadow:0 0 9px rgba(255,158,107,.5);font-family:ui-sans-serif,system-ui,sans-serif}
+.knob.act .cap{box-shadow:inset 0 2px 6px rgba(255,225,170,.16),inset 0 -7px 16px rgba(0,0,0,.85),0 5px 16px rgba(255,158,107,.55)}
+
+/* ===== footer plate ===== */
+.foot{display:flex;align-items:center;justify-content:space-between;margin:16px 8px 0;
+  font-family:ui-sans-serif,system-ui,sans-serif}
+.serial{font-size:7.5px;letter-spacing:.22em;color:#caa24a;opacity:.55}
+.power{display:flex;align-items:center;gap:7px;font-size:8px;letter-spacing:.2em;color:#cfa86a;opacity:.75;text-transform:uppercase}
+.pled{width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#fff0cf,var(--ac) 45%,#7a3d10 92%);
+  box-shadow:0 0 12px var(--ac),0 0 4px #fff inset;animation:pwr 2.4s ease-in-out infinite}
+@keyframes pwr{0%,100%{box-shadow:0 0 7px var(--ac),0 0 4px #fff inset;opacity:.85}50%{box-shadow:0 0 16px var(--ac),0 0 6px #fff inset;opacity:1}}
+</style>
+</head>
+<body>
+<div class="unit">
+  <span class="rivet tl"></span><span class="rivet tr"></span>
+  <span class="rivet bl"></span><span class="rivet br"></span>
+
+  <div class="head">
+    <div class="brand">Broadcast Valve Series</div>
+    <h1>Vari-Mu</h1>
+    <div class="sub">Program-Dependent Tube Compressor</div>
+  </div>
+
+  <div class="top">
+    <!-- two glowing vacuum tubes -->
+    <div class="tubes">
+      <div class="tube">
+        <div class="glass"><span class="grid"></span><span class="filament"></span></div>
+        <span class="socket"></span><span class="tlabel">V1</span>
+      </div>
+      <div class="tube">
+        <div class="glass"><span class="grid"></span><span class="filament"></span></div>
+        <span class="socket"></span><span class="tlabel">V2</span>
+      </div>
+    </div>
+
+    <!-- backlit VU meter (gain reduction) -->
+    <div class="vuwrap">
+      <div class="vutitle">GAIN REDUCTION — VU</div>
+      <svg viewBox="0 0 212 120" preserveAspectRatio="none">
+        <!-- arc scale -->
+        <path d="M22 96 A92 92 0 0 1 190 96" fill="none" stroke="#7a4f1c" stroke-width="1.4" opacity=".6"/>
+        <path id="redarc" d="M120 36 A92 92 0 0 1 190 96" fill="none" stroke="var(--ac2)" stroke-width="3" opacity=".8"/>
+        <!-- ticks -->
+        <g id="ticks" stroke="#7a4f1c" stroke-width="1.4"></g>
+        <text x="34" y="60" font-size="8" fill="#7a4f1c" font-family="sans-serif">0</text>
+        <text x="100" y="34" font-size="8" fill="#7a4f1c" font-family="sans-serif">-3</text>
+        <text x="170" y="60" font-size="8" fill="#b8801f" font-family="sans-serif" font-weight="bold">-10</text>
+        <!-- needle -->
+        <line class="needle" id="needle" x1="106" y1="118" x2="106" y2="34"
+              stroke="#2a1a0a" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="106" cy="118" r="6" fill="#2a1a0a" stroke="var(--brass)" stroke-width="1.5"/>
+        <ellipse class="glasshine" cx="80" cy="36" rx="70" ry="20"/>
+      </svg>
+    </div>
+
+    <!-- mirror tubes for symmetry -->
+    <div class="tubes">
+      <div class="tube">
+        <div class="glass"><span class="grid"></span><span class="filament"></span></div>
+        <span class="socket"></span><span class="tlabel">V3</span>
+      </div>
+      <div class="tube">
+        <div class="glass"><span class="grid"></span><span class="filament"></span></div>
+        <span class="socket"></span><span class="tlabel">V4</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="deck" id="deck"></div>
+
+  <div class="foot">
+    <div class="serial">VM-670 &middot; S/N 8P7SXGP62N</div>
+    <div class="power"><span class="pled"></span>Heaters On</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Input",         index:0,min:0,max:1,def:0.5},
+    {name:"Threshold",     index:1,min:0,max:1,def:0.5},
+    {name:"Time Constant", index:2,min:0,max:1,def:0.4},
+    {name:"Output",        index:3,min:0,max:1,def:0.5}
+  ];
+  var state={};
+  var deck=document.getElementById('deck');
+  var needle=document.getElementById('needle');
+
+  function pct(v){ return Math.round(v*100)+"%"; }
+
+  // draw VU ticks
+  (function(){
+    var g=document.getElementById('ticks');
+    for(var i=0;i<=10;i++){
+      var a=Math.PI*(1 - i/10);           // 180..0 deg
+      var cx=106, cy=118, r1=84, r2=92;
+      var x1=cx+Math.cos(a)*r1, y1=cy-Math.sin(a)*r1;
+      var x2=cx+Math.cos(a)*r2, y2=cy-Math.sin(a)*r2;
+      var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+      ln.setAttribute('x1',x1.toFixed(1));ln.setAttribute('y1',y1.toFixed(1));
+      ln.setAttribute('x2',x2.toFixed(1));ln.setAttribute('y2',y2.toFixed(1));
+      if(i>=7){ln.setAttribute('stroke','#b8801f');ln.setAttribute('stroke-width','2');}
+      g.appendChild(ln);
+    }
+  })();
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*75)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0">'+
+        '<i class="skirt"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var ptr=cell.querySelector('.ptr');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var n=norm();
+      arc.style.setProperty('--n',n);
+      ptr.style.setProperty('--n',n);
+      val.textContent=pct(n);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      onChange();
+    }
+    function setNorm(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true;startY=e.clientY;startN=norm();
+      knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?700:230;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){drag=false;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){v=p.def;paint();});
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault();setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  // ---- swaying VU needle: estimate gain reduction from Input vs Threshold ----
+  var targetGR=0, curGR=0;
+  function onChange(){
+    var inp=state[0]!=null?state[0]:0.5;
+    var th =state[1]!=null?state[1]:0.5;
+    // more input + lower threshold => more reduction (0..1)
+    var amount=Math.max(0,(inp*0.9+0.1)-(th*0.85));
+    targetGR=Math.min(1,amount*1.4);
+  }
+
+  // continuous animation loop: needle sways toward target with valve drift
+  var t=0;
+  function loop(){
+    t+=0.05;
+    var tmN=state[2]!=null?state[2]:0.4;
+    // slower time-constant => slower, lazier needle motion
+    var ease=0.04+(1-tmN)*0.10;
+    curGR+=(targetGR-curGR)*ease;
+    // gentle program-dependent sway (breathing) on top
+    var sway=curGR*(0.10*Math.sin(t*1.7)+0.04*Math.sin(t*0.6));
+    var g=Math.max(0,Math.min(1,curGR+sway));
+    // map 0..1 reduction to needle angle: rest=-45deg (left), full=+45deg (right)
+    var deg=-45+g*90;
+    needle.setAttribute('transform','rotate('+deg.toFixed(2)+' 106 118)');
+    requestAnimationFrame(loop);
+  }
+
+  PARAMS.forEach(buildKnob);
+
+  function ready(){ onChange(); requestAnimationFrame(loop); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patch 2600</title>
+<style>
+  :root {
+    --accent:  #7c90b0;
+    --accent2: #c0d0e0;
+    --panel:   #2a3340;
+    --panel-2: #222a36;
+    --metal:   #3a4756;
+    --ink:     #e7eef6;
+    --dim:     #8a99ad;
+    --jack:    #11161d;
+    --slot:    #161d26;
+    --shadow:  rgba(0,0,0,0.55);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: #0c1015;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 16px 16px 26px;
+  }
+
+  /* ---- The console chassis ---- */
+  .console {
+    position: relative;
+    border-radius: 16px;
+    padding: 18px;
+    background:
+      linear-gradient(180deg, #36414f 0%, #2a3340 7%, #232b37 100%);
+    box-shadow:
+      0 18px 50px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -2px 0 rgba(0,0,0,0.5);
+    border: 1px solid #4a5666;
+  }
+  /* brushed-metal sheen */
+  .console::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,0.015) 0 2px,
+        rgba(0,0,0,0.015) 2px 4px);
+    opacity: 0.6;
+  }
+
+  /* corner screws */
+  .screw {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #8d9aab, #2d3742 70%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.6);
+  }
+  .screw::after {
+    content: "";
+    position: absolute;
+    left: 2px; top: 5px; right: 2px; height: 2px;
+    background: rgba(0,0,0,0.45);
+    transform: rotate(35deg);
+    border-radius: 2px;
+  }
+  .screw.tl { top: 8px; left: 8px; }
+  .screw.tr { top: 8px; right: 8px; }
+  .screw.bl { bottom: 8px; left: 8px; }
+  .screw.br { bottom: 8px; right: 8px; }
+
+  /* ---- Header ---- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 14px 14px;
+    position: relative;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand h1 {
+    font-size: 22px;
+    letter-spacing: 0.42em;
+    margin: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  }
+  .brand .sub {
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .powerlamp {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--accent2), var(--accent) 60%, #2a3340 100%);
+    box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(124,144,176,0.5);
+    animation: lampPulse 3.2s ease-in-out infinite;
+  }
+  @keyframes lampPulse {
+    0%, 100% { opacity: 0.7; box-shadow: 0 0 6px var(--accent); }
+    50%      { opacity: 1;   box-shadow: 0 0 14px var(--accent2), 0 0 26px rgba(192,208,224,0.5); }
+  }
+
+  /* ---- Patch bay: faders + cords ---- */
+  .bay {
+    position: relative;
+    border-radius: 12px;
+    padding: 20px 16px 14px;
+    background:
+      radial-gradient(120% 100% at 50% -10%, rgba(124,144,176,0.10), transparent 60%),
+      linear-gradient(180deg, var(--panel-2), #1b222c);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  /* SVG cords overlay sits above the faders but ignores pointer events */
+  #cords {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .modules {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 6px;
+  }
+  @media (max-width: 720px) {
+    .modules { grid-template-columns: repeat(5, 1fr); }
+  }
+
+  .mod {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 2px 6px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--metal), #2c3744);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 5px rgba(0,0,0,0.4);
+    border: 1px solid rgba(0,0,0,0.3);
+    user-select: none;
+  }
+
+  .mod .label {
+    font-size: 8.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: center;
+    height: 22px;
+    display: flex; align-items: center;
+    line-height: 1.05;
+  }
+
+  /* top jack — the glowing patch point */
+  .jack {
+    position: relative;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    margin: 3px 0 6px;
+    background: radial-gradient(circle at 38% 32%, #2b3744 0%, var(--jack) 62%, #05080c 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(0,0,0,0.9),
+      inset 0 0 0 2px #4b5a6b,
+      0 1px 2px rgba(0,0,0,0.5);
+  }
+  .jack::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .jack.live::after { opacity: 1; animation: jackGlow 1.8s ease-in-out infinite; }
+  @keyframes jackGlow {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+
+  /* ---- vertical fader ---- */
+  .fader {
+    position: relative;
+    width: 26px;
+    height: 150px;
+    margin: 2px 0 8px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .fader .track {
+    position: absolute;
+    left: 50%;
+    top: 6px; bottom: 6px;
+    width: 6px;
+    transform: translateX(-50%);
+    border-radius: 4px;
+    background: linear-gradient(180deg, #0b0f14, #161d26);
+    box-shadow: inset 0 0 3px #000, inset 0 1px 1px rgba(0,0,0,0.9);
+  }
+  /* lit portion of the track below the cap (accent glow) */
+  .fader .fill {
+    position: absolute;
+    left: 50%;
+    width: 4px;
+    transform: translateX(-50%);
+    bottom: 8px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 6px var(--accent);
+    transition: box-shadow 0.2s ease;
+  }
+  .fader.active .fill { box-shadow: 0 0 12px var(--accent2), 0 0 4px var(--accent); }
+  /* tick marks */
+  .fader .ticks {
+    position: absolute;
+    right: -1px; top: 6px; bottom: 6px;
+    width: 5px;
+    background-image: repeating-linear-gradient(180deg,
+      rgba(255,255,255,0.18) 0 1px, transparent 1px 16px);
+  }
+  /* the cap */
+  .fader .cap {
+    position: absolute;
+    left: 50%;
+    width: 24px; height: 13px;
+    transform: translate(-50%, -50%);
+    border-radius: 3px;
+    background: linear-gradient(180deg, #d7dee7 0%, #8e9bab 48%, #57626f 52%, #707d8c 100%);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -1px 0 rgba(0,0,0,0.5);
+    border: 1px solid #3a4350;
+  }
+  .fader .cap::after {
+    content: "";
+    position: absolute;
+    left: 3px; right: 3px; top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: 0 0 4px var(--accent);
+  }
+
+  /* ---- toggle (RingMod) ---- */
+  .toggle {
+    position: relative;
+    width: 30px;
+    height: 150px;
+    margin: 2px 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .toggle .body {
+    width: 22px;
+    height: 56px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #0b0f14, #1b232e);
+    box-shadow: inset 0 0 5px #000, inset 0 1px 1px rgba(0,0,0,0.9);
+    position: relative;
+    border: 1px solid #38424f;
+  }
+  .toggle .lever {
+    position: absolute;
+    left: 50%;
+    width: 16px; height: 22px;
+    transform: translateX(-50%);
+    top: 26px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #cfd7e0, #7a8696 55%, #4a5562);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.6);
+    transition: top 0.16s cubic-bezier(.5,1.6,.5,1);
+  }
+  .toggle.on .lever {
+    top: 6px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent) 60%, #4a5562);
+    box-shadow: 0 0 10px var(--accent), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .toggle .on-led {
+    position: absolute;
+    bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #2a3340;
+    transition: background 0.18s, box-shadow 0.18s;
+  }
+  .toggle.on .on-led {
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+  }
+
+  .value {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--accent2);
+    min-height: 13px;
+  }
+
+  /* ---- keyboard ---- */
+  .keyboard {
+    margin-top: 16px;
+    display: flex;
+    position: relative;
+    height: 100px;
+    background: linear-gradient(180deg, #1b222c, #11161d);
+    border-radius: 8px;
+    padding: 8px 8px 8px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.7);
+    user-select: none;
+    touch-action: none;
+  }
+  .keys {
+    position: relative;
+    display: flex;
+    flex: 1;
+    height: 100%;
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #f2f5f9, #cdd5de);
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.18), 0 2px 3px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.4);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 60%;
+    height: 60%;
+    background: linear-gradient(180deg, #2c3744, #11161d);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 3px 4px rgba(0,0,0,0.6), inset 0 -2px 2px rgba(255,255,255,0.05);
+    z-index: 3;
+    cursor: pointer;
+    transform: translateX(-50%);
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #44505f);
+    box-shadow: 0 0 10px var(--accent);
+  }
+
+  .hint {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .hint b { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="console">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <header>
+      <div class="brand">
+        <h1>Patch&nbsp;2600</h1>
+        <span class="sub">Semi-Modular Mono Synth</span>
+      </div>
+      <div class="powerlamp" title="power"></div>
+    </header>
+
+    <div class="bay">
+      <svg id="cords" preserveAspectRatio="none"></svg>
+      <div class="modules" id="modules"></div>
+    </div>
+
+    <div class="keyboard">
+      <div class="keys" id="keys"></div>
+    </div>
+
+    <div class="hint">
+      Drag faders &middot; double-click to reset &middot; play <b>A&ndash;K</b> on your keyboard
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (index MUST match the AssemblyScript module) ----
+  var PARAMS = [
+    { name: "Detune",    idx: 0, min: 0, max: 1, def: 0.30, type: "fader" },
+    { name: "Ring Mod",  idx: 1, min: 0, max: 1, def: 0.0,  type: "toggle" },
+    { name: "Cutoff",    idx: 2, min: 0, max: 1, def: 0.50, type: "fader" },
+    { name: "Resonance", idx: 3, min: 0, max: 1, def: 0.45, type: "fader" },
+    { name: "Env Amt",   idx: 4, min: 0, max: 1, def: 0.55, type: "fader" },
+    { name: "Attack",    idx: 5, min: 0, max: 1, def: 0.05, type: "fader" },
+    { name: "Release",   idx: 6, min: 0, max: 1, def: 0.35, type: "fader" },
+    { name: "Glide",     idx: 7, min: 0, max: 1, def: 0.20, type: "fader" },
+    { name: "Level",     idx: 8, min: 0, max: 1, def: 0.80, type: "fader" }
+  ];
+
+  var values = {};        // idx -> normalised 0..1
+  var controls = {};      // idx -> { el, setVisual }
+
+  // ---- host bridge (guard until window.vstai exists) ----
+  function pushParam(idx, norm) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(idx, norm);   // real value == normalised 0..1 here
+    }
+  }
+
+  function setValue(idx, norm, push) {
+    var p = paramByIdx(idx);
+    norm = Math.max(p.min, Math.min(p.max, norm));
+    values[idx] = norm;
+    if (controls[idx]) controls[idx].setVisual(norm);
+    if (push !== false) pushParam(idx, norm);
+  }
+
+  function paramByIdx(idx) {
+    for (var i = 0; i < PARAMS.length; i++) if (PARAMS[i].idx === idx) return PARAMS[i];
+    return PARAMS[0];
+  }
+
+  function fmt(p, norm) {
+    if (p.type === "toggle") return norm >= 0.5 ? "ON" : "OFF";
+    return Math.round(norm * 100) + "";
+  }
+
+  // ---- build the modules ----
+  var modulesEl = document.getElementById("modules");
+
+  PARAMS.forEach(function (p) {
+    var mod = document.createElement("div");
+    mod.className = "mod";
+    mod.dataset.idx = p.idx;
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var jack = document.createElement("div");
+    jack.className = "jack live";   // every module is "patched in"
+
+    var valEl = document.createElement("div");
+    valEl.className = "value";
+
+    if (p.type === "toggle") {
+      var tog = document.createElement("div");
+      tog.className = "toggle";
+      tog.innerHTML = '<div class="body"><div class="lever"></div><div class="on-led"></div></div>';
+
+      mod.appendChild(label);
+      mod.appendChild(jack);
+      mod.appendChild(tog);
+      mod.appendChild(valEl);
+
+      var setVisualT = function (norm) {
+        var on = norm >= 0.5;
+        tog.classList.toggle("on", on);
+        valEl.textContent = fmt(p, norm);
+      };
+      controls[p.idx] = { el: tog, jack: jack, setVisual: setVisualT };
+
+      tog.addEventListener("click", function () {
+        setValue(p.idx, values[p.idx] >= 0.5 ? 0 : 1);
+      });
+    } else {
+      var fader = document.createElement("div");
+      fader.className = "fader";
+      fader.innerHTML =
+        '<div class="track"></div>' +
+        '<div class="fill"></div>' +
+        '<div class="ticks"></div>' +
+        '<div class="cap"></div>';
+
+      mod.appendChild(label);
+      mod.appendChild(jack);
+      mod.appendChild(fader);
+      mod.appendChild(valEl);
+
+      var capEl = fader.querySelector(".cap");
+      var fillEl = fader.querySelector(".fill");
+      var TOP = 6, BOT = 144;   // travel range in px inside the 150px fader
+
+      var setVisualF = function (norm) {
+        var y = BOT - (BOT - TOP) * norm;
+        capEl.style.top = y + "px";
+        fillEl.style.top = y + "px";
+        valEl.textContent = fmt(p, norm);
+      };
+      controls[p.idx] = { el: fader, jack: jack, setVisual: setVisualF };
+
+      // ---- drag handling ----
+      var dragging = false, startY = 0, startNorm = 0;
+
+      function onMove(clientY) {
+        var dy = startY - clientY;
+        var norm = startNorm + dy / (BOT - TOP);
+        setValue(p.idx, norm);
+      }
+      function down(clientY) {
+        dragging = true;
+        startY = clientY;
+        startNorm = values[p.idx];
+        fader.classList.add("active");
+      }
+      function up() {
+        dragging = false;
+        fader.classList.remove("active");
+      }
+
+      fader.addEventListener("mousedown", function (e) {
+        e.preventDefault(); down(e.clientY);
+        function mv(ev) { if (dragging) onMove(ev.clientY); }
+        function uu() {
+          up();
+          window.removeEventListener("mousemove", mv);
+          window.removeEventListener("mouseup", uu);
+        }
+        window.addEventListener("mousemove", mv);
+        window.addEventListener("mouseup", uu);
+      });
+      fader.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        down(e.touches[0].clientY);
+      }, { passive: false });
+      fader.addEventListener("touchmove", function (e) {
+        if (dragging) { e.preventDefault(); onMove(e.touches[0].clientY); }
+      }, { passive: false });
+      fader.addEventListener("touchend", up);
+
+      fader.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        setValue(p.idx, values[p.idx] - e.deltaY * 0.0008);
+      }, { passive: false });
+
+      fader.addEventListener("dblclick", function () {
+        setValue(p.idx, p.def);
+      });
+    }
+
+    modulesEl.appendChild(mod);
+  });
+
+  // ---- animated patch cords (SVG) ----
+  // A cord arcs from each module's jack down to a shared "bus rail" point,
+  // with a slow sag-sway animation so the panel feels alive.
+  var svg = document.getElementById("cords");
+  var NS = "http://www.w3.org/2000/svg";
+  var cordPaths = [];
+  var CORD_COLORS = ["#7c90b0", "#c0d0e0", "#5f7596", "#9fb2cc"];
+
+  function buildCords() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    cordPaths = [];
+
+    var bay = svg.parentElement;
+    var bayRect = bay.getBoundingClientRect();
+    svg.setAttribute("viewBox", "0 0 " + bayRect.width + " " + bayRect.height);
+
+    var jacks = [];
+    PARAMS.forEach(function (p) {
+      var c = controls[p.idx];
+      if (!c) return;
+      var r = c.jack.getBoundingClientRect();
+      jacks.push({
+        x: r.left - bayRect.left + r.width / 2,
+        y: r.top - bayRect.top + r.height / 2,
+        color: CORD_COLORS[p.idx % CORD_COLORS.length]
+      });
+    });
+
+    // connect neighbouring jacks with sagging cords + one cord to a low rail
+    var railY = bayRect.height - 8;
+    for (var i = 0; i < jacks.length; i++) {
+      var a = jacks[i];
+      var b = jacks[(i + 1) % jacks.length];
+
+      var path = document.createElementNS(NS, "path");
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", a.color);
+      path.setAttribute("stroke-width", "3");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("opacity", "0.85");
+      path.setAttribute("filter", "url(#cordGlow)");
+      svg.appendChild(path);
+
+      cordPaths.push({
+        el: path,
+        a: a, b: b,
+        sag: 30 + (i % 3) * 14,
+        phase: i * 0.7,
+        rail: (i % 2 === 0) ? railY : null
+      });
+
+      // a glowing connector blob at each end
+      [a].forEach(function (pt) {
+        var dot = document.createElementNS(NS, "circle");
+        dot.setAttribute("cx", pt.x);
+        dot.setAttribute("cy", pt.y);
+        dot.setAttribute("r", "3.2");
+        dot.setAttribute("fill", pt.color);
+        dot.setAttribute("opacity", "0.9");
+        svg.appendChild(dot);
+      });
+    }
+
+    // glow filter
+    var defs = document.createElementNS(NS, "defs");
+    defs.innerHTML =
+      '<filter id="cordGlow" x="-20%" y="-20%" width="140%" height="140%">' +
+      '<feGaussianBlur stdDeviation="1.4" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>';
+    svg.insertBefore(defs, svg.firstChild);
+  }
+
+  function curve(a, b, sag, sway) {
+    var midX = (a.x + b.x) / 2;
+    var midY = Math.max(a.y, b.y) + sag + sway;
+    return "M " + a.x + " " + a.y +
+           " Q " + (midX + sway * 0.6) + " " + midY + " " + b.x + " " + b.y;
+  }
+
+  var t0 = performance.now();
+  function animate(now) {
+    if (document.hidden) { requestAnimationFrame(animate); return; }
+    var t = (now - t0) / 1000;
+    for (var i = 0; i < cordPaths.length; i++) {
+      var cp = cordPaths[i];
+      var sway = Math.sin(t * 1.1 + cp.phase) * 6;
+      var b = cp.rail !== null ? { x: cp.b.x, y: cp.rail } : cp.b;
+      cp.el.setAttribute("d", curve(cp.a, b, cp.sag, sway));
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // rebuild cords after layout settles and on resize
+  function relayout() { buildCords(); }
+  window.addEventListener("resize", relayout);
+
+  // ---- on-screen keyboard ----
+  var KEYBASE = 48; // C3
+  // white/black layout across ~1.5 octaves
+  var WHITES = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23];
+  var BLACKS = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10, 7: 13, 8: 15, 10: 18, 11: 20 };
+
+  var keysEl = document.getElementById("keys");
+  var keyEls = {};   // midi -> element
+  var heldNotes = {};
+
+  function noteOn(midi, vel) {
+    if (heldNotes[midi]) return;
+    heldNotes[midi] = true;
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(midi, vel || 0.9);
+    if (keyEls[midi]) keyEls[midi].classList.add("down");
+  }
+  function noteOff(midi) {
+    if (!heldNotes[midi]) return;
+    delete heldNotes[midi];
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(midi);
+    if (keyEls[midi]) keyEls[midi].classList.remove("down");
+  }
+
+  WHITES.forEach(function (semi, wi) {
+    var midi = KEYBASE + semi;
+    var k = document.createElement("div");
+    k.className = "wkey";
+    keyEls[midi] = k;
+    bindKey(k, midi);
+    keysEl.appendChild(k);
+
+    // place a black key after this white if the layout has one
+    if (BLACKS.hasOwnProperty(wi)) {
+      var bmidi = KEYBASE + BLACKS[wi];
+      var bk = document.createElement("div");
+      bk.className = "bkey";
+      keyEls[bmidi] = bk;
+      // positioned by percentage at the boundary between this white and next
+      bk.style.left = ((wi + 1) / WHITES.length * 100) + "%";
+      bindKey(bk, bmidi);
+      keysEl.appendChild(bk);
+    }
+  });
+
+  function bindKey(el, midi) {
+    el.addEventListener("mousedown", function (e) { e.preventDefault(); noteOn(midi); });
+    el.addEventListener("mouseup", function () { noteOff(midi); });
+    el.addEventListener("mouseleave", function () { noteOff(midi); });
+    el.addEventListener("touchstart", function (e) { e.preventDefault(); noteOn(midi); }, { passive: false });
+    el.addEventListener("touchend", function (e) { e.preventDefault(); noteOff(midi); }, { passive: false });
+  }
+
+  // computer-keyboard playing (A row)
+  var KEYMAP = {
+    a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7,
+    y: 8, h: 9, u: 10, j: 11, k: 12
+  };
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var s = KEYMAP[e.key.toLowerCase()];
+    if (s !== undefined) noteOn(KEYBASE + s);
+  });
+  window.addEventListener("keyup", function (e) {
+    var s = KEYMAP[e.key.toLowerCase()];
+    if (s !== undefined) noteOff(KEYBASE + s);
+  });
+
+  // ---- init: defaults + push once ----
+  function initAll() {
+    PARAMS.forEach(function (p) { setValue(p.idx, p.def, true); });
+    buildCords();
+    requestAnimationFrame(animate);
+    // a second relayout after fonts/layout settle
+    setTimeout(relayout, 60);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(initAll);
+  } else {
+    initAll();
+  }
+})();
+</script>
+</body>
+</html>

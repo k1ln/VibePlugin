@@ -1,0 +1,296 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@property --p{syntax:'<number>';inherits:false;initial-value:0}
+:root{
+  --ac:#5a9cff; --ac2:#9a6aff;
+  --steel:#aeb6c4; --steel2:#8c95a6;
+  --panel:#1a2233; --panel2:#0e1320; --ink:#cdd7ec;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color:var(--ink);
+  background:radial-gradient(130% 100% at 50% -8%,#1c2740 0%,#0a0f1a 58%,#05070d 100%);
+  display:flex;align-items:center;justify-content:center;padding:16px;-webkit-font-smoothing:antialiased;
+}
+
+/* ---- brushed-aluminium chassis ---- */
+.synth{
+  position:relative;width:100%;max-width:780px;border-radius:12px;padding:8px;
+  background:linear-gradient(150deg,#3a4252 0%,#222a38 100%);
+  box-shadow:0 34px 80px rgba(0,0,0,.66),0 1px 0 rgba(255,255,255,.08) inset,0 -3px 14px rgba(0,0,0,.55) inset;
+  animation:rise .7s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(20px) scale(.985)}to{opacity:1;transform:none}}
+.surface{
+  position:relative;border-radius:7px;overflow:hidden;
+  background:linear-gradient(180deg,#161d2c,#0d1320 70%,#0a0f1a 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 0 0 1px rgba(120,150,210,.12);
+}
+/* brushed-metal hairlines */
+.surface::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background:repeating-linear-gradient(90deg,rgba(150,180,240,.025) 0 2px,transparent 2px 4px);
+  mix-blend-mode:screen;
+}
+
+/* ---------------- header ---------------- */
+.head{position:relative;z-index:3;display:flex;align-items:flex-end;gap:14px;padding:14px 20px 11px;border-bottom:1px solid rgba(120,150,210,.16)}
+.brand{display:flex;flex-direction:column;line-height:1}
+.brand .mk{font-size:9px;letter-spacing:.46em;color:#6f86ad;font-weight:700;text-transform:uppercase}
+.brand h1{margin:4px 0 0;font-size:24px;font-weight:800;letter-spacing:.16em;color:#dde7fb;text-transform:uppercase}
+.brand h1 em{font-style:normal;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{font-size:8.5px;letter-spacing:.3em;color:#5e7398;text-transform:uppercase;margin-top:4px}
+.serial{margin-left:auto;text-align:right;font-size:8px;letter-spacing:.26em;color:#566b91;text-transform:uppercase}
+.serial b{display:block;color:var(--ac);font-size:11px;letter-spacing:.18em;margin-top:3px}
+
+/* ---------------- the wavetable display ---------------- */
+.display{position:relative;z-index:2;margin:14px 16px 6px;border-radius:6px;overflow:hidden;
+  background:linear-gradient(180deg,#05080f,#070c16);
+  box-shadow:0 0 0 1px rgba(90,156,255,.2),0 8px 26px rgba(0,0,0,.6) inset, 0 0 24px rgba(90,156,255,.06) inset;
+  height:228px}
+.display::after{ /* CRT scan veil */
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px);opacity:.5}
+.disp-svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.glabel{position:absolute;left:10px;top:8px;z-index:6;font-size:8px;letter-spacing:.3em;color:#4b6a9c;text-transform:uppercase}
+.posread{position:absolute;right:10px;top:8px;z-index:6;font-size:9px;letter-spacing:.18em;color:var(--ac);text-transform:uppercase;
+  text-shadow:0 0 8px var(--ac)}
+
+/* ---------------- controls ---------------- */
+.rack{position:relative;z-index:2;padding:6px 16px 18px}
+.group{display:flex;flex-direction:column;margin-top:10px}
+.gtitle{font-size:8px;letter-spacing:.32em;color:#6f86ad;text-transform:uppercase;margin:0 0 7px 2px;display:flex;align-items:center;gap:8px}
+.gtitle::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,150,210,.22),transparent)}
+.row{display:flex;flex-wrap:wrap;gap:14px}
+.cell{display:flex;flex-direction:column;align-items:center;width:84px;animation:pop .5s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* knob */
+.knob{position:relative;width:60px;height:60px;cursor:ns-resize;touch-action:none}
+.knob i{position:absolute;inset:0;border-radius:50%}
+.knob .scale{inset:-4px;background:conic-gradient(from -135deg,rgba(120,150,210,.28) 0deg,rgba(120,150,210,.28) 270deg,transparent 270deg);
+  -webkit-mask:radial-gradient(circle,transparent 30px,#000 31px,#000 32px,transparent 33px);
+  mask:radial-gradient(circle,transparent 30px,#000 31px,#000 32px,transparent 33px)}
+.knob .arc{inset:-4px;background:conic-gradient(from -135deg,var(--ac) calc(var(--p)*270deg),transparent 0);
+  -webkit-mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33px,transparent 34px);
+  mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33px,transparent 34px);
+  filter:drop-shadow(0 0 5px var(--ac))}
+.knob .cap{inset:8px;background:radial-gradient(circle at 38% 32%,#3a4658,#1b2230 70%,#10151f 100%);
+  box-shadow:0 4px 9px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.1) inset,0 -2px 6px rgba(0,0,0,.5) inset}
+.knob .ptr{inset:8px;transform:rotate(calc(-135deg + var(--p)*270deg));transition:transform .04s linear}
+.knob .ptr::before{content:"";position:absolute;left:50%;top:6px;width:2.5px;height:13px;margin-left:-1.25px;border-radius:2px;
+  background:var(--ac);box-shadow:0 0 7px var(--ac)}
+.knob.act .cap{box-shadow:0 4px 9px rgba(0,0,0,.6),0 0 0 2px var(--ac) inset,0 1px 0 rgba(255,255,255,.1) inset}
+.cnm{margin-top:8px;font-size:8.5px;letter-spacing:.16em;color:#9fb1d0;text-transform:uppercase}
+.cval{margin-top:3px;font-size:10px;font-weight:700;color:var(--ac);letter-spacing:.04em}
+
+/* the big scan slider */
+.scanwrap{flex:1;min-width:230px;display:flex;flex-direction:column;gap:7px}
+.scanlbl{display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.16em;color:#9fb1d0;text-transform:uppercase}
+.scanlbl b{color:var(--ac);font-weight:700}
+.scan{position:relative;height:30px;border-radius:6px;cursor:ew-resize;touch-action:none;
+  background:linear-gradient(180deg,#0a0f1a,#070b14);
+  box-shadow:0 0 0 1px rgba(120,150,210,.2) inset,0 2px 6px rgba(0,0,0,.5) inset}
+.scan .ticks{position:absolute;inset:0;display:flex;justify-content:space-between;padding:0 9px;align-items:center;pointer-events:none}
+.scan .ticks span{width:1px;height:11px;background:rgba(120,150,210,.3)}
+.scan .fill{position:absolute;top:2px;bottom:2px;left:2px;border-radius:5px;width:calc(var(--p)*100%);
+  background:linear-gradient(90deg,rgba(90,156,255,.18),rgba(154,106,255,.32));pointer-events:none}
+.scan .head2{position:absolute;top:-3px;bottom:-3px;width:4px;margin-left:-2px;border-radius:3px;left:calc(var(--p)*100%);
+  background:linear-gradient(180deg,var(--ac),var(--ac2));box-shadow:0 0 10px var(--ac),0 0 18px var(--ac2);pointer-events:none}
+
+/* idle breathing glow on the brand dot */
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:7px;vertical-align:middle;
+  box-shadow:0 0 8px var(--ac);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.45;box-shadow:0 0 5px var(--ac)}50%{opacity:1;box-shadow:0 0 13px var(--ac)}}
+</style></head>
+<body>
+<div class="synth"><div class="surface">
+
+  <div class="head">
+    <div class="brand">
+      <div class="mk"><span class="dot"></span>Digital Wave Computer</div>
+      <h1>Wave <em>Table</em></h1>
+      <div class="tag" id="sp">Scanning wavetable synthesizer</div>
+    </div>
+    <div class="serial">Model<br><b>WT-2.3</b></div>
+  </div>
+
+  <div class="display">
+    <div class="glabel">Wavetable Bank</div>
+    <div class="posread" id="posread">POS 0.00</div>
+    <svg class="disp-svg" id="dsvg" viewBox="0 0 600 228" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="rack">
+    <div class="group">
+      <div class="gtitle">Wave</div>
+      <div class="row">
+        <div class="scanwrap">
+          <div class="scanlbl"><span>Wave Position</span><b id="scanval">0.00</b></div>
+          <div class="scan" id="scan">
+            <div class="ticks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="fill" id="scanfill"></div>
+            <div class="head2" id="scanhead"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="gtitle">Filter</div>
+      <div class="row" id="filtK"></div>
+    </div>
+
+    <div class="group">
+      <div class="gtitle">Envelope &amp; Voice</div>
+      <div class="row" id="envK"></div>
+    </div>
+  </div>
+
+</div></div>
+
+<script>(function(){
+  var P=[
+    {name:"Wave Position",index:0,min:0,max:1,def:0.0 },
+    {name:"Cutoff",       index:1,min:0,max:1,def:0.6 },
+    {name:"Resonance",    index:2,min:0,max:1,def:0.3 },
+    {name:"FilterEnvAmt", index:3,min:0,max:1,def:0.5 },
+    {name:"Attack",       index:4,min:0,max:1,def:0.02},
+    {name:"Release",      index:5,min:0,max:1,def:0.35},
+    {name:"Detune",       index:6,min:0,max:1,def:0.2 },
+    {name:"Level",        index:7,min:0,max:1,def:0.7 }
+  ];
+  var byName={}; P.forEach(function(p){byName[p.name]=p;});
+  var live={}; P.forEach(function(p){ live[p.name]=(p.def-p.min)/(p.max-p.min); });
+
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function fmtPct(v){ return Math.round(v*100)+"%"; }
+  function fmtMs(v){ var ms=Math.round((v*v)*3000)+1; return ms>=1000?(ms/1000).toFixed(2)+"s":ms+"ms"; }
+  function labelFor(p,v){
+    if(p.name==="Attack"||p.name==="Release") return fmtMs(v);
+    if(p.name==="Cutoff"){ var hz=Math.round(60*Math.pow(256,v)); return hz>=1000?(hz/1000).toFixed(1)+"k":hz+"Hz"; }
+    if(p.name==="Detune"){ return (v*0.14).toFixed(2)+"st"; }
+    return fmtPct(v);
+  }
+
+  // ---------- knobs ----------
+  function makeKnob(host,p){
+    var cell=document.createElement('div'); cell.className='cell';
+    cell.style.setProperty('--d',(p.index*55)+'ms');
+    cell.innerHTML='<div class="knob"><i class="scale"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i></div>'+
+      '<div class="cnm">'+p.name.replace("FilterEnvAmt","Env Amt")+'</div><div class="cval"></div>';
+    host.appendChild(cell);
+    var knob=cell.querySelector('.knob'), val=cell.querySelector('.cval');
+    var v=p.def;
+    function norm(){ return (v-p.min)/(p.max-p.min||1); }
+    function paint(){ var n=norm(); knob.style.setProperty('--p',n); val.textContent=labelFor(p,n); live[p.name]=n; send(p.index,v); }
+    function setN(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
+    knob.addEventListener('pointerdown',function(e){ knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault(); });
+    knob.addEventListener('pointermove',function(e){ if(!knob._d)return; var spd=e.shiftKey?640:200; setN(knob._n+(knob._y-e.clientY)/spd); });
+    function end(){ knob._d=0; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end); knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
+    paint();
+  }
+  makeKnob(document.getElementById('filtK'), byName["Cutoff"]);
+  makeKnob(document.getElementById('filtK'), byName["Resonance"]);
+  makeKnob(document.getElementById('filtK'), byName["FilterEnvAmt"]);
+  makeKnob(document.getElementById('envK'),  byName["Attack"]);
+  makeKnob(document.getElementById('envK'),  byName["Release"]);
+  makeKnob(document.getElementById('envK'),  byName["Detune"]);
+  makeKnob(document.getElementById('envK'),  byName["Level"]);
+
+  // ---------- wave position scan slider ----------
+  var scan=document.getElementById('scan'), fill=document.getElementById('scanfill'),
+      head=document.getElementById('scanhead'), scanval=document.getElementById('scanval'),
+      posread=document.getElementById('posread'), wp=byName["Wave Position"];
+  var wv=wp.def;
+  function wnorm(){ return (wv-wp.min)/(wp.max-wp.min||1); }
+  function wpaint(){ var n=wnorm(); scan.style.setProperty('--p',n); fill.style.setProperty('--p',n);
+    head.style.setProperty('--p',n); scanval.textContent=n.toFixed(2); posread.textContent="POS "+n.toFixed(2);
+    live["Wave Position"]=n; send(wp.index,wv); renderBank(n); }
+  function wsetN(n){ n=n<0?0:n>1?1:n; wv=wp.min+(wp.max-wp.min)*n; wpaint(); }
+  function fromEvt(e){ var r=scan.getBoundingClientRect(); wsetN((e.clientX-r.left)/r.width); }
+  scan.addEventListener('pointerdown',function(e){ scan._d=1; scan.setPointerCapture(e.pointerId); fromEvt(e); e.preventDefault(); });
+  scan.addEventListener('pointermove',function(e){ if(scan._d) fromEvt(e); });
+  function send2(){ scan._d=0; } scan.addEventListener('pointerup',send2); scan.addEventListener('pointercancel',send2);
+  scan.addEventListener('dblclick',function(){ wv=wp.def; wpaint(); });
+  scan.addEventListener('wheel',function(e){ e.preventDefault(); wsetN(wnorm()+(e.deltaY<0?0.04:-0.04)); },{passive:false});
+
+  // ---------- 3D wavetable bank render (the centrepiece) ----------
+  var NT=8, NS=64, dsvg=document.getElementById('dsvg');
+  // model the same bank progression as the DSP: sine -> harmonic -> formant
+  function sampleWave(t,ph){
+    var m=t/(NT-1), s=0,h;
+    if(t===0){ s=Math.sin(ph); }
+    else if(t<5){ var nh=2+t*5, tilt=1-0.15*t; for(h=1;h<=nh;h++){ s+=Math.pow(1/h,tilt)*Math.sin(ph*h); } s*=0.5; }
+    else { var fo=3+(m-0.57)*14, w=2.5+(m-0.57)*4; for(h=1;h<=24;h++){ var d=(h-fo)/w; s+=(Math.exp(-d*d)+0.18/h)*Math.sin(ph*h+0.5*h*m); } s*=0.35; }
+    return s;
+  }
+  // pre-render path strings for each of the 8 tables
+  var W=600,Hd=228, paths=[];
+  function buildPaths(){
+    for(var t=0;t<NT;t++){
+      // perspective: deeper tables (higher t) shrink toward the back-top
+      var depth=t/(NT-1);
+      var baseY=Hd-26 - depth*(Hd-92);          // back tables higher
+      var scaleX=1-depth*0.34;                    // back tables narrower
+      var amp=22*(1-depth*0.45);
+      var x0=W*0.5*(1-scaleX), x1=W-x0;
+      var d="";
+      for(var i=0;i<=NS;i++){
+        var fr=i/NS, ph=fr*Math.PI*2;
+        var y=baseY - sampleWave(t,ph)*amp;
+        var x=x0+(x1-x0)*fr;
+        d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1)+" ";
+      }
+      paths.push(d);
+    }
+  }
+  buildPaths();
+  // build the SVG layers once
+  function initSvg(){
+    var ns="http://www.w3.org/2000/svg", frag="";
+    // faint grid floor
+    for(var g=0;g<7;g++){ var gy=Hd-26-g*((Hd-92)/6.0); frag+='<line x1="40" y1="'+gy.toFixed(1)+'" x2="560" y2="'+gy.toFixed(1)+'" stroke="rgba(90,156,255,0.06)" stroke-width="1"/>'; }
+    for(t=NT-1;t>=0;t--){
+      frag+='<path id="wl'+t+'" d="'+paths[t]+'" fill="none" stroke="rgba(120,150,210,0.32)" stroke-width="1.4" stroke-linejoin="round"/>';
+    }
+    dsvg.innerHTML=frag;
+  }
+  initSvg();
+  // highlight tables near the scan position, draw a moving scan-line glow
+  function renderBank(pos){
+    var sel=pos*(NT-1);
+    for(var t=0;t<NT;t++){
+      var el=document.getElementById('wl'+t); if(!el)continue;
+      var dist=Math.abs(t-sel);
+      var lit=Math.max(0,1-dist);          // 1 at the exact table, fades to neighbours
+      if(lit>0.001){
+        var c="rgba("+Math.round(90+64*lit)+","+Math.round(156+50*lit)+",255,"+(0.45+0.5*lit).toFixed(2)+")";
+        el.setAttribute('stroke',c);
+        el.setAttribute('stroke-width',(1.4+lit*1.6).toFixed(2));
+        el.style.filter=lit>0.5?'drop-shadow(0 0 6px rgba(90,156,255,0.9))':'none';
+      } else {
+        el.setAttribute('stroke','rgba(120,150,210,0.22)');
+        el.setAttribute('stroke-width','1.2');
+        el.style.filter='none';
+      }
+    }
+  }
+
+  // gentle idle breathing of the whole stack so it always feels alive
+  var t0=performance.now();
+  function idle(now){
+    requestAnimationFrame(idle);
+    var b=0.5+0.5*Math.sin((now-t0)*0.0011);
+    dsvg.style.transform='translateY('+(b*1.6-0.8).toFixed(2)+'px)';
+  }
+  requestAnimationFrame(idle);
+
+  function ready(){ wpaint(); }     // init scan + bank highlight + send default
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();</script>
+</body></html>

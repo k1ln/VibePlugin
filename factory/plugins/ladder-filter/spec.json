@@ -4,6 +4,7 @@
   "explanation": "A 4-pole (24 dB/oct) resonant transistor-ladder low-pass filter. Four cascaded one-pole stages share a resonance feedback path that can climb all the way to self-oscillation, while gentle tanh saturation in the loop tames the peak and adds warm analog growl. Controls: Cutoff, Resonance, Drive and dry/wet Mix.",
   "assembly": "factory/plugins/ladder-filter/assembly.ts",
   "out": "factory/plugins/ladder-filter/x.vstai",
+  "guiFile": "factory/plugins/ladder-filter/gui.html",
   "publishedAt": 1751000010000,
   "theme": { "accent": "#66e0c0", "accent2": "#54d1ff" },
   "params": [

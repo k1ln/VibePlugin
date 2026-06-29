@@ -6,6 +6,7 @@
   "out": "factory/plugins/rotary-cabinet/x.vstai",
   "publishedAt": 1751000013000,
   "theme": { "accent": "#8d7bff", "accent2": "#b08cff" },
+  "guiFile": "factory/plugins/rotary-cabinet/gui.html",
   "params": [
     { "name": "Speed",   "index": 0, "min": 0, "max": 1, "default": 0.85 },
     { "name": "Inertia", "index": 1, "min": 0, "max": 1, "default": 0.45 },

@@ -1,0 +1,16 @@
+{
+  "name": "De-Esser",
+  "isInstrument": false,
+  "explanation": "Tames harsh sibilance on vocals. A sidechain band-pass isolates the sibilant energy around the Frequency control and drives a fast compressor that ducks only the high band when it crosses Threshold, by up to Amount; the ducked highs recombine with the untouched body so the voice loses the harsh 'sss' without going dull. Mix blends against the dry signal.",
+  "assembly": "factory/plugins/de-esser/assembly.ts",
+  "out": "factory/plugins/de-esser/x.vstai",
+  "publishedAt": 1751000052000,
+  "theme": { "accent": "#9ad0e0", "accent2": "#c0e0f0" },
+  "guiFile": "factory/plugins/de-esser/gui.html",
+  "params": [
+    { "name": "Frequency", "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Threshold", "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Amount",    "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",       "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

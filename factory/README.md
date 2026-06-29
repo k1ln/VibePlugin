@@ -98,10 +98,46 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 10 | Dattorro plate (1997 paper) (plate reverb) | **Steel Plate** | ✅ PASS |
 | 9 | Freeverb (Algorithmic) | **Open Room** | ✅ PASS |
 | 27 | MXR Phase 90 (Phaser) | **Sweep Phaser** | ✅ PASS |
-| 33 | true (Flanger) | **Jet Flanger** | ✅ PASS |
-| 47 | true (Fuzz) | **Germanium Fuzz** | ✅ PASS |
+| 33 | Electric Mistress (flanger) | **Jet Flanger** | ✅ PASS |
+| 47 | Fuzz Face (fuzz) | **Germanium Fuzz** | ✅ PASS |
 | 58 | Bitcrusher / sample-rate reducer (lo-fi bitcrusher + decimator) (Digital) | **Bit Crusher** | ✅ PASS |
 | 55 | Tape saturation model (Saturation) | **Reel Saturator** | ✅ PASS |
+| 15 | Roland RE-201 (tape echo) | **Space Tape Echo** | ✅ PASS |
+| 26 | Multi-tap / ping-pong delay | **Ping Delay** | ✅ PASS |
+| 36 | Uni-Vibe (vibe/phaser) | **Vibe Phaser** | ✅ PASS |
+| 42 | Optical/bias tremolo | **Bias Tremolo** | ✅ PASS |
+| 50 | Klon Centaur (overdrive) | **Mythic Drive** | ✅ PASS |
+| 61 | dbx 160 (VCA comp) | **Punch Comp** | ✅ PASS |
+| 74 | Neve 1073 (console EQ) | **Console EQ** | ✅ PASS |
+| 94 | Roland ring modulator | **Ring Mod** | ✅ PASS |
+| 4 | EMT 250 (early-digital reverb) | **Pearl Reverb** | ✅ PASS |
+| 17 | Binson Echorec (multi-head magnetic-drum echo) | **Magnetic Echo** | ✅ PASS |
+| 29 | Mu-Tron Bi-Phase (dual phaser) | **Twin Phaser** | ✅ PASS |
+| 39 | Roland Dimension D (SDD-320) (dimensional BBD chorus) | **Dimensional** | ✅ PASS |
+| 53 | Octavia (octave-up fuzz) | **Octave Up** | ✅ PASS |
+| 69 | Brickwall limiter (look-ahead) (look-ahead brickwall limiter) | **Brickwall** | ✅ PASS |
+| 82 | Cry Baby wah (inductor wah / auto-wah) | **Vocal Wah** | ✅ PASS |
+| 86 | Tilt EQ / baxandall shelf (tilt / baxandall EQ) | **Tilt EQ** | ✅ PASS |
+| 71 | Noise gate / expander (noise gate / expander) | **Noise Gate** | ✅ PASS |
+| 57 | Wavefolder (West Coast) (west-coast wavefolder) | **Wave Folder** | ✅ PASS |
+| 81 | State-variable filter (Chamberlin) (multimode state-variable filter) | **State Filter** | ✅ PASS |
+| 72 | De-esser (de-esser) | **De-Esser** | ✅ PASS |
+| 96 | Aphex Aural Exciter (harmonic exciter) | **Air Exciter** | ✅ PASS |
+| 100 | Granular delay/cloud processor (granular cloud processor) | **Granular Cloud** | ✅ PASS |
+| 84 | Vocal formant filter (vowel/formant filter) | **Vowel Filter** | ✅ PASS |
+| 85 | Linkwitz-Riley crossover (multiband crossover) | **Crossover** | ✅ PASS |
+| 87 | Eventide H910 Harmonizer (pitch shifter / harmonizer) | **Pitch Shifter** | ✅ PASS |
+| 64 | Fairchild 670 (vari-mu tube compressor) | **Vari-Mu** | ✅ PASS |
+| 80 | MS-20 Sallen-Key filter (aggressive resonant HP+LP filter) | **Scream Filter** | ✅ PASS |
+| 95 | Frequency shifter (Bode/single-sideband) (Bode single-sideband frequency shifter) | **Freq Shifter** | ✅ PASS |
+| 79 | Roland TB-303 filter (acid envelope filter) | **Squelch Filter** | ✅ PASS |
+| 90 | DigiTech Whammy (extreme pitch-shift pedal) | **Whammy** | ✅ PASS |
+| 93 | Vocoder (channel, EMS-style) (channel vocoder) | **Robot Voice** | ✅ PASS |
+| 97 | BBE Sonic Maximizer (psychoacoustic phase + clarity enhancer) | **Sonic Max** | ✅ PASS |
+| 20 | TC Electronic 2290 (pristine digital delay) | **Studio Delay** | ✅ PASS |
+| 62 | SSL bus compressor (VCA bus compressor) | **Bus Glue** | ✅ PASS |
+| 70 | Multiband compressor (multiband compressor) | **Multiband** | ✅ PASS |
+| 75 | API 550A (discrete proportional-Q console EQ) | **Discrete EQ** | ✅ PASS |
 
 ### Synths
 | # | Original | → New name | Status |
@@ -116,5 +152,12 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 77 | E-mu SP-1200 (sampled) | **Grit Sampler** | ✅ PASS |
 | 81 | Classic Beats (sampled) | **Classic Beats** | ✅ PASS |
 | 13 | Roland TR-909 (sampled) | **Pulse Drums** | ✅ PASS |
+| 44 | ARP Solina String Ensemble (string-machine synth) | **String Ensemble** | ✅ PASS |
+| 6 | Memorymoog (polyphonic ladder synth) | **Poly Moog** | ✅ PASS |
+| 53 | Yamaha CS-80 (lush cinematic polysynth) | **Cinematic Poly** | ✅ PASS |
+| 42 | ARP Odyssey (duophonic synth) | **Duo Synth** | ✅ PASS |
+| 59 | Casio CZ-101 (phase distortion) (phase-distortion digital synth) | **Phase Synth** | ✅ PASS |
+| 79 | PPG Wave 2.2 / 2.3 (wavetable synth) | **Wave Table** | ✅ PASS |
+| 41 | ARP 2600 (semi-modular synth) | **Patch 2600** | ✅ PASS |
 
-**Done: 31 / 200.** Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.
+**Done: 74 / 200.** Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.

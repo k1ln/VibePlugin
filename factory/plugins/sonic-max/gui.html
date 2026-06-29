@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonic Max</title>
+<style>
+  :root {
+    --accent: #5ad1ff;
+    --accent2: #b0e0ff;
+    --bg0: #050a12;
+    --bg1: #0b1422;
+    --panel: #0e1a2c;
+    --panel-hi: #16263f;
+    --line: rgba(90,209,255,0.18);
+    --ink: #cfe6f6;
+    --ink-dim: #6f87a0;
+    --glow: 0 0 18px rgba(90,209,255,0.45);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #11243c 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg1) 0%, var(--bg0) 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .unit {
+    width: 100%;
+    max-width: 560px;
+    background:
+      linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 14%, var(--panel) 100%);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 -1px 0 rgba(0,0,0,0.5) inset,
+      0 24px 60px rgba(0,0,0,0.55);
+    overflow: hidden;
+  }
+
+  /* ---------------- header ---------------- */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(90,209,255,0.06), transparent);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 35% 30%, #1d3a58, #0a1626);
+    border: 1px solid var(--line);
+    box-shadow: var(--glow);
+  }
+  .logo svg { display: block; }
+  .title { display: flex; flex-direction: column; line-height: 1.05; }
+  .title b {
+    font-size: 17px; letter-spacing: 2px; font-weight: 700;
+    color: #eaf6ff;
+  }
+  .title span {
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--ink-dim); margin-top: 3px;
+  }
+  .leds { display: flex; gap: 6px; align-items: center; }
+  .led {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #0c2235;
+    box-shadow: 0 0 0 1px rgba(90,209,255,0.2) inset;
+  }
+  .led.on {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent), 0 0 0 1px rgba(255,255,255,0.4) inset;
+    animation: ledpulse 1.6s ease-in-out infinite;
+  }
+  @keyframes ledpulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+
+  /* ---------------- scope ---------------- */
+  .scope-wrap {
+    margin: 16px 18px 4px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgba(90,209,255,0.07), transparent 70%),
+      linear-gradient(180deg, #07101d, #060c16);
+    box-shadow: 0 2px 0 rgba(255,255,255,0.04) inset, 0 -10px 30px rgba(0,0,0,0.4) inset;
+    overflow: hidden;
+    position: relative;
+  }
+  .scope-wrap svg { display: block; width: 100%; height: 150px; }
+  .scope-label {
+    position: absolute; top: 8px; left: 12px;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .scope-label.right { left: auto; right: 12px; }
+
+  /* ---------------- controls ---------------- */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 14px 16px 22px;
+  }
+  .knobcell {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 12px 4px 10px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18));
+    border: 1px solid rgba(90,209,255,0.08);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .knobcell:hover { border-color: var(--line); box-shadow: 0 0 22px rgba(90,209,255,0.08) inset; }
+  .knob {
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+  .knob svg { display: block; }
+  .klabel {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .kval {
+    font-size: 12px; font-weight: 600;
+    color: var(--accent2);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 8px rgba(90,209,255,0.4);
+  }
+
+  .footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px 16px;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .footer .hint { opacity: 0.7; }
+
+  @media (max-width: 460px) {
+    .controls { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="head">
+      <div class="brand">
+        <div class="logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M2 14 C6 14 7 5 12 5 C17 5 18 19 22 19" stroke="#5ad1ff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="title">
+          <b>SONIC&nbsp;MAX</b>
+          <span>Clarity Maximizer</span>
+        </div>
+      </div>
+      <div class="leds">
+        <div class="led on" style="animation-delay:0s"></div>
+        <div class="led on" style="animation-delay:0.3s"></div>
+        <div class="led on" style="animation-delay:0.6s"></div>
+        <div class="led"></div>
+      </div>
+    </div>
+
+    <div class="scope-wrap">
+      <div class="scope-label">LO CONTOUR</div>
+      <div class="scope-label right">PROCESS</div>
+      <svg id="scope" viewBox="0 0 560 150" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="bloomGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5ad1ff" stop-opacity="0.0"/>
+            <stop offset="100%" stop-color="#5ad1ff" stop-opacity="0.35"/>
+          </linearGradient>
+          <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#3aa9e0"/>
+            <stop offset="55%" stop-color="#5ad1ff"/>
+            <stop offset="100%" stop-color="#b0e0ff"/>
+          </linearGradient>
+          <filter id="soft" x="-20%" y="-50%" width="140%" height="200%">
+            <feGaussianBlur stdDeviation="1.4"/>
+          </filter>
+        </defs>
+
+        <!-- grid -->
+        <g stroke="rgba(90,209,255,0.10)" stroke-width="1">
+          <line x1="0" y1="37" x2="560" y2="37"/>
+          <line x1="0" y1="75" x2="560" y2="75"/>
+          <line x1="0" y1="113" x2="560" y2="113"/>
+          <line x1="140" y1="0" x2="140" y2="150"/>
+          <line x1="280" y1="0" x2="280" y2="150"/>
+          <line x1="420" y1="0" x2="420" y2="150"/>
+        </g>
+
+        <!-- low-end bloom under the lows -->
+        <path id="bloom" fill="url(#bloomGrad)" d=""/>
+        <!-- the process contour curve -->
+        <path id="curve" fill="none" stroke="url(#curveGrad)" stroke-width="2.4"
+              stroke-linecap="round" filter="url(#soft)" d=""/>
+        <!-- sparkle group rising off the highs -->
+        <g id="sparkles"></g>
+      </svg>
+    </div>
+
+    <div class="controls" id="controls"></div>
+
+    <div class="footer">
+      <span>PSYCHOACOUSTIC ENHANCER</span>
+      <span class="hint">drag &middot; dbl-click resets</span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var PARAMS = [
+    { name: "Process",    index: 0, min: 0, max: 1, def: 0.5  },
+    { name: "Lo Contour", index: 1, min: 0, max: 1, def: 0.5  },
+    { name: "Output",     index: 2, min: 0, max: 1, def: 0.55 },
+    { name: "Mix",        index: 3, min: 0, max: 1, def: 1.0  }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].index, values[i]);
+    }
+  }
+
+  // -------- knob builder ----------------------------------------------
+  function fmt(p, v) {
+    if (p.name === "Mix" || p.name === "Output") return Math.round(v * 100) + "%";
+    return Math.round(v * 100) + "%";
+  }
+
+  function buildKnob(p, i) {
+    var cell = document.createElement("div");
+    cell.className = "knobcell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("width", "78");
+    svg.setAttribute("height", "78");
+
+    // outer ring well
+    var well = document.createElementNS(NS, "circle");
+    well.setAttribute("cx", "50"); well.setAttribute("cy", "50"); well.setAttribute("r", "40");
+    well.setAttribute("fill", "none");
+    well.setAttribute("stroke", "rgba(90,209,255,0.12)");
+    well.setAttribute("stroke-width", "6");
+    svg.appendChild(well);
+
+    // value arc
+    var arc = document.createElementNS(NS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "#5ad1ff");
+    arc.setAttribute("stroke-width", "6");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.style.filter = "drop-shadow(0 0 5px rgba(90,209,255,0.7))";
+    svg.appendChild(arc);
+
+    // body
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "30");
+    body.setAttribute("fill", "url(#kbody" + i + ")");
+    body.setAttribute("stroke", "rgba(0,0,0,0.5)");
+    body.setAttribute("stroke-width", "1");
+
+    var grad = document.createElementNS(NS, "radialGradient");
+    grad.setAttribute("id", "kbody" + i);
+    grad.setAttribute("cx", "38%"); grad.setAttribute("cy", "32%");
+    var s1 = document.createElementNS(NS, "stop");
+    s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", "#1f3954");
+    var s2 = document.createElementNS(NS, "stop");
+    s2.setAttribute("offset", "100%"); s2.setAttribute("stop-color", "#0a1726");
+    grad.appendChild(s1); grad.appendChild(s2);
+    var defs = document.createElementNS(NS, "defs");
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+    svg.appendChild(body);
+
+    // pointer notch
+    var notch = document.createElementNS(NS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "26");
+    notch.setAttribute("stroke", "#b0e0ff");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    notch.style.filter = "drop-shadow(0 0 3px rgba(176,224,255,0.8))";
+    svg.appendChild(notch);
+
+    knob.appendChild(svg);
+    cell.appendChild(knob);
+
+    var label = document.createElement("div");
+    label.className = "klabel";
+    label.textContent = p.name;
+    cell.appendChild(label);
+
+    var val = document.createElement("div");
+    val.className = "kval";
+    cell.appendChild(val);
+
+    var START = -135, SWEEP = 270;
+
+    function render() {
+      var t = (values[i] - p.min) / (p.max - p.min);
+      if (t < 0) t = 0; if (t > 1) t = 1;
+      var ang = START + t * SWEEP;
+      var rad = (ang - 90) * Math.PI / 180;
+      // notch
+      var nx = 50 + Math.cos(rad) * 24;
+      var ny = 50 + Math.sin(rad) * 24;
+      notch.setAttribute("x2", nx.toFixed(2));
+      notch.setAttribute("y2", ny.toFixed(2));
+      // arc
+      var a0 = (START - 90) * Math.PI / 180;
+      var a1 = (ang - 90) * Math.PI / 180;
+      var R = 40;
+      var x0 = 50 + Math.cos(a0) * R, y0 = 50 + Math.sin(a0) * R;
+      var x1 = 50 + Math.cos(a1) * R, y1 = 50 + Math.sin(a1) * R;
+      var large = (t * SWEEP) > 180 ? 1 : 0;
+      arc.setAttribute("d", "M " + x0.toFixed(2) + " " + y0.toFixed(2) +
+        " A " + R + " " + R + " 0 " + large + " 1 " + x1.toFixed(2) + " " + y1.toFixed(2));
+      val.textContent = fmt(p, values[i]);
+    }
+
+    // ---- drag handling ----
+    var dragging = false, lastY = 0;
+
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      document.body.style.cursor = "ns-resize";
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var range = p.max - p.min;
+      values[i] += (dy / 180) * range;
+      if (values[i] < p.min) values[i] = p.min;
+      if (values[i] > p.max) values[i] = p.max;
+      render();
+      pushParam(i);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      document.body.style.cursor = "";
+    }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    knob.addEventListener("wheel", function (e) {
+      var range = p.max - p.min;
+      values[i] += (e.deltaY < 0 ? 1 : -1) * range * 0.02;
+      if (values[i] < p.min) values[i] = p.min;
+      if (values[i] > p.max) values[i] = p.max;
+      render(); pushParam(i);
+      e.preventDefault();
+    }, { passive: false });
+
+    knob.addEventListener("dblclick", function () {
+      values[i] = p.def;
+      render(); pushParam(i);
+    });
+
+    render();
+    return cell;
+  }
+
+  // -------- the animated process scope --------------------------------
+  var scope = document.getElementById("scope");
+  var curveEl = document.getElementById("curve");
+  var bloomEl = document.getElementById("bloom");
+  var sparkLayer = document.getElementById("sparkles");
+  var NSV = "http://www.w3.org/2000/svg";
+
+  // sparkle pool rising off the high end
+  var sparks = [];
+  for (var s = 0; s < 10; s++) {
+    var c = document.createElementNS(NSV, "circle");
+    c.setAttribute("r", "1.6");
+    c.setAttribute("fill", "#b0e0ff");
+    sparkLayer.appendChild(c);
+    sparks.push({
+      el: c,
+      x: 380 + Math.random() * 170,
+      y: 30 + Math.random() * 60,
+      vy: 0.25 + Math.random() * 0.6,
+      ph: Math.random() * 6.28
+    });
+  }
+
+  var t0 = performance.now();
+
+  function frame(now) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var tt = (now - t0) / 1000;
+
+    var proc = values[0];       // 0..1 high lift
+    var contour = values[1];    // 0..1 low bloom
+    var mix = values[3];
+
+    // build the contour curve across 0..560.
+    // a gentle low shelf bump on the left (contour) + a rising air
+    // shelf on the right (process), with a small animated shimmer.
+    var pts = [];
+    var W = 560, H = 150, midY = 80;
+    for (var x = 0; x <= W; x += 10) {
+      var u = x / W; // 0..1 freq axis
+      // low bloom: bump centred near u=0.12
+      var loB = contour * 34 * Math.exp(-Math.pow((u - 0.10) / 0.13, 2));
+      // high air: rising shelf past u=0.6
+      var hiB = proc * 40 * (1 / (1 + Math.exp(-(u - 0.66) * 14)));
+      // animated shimmer riding the highs
+      var shim = proc * 4 * Math.sin(u * 26 + tt * 6) * Math.max(0, (u - 0.55));
+      var y = midY - loB - hiB - shim;
+      y = midY - (midY - y) * (0.4 + 0.6 * mix); // mix scales the deflection
+      pts.push([x, y]);
+    }
+    var d = "M " + pts[0][0] + " " + pts[0][1].toFixed(2);
+    for (var i = 1; i < pts.length; i++) d += " L " + pts[i][0] + " " + pts[i][1].toFixed(2);
+    curveEl.setAttribute("d", d);
+
+    // bloom fill under the low portion
+    var bd = "M 0 " + H;
+    for (var j = 0; j < pts.length && pts[j][0] <= 230; j++) {
+      bd += " L " + pts[j][0] + " " + pts[j][1].toFixed(2);
+    }
+    bd += " L 230 " + H + " Z";
+    bloomEl.setAttribute("d", bd);
+    bloomEl.style.opacity = (0.25 + contour * 0.75).toFixed(2);
+
+    // sparkles rise off the highs, intensity ~ process
+    for (var k = 0; k < sparks.length; k++) {
+      var sp = sparks[k];
+      sp.y -= sp.vy * (0.3 + proc * 1.4);
+      if (sp.y < 8) {
+        sp.y = 95 + Math.random() * 30;
+        sp.x = 360 + Math.random() * 190;
+      }
+      var twk = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(tt * 5 + sp.ph));
+      sp.el.setAttribute("cx", sp.x.toFixed(1));
+      sp.el.setAttribute("cy", sp.y.toFixed(1));
+      sp.el.setAttribute("opacity", (twk * proc).toFixed(2));
+      sp.el.setAttribute("r", (1 + proc * 1.4).toFixed(2));
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // -------- mount -----------------------------------------------------
+  function mount() {
+    var host = document.getElementById("controls");
+    PARAMS.forEach(function (p, i) {
+      host.appendChild(buildKnob(p, i));
+    });
+    // init all params to defaults
+    PARAMS.forEach(function (p, i) { pushParam(i); });
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Crossover",
+  "isInstrument": false,
+  "explanation": "A phase-coherent 3-band splitter. Two 4th-order Linkwitz-Riley crossovers divide the signal into low, mid and high bands that sum back flat at unity gain; per-band gain trims let you re-balance the spectrum like a 3-way mixer. Controls: Low Freq, High Freq, Low Gain, Mid Gain, High Gain.",
+  "assembly": "factory/plugins/crossover/assembly.ts",
+  "out": "factory/plugins/crossover/x.vstai",
+  "publishedAt": 1751000050000,
+  "theme": { "accent": "#8fb6ff", "accent2": "#b0e0ff" },
+  "guiFile": "factory/plugins/crossover/gui.html",
+  "params": [
+    { "name": "Low Freq",  "index": 0, "min": 40,  "max": 500,   "default": 200 },
+    { "name": "High Freq", "index": 1, "min": 800, "max": 12000, "default": 2000 },
+    { "name": "Low Gain",  "index": 2, "min": 0,   "max": 2,     "default": 1 },
+    { "name": "Mid Gain",  "index": 3, "min": 0,   "max": 2,     "default": 1 },
+    { "name": "High Gain", "index": 4, "min": 0,   "max": 2,     "default": 1 }
+  ]
+}

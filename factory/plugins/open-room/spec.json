@@ -6,6 +6,7 @@
   "out": "factory/plugins/open-room/x.vstai",
   "publishedAt": 1751000020000,
   "theme": { "accent": "#45c8e0", "accent2": "#7ae0f0" },
+  "guiFile": "factory/plugins/open-room/gui.html",
   "params": [
     { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
     { "name": "Room Size", "index": 1, "min": 0, "max": 1, "default": 0.7 },

@@ -1,0 +1,486 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ladder Filter</title>
+<style>
+  :root{
+    --ac:#66e0c0; --ac2:#54d1ff;
+    --panel:#161b22; --panel2:#0c0f15;
+    --screw:#2a3340;
+    --ink:#cdd9e6; --ink2:#7f8ea3;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--ink);
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1b2330 0%, #0a0d12 60%, #05070a 100%);
+    display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;
+    -webkit-user-select:none;user-select:none;
+  }
+
+  /* ---- the eurorack-style module faceplate ---- */
+  .module{
+    position:relative;width:100%;max-width:560px;
+    border-radius:10px;padding:0;overflow:hidden;
+    background:
+      linear-gradient(180deg,#20262f 0%,#171c24 4%,#13171e 96%,#0d1016 100%);
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow:
+      0 36px 80px rgba(0,0,0,.66),
+      inset 0 1px 0 rgba(255,255,255,.10),
+      inset 0 0 0 1px rgba(0,0,0,.5);
+    animation:rackIn .6s cubic-bezier(.2,.8,.25,1) both;
+  }
+  @keyframes rackIn{from{opacity:0;transform:translateY(14px) rotateX(8deg)}to{opacity:1;transform:none}}
+  /* brushed-metal vertical streaks */
+  .module::before{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px);
+    mix-blend-mode:overlay;
+  }
+  /* corner mounting screws */
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;z-index:6;
+    background:radial-gradient(circle at 35% 30%,#465264,#1a1f28 70%,#0c0f14);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.25),0 1px 2px rgba(0,0,0,.6)}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,#0a0d12 44% 56%,transparent 56%);
+    transform:rotate(35deg)}
+  .screw.tl{top:8px;left:8px}.screw.tr{top:8px;right:8px}
+  .screw.bl{bottom:8px;left:8px}.screw.br{bottom:8px;right:8px}
+
+  /* ---- header / name plate ---- */
+  .head{position:relative;z-index:2;display:flex;align-items:center;gap:11px;
+    padding:14px 22px 10px;border-bottom:1px solid rgba(0,0,0,.5);
+    box-shadow:0 1px 0 rgba(255,255,255,.05)}
+  .pwr{position:relative;width:10px;height:10px;border-radius:50%;flex:none;
+    background:var(--ac);box-shadow:0 0 10px var(--ac);animation:beat 2.6s ease-in-out infinite}
+  @keyframes beat{0%,100%{opacity:.5;box-shadow:0 0 5px var(--ac)}50%{opacity:1;box-shadow:0 0 14px var(--ac)}}
+  .title{flex:1;min-width:0}
+  .title b{display:block;font:700 16px ui-monospace,monospace;letter-spacing:.26em;
+    color:#eaf2f8;text-shadow:0 1px 0 rgba(0,0,0,.6)}
+  .title .mod{display:block;font-size:9px;letter-spacing:.42em;color:var(--ink2);margin-top:3px}
+  .hp{font-size:9px;letter-spacing:.2em;color:var(--ink2);text-align:right;line-height:1.5}
+  .hp span{color:var(--ac2)}
+
+  /* ---- layout: scope on top, controls + ladder below ---- */
+  .body{position:relative;z-index:2;padding:14px 18px 16px;display:grid;
+    grid-template-columns:1fr 86px;gap:14px}
+
+  /* ===== frequency-response scope ===== */
+  .scope{position:relative;border-radius:8px;overflow:hidden;
+    background:
+      radial-gradient(120% 140% at 50% 0%,#0a1f1c 0%,#060a0d 70%);
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:inset 0 2px 16px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.5);
+    height:150px}
+  .scope svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .grid line{stroke:rgba(102,224,192,.10);stroke-width:1}
+  .curve{fill:none;stroke:var(--ac);stroke-width:2.2;
+    filter:drop-shadow(0 0 5px var(--ac));stroke-linejoin:round;stroke-linecap:round}
+  .fill{fill:url(#fillg);opacity:.5}
+  .ch{fill:none;stroke:rgba(255,255,255,.04);stroke-width:1}
+  .scan{position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.25) 3px 4px)}
+  .cutline{stroke:var(--ac2);stroke-width:1;stroke-dasharray:3 4;opacity:.55}
+  .cutdot{fill:var(--ac2);filter:drop-shadow(0 0 6px var(--ac2))}
+  .scopelbl{position:absolute;left:8px;top:6px;font-size:8px;letter-spacing:.18em;
+    color:var(--ink2);z-index:3}
+  .scopelbl b{color:var(--ac)}
+  .scopehz{position:absolute;right:8px;bottom:5px;font-size:8px;letter-spacing:.1em;
+    color:var(--ink2);z-index:3;font-variant-numeric:tabular-nums}
+  .scopehz b{color:var(--ac2)}
+
+  /* ===== resonance ladder (right column) ===== */
+  .ladder{display:flex;flex-direction:column;align-items:center;gap:5px;
+    padding:8px 6px;border-radius:8px;
+    background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.15));
+    border:1px solid rgba(255,255,255,.05);box-shadow:inset 0 2px 10px rgba(0,0,0,.6)}
+  .ladder .lbl{font-size:8px;letter-spacing:.18em;color:var(--ink2);margin-bottom:2px}
+  .rails{position:relative;flex:1;display:flex;flex-direction:column;justify-content:space-between;
+    gap:4px;padding:6px 9px;width:100%}
+  .rails::before,.rails::after{content:"";position:absolute;top:4px;bottom:4px;width:3px;border-radius:2px;
+    background:linear-gradient(180deg,#2c3644,#11161d)}
+  .rails::before{left:7px}.rails::after{right:7px}
+  .rung{position:relative;height:9px;border-radius:3px;z-index:1;
+    background:linear-gradient(90deg,#1b222c,#252e3a 50%,#1b222c);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.05),inset 0 -1px 2px rgba(0,0,0,.6);
+    transition:background .18s,box-shadow .18s,transform .12s}
+  .rung.lit{
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--ac) 30%,#1b222c),
+      var(--ac) 50%,
+      color-mix(in srgb,var(--ac) 30%,#1b222c));
+    box-shadow:0 0 10px color-mix(in srgb,var(--ac) 70%,transparent),
+      inset 0 0 4px rgba(255,255,255,.4)}
+  .rung.peak{animation:rungPulse .55s ease-in-out infinite}
+  @keyframes rungPulse{0%,100%{transform:scaleX(1);filter:brightness(1)}50%{transform:scaleX(1.06);filter:brightness(1.5)}}
+  .selfosc{margin-top:4px;font-size:7.5px;letter-spacing:.12em;text-align:center;
+    color:var(--ink2);transition:color .2s,text-shadow .2s}
+  .selfosc.hot{color:var(--ac);text-shadow:0 0 8px var(--ac);animation:beat 1s ease-in-out infinite}
+
+  /* ===== patch-panel of jacks (the four params) ===== */
+  .patch{grid-column:1/3;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+    padding:14px 10px 6px;margin-top:2px;border-top:1px solid rgba(255,255,255,.05);
+    box-shadow:0 -1px 0 rgba(0,0,0,.5)}
+  .jack{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:8px 4px 6px;border-radius:10px;
+    animation:jackIn .5s both;animation-delay:var(--d);
+    transition:background .2s}
+  @keyframes jackIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .jack:hover{background:rgba(255,255,255,.025)}
+
+  /* the physical jack: an outer collar + glowing inner socket that doubles as the dial */
+  .socket{position:relative;width:70px;height:70px;cursor:ns-resize;touch-action:none}
+  .collar{position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 35%,#3a4452,#1a1f28 62%,#0b0e13);
+    box-shadow:
+      0 3px 6px rgba(0,0,0,.6),
+      inset 0 2px 3px rgba(255,255,255,.16),
+      inset 0 -3px 6px rgba(0,0,0,.7)}
+  /* hex nut ring around the collar */
+  .collar::before{content:"";position:absolute;inset:-3px;border-radius:50%;z-index:-1;
+    background:conic-gradient(#252d39,#171c24,#252d39,#171c24,#252d39,#171c24,#252d39);
+    -webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);
+    mask:radial-gradient(circle,transparent 33px,#000 34px)}
+  /* value arc */
+  .arc{position:absolute;inset:2px;border-radius:50%;
+    background:conic-gradient(from 220deg,
+      var(--ac) calc(var(--n,0)*280deg),
+      rgba(255,255,255,.06) calc(var(--n,0)*280deg) 280deg,
+      transparent 280deg);
+    filter:drop-shadow(0 0 calc(2px + var(--n,0)*8px) color-mix(in srgb,var(--ac) 70%,transparent));
+    -webkit-mask:radial-gradient(circle,transparent 27px,#000 28px,#000 33px,transparent 34px);
+    mask:radial-gradient(circle,transparent 27px,#000 28px,#000 33px,transparent 34px);
+    transition:--n .12s linear}
+  /* the dark socket hole with a center contact pin */
+  .hole{position:absolute;top:12px;left:12px;width:46px;height:46px;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%,#10161d 0%,#04070a 70%);
+    box-shadow:inset 0 4px 9px rgba(0,0,0,.9),inset 0 -1px 0 rgba(255,255,255,.05)}
+  .pin{position:absolute;top:50%;left:50%;width:11px;height:11px;border-radius:50%;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle,var(--ac) 0%,color-mix(in srgb,var(--ac) 40%,#04070a) 70%);
+    box-shadow:0 0 calc(4px + var(--n,0)*14px) var(--ac),0 0 3px #fff;
+    transition:box-shadow .12s}
+  /* the indicator notch riding the rim (shows position like a knob pointer) */
+  .notch{position:absolute;top:50%;left:50%;width:4px;height:34px;margin-left:-2px;
+    border-radius:2px;transform-origin:50% 100%;
+    transform:translate(-2px,-34px) rotate(calc((var(--n,0) - 0.5) * 280deg));
+    background:linear-gradient(var(--ac),var(--ac2));box-shadow:0 0 7px var(--ac);
+    transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+  .socket.act .collar{box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 2px 3px rgba(255,255,255,.16),inset 0 -3px 6px rgba(0,0,0,.7),0 0 0 2px color-mix(in srgb,var(--ac) 50%,transparent)}
+
+  .jname{font-size:9.5px;letter-spacing:.16em;color:var(--ink);text-transform:uppercase}
+  .jval{font-size:11px;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums;
+    letter-spacing:.04em;min-height:13px}
+  /* tiny "patched" cable hint that glows on hover/drag */
+  .cable{position:absolute;top:-4px;right:8px;width:7px;height:7px;border-radius:50%;
+    background:var(--ac2);opacity:0;box-shadow:0 0 8px var(--ac2);transition:opacity .2s}
+  .jack:hover .cable,.socket.act ~ .cable{opacity:.9}
+
+  .foot{grid-column:1/3;font-size:9px;line-height:1.55;color:var(--ink2);
+    letter-spacing:.04em;padding:8px 6px 2px;border-top:1px solid rgba(255,255,255,.04)}
+  .foot b{color:var(--ac)}
+</style>
+</head>
+<body>
+  <div class="module">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="head">
+      <span class="pwr"></span>
+      <span class="title"><b>LADDER&nbsp;FILTER</b><span class="mod">VCF · 24 dB/OCT · TRANSISTOR LADDER</span></span>
+      <span class="hp">MODULE <span>VF-24</span><br>4 HP</span>
+    </div>
+
+    <div class="body">
+      <!-- frequency response scope -->
+      <div class="scope">
+        <div class="scopelbl"><b>RESPONSE</b> · LP</div>
+        <div class="scopehz">f<sub>c</sub> <b id="hz">—</b></div>
+        <svg viewBox="0 0 300 150" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="fillg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--ac)" stop-opacity="0.45"/>
+              <stop offset="1" stop-color="var(--ac)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g class="grid">
+            <line x1="0" y1="37.5" x2="300" y2="37.5"/>
+            <line x1="0" y1="75" x2="300" y2="75"/>
+            <line x1="0" y1="112.5" x2="300" y2="112.5"/>
+            <line x1="75" y1="0" x2="75" y2="150"/>
+            <line x1="150" y1="0" x2="150" y2="150"/>
+            <line x1="225" y1="0" x2="225" y2="150"/>
+          </g>
+          <path class="ch" id="ghost" d=""/>
+          <line class="cutline" id="cutline" x1="0" y1="0" x2="0" y2="150"/>
+          <path class="fill" id="fill" d=""/>
+          <path class="curve" id="curve" d=""/>
+          <circle class="cutdot" id="cutdot" cx="0" cy="0" r="3.4"/>
+        </svg>
+        <div class="scan"></div>
+      </div>
+
+      <!-- resonance ladder -->
+      <div class="ladder">
+        <div class="lbl">RES</div>
+        <div class="rails" id="rails"></div>
+        <div class="selfosc" id="selfosc">FEEDBACK</div>
+      </div>
+
+      <!-- patch-panel: the four params as jacks -->
+      <div class="patch" id="patch"></div>
+
+      <div class="foot">
+        <b>4&nbsp;cascaded&nbsp;one-pole&nbsp;stages</b> share a resonance feedback path that climbs to self-oscillation; tanh saturation in the loop adds warm analog growl.
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- params straight from spec.json (index-exact) ----
+  var PARAMS = [
+    {name:"Cutoff",    index:0, min:0, max:1, def:0.6},
+    {name:"Resonance", index:1, min:0, max:1, def:0.3},
+    {name:"Drive",     index:2, min:0, max:1, def:0.25},
+    {name:"Mix",       index:3, min:0, max:1, def:1}
+  ];
+
+  var state = {0:0.6, 1:0.3, 2:0.25, 3:1};
+
+  function send(i,v){
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+
+  // ---- build the resonance ladder rungs ----
+  var RUNGS = 12, rungEls = [];
+  var rails = document.getElementById('rails');
+  for(var r=0;r<RUNGS;r++){
+    var el = document.createElement('div');
+    el.className = 'rung';
+    rails.appendChild(el);
+    rungEls.push(el);
+  }
+  var selfoscEl = document.getElementById('selfosc');
+
+  function paintLadder(){
+    var res = state[1]; // 0..1
+    // light rungs from the BOTTOM up as resonance climbs
+    var litCount = res * RUNGS;
+    for(var k=0;k<RUNGS;k++){
+      var fromBottom = RUNGS - 1 - k; // index k=0 is top, light bottom-first
+      var lit = (RUNGS - fromBottom) <= litCount;
+      var el = rungEls[k];
+      el.classList.toggle('lit', lit);
+      // top-most lit rung pulses as the "resonance peak"
+      el.classList.remove('peak');
+    }
+    // mark the highest lit rung as the pulsing peak
+    var topLit = RUNGS - Math.ceil(litCount); // index of highest lit
+    if(litCount>0 && topLit>=0 && topLit<RUNGS) rungEls[topLit].classList.add('peak');
+    // self-oscillation indicator near the top of resonance
+    selfoscEl.classList.toggle('hot', res > 0.85);
+    selfoscEl.textContent = res > 0.85 ? 'SELF-OSC' : 'FEEDBACK';
+  }
+
+  // ---- frequency-response curve maths ----
+  var curve = document.getElementById('curve');
+  var fill  = document.getElementById('fill');
+  var ghost = document.getElementById('ghost');
+  var cutline = document.getElementById('cutline');
+  var cutdot = document.getElementById('cutdot');
+  var hzLbl = document.getElementById('hz');
+  var W=300, H=150, N=80;
+
+  function respPath(closed){
+    var cut = state[0], res = state[1], drv = state[2];
+    // map cutoff 0..1 to a log-ish x position of the corner
+    var fcX = 0.06 + cut*0.86;          // normalised x of corner (0..1)
+    var peak = res*res;                 // resonance bump amount
+    var dpts = [];
+    for(var i=0;i<=N;i++){
+      var x = i/N;                       // 0..1 across freq axis
+      // distance from corner in "octave" space
+      var d = (x - fcX) / 0.16;
+      var mag;
+      if(x <= fcX){
+        // passband flat ~0 dB, with a resonant bump just below corner
+        var bump = peak * Math.exp(-Math.pow((x-fcX)/0.05,2)) * 1.4;
+        mag = bump;
+      }else{
+        // 24 dB/oct rolloff after the corner; drive lifts the floor slightly
+        mag = -d*1.05 + peak*Math.exp(-Math.pow((x-fcX)/0.05,2))*1.4;
+      }
+      // convert magnitude (in ~dB-ish units) to y; 0 ≈ upper third
+      var y = H*0.42 - mag*16 + (1-drv)*0; // drive subtly thickens but keep level
+      if(y<6) y=6; if(y>H-4) y=H-4;
+      dpts.push([x*W, y]);
+    }
+    var dstr = "M"+dpts.map(function(p){return p[0].toFixed(1)+","+p[1].toFixed(1);}).join(" L");
+    if(closed){
+      dstr += " L"+W+","+H+" L0,"+H+" Z";
+    }
+    return {d:dstr, fcX:fcX, pts:dpts};
+  }
+
+  function paintScope(){
+    var info = respPath(false);
+    var fc = respPath(true);
+    curve.setAttribute('d', info.d);
+    fill.setAttribute('d', fc.d);
+    // ghost = the "dry" reference curve at mix<1 (faint full-range flat-ish)
+    // corner marker on the curve
+    var cx = info.fcX*W;
+    // find y at corner
+    var idx = Math.round(info.fcX*N);
+    var cyArr = info.pts[Math.min(idx,info.pts.length-1)];
+    cutline.setAttribute('x1', cx); cutline.setAttribute('x2', cx);
+    cutdot.setAttribute('cx', cyArr[0]); cutdot.setAttribute('cy', cyArr[1]);
+
+    // ghost dry line fades in as Mix drops
+    var mix = state[3];
+    ghost.style.opacity = (1-mix)*0.9;
+    if(mix<0.999){
+      ghost.setAttribute('d', "M0,"+(H*0.42).toFixed(1)+" L"+W+","+(H*0.42).toFixed(1));
+    }
+    // Hz readout — map cutoff to a musical 20Hz..20kHz log range
+    var hz = Math.round(20 * Math.pow(1000, state[0]));
+    hzLbl.textContent = hz>=1000 ? (hz/1000).toFixed(1).replace(/\.0$/,'')+'k' : hz;
+    // tint the whole thing by drive (warmer accent when driven)
+    document.documentElement.style.setProperty('--ac',
+      mixHex('#66e0c0', '#ffb454', state[2]*0.55));
+  }
+
+  // simple hex lerp for drive warmth
+  function mixHex(a,b,t){
+    function h(x){return [parseInt(x.slice(1,3),16),parseInt(x.slice(3,5),16),parseInt(x.slice(5,7),16)];}
+    var A=h(a),B=h(b),o='#';
+    for(var i=0;i<3;i++){var v=Math.round(A[i]+(B[i]-A[i])*t).toString(16);o+=v.length<2?'0'+v:v;}
+    return o;
+  }
+
+  // ---- build the four jacks ----
+  var patch = document.getElementById('patch');
+  var jacks = [];
+
+  function fmt(v){
+    // show as percent for these normalised 0..1 params
+    return Math.round(v*100) + '%';
+  }
+
+  PARAMS.forEach(function(p, k){
+    var jack = document.createElement('div');
+    jack.className = 'jack';
+    jack.style.setProperty('--d', (k*70)+'ms');
+    jack.innerHTML =
+      '<div class="socket" tabindex="0">'+
+        '<div class="collar"></div>'+
+        '<div class="arc"></div>'+
+        '<div class="hole"></div>'+
+        '<div class="pin"></div>'+
+        '<div class="notch"></div>'+
+      '</div>'+
+      '<span class="cable"></span>'+
+      '<div class="jname">'+p.name+'</div>'+
+      '<div class="jval"></div>';
+    patch.appendChild(jack);
+
+    var socket = jack.querySelector('.socket');
+    var arc    = jack.querySelector('.arc');
+    var notch  = jack.querySelector('.notch');
+    var pin    = jack.querySelector('.pin');
+    var valEl  = jack.querySelector('.jval');
+
+    var span = (p.max - p.min) || 1;
+
+    function norm(){ return (state[p.index]-p.min)/span; }
+
+    function paint(){
+      var n = norm();
+      arc.style.setProperty('--n', n.toFixed(4));
+      notch.style.setProperty('--n', n.toFixed(4));
+      pin.style.setProperty('--n', n.toFixed(4));
+      valEl.textContent = fmt(state[p.index]);
+    }
+
+    function commit(){
+      send(p.index, state[p.index]);
+      paint();
+      // these two params drive the shared graphics
+      paintScope();
+      paintLadder();
+    }
+
+    function setNorm(n){
+      n = n<0?0:(n>1?1:n);
+      var v = p.min + span*n;
+      // continuous, round to 0.001
+      v = Math.round(v/0.001)*0.001;
+      state[p.index] = v;
+      commit();
+    }
+
+    // pointer drag (vertical) = change
+    var dragY=0, dragN=0, dragging=false;
+    socket.addEventListener('pointerdown', function(e){
+      dragging=true; dragY=e.clientY; dragN=norm();
+      socket.classList.add('act');
+      socket.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    socket.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      setNorm(dragN + (dragY - e.clientY)/180);
+    });
+    function end(){ dragging=false; socket.classList.remove('act'); }
+    socket.addEventListener('pointerup', end);
+    socket.addEventListener('pointercancel', end);
+    // double-click = reset to default
+    socket.addEventListener('dblclick', function(){
+      state[p.index] = p.def; commit();
+    });
+    // wheel = fine adjust
+    socket.addEventListener('wheel', function(e){
+      e.preventDefault();
+      setNorm(norm() + (e.deltaY<0?0.03:-0.03));
+    }, {passive:false});
+
+    jacks.push({paint:paint, p:p});
+    paint();
+  });
+
+  // ---- initialise everything to defaults & push to host ----
+  function init(){
+    PARAMS.forEach(function(p){
+      state[p.index] = p.def;
+      send(p.index, p.def);
+    });
+    jacks.forEach(function(j){ j.paint(); });
+    paintScope();
+    paintLadder();
+
+    // a gentle one-time "boot sweep" of the ladder for life on load
+    var boot=0;
+    var id=setInterval(function(){
+      boot++;
+      for(var i=0;i<RUNGS;i++){
+        rungEls[i].style.opacity = (i===RUNGS-boot)?'1':'';
+      }
+      if(boot>RUNGS){ clearInterval(id); for(var j=0;j<RUNGS;j++) rungEls[j].style.opacity=''; paintLadder(); }
+    },40);
+  }
+
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(init);
+  else init();
+})();
+</script>
+</body>
+</html>

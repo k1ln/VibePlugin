@@ -1,0 +1,455 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ============================================================
+   PATCH MONO — semi-modular monophonic voice
+   Aggressive grey/green panel, live patch cables, dual HP/LP
+   filters, brass patchbay. Bespoke. Nothing templated.
+   ============================================================ */
+@property --n{syntax:'<number>';inherits:true;initial-value:0}
+
+:root{
+  --ac:#ffd23f;              /* spec accent (gold) — cable + jack glow */
+  --ac2:#ffe066;
+  --grn:#5fe08a;             /* signal green */
+  --grn2:#2fb56a;
+  --grn-dk:#0c2417;
+  --metal:#3a4248;
+  --metal2:#262c31;
+  --line:rgba(150,255,190,.10);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#cdd8d2;
+  background:
+    radial-gradient(120% 90% at 50% -10%,#1a221f 0%,#0c100e 60%,#050806 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---- the chassis -------------------------------------------------- */
+.unit{
+  position:relative;width:100%;max-width:640px;
+  border-radius:14px;overflow:hidden;
+  background:
+    linear-gradient(180deg,#454d52 0%,#363d42 6%,#2b3136 7%,#262b30 100%);
+  border:1px solid #11161a;
+  box-shadow:
+    0 36px 80px rgba(0,0,0,.62),
+    0 2px 0 rgba(255,255,255,.06) inset,
+    0 -16px 40px rgba(0,0,0,.5) inset;
+  animation:rise .6s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:none}}
+
+/* brushed-metal micro texture via repeating gradient */
+.unit::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background:repeating-linear-gradient(96deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+/* rack screws */
+.scr{position:absolute;width:13px;height:13px;border-radius:50%;z-index:6;
+  background:radial-gradient(circle at 38% 34%,#7c858b,#2a2f33 70%,#16191c);
+  box-shadow:0 1px 2px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.4) inset}
+.scr::after{content:"";position:absolute;inset:4px;border-top:1.5px solid rgba(0,0,0,.55);transform:rotate(35deg)}
+.scr.tl{top:9px;left:9px}.scr.tr{top:9px;right:9px}
+.scr.bl{bottom:9px;left:9px}.scr.br{bottom:9px;right:9px}
+
+/* ---- header strip ------------------------------------------------- */
+.head{position:relative;z-index:3;display:flex;align-items:center;gap:12px;
+  padding:13px 22px;border-bottom:1px solid #11161a;
+  background:linear-gradient(180deg,rgba(95,224,138,.06),rgba(0,0,0,0))}
+.pwr{position:relative;width:13px;height:13px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 40% 35%,#bfffd6,var(--grn) 45%,#0a3a22 90%);
+  box-shadow:0 0 10px var(--grn),0 0 2px #fff inset;animation:beat 2.6s ease-in-out infinite}
+@keyframes beat{0%,100%{box-shadow:0 0 6px var(--grn)}50%{box-shadow:0 0 16px var(--grn),0 0 4px #eafff1}}
+.title{flex:1;min-width:0}
+.title b{display:block;font-size:17px;font-weight:800;letter-spacing:.04em;
+  color:#eaf4ee;text-shadow:0 1px 0 #000,0 0 18px rgba(95,224,138,.25)}
+.title b i{font-style:normal;color:var(--grn)}
+.title span{display:block;font-size:9.5px;letter-spacing:.32em;text-transform:uppercase;color:#7d8a83;margin-top:2px}
+.tag{font:700 9px/1 ui-monospace,monospace;letter-spacing:.18em;color:#0b1410;
+  background:linear-gradient(180deg,var(--grn),var(--grn2));
+  padding:5px 9px;border-radius:5px;box-shadow:0 0 14px rgba(95,224,138,.4)}
+
+/* ---- main body : two halves : modules + patchbay ------------------ */
+.body{position:relative;z-index:2;display:grid;grid-template-columns:1fr;gap:0;padding:0}
+
+/* SVG cable overlay sits above panel, under jacks' glow but over knobs labels */
+#cables{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:visible}
+
+/* module section heading */
+.sect{position:relative;z-index:2;display:flex;align-items:center;gap:9px;
+  padding:14px 22px 2px;font:700 9.5px/1 ui-monospace,monospace;
+  letter-spacing:.26em;text-transform:uppercase;color:#5fe08a;opacity:.85}
+.sect::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.sect .dot{width:5px;height:5px;border-radius:50%;background:var(--grn);box-shadow:0 0 6px var(--grn)}
+
+/* knob grid */
+.rack{position:relative;z-index:2;display:grid;
+  grid-template-columns:repeat(4,1fr);gap:6px 4px;padding:8px 16px 4px}
+@media(max-width:520px){.rack{grid-template-columns:repeat(2,1fr)}}
+
+.mod{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 6px 11px;border-radius:11px;
+  background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.18));
+  border:1px solid rgba(255,255,255,.04);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 -8px 18px rgba(0,0,0,.25) inset;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+  animation:pop .5s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.mod:hover{transform:translateY(-2px);border-color:rgba(95,224,138,.28);
+  box-shadow:0 10px 24px rgba(0,0,0,.4),0 0 0 1px rgba(95,224,138,.18) inset}
+.mod.filt{background:linear-gradient(180deg,rgba(95,224,138,.07),rgba(0,0,0,.22))}
+
+/* ---- the KNOB ----------------------------------------------------- */
+.knob{position:relative;width:74px;height:74px;cursor:ns-resize;user-select:none;touch-action:none}
+/* outer scale ticks */
+.knob .scale{position:absolute;inset:-6px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,
+     rgba(180,200,190,.35) 0 1.1deg,transparent 1.1deg 14.7deg);
+  -webkit-mask:radial-gradient(circle,transparent 38px,#000 39px,#000 41px,transparent 42px);
+  mask:radial-gradient(circle,transparent 38px,#000 39px,#000 41px,transparent 42px)}
+/* progress arc — green by default, gold on the filter knobs via .gold */
+.knob .arc{--n:0;position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 215deg,
+     var(--ring,var(--grn)) calc(var(--n)*270deg),
+     rgba(255,255,255,.06) calc(var(--n)*270deg) 270deg,
+     transparent 270deg 360deg);
+  filter:drop-shadow(0 0 calc(3px + var(--n)*8px) color-mix(in srgb,var(--ring,var(--grn)) 65%,transparent));
+  transition:--n .13s cubic-bezier(.2,.75,.25,1)}
+/* metal cap */
+.knob .cap{position:absolute;top:9px;left:9px;width:56px;height:56px;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 26%,#5b656c,#2a3035 58%,#13181c 100%);
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.6),
+    0 1px 0 rgba(255,255,255,.10) inset,
+    0 -10px 14px rgba(0,0,0,.55) inset}
+/* knurled grip ring */
+.knob .cap::before{content:"";position:absolute;inset:3px;border-radius:50%;
+  background:repeating-conic-gradient(#0000 0 6deg,rgba(255,255,255,.05) 6deg 7deg);
+  mask:radial-gradient(circle,transparent 18px,#000 19px)}
+/* pointer notch */
+.knob .ptr{position:absolute;top:6px;left:50%;width:3px;height:21px;margin-left:-1.5px;border-radius:2px;
+  background:linear-gradient(var(--ring,var(--grn)),#fff);
+  box-shadow:0 0 8px var(--ring,var(--grn));
+  transform-origin:50% 31px;
+  transform:rotate(calc((var(--n,0) - .5) * 270deg));
+  transition:transform .13s cubic-bezier(.2,.75,.25,1)}
+.knob.act .cap{box-shadow:0 2px 6px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.14) inset,
+  0 -10px 14px rgba(0,0,0,.55) inset,0 0 0 2px color-mix(in srgb,var(--ring,var(--grn)) 50%,transparent)}
+
+.lbl{font:700 9.5px/1.1 ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;
+  color:#9fb0a8;text-align:center}
+.mod.filt .lbl{color:#e9dca0}
+.read{font:800 12px/1 ui-monospace,monospace;color:#eaf4ee;font-variant-numeric:tabular-nums;
+  min-height:12px;text-shadow:0 0 8px rgba(95,224,138,.3)}
+
+/* bubble while dragging */
+.bub{position:absolute;top:-15px;left:50%;transform:translate(-50%,5px) scale(.85);opacity:0;
+  pointer-events:none;font:800 11px/1 ui-monospace,monospace;color:#06120c;
+  background:var(--ring,var(--grn));padding:3px 7px;border-radius:5px;
+  font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.14s;white-space:nowrap}
+.knob.act .bub,.mod:hover .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+
+/* ---- PATCHBAY ----------------------------------------------------- */
+.bay{position:relative;z-index:2;margin:10px 16px 16px;border-radius:11px;
+  background:linear-gradient(180deg,#1b211e,#0d120f);
+  border:1px solid #0a0e0c;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 14px 30px rgba(0,0,0,.4) inset}
+.bay .baylabel{font:700 9px/1 ui-monospace,monospace;letter-spacing:.26em;color:#6f7d76;
+  text-transform:uppercase;padding:9px 14px 0}
+.jacks{display:flex;gap:14px;flex-wrap:wrap;padding:9px 16px 14px;justify-content:center}
+.jk{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px}
+.jk .ring{position:relative;width:30px;height:30px;border-radius:50%;
+  background:radial-gradient(circle at 40% 34%,#c9a23a,#7a5e16 55%,#3a2c09 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.6),0 0 0 2px #1a130400 inset}
+.jk .ring::after{content:"";position:absolute;inset:8px;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#14110a,#000 80%);
+  box-shadow:0 0 0 1px rgba(255,220,120,.25) inset,0 1px 2px rgba(0,0,0,.9) inset}
+.jk.lit .ring{box-shadow:0 1px 2px rgba(0,0,0,.6),0 0 12px var(--ac)}
+.jk .jl{font:700 8px/1 ui-monospace,monospace;letter-spacing:.1em;color:#8c9a91;text-transform:uppercase}
+
+/* ---- footer / explanation ---------------------------------------- */
+.foot{position:relative;z-index:2;font:11px/1.5 ui-sans-serif,system-ui;
+  color:#7e8b83;padding:0 22px 16px;border-top:1px solid rgba(255,255,255,.04);margin-top:2px;padding-top:11px}
+.foot b{color:var(--grn);font-weight:700}
+</style>
+</head>
+<body>
+<div class="unit" id="unit">
+  <span class="scr tl"></span><span class="scr tr"></span>
+  <span class="scr bl"></span><span class="scr br"></span>
+
+  <div class="head">
+    <span class="pwr"></span>
+    <div class="title"><b>PATCH&nbsp;<i>MONO</i></b><span>semi&middot;modular monophonic voice</span></div>
+    <span class="tag">8&nbsp;CV</span>
+  </div>
+
+  <!-- cables drawn over everything but jacks' light -->
+  <svg id="cables" preserveAspectRatio="none"></svg>
+
+  <div class="body">
+
+    <div class="sect"><span class="dot"></span>oscillators</div>
+    <div class="rack" id="rackOsc"></div>
+
+    <div class="sect"><span class="dot"></span>dual filter</div>
+    <div class="rack" id="rackFilt"></div>
+
+    <div class="sect"><span class="dot"></span>envelope</div>
+    <div class="rack" id="rackEnv"></div>
+
+    <div class="bay">
+      <div class="baylabel">patchbay &mdash; routed</div>
+      <div class="jacks" id="jacks"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Two detuned oscillators (<b>saw</b> + triangle-pulse with ring-mod core) drive an
+    <b>HP&rarr;LP</b> resonant chain that can self-oscillate. ADSR shapes amp &amp; cutoff. Last-note priority.
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- SINGLE SOURCE OF TRUTH : a verbatim mirror of spec.json -------
+   * These rows MUST match factory/plugins/patch-mono/spec.json exactly
+   * (index, name, min, max, default). They are the contract the engine
+   * sees; nothing here may diverge from the spec. Keep them byte-for-byte
+   * with the spec's "name" so host automation, presets and the param
+   * tooltips all agree. checkSpec() below shouts in the console if a row
+   * ever drifts (gap / dupe / out-of-range default / wrong count).      */
+  var SPEC = [
+    {index:0, name:"OscMix",    min:0, max:1, default:0.4 },
+    {index:1, name:"Detune",    min:0, max:1, default:0.25},
+    {index:2, name:"LP Cutoff", min:0, max:1, default:0.55},
+    {index:3, name:"HP Cutoff", min:0, max:1, default:0.05},
+    {index:4, name:"Resonance", min:0, max:1, default:0.6 },
+    {index:5, name:"EnvAmount", min:0, max:1, default:0.55},
+    {index:6, name:"Attack",    min:0, max:1, default:0.04},
+    {index:7, name:"Release",   min:0, max:1, default:0.35}
+  ];
+
+  /* ---- DISPLAY-ONLY skin, keyed by spec index ----------------------- *
+   * Purely cosmetic: a friendlier on-panel label, which rack the knob
+   * lives in, its ring colour and its short patchbay tag. None of this
+   * touches the contract — only what the human sees. Where the spec name
+   * is already display-ready (Detune, Attack…) the label just repeats it.*/
+  var VIEW = {
+    0:{label:"Osc Mix",   grp:"Osc",  ring:"grn", jack:"MIX"},
+    1:{label:"Detune",    grp:"Osc",  ring:"grn", jack:"DET"},
+    2:{label:"LP Cutoff", grp:"Filt", ring:"gold",jack:"LP" },
+    3:{label:"HP Cutoff", grp:"Filt", ring:"gold",jack:"HP" },
+    4:{label:"Resonance", grp:"Filt", ring:"gold",jack:"RES"},
+    5:{label:"Env Amount",grp:"Env",  ring:"grn", jack:"ENV"},
+    6:{label:"Attack",    grp:"Env",  ring:"grn", jack:"ATK"},
+    7:{label:"Release",   grp:"Env",  ring:"grn", jack:"REL"}
+  };
+
+  /* derive the working view-model from the one source of truth, so there
+   * is exactly ONE place (SPEC) to edit when the spec changes.          */
+  var PARAMS = SPEC.map(function(s){
+    var v = VIEW[s.index] || {};
+    return {
+      i:s.index, name:s.name,                 // contract name (== spec.json)
+      label:v.label || s.name,                // what the panel prints
+      min:s.min, max:s.max, def:s.default,
+      grp:v.grp || "Osc", ring:v.ring || "grn",
+      jack:v.jack || ("P"+s.index)
+    };
+  });
+
+  /* loud-on-drift guard: never silently desync from the spec. Validates
+   * the SPEC rows are a contiguous 0..n-1 set with sane defaults.       */
+  function checkSpec(){
+    var seen={}, ok=true;
+    SPEC.forEach(function(s){
+      if(s.index in seen){ ok=false; console.warn("[patch-mono] duplicate param index "+s.index); }
+      seen[s.index]=1;
+      if(s.default<s.min || s.default>s.max){ ok=false;
+        console.warn("[patch-mono] param "+s.index+" ("+s.name+") default "+s.default+" outside ["+s.min+","+s.max+"]"); }
+    });
+    for(var i=0;i<SPEC.length;i++) if(!(i in seen)){
+      ok=false; console.warn("[patch-mono] missing param index "+i+" (indices must be contiguous 0.."+(SPEC.length-1)+")"); }
+    return ok;
+  }
+
+  var GOLD="#ffd23f", GRN="#5fe08a";
+
+  function fmt(v){ return (v*100).toFixed(0).padStart(2,'0')+"%"; } /* 0..1 → percent */
+
+  var ctrls=[]; /* each: {p, knob, paint, jack, cx, cy} */
+
+  function build(p){
+    var grpClass = p.grp==="Filt" ? " filt" : "";
+    var mod=document.createElement('div');
+    mod.className='mod'+grpClass;
+    mod.style.setProperty('--d', (p.i*55)+'ms');
+    mod.style.setProperty('--ring', p.ring==='gold'?GOLD:GRN);
+
+    var knob=document.createElement('div'); knob.className='knob';
+    knob.innerHTML='<i class="scale"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i><span class="bub"></span>';
+    var lbl=document.createElement('div'); lbl.className='lbl'; lbl.textContent=p.label;
+    var read=document.createElement('div'); read.className='read';
+    mod.appendChild(knob); mod.appendChild(lbl); mod.appendChild(read);
+
+    var arc=knob.querySelector('.arc'), ptr=knob.querySelector('.ptr'), bub=knob.querySelector('.bub');
+    var val=p.def;
+    function norm(){ return (val-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var n=norm();
+      arc.style.setProperty('--n',n);
+      ptr.style.setProperty('--n',n);
+      var t=fmt(n);
+      read.textContent=t; bub.textContent=p.label+"  "+t;
+      if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.i, val);
+    }
+    function setN(n){ n=n<0?0:(n>1?1:n); val=p.min+(p.max-p.min)*n; paint(); refreshCable(p.i,n); }
+
+    /* drag */
+    var dragging=false, startY=0, startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      dragging=true; startY=e.clientY; startN=norm(); knob.classList.add('act');
+      knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!dragging) return;
+      var fine=e.shiftKey?4:1;
+      setN(startN+(startY-e.clientY)/(190*fine));
+    });
+    function end(){ dragging=false; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ val=p.def; paint(); refreshCable(p.i,norm()); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
+
+    var rack = p.grp==="Osc"?document.getElementById('rackOsc')
+             : p.grp==="Filt"?document.getElementById('rackFilt')
+             : document.getElementById('rackEnv');
+    rack.appendChild(mod);
+
+    return {p:p, knob:knob, mod:mod, paint:paint, norm:norm};
+  }
+
+  /* ---- patchbay jacks ---------------------------------------------- */
+  function buildJacks(){
+    var wrap=document.getElementById('jacks');
+    PARAMS.forEach(function(p){
+      var jk=document.createElement('div'); jk.className='jk'; jk.dataset.i=p.i;
+      jk.innerHTML='<div class="ring"></div><div class="jl">'+p.jack+'</div>';
+      jk.style.setProperty('--ac', p.ring==='gold'?GOLD:GRN);
+      wrap.appendChild(jk);
+    });
+  }
+
+  /* ---- live patch cables (SVG) ------------------------------------- *
+   * Each knob is wired to its matching jack with a sagging bezier.
+   * The cable's brightness/sag responds to the param value.            */
+  var svg=document.getElementById('cables');
+  var cableEls={}; /* i -> {path, glow} */
+
+  function center(el, ref){
+    var r=el.getBoundingClientRect(), b=ref.getBoundingClientRect();
+    return {x:r.left-b.left+r.width/2, y:r.top-b.top+r.height/2};
+  }
+  function layoutCables(){
+    var unit=document.getElementById('unit');
+    var ub=unit.getBoundingClientRect();
+    svg.setAttribute('viewBox','0 0 '+ub.width+' '+ub.height);
+    svg.setAttribute('width',ub.width); svg.setAttribute('height',ub.height);
+    PARAMS.forEach(function(p){
+      var c=ctrls[p.i];
+      var jk=document.querySelector('.jk[data-i="'+p.i+'"] .ring');
+      if(!c||!jk) return;
+      var a=center(c.knob, unit), b=center(jk, unit);
+      var d=cableEls[p.i];
+      d._a=a; d._b=b;
+      drawCable(p.i, c.norm());
+    });
+  }
+  function drawCable(i,n){
+    var d=cableEls[i]; if(!d||!d._a) return;
+    var a=d._a, b=d._b;
+    var dx=b.x-a.x, dy=b.y-a.y;
+    var dist=Math.sqrt(dx*dx+dy*dy);
+    var sag = 26 + n*46;                  /* more signal → heavier droop */
+    var mx=(a.x+b.x)/2, my=(a.y+b.y)/2 + sag;
+    var path='M '+a.x+' '+a.y+' Q '+mx+' '+my+' '+b.x+' '+b.y;
+    d.glow.setAttribute('d',path);
+    d.core.setAttribute('d',path);
+    var op = 0.18 + n*0.55;
+    d.glow.setAttribute('opacity', op);
+    d.core.setAttribute('stroke-width', 2.2);
+  }
+  function refreshCable(i,n){
+    drawCable(i,n);
+    var jk=document.querySelector('.jk[data-i="'+i+'"]');
+    if(jk){ if(n>0.04) jk.classList.add('lit'); else jk.classList.remove('lit'); }
+  }
+
+  function buildCables(){
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+    defs.innerHTML=
+      '<filter id="cblur" x="-30%" y="-30%" width="160%" height="160%">'+
+      '<feGaussianBlur stdDeviation="2.4"/></filter>';
+    svg.appendChild(defs);
+    PARAMS.forEach(function(p){
+      var col=p.ring==='gold'?GOLD:GRN;
+      var glow=document.createElementNS('http://www.w3.org/2000/svg','path');
+      glow.setAttribute('fill','none'); glow.setAttribute('stroke',col);
+      glow.setAttribute('stroke-width','5'); glow.setAttribute('stroke-linecap','round');
+      glow.setAttribute('filter','url(#cblur)'); glow.setAttribute('opacity','.25');
+      var core=document.createElementNS('http://www.w3.org/2000/svg','path');
+      core.setAttribute('fill','none');
+      core.setAttribute('stroke', p.ring==='gold'?'#fff3c4':'#d6ffe6');
+      core.setAttribute('stroke-width','2.2'); core.setAttribute('stroke-linecap','round');
+      core.setAttribute('opacity','.9');
+      /* subtle living sway */
+      core.style.animation='sway '+(3.4+p.i*0.3)+'s ease-in-out infinite alternate';
+      svg.appendChild(glow); svg.appendChild(core);
+      cableEls[p.i]={glow:glow, core:core};
+    });
+  }
+
+  /* small breathing animation for cores, injected once */
+  var kf=document.createElement('style');
+  kf.textContent='@keyframes sway{from{transform:translateY(-1px)}to{transform:translateY(1.5px)}}';
+  document.head.appendChild(kf);
+
+  /* ---- boot -------------------------------------------------------- */
+  function ready(){
+    checkSpec();
+    PARAMS.forEach(function(p){ ctrls[p.i]=build(p); });
+    buildJacks();
+    buildCables();
+    /* paint values + push defaults to host */
+    PARAMS.forEach(function(p){ ctrls[p.i].paint(); });
+    /* cables need geometry after layout */
+    requestAnimationFrame(function(){
+      layoutCables();
+      PARAMS.forEach(function(p){ refreshCable(p.i, ctrls[p.i].norm()); });
+    });
+    window.addEventListener('resize', function(){ layoutCables(); });
+  }
+
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
+  else ready();
+})();
+</script>
+</body>
+</html>

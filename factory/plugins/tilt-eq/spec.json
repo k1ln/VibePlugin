@@ -1,0 +1,17 @@
+{
+  "name": "Tilt EQ",
+  "isInstrument": false,
+  "explanation": "A mastering-grade spectral balance shelf. One Tilt control rotates the whole spectrum around an adjustable Pivot frequency — lifting the highs while pulling down the lows (or the reverse) like tipping a see-saw — with a complementary gentle Bass and Treble shelf pair and an output trim.",
+  "assembly": "factory/plugins/tilt-eq/assembly.ts",
+  "out": "factory/plugins/tilt-eq/x.vstai",
+  "publishedAt": 1751000047000,
+  "theme": { "accent": "#9ad0e0", "accent2": "#c0e0f0" },
+  "guiFile": "factory/plugins/tilt-eq/gui.html",
+  "params": [
+    { "name": "Tilt",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Pivot",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Bass",   "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Treble", "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output", "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

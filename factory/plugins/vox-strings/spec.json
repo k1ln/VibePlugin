@@ -1,0 +1,19 @@
+{
+  "name": "Vox Strings",
+  "isInstrument": true,
+  "explanation": "A paraphonic string + voice ensemble. Every held note stacks three slightly detuned sawtooth strings against a breathy, formant-filtered choir 'aah' layer; the two blend, swell through a slow attack/release contour, and pour into a lush three-phase ensemble chorus that spreads the section across the stereo field. Controls: Strings Level, Voice Level, Ensemble, Attack, Release, Tone and Level.",
+  "assembly": "factory/plugins/vox-strings/assembly.ts",
+  "out": "factory/plugins/vox-strings/x.vstai",
+  "publishedAt": 1751000076000,
+  "theme": { "accent": "#d8b0e0", "accent2": "#a0c0ff" },
+  "guiFile": "factory/plugins/vox-strings/gui.html",
+  "params": [
+    { "name": "Strings Level", "index": 0, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Voice Level",   "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Ensemble",      "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Attack",        "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Release",       "index": 4, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Tone",          "index": 5, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Level",         "index": 6, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

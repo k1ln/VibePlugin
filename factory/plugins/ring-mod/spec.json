@@ -4,13 +4,48 @@
   "explanation": "A classic ring modulator: it multiplies the input by an internal carrier oscillator to generate inharmonic sum and difference sidebands for metallic, clangorous, bell-like tones. The carrier is a sine that blends into a square, and a built-in LFO can sweep its frequency. Controls: Frequency, Waveform, LFO Rate, LFO Depth and dry/wet Mix.",
   "assembly": "factory/plugins/ring-mod/assembly.ts",
   "out": "factory/plugins/ring-mod/x.vstai",
+  "guiFile": "factory/plugins/ring-mod/gui.html",
   "publishedAt": 1751000039000,
-  "theme": { "accent": "#ff5ad1", "accent2": "#ff8ae0" },
+  "theme": {
+    "accent": "#ff5ad1",
+    "accent2": "#ff8ae0"
+  },
   "params": [
-    { "name": "Frequency", "index": 0, "min": 0, "max": 1, "default": 0.5 },
-    { "name": "Waveform",  "index": 1, "min": 0, "max": 1, "default": 0 },
-    { "name": "LFO Rate",  "index": 2, "min": 0, "max": 1, "default": 0.3 },
-    { "name": "LFO Depth", "index": 3, "min": 0, "max": 1, "default": 0.25 },
-    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 1 }
+    {
+      "name": "Frequency",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Waveform",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "LFO Rate",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "LFO Depth",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Mix",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    }
   ]
 }

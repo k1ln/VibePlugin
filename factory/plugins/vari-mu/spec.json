@@ -1,0 +1,16 @@
+{
+  "name": "Vari-Mu",
+  "isInstrument": false,
+  "explanation": "A program-dependent variable-mu tube compressor. As the input pushes harder above the threshold, the gain-reduction tube bends progressively more, so a loud signal is squeezed harder than a quiet one (a soft, rising-ratio knee with no fixed ratio). A slow, level-dependent attack feeds a dual time-constant release for a gentle, natural recovery, and subtle even-order valve harmonics add warmth. Controls: Input, Threshold, Time Constant and Output.",
+  "assembly": "factory/plugins/vari-mu/assembly.ts",
+  "out": "factory/plugins/vari-mu/x.vstai",
+  "publishedAt": 1751000057000,
+  "theme": { "accent": "#ffcf6b", "accent2": "#ff9e6b" },
+  "guiFile": "factory/plugins/vari-mu/gui.html",
+  "params": [
+    { "name": "Input",          "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Threshold",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Time Constant",  "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Output",         "index": 3, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

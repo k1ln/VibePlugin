@@ -1,0 +1,17 @@
+{
+  "name": "Pearl Reverb",
+  "isInstrument": false,
+  "explanation": "A bright early-digital reverb: a dense feedback-delay network of combs diffused through cascaded allpass sections, with a subtly grainy, sparkly converter character. A Program selector reshapes the tail into a smooth Reverb, a longer wide Space, or a nonlinear Gate. Controls: Mix, Decay, Tone, Pre-Delay and Program.",
+  "assembly": "factory/plugins/pearl-reverb/assembly.ts",
+  "out": "factory/plugins/pearl-reverb/x.vstai",
+  "publishedAt": 1751000040000,
+  "theme": { "accent": "#bfe3ff", "accent2": "#e6c6ff" },
+  "guiFile": "factory/plugins/pearl-reverb/gui.html",
+  "params": [
+    { "name": "Mix",       "index": 0, "min": 0, "max": 1,    "default": 0.3 },
+    { "name": "Decay",     "index": 1, "min": 0, "max": 1,    "default": 0.6 },
+    { "name": "Tone",      "index": 2, "min": 0, "max": 1,    "default": 0.65 },
+    { "name": "Pre-Delay", "index": 3, "min": 0, "max": 0.15, "default": 0.012 },
+    { "name": "Program",   "index": 4, "min": 0, "max": 2,    "default": 0, "step": 1 }
+  ]
+}

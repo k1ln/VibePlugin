@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Octave Up</title>
+<style>
+  :root {
+    --accent: #c08cff;
+    --accent2: #ff8cf0;
+    --bg0: #160a26;
+    --bg1: #2a0f47;
+    --ink: #f3e9ff;
+    --ink-dim: #b79ad6;
+    --glass: rgba(255,255,255,0.06);
+    --line: rgba(255,255,255,0.10);
+  }
+
+  * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  /* ---------- swirling purple-haze backdrop ---------- */
+  .haze {
+    position: fixed;
+    inset: -30%;
+    z-index: 0;
+    background:
+      radial-gradient(40% 50% at 25% 30%, rgba(192,140,255,0.45), transparent 70%),
+      radial-gradient(45% 55% at 78% 65%, rgba(255,140,240,0.40), transparent 72%),
+      radial-gradient(60% 60% at 55% 90%, rgba(120,60,200,0.50), transparent 75%),
+      conic-gradient(from 0deg at 50% 50%, #2a0f47, #3a1366, #2a0f47, #45106e, #2a0f47);
+    filter: blur(40px) saturate(140%);
+    animation: swirl 38s linear infinite;
+    opacity: 0.85;
+  }
+  .haze.b {
+    inset: -40%;
+    mix-blend-mode: screen;
+    animation: swirl 26s linear infinite reverse;
+    opacity: 0.55;
+  }
+  @keyframes swirl {
+    0%   { transform: rotate(0deg)   scale(1.05); }
+    50%  { transform: rotate(180deg) scale(1.25); }
+    100% { transform: rotate(360deg) scale(1.05); }
+  }
+
+  /* film-grain / vignette */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 35%, transparent 55%, rgba(8,2,18,0.75) 100%);
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(12px, 3vw, 28px);
+    gap: clamp(10px, 2vh, 20px);
+    overflow: auto;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .sigil {
+    width: 46px; height: 46px;
+    flex: none;
+    filter: drop-shadow(0 0 10px rgba(192,140,255,0.8));
+  }
+  .title {
+    font-weight: 800;
+    font-size: clamp(20px, 3.4vw, 30px);
+    letter-spacing: 0.5px;
+    line-height: 1;
+    background: linear-gradient(92deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-top: 5px;
+  }
+  .badge {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    background: var(--glass);
+    backdrop-filter: blur(6px);
+  }
+
+  /* ---------- waveform / octave viz ---------- */
+  .scope {
+    width: 100%;
+    max-width: 760px;
+    height: clamp(120px, 22vh, 190px);
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(20,6,40,0.7), rgba(8,2,20,0.85));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 0 40px rgba(120,40,200,0.25),
+      0 18px 40px rgba(0,0,0,0.45);
+    position: relative;
+    overflow: hidden;
+  }
+  .scope canvas { display: block; width: 100%; height: 100%; }
+  .scope .legend {
+    position: absolute;
+    top: 10px; left: 14px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    display: flex; gap: 16px;
+  }
+  .legend .dot { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- knob panel ---------- */
+  .panel {
+    width: 100%;
+    max-width: 760px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(10px, 2vw, 22px);
+    padding: clamp(14px, 3vw, 26px);
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(160deg, rgba(60,20,100,0.42), rgba(20,8,40,0.55));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      0 24px 60px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+  }
+  @media (max-width: 520px) {
+    .panel { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .knobcell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .knob {
+    position: relative;
+    width: clamp(86px, 16vw, 116px);
+    height: clamp(86px, 16vw, 116px);
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .knob .cap {
+    transition: filter 0.18s ease;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.55));
+  }
+  .knob:hover .cap,
+  .knob.drag .cap {
+    filter: drop-shadow(0 0 14px rgba(192,140,255,0.85)) drop-shadow(0 6px 12px rgba(0,0,0,0.55));
+  }
+
+  .label {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    min-width: 48px;
+    text-align: center;
+  }
+
+  footer {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+  <div class="haze"></div>
+  <div class="haze b"></div>
+  <div class="vignette"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <svg class="sigil" viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#c08cff"/>
+              <stop offset="1" stop-color="#ff8cf0"/>
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="42" fill="none" stroke="url(#sg)" stroke-width="4"/>
+          <path d="M14 64 Q32 18 50 64 Q68 18 86 64" fill="none" stroke="url(#sg)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M22 50 Q36 32 50 50 Q64 32 78 50" fill="none" stroke="#ff8cf0" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+        </svg>
+        <div>
+          <div class="title">OCTAVE UP</div>
+          <div class="subtitle">Octave&nbsp;Fuzz · Mk.I</div>
+        </div>
+      </div>
+      <div class="badge">Rectified&nbsp;Octave</div>
+    </header>
+
+    <div class="scope">
+      <div class="legend">
+        <span class="dot"><i style="background:#c08cff"></i>Fuzz</span>
+        <span class="dot"><i style="background:#ff8cf0"></i>Octave</span>
+      </div>
+      <canvas id="scope"></canvas>
+    </div>
+
+    <div class="panel" id="panel"></div>
+
+    <footer>Drag to turn · Double-click to reset</footer>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- param map (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Fuzz",   index: 0, min: 0, max: 1, def: 0.70 },
+    { name: "Octave", index: 1, min: 0, max: 1, def: 0.60 },
+    { name: "Tone",   index: 2, min: 0, max: 1, def: 0.55 },
+    { name: "Volume", index: 3, min: 0, max: 1, def: 0.70 }
+  ];
+
+  var state = {}; // index -> normalised 0..1
+  PARAMS.forEach(function (p) { state[p.index] = (p.def - p.min) / (p.max - p.min); });
+
+  // ---- host bridge ----
+  function pushParam(p) {
+    var norm = state[p.index];
+    var val = p.min + norm * (p.max - p.min);
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(p.index, val);
+    }
+    return val;
+  }
+
+  // ---- knob rendering ----
+  var R = 40, CX = 50, CY = 50;
+  var A0 = 135, A1 = 405; // sweep in degrees (270deg arc)
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  }
+  function arcPath(r, fromDeg, toDeg) {
+    var s = polar(CX, CY, r, fromDeg);
+    var e = polar(CX, CY, r, toDeg);
+    var large = (toDeg - fromDeg) % 360 > 180 ? 1 : 0;
+    return "M " + s.x + " " + s.y + " A " + r + " " + r + " 0 " + large + " 1 " + e.x + " " + e.y;
+  }
+
+  function buildKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "knobcell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    var gid = "kg" + p.index;
+    svg.innerHTML =
+      '<defs>' +
+        '<radialGradient id="' + gid + '" cx="38%" cy="32%" r="75%">' +
+          '<stop offset="0" stop-color="#6a4a9e"/>' +
+          '<stop offset="0.55" stop-color="#3a2160"/>' +
+          '<stop offset="1" stop-color="#1a0e30"/>' +
+        '</radialGradient>' +
+        '<linearGradient id="' + gid + 'a" x1="0" y1="0" x2="1" y2="1">' +
+          '<stop offset="0" stop-color="#c08cff"/>' +
+          '<stop offset="1" stop-color="#ff8cf0"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      // outer recessed well
+      '<circle cx="50" cy="50" r="46" fill="#0d0620" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>' +
+      // track (background arc)
+      '<path d="' + arcPath(R, A0, A1) + '" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="6" stroke-linecap="round"/>' +
+      // value arc
+      '<path class="varc" d="" fill="none" stroke="url(#' + gid + 'a)" stroke-width="6" stroke-linecap="round"/>' +
+      // knob cap body
+      '<g class="cap">' +
+        '<circle cx="50" cy="50" r="30" fill="url(#' + gid + ')" stroke="rgba(0,0,0,0.5)" stroke-width="1.5"/>' +
+        '<circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1" transform="translate(0,-1)"/>' +
+        '<line class="ptr" x1="50" y1="50" x2="50" y2="26" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
+      '</g>';
+    knob.appendChild(svg);
+    cell.appendChild(knob);
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+    cell.appendChild(label);
+
+    var value = document.createElement("div");
+    value.className = "value";
+    cell.appendChild(value);
+
+    var varc = svg.querySelector(".varc");
+    var ptr = svg.querySelector(".ptr");
+
+    function redraw() {
+      var n = state[p.index];
+      var ang = A0 + n * (A1 - A0);
+      // value arc from start to current
+      if (n <= 0.0001) {
+        varc.setAttribute("d", "");
+      } else {
+        varc.setAttribute("d", arcPath(R, A0, ang));
+      }
+      ptr.setAttribute("transform", "rotate(" + (ang - 270) + " 50 50)");
+      var val = pushParam(p);
+      value.textContent = (val).toFixed(2);
+    }
+
+    // ---- drag interaction ----
+    var dragging = false, startY = 0, startN = 0;
+
+    function onDown(e) {
+      dragging = true;
+      knob.classList.add("drag");
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startN = state[p.index];
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = startY - y;
+      var fine = (e.shiftKey) ? 0.25 : 1.0;
+      var n = startN + (dy / 200) * fine;
+      n = Math.max(0, Math.min(1, n));
+      state[p.index] = n;
+      redraw();
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      knob.classList.remove("drag");
+    }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    knob.addEventListener("wheel", function (e) {
+      var n = state[p.index] - Math.sign(e.deltaY) * 0.02;
+      state[p.index] = Math.max(0, Math.min(1, n));
+      redraw();
+      e.preventDefault();
+    }, { passive: false });
+
+    knob.addEventListener("dblclick", function () {
+      state[p.index] = (p.def - p.min) / (p.max - p.min);
+      redraw();
+    });
+
+    p._redraw = redraw;
+    redraw();
+    return cell;
+  }
+
+  function initUI() {
+    var panel = document.getElementById("panel");
+    PARAMS.forEach(function (p) { panel.appendChild(buildKnob(p)); });
+    startScope();
+  }
+
+  // ---- octave-doubling waveform visualiser ----
+  function startScope() {
+    var cv = document.getElementById("scope");
+    var ctx = cv.getContext("2d");
+    var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      var r = cv.getBoundingClientRect();
+      W = Math.max(1, r.width); H = Math.max(1, r.height);
+      cv.width = W * dpr; cv.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    var t = 0;
+
+    function wave(x, freqMul, drive, oct) {
+      // base fundamental
+      var ph = x * 2 * Math.PI * freqMul + t;
+      var s = Math.sin(ph);
+      // fuzz: soft saturate driven by Fuzz knob
+      var d = 1 + drive * 9;
+      var fz = Math.tanh(s * d) / Math.tanh(d * 0.6 + 0.6);
+      // rectified octave path: |fz| folds, doubling pitch
+      var rect = Math.abs(fz) * 2 - 0.9;
+      return fz * (1 - oct * 0.6) + rect * oct;
+    }
+
+    function frame() {
+      if (document.hidden) { requestAnimationFrame(frame); return; }
+      t += 0.045;
+      ctx.clearRect(0, 0, W, H);
+
+      var fuzz = state[0], oct = state[1], tone = state[2], vol = state[3];
+      var mid = H * 0.5;
+      var amp = (H * 0.30) * (0.5 + vol * 0.7);
+      var freqMul = 2.2 + tone * 3.0;
+
+      // grid baseline
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(W, mid); ctx.stroke();
+
+      // --- fuzz layer (accent 1) ---
+      drawLayer(function (x) {
+        var ph = (x / W) * 2 * Math.PI * freqMul + t;
+        var d = 1 + fuzz * 9;
+        var s = Math.sin(ph);
+        return Math.tanh(s * d) / (Math.tanh(d * 0.6 + 0.6));
+      }, "#c08cff", 0.55, amp * 0.85);
+
+      // --- octave layer (accent 2), glowing ---
+      ctx.save();
+      ctx.shadowColor = "rgba(255,140,240,0.7)";
+      ctx.shadowBlur = 12;
+      drawLayer(function (x) {
+        return wave(x / W, freqMul, fuzz, oct);
+      }, "#ff8cf0", 0.95, amp);
+      ctx.restore();
+
+      function drawLayer(fn, color, alpha, a) {
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        for (var x = 0; x <= W; x += 2) {
+          var y = mid - fn(x) * a;
+          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ---- boot (honour onReady) ----
+  function boot() {
+    initUI();
+    // ensure all params initialised to defaults on the engine
+    PARAMS.forEach(function (p) { pushParam(p); });
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

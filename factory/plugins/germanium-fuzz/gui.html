@@ -1,0 +1,392 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  @property --n0{syntax:'<number>';inherits:false;initial-value:0}
+  @property --n1{syntax:'<number>';inherits:false;initial-value:0}
+  :root{
+    --ac:#d98b4a;            /* germanium amber */
+    --ac2:#e8a860;           /* warm highlight */
+    --case:#b56a2e;          /* hammered enclosure */
+    --caseD:#5e3414;         /* shadow side */
+    --eye:#f4ead6;           /* knob face cream */
+    --smile:#3a2412;         /* engraving brown */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:#f3e6d2;
+    background:
+      radial-gradient(120% 95% at 50% 8%,#2a1b10 0%,#160d07 55%,#0a0603 100%);
+    display:flex;align-items:center;justify-content:center;
+    padding:18px;overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* ---- floor shadow + workbench glow -------------------------------- */
+  .stage{
+    position:relative;width:100%;max-width:420px;
+    display:flex;flex-direction:column;align-items:center;gap:14px;
+    animation:rise .8s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
+
+  /* ===================================================================
+     THE PEDAL — a round die-cast fuzz-face enclosure
+     =================================================================== */
+  .pedal{
+    position:relative;width:340px;height:340px;flex:0 0 auto;
+    border-radius:50%;
+    /* warm rim light + a slow idle wobble like it's alive */
+    animation:idle 7s ease-in-out infinite;
+    will-change:transform;
+    cursor:default;
+  }
+  @keyframes idle{0%,100%{transform:rotate(-1.1deg)}50%{transform:rotate(1.1deg)}}
+
+  /* hammered metal body */
+  .body{
+    position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(60% 55% at 38% 30%,#e89a52 0%,#c4742f 38%,#9a531f 70%,#5e3414 100%);
+    box-shadow:
+      0 26px 50px -10px rgba(0,0,0,.7),
+      0 8px 18px rgba(0,0,0,.55),
+      inset 0 -14px 30px rgba(0,0,0,.55),
+      inset 0 14px 26px rgba(255,225,180,.35);
+  }
+  /* hammered speckle texture (pure CSS) */
+  .body::before{
+    content:"";position:absolute;inset:0;border-radius:50%;opacity:.5;mix-blend-mode:overlay;
+    background:
+      radial-gradient(2px 2px at 20% 30%,rgba(255,255,255,.5),transparent 60%),
+      radial-gradient(2px 2px at 70% 22%,rgba(0,0,0,.4),transparent 60%),
+      radial-gradient(3px 3px at 48% 60%,rgba(255,255,255,.35),transparent 60%),
+      radial-gradient(2px 2px at 33% 78%,rgba(0,0,0,.45),transparent 60%),
+      radial-gradient(2px 2px at 82% 65%,rgba(255,255,255,.4),transparent 60%),
+      radial-gradient(2px 2px at 60% 40%,rgba(0,0,0,.35),transparent 60%),
+      radial-gradient(3px 3px at 12% 55%,rgba(255,255,255,.3),transparent 60%);
+  }
+  /* moving specular sweep — a soft light gliding across the metal */
+  .body::after{
+    content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:linear-gradient(115deg,transparent 38%,rgba(255,240,210,.5) 50%,transparent 62%);
+    mix-blend-mode:screen;animation:sweep 6.5s ease-in-out infinite;
+  }
+  @keyframes sweep{0%,100%{transform:translateX(-30%);opacity:.25}50%{transform:translateX(30%);opacity:.85}}
+
+  /* outer engraved ring + bolts */
+  .ring{position:absolute;inset:14px;border-radius:50%;
+    border:2px solid rgba(60,30,12,.55);
+    box-shadow:inset 0 0 0 6px rgba(255,225,180,.12),inset 0 0 22px rgba(0,0,0,.45);
+    pointer-events:none;}
+  .bolt{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#f0d9b3,#7a4a22 70%,#3a2310);
+    box-shadow:0 1px 2px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.5);}
+  .bolt::after{content:"";position:absolute;inset:4px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 45%,rgba(40,20,8,.8) 45% 55%,transparent 55%);
+    transform:rotate(35deg);}
+  .b0{top:8px;left:50%;margin-left:-6.5px}
+  .b1{bottom:8px;left:50%;margin-left:-6.5px}
+  .b2{top:50%;left:8px;margin-top:-6.5px}
+  .b3{top:50%;right:8px;margin-top:-6.5px}
+
+  /* the engraved SMILE — an SVG arc with eyebrow ticks */
+  .face{position:absolute;inset:0;pointer-events:none;overflow:visible}
+  .smile{
+    fill:none;stroke:var(--smile);stroke-width:9;stroke-linecap:round;
+    filter:drop-shadow(0 1px 0 rgba(255,225,180,.35));
+    opacity:.85;
+  }
+  /* the smile brightens & widens a touch when the fuzz is cranked */
+  .smileGlow{
+    fill:none;stroke:var(--ac2);stroke-width:5;stroke-linecap:round;
+    opacity:calc(.15 + var(--fuzzn,.5)*.7);
+    filter:drop-shadow(0 0 6px var(--ac));
+    transition:opacity .25s ease;
+  }
+
+  /* nose: the germanium status LED / footswitch jewel */
+  .nose{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:30px;height:30px;border-radius:50%;cursor:pointer;
+    background:radial-gradient(circle at 38% 32%,#fff5e6,var(--ac) 45%,#7a3d12 90%);
+    box-shadow:
+      0 0 0 5px rgba(40,20,8,.6),
+      0 0 14px var(--ac),
+      inset 0 -2px 4px rgba(0,0,0,.5),
+      inset 0 2px 3px rgba(255,255,255,.6);
+    animation:beat 2.2s ease-in-out infinite;
+    z-index:6;
+  }
+  @keyframes beat{0%,100%{box-shadow:0 0 0 5px rgba(40,20,8,.6),0 0 8px var(--ac),inset 0 -2px 4px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.6)}
+    50%{box-shadow:0 0 0 5px rgba(40,20,8,.6),0 0 22px var(--ac2),inset 0 -2px 4px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.7)}}
+
+  /* ---- the two EYES (knobs) ----------------------------------------- */
+  .eye{
+    position:absolute;width:104px;height:104px;cursor:ns-resize;
+    touch-action:none;user-select:none;z-index:5;
+  }
+  .eyeL{left:58px;top:78px}
+  .eyeR{right:58px;top:78px}
+
+  /* dark eye-socket recess */
+  .socket{position:absolute;inset:-9px;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%,rgba(0,0,0,.15),rgba(0,0,0,.55) 75%);
+    box-shadow:inset 0 4px 10px rgba(0,0,0,.65),0 1px 0 rgba(255,225,180,.25);}
+
+  /* the value arc that wraps the knob (filled by --nX) */
+  .arc{position:absolute;inset:-2px;border-radius:50%;}
+  .arcL{background:conic-gradient(from 225deg,
+      var(--ac) calc(var(--n0)*270deg),
+      rgba(0,0,0,.35) calc(var(--n0)*270deg) 270deg,
+      transparent 270deg);
+    filter:drop-shadow(0 0 calc(2px + var(--n0)*8px) var(--ac));}
+  .arcR{background:conic-gradient(from 225deg,
+      var(--ac) calc(var(--n1)*270deg),
+      rgba(0,0,0,.35) calc(var(--n1)*270deg) 270deg,
+      transparent 270deg);
+    filter:drop-shadow(0 0 calc(2px + var(--n1)*8px) var(--ac));}
+  .arc{-webkit-mask:radial-gradient(circle,transparent 49px,#000 50px);
+       mask:radial-gradient(circle,transparent 49px,#000 50px);}
+
+  /* the cream chicken-head knob cap */
+  .cap{position:absolute;inset:4px;border-radius:50%;
+    background:
+      radial-gradient(circle at 42% 30%,#fffaf0 0%,var(--eye) 40%,#d8c5a0 78%,#9a8460 100%);
+    box-shadow:
+      inset 0 -6px 12px rgba(120,90,50,.5),
+      inset 0 5px 10px rgba(255,255,255,.7),
+      0 4px 9px rgba(0,0,0,.5);
+    transition:transform .12s ease;
+  }
+  .eye:active .cap,.eye.act .cap{transform:scale(.97)}
+  /* the iris / pointer indent that rotates */
+  .iris{position:absolute;inset:0;border-radius:50%;
+    transform:rotate(calc((var(--nn,0) - 0.5)*270deg));
+    transition:transform .12s cubic-bezier(.2,.75,.25,1);}
+  .pupil{position:absolute;top:9px;left:50%;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#5a3a18,#1c0f04);
+    box-shadow:0 0 5px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.25);}
+  .pupil::after{content:"";position:absolute;left:50%;top:13px;transform:translateX(-50%);
+    width:3px;height:13px;border-radius:2px;background:var(--smile);opacity:.55}
+
+  /* value bubble over each eye */
+  .bub{position:absolute;left:50%;top:-6px;transform:translate(-50%,-100%) scale(.85);
+    opacity:0;pointer-events:none;font-weight:800;font-size:12px;color:#1c0f04;
+    background:linear-gradient(var(--ac2),var(--ac));padding:3px 9px;border-radius:7px;
+    font-variant-numeric:tabular-nums;box-shadow:0 6px 14px rgba(0,0,0,.45);
+    transition:.16s;white-space:nowrap;z-index:9;}
+  .bub::after{content:"";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%) rotate(45deg);
+    width:8px;height:8px;background:var(--ac);}
+  .eye:hover .bub,.eye.act .bub{opacity:1;transform:translate(-50%,-100%) scale(1)}
+
+  /* tiny etched label under each eye */
+  .eyelbl{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);
+    font-size:10px;letter-spacing:.22em;font-weight:800;color:#3a2412;
+    text-shadow:0 1px 0 rgba(255,225,180,.4);white-space:nowrap;}
+
+  /* ===================================================================
+     CHASSIS RAIL — Tone & Volume as boutique vertical slide-faders
+     mounted on a brushed plate below the round can
+     =================================================================== */
+  .rail{
+    position:relative;width:340px;border-radius:16px;padding:14px 20px 16px;
+    background:linear-gradient(180deg,#3a2615,#241409);
+    border:1px solid rgba(255,225,180,.14);
+    box-shadow:0 14px 30px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,225,180,.18);
+    display:flex;gap:18px;
+  }
+  .plate{position:absolute;inset:0;border-radius:16px;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,transparent 1px 3px);}
+  .fader{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1}
+  .track{position:relative;width:100%;height:118px;border-radius:9px;cursor:ns-resize;
+    touch-action:none;user-select:none;
+    background:linear-gradient(180deg,#0c0703,#1c0f06);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,225,180,.1);
+    border:1px solid rgba(0,0,0,.5);overflow:hidden;}
+  /* the slot the cap rides in */
+  .slot{position:absolute;left:50%;top:10px;bottom:10px;width:5px;margin-left:-2.5px;border-radius:3px;
+    background:#000;box-shadow:inset 0 0 4px rgba(0,0,0,.9);}
+  /* glowing fill from bottom up to the cap */
+  .fill{position:absolute;left:50%;width:7px;margin-left:-3.5px;bottom:10px;border-radius:3px;
+    background:linear-gradient(var(--ac2),var(--ac));
+    box-shadow:0 0 9px var(--ac);
+    height:calc((var(--fn,0))*98px);
+    transition:height .1s linear;}
+  /* the fader knob */
+  .grip{position:absolute;left:50%;width:46px;height:22px;margin-left:-23px;border-radius:6px;
+    bottom:calc(10px + (var(--fn,0))*98px - 11px);
+    background:linear-gradient(180deg,#fffaf0,#d8c5a0 55%,#9a8460);
+    box-shadow:0 3px 7px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.8),inset 0 -2px 3px rgba(120,90,50,.5);
+    transition:bottom .1s linear,filter .15s;}
+  .grip::after{content:"";position:absolute;left:8px;right:8px;top:50%;height:2px;margin-top:-1px;border-radius:2px;
+    background:linear-gradient(90deg,transparent,var(--ac),transparent);box-shadow:0 0 5px var(--ac);}
+  .track:hover .grip,.track.act .grip{filter:brightness(1.06)}
+  .flbl{font-size:10px;letter-spacing:.2em;font-weight:800;color:#e8a860;text-transform:uppercase}
+  .fval{font-size:13px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+
+  /* maker's mark */
+  .mark{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.28em;
+    text-transform:uppercase;color:#a8753f;font-weight:700;opacity:.85}
+  .mark .dot{width:6px;height:6px;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--ac)}
+
+  @media(max-width:380px){
+    .pedal{width:300px;height:300px}
+    .eyeL{left:48px}.eyeR{right:48px}
+    .rail{width:300px}
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+
+    <!-- ============ THE ROUND FUZZ-FACE PEDAL ============ -->
+    <div class="pedal" id="pedal">
+      <div class="body"></div>
+      <div class="ring"></div>
+      <span class="bolt b0"></span><span class="bolt b1"></span>
+      <span class="bolt b2"></span><span class="bolt b3"></span>
+
+      <!-- engraved smile -->
+      <svg class="face" id="faceSvg" viewBox="0 0 340 340">
+        <path class="smile"     d="M96 214 Q170 286 244 214"></path>
+        <path class="smileGlow" id="smileGlow" d="M96 214 Q170 286 244 214"></path>
+      </svg>
+
+      <!-- LEFT EYE = FUZZ (param 0) -->
+      <div class="eye eyeL" id="eye0" data-i="0" data-min="0" data-max="1" data-def="0.75" data-step="0.001" data-nv="n0">
+        <div class="socket"></div>
+        <div class="arc arcL"></div>
+        <div class="cap"><div class="iris"><span class="pupil"></span></div></div>
+        <span class="bub"></span>
+        <span class="eyelbl">FUZZ</span>
+      </div>
+
+      <!-- RIGHT EYE = BIAS (param 1) -->
+      <div class="eye eyeR" id="eye1" data-i="1" data-min="0" data-max="1" data-def="0.65" data-step="0.001" data-nv="n1">
+        <div class="socket"></div>
+        <div class="arc arcR"></div>
+        <div class="cap"><div class="iris"><span class="pupil"></span></div></div>
+        <span class="bub"></span>
+        <span class="eyelbl">BIAS</span>
+      </div>
+
+      <!-- nose jewel / status LED -->
+      <div class="nose" id="nose" title="germanium status"></div>
+    </div>
+
+    <!-- ============ TONE / VOLUME FADER RAIL ============ -->
+    <div class="rail">
+      <div class="plate"></div>
+
+      <!-- TONE (param 2) -->
+      <div class="fader">
+        <div class="track" id="fad2" data-i="2" data-min="0" data-max="1" data-def="0.5" data-step="0.001">
+          <div class="slot"></div><div class="fill"></div><div class="grip"></div>
+        </div>
+        <div class="flbl">Tone</div><div class="fval" id="v2"></div>
+      </div>
+
+      <!-- VOLUME (param 3) -->
+      <div class="fader">
+        <div class="track" id="fad3" data-i="3" data-min="0" data-max="1" data-def="0.5" data-step="0.001">
+          <div class="slot"></div><div class="fill"></div><div class="grip"></div>
+        </div>
+        <div class="flbl">Volume</div><div class="fval" id="v3"></div>
+      </div>
+    </div>
+
+    <div class="mark"><span class="dot"></span>GERMANIUM FUZZ &nbsp;·&nbsp; HAND-WIRED</div>
+  </div>
+
+<script>
+(function(){
+  function fmt(v){ return (Math.round(v*100)).toString(); } // 0–100 % display
+  function clamp(n){ return n<0?0:(n>1?1:n); }
+
+  var pedal = document.getElementById('pedal');
+  var smileGlow = document.getElementById('smileGlow');
+
+  function send(i,val){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i,val); }
+
+  // ---- the two EYE knobs ----
+  function initEye(el){
+    var i=+el.dataset.i, mn=+el.dataset.min, mx=+el.dataset.max,
+        def=+el.dataset.def, step=+el.dataset.step||0.001, nv=el.dataset.nv;
+    var iris=el.querySelector('.iris'), bub=el.querySelector('.bub');
+    var val=def, dragging=false, sy=0, sn=0;
+    function norm(){ return (val-mn)/((mx-mn)||1); }
+    function paint(){
+      var n=norm();
+      pedal.style.setProperty('--'+nv, n.toFixed(4));     // arc + glow filter
+      iris.style.setProperty('--nn', n.toFixed(4));        // pointer rotation
+      bub.textContent = fmt(n);
+      if(i===0){ pedal.style.setProperty('--fuzzn', n.toFixed(4));
+                 smileGlow.style.setProperty('--fuzzn', n.toFixed(4)); }
+      send(i,val);
+    }
+    function setN(n){ n=clamp(n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
+    el.addEventListener('pointerdown',function(e){
+      dragging=true; sy=e.clientY; sn=norm(); el.classList.add('act');
+      el.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    el.addEventListener('pointermove',function(e){
+      if(!dragging) return; setN(sn + (sy - e.clientY)/220);
+    });
+    function end(){ dragging=false; el.classList.remove('act'); }
+    el.addEventListener('pointerup',end);
+    el.addEventListener('pointercancel',end);
+    el.addEventListener('dblclick',function(){ val=def; paint(); });
+    el.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
+    paint();
+  }
+
+  // ---- the two vertical FADERS ----
+  function initFader(el){
+    var i=+el.dataset.i, mn=+el.dataset.min, mx=+el.dataset.max,
+        def=+el.dataset.def, step=+el.dataset.step||0.001;
+    var out=document.getElementById('v'+i);
+    var val=def, dragging=false;
+    function norm(){ return (val-mn)/((mx-mn)||1); }
+    function paint(){
+      var n=norm();
+      el.style.setProperty('--fn', n.toFixed(4));
+      if(out) out.textContent=fmt(n);
+      send(i,val);
+    }
+    function setN(n){ n=clamp(n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
+    function fromY(e){
+      var r=el.getBoundingClientRect();
+      // active travel is inset 10px top & bottom (slot)
+      var top=r.top+10, h=r.height-20;
+      setN(1-((e.clientY-top)/h));
+    }
+    el.addEventListener('pointerdown',function(e){
+      dragging=true; el.classList.add('act'); el.setPointerCapture(e.pointerId);
+      fromY(e); e.preventDefault();
+    });
+    el.addEventListener('pointermove',function(e){ if(dragging) fromY(e); });
+    function end(){ dragging=false; el.classList.remove('act'); }
+    el.addEventListener('pointerup',end);
+    el.addEventListener('pointercancel',end);
+    el.addEventListener('dblclick',function(){ val=def; paint(); });
+    el.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.03:-0.03)); },{passive:false});
+    paint();
+  }
+
+  function ready(){
+    initEye(document.getElementById('eye0'));
+    initEye(document.getElementById('eye1'));
+    initFader(document.getElementById('fad2'));
+    initFader(document.getElementById('fad3'));
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

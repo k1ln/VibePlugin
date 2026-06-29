@@ -1,0 +1,287 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+:root{--ac:#5ad1ff;--ac2:#8ae0ff;--bg0:#040810;--bg1:#0a1422}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#dceaf6;
+  background:radial-gradient(120% 90% at 50% -10%,#0e1c30 0%,var(--bg1) 50%,var(--bg0) 100%);
+  display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden}
+.unit{position:relative;width:100%;max-width:560px;border-radius:20px;overflow:hidden;
+  background:linear-gradient(168deg,rgba(16,28,46,.96),rgba(5,10,18,.97));
+  border:1px solid rgba(120,200,255,.14);
+  box-shadow:0 36px 80px rgba(0,0,0,.66),inset 0 1px 0 rgba(140,220,255,.10),inset 0 0 60px rgba(8,20,40,.6)}
+.unit::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:20px;
+  background:linear-gradient(transparent 0,transparent 1px) 0 0/100% 3px,
+            repeating-linear-gradient(90deg,transparent 0 2px,rgba(90,209,255,.012) 2px 3px);
+  mix-blend-mode:screen;opacity:.5}
+/* header */
+.hd{position:relative;z-index:3;display:flex;align-items:center;gap:11px;padding:15px 20px 13px;
+  border-bottom:1px solid rgba(90,209,255,.12);
+  background:linear-gradient(180deg,rgba(90,209,255,.07),transparent)}
+.beacon{position:relative;width:11px;height:11px}
+.beacon i{position:absolute;inset:0;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 12px var(--ac),0 0 3px #fff inset;animation:beat var(--beat,500ms) linear infinite}
+.beacon i::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--ac);
+  animation:ring var(--beat,500ms) linear infinite;opacity:0}
+@keyframes beat{0%{transform:scale(.7);opacity:.5}30%{transform:scale(1);opacity:1}100%{transform:scale(.7);opacity:.5}}
+@keyframes ring{0%{transform:scale(.6);opacity:.8}100%{transform:scale(2.4);opacity:0}}
+.ttl{flex:1;min-width:0}
+.ttl h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ttl p{margin:2px 0 0;font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:#5d7a94}
+.chip{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#7fb6d8;
+  border:1px solid rgba(90,209,255,.28);border-radius:999px;padding:4px 10px;white-space:nowrap}
+/* arena: the bounce field */
+.arena{position:relative;z-index:2;height:148px;margin:16px 18px 6px;border-radius:14px;
+  background:
+    radial-gradient(80% 130% at 50% 120%,rgba(90,209,255,.10),transparent 60%),
+    linear-gradient(180deg,#020912,#06121f);
+  border:1px solid rgba(90,209,255,.14);overflow:hidden;
+  box-shadow:inset 0 2px 18px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.4)}
+/* L / R goal posts */
+.wall{position:absolute;top:0;bottom:0;width:34px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;letter-spacing:.1em;color:#3f5e78}
+.wall.l{left:0;border-right:1px solid rgba(90,209,255,.10);background:linear-gradient(90deg,rgba(90,209,255,.08),transparent)}
+.wall.r{right:0;border-left:1px solid rgba(90,209,255,.10);background:linear-gradient(270deg,rgba(90,209,255,.08),transparent)}
+.wall b{transition:color .12s,text-shadow .12s}
+.wall.hit b{color:var(--ac);text-shadow:0 0 14px var(--ac)}
+/* centre net + lane guides */
+.net{position:absolute;left:50%;top:8px;bottom:8px;width:1px;margin-left:-.5px;
+  background:repeating-linear-gradient(180deg,rgba(90,209,255,.30) 0 5px,transparent 5px 11px)}
+.lane{position:absolute;left:34px;right:34px;height:1px;background:rgba(90,209,255,.07)}
+/* travelling SVG path for taps/trail */
+.field{position:absolute;inset:0;width:100%;height:100%}
+.trail{fill:none;stroke:var(--ac);stroke-width:1.4;opacity:.28;
+  stroke-dasharray:3 6;animation:flow 1.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-18}}
+/* the bouncing ball */
+.ball{position:absolute;top:50%;left:0;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#fff,var(--ac2) 38%,var(--ac) 70%,#1d6f95 100%);
+  box-shadow:0 0 18px var(--ac),0 0 40px rgba(90,209,255,.6);
+  animation:px var(--beat,500ms) cubic-bezier(.42,0,.58,1) infinite alternate,
+            py calc(var(--beat,500ms)/2) cubic-bezier(.33,0,.67,1) infinite alternate;
+  will-change:transform}
+@keyframes px{from{left:var(--lx,42px)}to{left:var(--rx,calc(100% - 42px))}}
+@keyframes py{from{transform:translateY(calc(-1*var(--arc,34px)))}to{transform:translateY(var(--arc,34px))}}
+/* echo ghosts trailing behind */
+.ghost{position:absolute;top:50%;left:0;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;
+  background:radial-gradient(circle,var(--ac),transparent 70%);pointer-events:none;
+  animation:px var(--beat,500ms) cubic-bezier(.42,0,.58,1) infinite alternate,
+            py calc(var(--beat,500ms)/2) cubic-bezier(.33,0,.67,1) infinite alternate;will-change:transform}
+.ghost.g1{opacity:.55;animation-delay:calc(-1*var(--beat,500ms)*.16),calc(-1*var(--beat,500ms)*.16)}
+.ghost.g2{opacity:.32;animation-delay:calc(-1*var(--beat,500ms)*.34),calc(-1*var(--beat,500ms)*.34)}
+.ghost.g3{opacity:.16;animation-delay:calc(-1*var(--beat,500ms)*.55),calc(-1*var(--beat,500ms)*.55)}
+/* tap pips along the bottom */
+.taps{position:absolute;left:40px;right:40px;bottom:9px;height:10px;display:flex;gap:5px;align-items:flex-end}
+.tap{flex:1;height:3px;border-radius:2px;background:rgba(90,209,255,.16);transition:.18s}
+.tap.on{height:9px;background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 8px var(--ac)}
+/* readout overlay */
+.read{position:absolute;left:40px;bottom:24px;font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:#4f718c;pointer-events:none}
+/* ===== control deck — bespoke "paddle rails" (vertical bounce-faders) ===== */
+.deck{position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:14px 16px 8px}
+@media(max-width:520px){.deck{grid-template-columns:repeat(3,1fr)}}
+.rail{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:10px 4px 11px;border-radius:14px;animation:rise .5s both;animation-delay:var(--d);
+  transition:background .18s,transform .18s}
+.rail:hover{background:rgba(90,209,255,.05);transform:translateY(-2px)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* the lane the paddle slides along */
+.slot{position:relative;width:34px;height:88px;cursor:ns-resize;touch-action:none;user-select:none;
+  border-radius:11px;
+  background:linear-gradient(180deg,#04101c,#020a13);
+  border:1px solid rgba(90,209,255,.14);
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.4)}
+/* dashed centre net inside each lane — echoes the arena */
+.slot::before{content:"";position:absolute;left:50%;top:7px;bottom:7px;width:1px;margin-left:-.5px;
+  background:repeating-linear-gradient(180deg,rgba(90,209,255,.22) 0 4px,transparent 4px 9px)}
+/* the energy fill that rises with the value (the "charge" the ball gets) */
+.fill{position:absolute;left:3px;right:3px;bottom:3px;border-radius:9px;height:var(--h,30%);
+  background:linear-gradient(180deg,var(--ac2),var(--ac) 60%,rgba(90,209,255,.25));
+  box-shadow:0 0 14px rgba(90,209,255,.5),inset 0 1px 0 rgba(255,255,255,.25);
+  transition:height .12s cubic-bezier(.2,.8,.3,1)}
+/* the paddle puck that floats on top of the fill */
+.puck{position:absolute;left:-3px;right:-3px;height:11px;border-radius:7px;
+  bottom:calc(var(--h,30%) - 5px);
+  background:radial-gradient(120% 180% at 50% 0,#eafaff,var(--ac2) 45%,var(--ac) 100%);
+  box-shadow:0 0 12px var(--ac),0 2px 4px rgba(0,0,0,.6);
+  transition:bottom .12s cubic-bezier(.2,.8,.3,1)}
+/* a little pip that pings off the paddle when grabbed */
+.slot.act .puck{box-shadow:0 0 18px var(--ac),0 0 0 1px #eafaff,0 2px 4px rgba(0,0,0,.6)}
+.slot.act{border-color:rgba(90,209,255,.45)}
+.spark{position:absolute;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;
+  background:var(--ac2);box-shadow:0 0 10px var(--ac);opacity:0;pointer-events:none}
+.slot.act .spark{animation:spark .5s ease-out infinite}
+@keyframes spark{0%{opacity:.9;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-26px) scale(.3)}}
+.nm{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:#7f9ab4}
+.val{font-size:12px;font-weight:800;color:#eaf6ff;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(90,209,255,.4)}
+.ft{position:relative;z-index:2;font-size:10px;line-height:1.5;color:#5d7a94;margin:2px 18px 14px;
+  border-top:1px solid rgba(90,209,255,.10);padding-top:9px}
+</style></head><body>
+<div class="unit">
+  <div class="hd">
+    <span class="beacon"><i></i></span>
+    <div class="ttl"><h1>Ping&nbsp;Delay</h1><p>Stereo&nbsp;Bounce&nbsp;Engine</p></div>
+    <span class="chip">6 · ping&#8596;pong</span>
+  </div>
+
+  <div class="arena" id="arena">
+    <div class="lane" style="top:50%"></div>
+    <div class="net"></div>
+    <svg class="field" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path class="trail" id="trail" d="M8,50 Q50,12 92,50 Q50,88 8,50"/>
+    </svg>
+    <div class="wall l" id="wallL"><b>L</b></div>
+    <div class="wall r" id="wallR"><b>R</b></div>
+    <div class="ghost g3"></div><div class="ghost g2"></div><div class="ghost g1"></div>
+    <div class="ball" id="ball"></div>
+    <div class="taps" id="taps"></div>
+    <span class="read" id="read">— ms · ∞</span>
+  </div>
+
+  <div class="deck" id="deck"></div>
+  <div class="ft" id="ft"></div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Time",index:0,min:0,max:1,def:0.33},
+    {name:"Feedback",index:1,min:0,max:1,def:0.45},
+    {name:"Taps",index:2,min:0,max:1,def:0.4},
+    {name:"Tone",index:3,min:0,max:1,def:0.55},
+    {name:"Width",index:4,min:0,max:1,def:0.8},
+    {name:"Mix",index:5,min:0,max:1,def:0.5}
+  ];
+  var STEP=0.001;
+  var vals={}; // index -> value
+  var deck=document.getElementById('deck');
+  var ft=document.getElementById('ft');
+  ft.textContent="A stereo ping-pong / multi-tap delay. The wet signal cross-feeds between left and right so every repeat bounces to the opposite side; extra taps thicken the pattern, Tone darkens repeats, Width spreads the bounce, and a saturated feedback path stays bounded near max.";
+
+  function fmt(v){return (Math.round(v*100)/100).toFixed(2);}
+
+  function host(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+
+  /* each param is a bespoke vertical "paddle rail": grab the puck and slide;
+     the energy fill rises with the value and sparks ping off while dragging. */
+  function makeRail(p,di){
+    var rail=document.createElement('div');
+    rail.className='rail'; rail.style.setProperty('--d',(di*55)+'ms');
+    rail.innerHTML=
+      '<div class="slot" tabindex="0">'+
+        '<div class="fill"></div><div class="puck"></div><div class="spark"></div>'+
+      '</div>'+
+      '<div class="nm">'+p.name+'</div><div class="val">0.00</div>';
+    deck.appendChild(rail);
+    var slot=rail.querySelector('.slot'),
+        fill=rail.querySelector('.fill'),
+        puck=rail.querySelector('.puck'),
+        spark=rail.querySelector('.spark'),
+        out=rail.querySelector('.val');
+
+    function paint(){
+      var n=(vals[p.index]-p.min)/(p.max-p.min||1);
+      var pct=(6+n*88); // keep puck inside the lane
+      fill.style.setProperty('--h',pct+'%');
+      slot.style.setProperty('--h',pct+'%');
+      out.textContent=fmt(vals[p.index]);
+      host(p.index,vals[p.index]);
+      onChange(p.index,n);
+    }
+    function setN(n){ n=n<0?0:n>1?1:n; var v=p.min+(p.max-p.min)*n;
+      v=Math.round(v/STEP)*STEP; vals[p.index]=v; paint(); }
+    function norm(){ return (vals[p.index]-p.min)/(p.max-p.min||1); }
+
+    // map a pointer Y inside the slot to a normalised value (bottom=0,top=1)
+    function yToN(clientY){ var r=slot.getBoundingClientRect();
+      return 1-(clientY-r.top)/(r.height||1); }
+
+    var drag=false;
+    slot.addEventListener('pointerdown',function(e){drag=true;
+      slot.classList.add('act');slot.setPointerCapture(e.pointerId);
+      setN(yToN(e.clientY));e.preventDefault();});
+    slot.addEventListener('pointermove',function(e){if(!drag)return;setN(yToN(e.clientY));});
+    slot.addEventListener('pointerup',function(){drag=false;slot.classList.remove('act');});
+    slot.addEventListener('pointercancel',function(){drag=false;slot.classList.remove('act');});
+    slot.addEventListener('dblclick',function(){vals[p.index]=p.def;paint();});
+    slot.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?.025:-.025));},{passive:false});
+    slot.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setN(norm()+.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setN(norm()-.02);e.preventDefault();}});
+
+    vals[p.index]=p.def; paint();
+  }
+
+  /* ---- live bounce-field reactions ---- */
+  var ball=document.getElementById('ball'),
+      arena=document.getElementById('arena'),
+      wallL=document.getElementById('wallL'), wallR=document.getElementById('wallR'),
+      beacon=document.querySelector('.beacon'),
+      trail=document.getElementById('trail'),
+      read=document.getElementById('read'),
+      tapsBox=document.getElementById('taps');
+  var TAP_MAX=8, tapEls=[];
+  for(var t=0;t<TAP_MAX;t++){var el=document.createElement('span');el.className='tap';tapsBox.appendChild(el);tapEls.push(el);}
+
+  function onChange(i,n){
+    if(i===0){ // Time -> beat period (60..900ms), arc height shrinks as faster
+      var ms=60+(1-n)*840; // long time = slow bounce
+      var period=Math.max(140,ms*2);
+      document.documentElement.style.setProperty('--beat',period+'ms');
+      beacon.style.setProperty('--beat',period+'ms');
+      var arc=18+n*30;
+      ball.style.setProperty('--arc',arc+'px');
+      document.querySelectorAll('.ghost').forEach(function(g){g.style.setProperty('--arc',arc+'px');});
+      updateRead();
+    } else if(i===1){ // Feedback -> ghost count / persistence + walls glow + read
+      var ghosts=document.querySelectorAll('.ghost');
+      ghosts.forEach(function(g,k){g.style.display=(n>(k+1)/5)?'block':'none';});
+      arena.style.boxShadow='inset 0 2px 18px rgba(0,0,0,.7),inset 0 0 '+(20+n*60)+'px rgba(90,209,255,'+(n*.22)+')';
+      updateRead();
+    } else if(i===2){ // Taps -> number of lit pips
+      var cnt=Math.round(1+n*(TAP_MAX-1));
+      tapEls.forEach(function(e,k){e.classList.toggle('on',k<cnt);});
+    } else if(i===3){ // Tone -> trail opacity / blur of ball (darker = dimmer)
+      ball.style.filter='blur('+((1-n)*1.4)+'px)';
+      trail.style.opacity=(0.12+n*0.34).toFixed(2);
+      ball.style.opacity=(0.55+n*0.45).toFixed(2);
+    } else if(i===4){ // Width -> horizontal travel span (how far it pings)
+      var inset=42-n*22; // wider = closer to walls (bigger swing)
+      var lx=inset+'px', rx='calc(100% - '+inset+'px)';
+      ball.style.setProperty('--lx',lx); ball.style.setProperty('--rx',rx);
+      document.querySelectorAll('.ghost').forEach(function(g){g.style.setProperty('--lx',lx);g.style.setProperty('--rx',rx);});
+      // bend the trail arc with width
+      var q=8+n*8, e=92-n*8;
+      trail.setAttribute('d','M'+q+',50 Q50,'+(50-30-n*14)+' '+e+',50 Q50,'+(50+30+n*14)+' '+q+',50');
+    } else if(i===5){ // Mix -> overall ball brightness / size
+      ball.style.boxShadow='0 0 '+(8+n*22)+'px var(--ac),0 0 '+(20+n*40)+'px rgba(90,209,255,'+(0.2+n*0.5)+')';
+      ball.style.width=(14+n*8)+'px'; ball.style.height=(14+n*8)+'px';
+      ball.style.margin='-'+(7+n*4)+'px 0 0 -'+(7+n*4)+'px';
+    }
+  }
+  function updateRead(){
+    var tn=(vals[0]-0)/1, fbn=(vals[1]-0)/1;
+    var ms=Math.round(60+(1-tn)*840);
+    var rep = fbn>=0.98? '∞' : Math.max(1,Math.round(1/(1.02-fbn)));
+    read.textContent=ms+' ms · '+rep+' rpt';
+  }
+
+  /* sync ball flip to wall hits via animationiteration on the x animation */
+  function flashWall(side){
+    var w=side<0?wallL:wallR; w.classList.add('hit');
+    setTimeout(function(){w.classList.remove('hit');},120);
+  }
+  var lastDir=1;
+  ball.addEventListener('animationiteration',function(e){
+    if(e.animationName==='px'){ flashWall(lastDir); lastDir*=-1; }
+  });
+
+  function ready(){
+    PARAMS.forEach(makeRail);
+    updateRead();
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

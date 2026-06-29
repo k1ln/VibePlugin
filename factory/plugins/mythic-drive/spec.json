@@ -6,6 +6,7 @@
   "out": "factory/plugins/mythic-drive/x.vstai",
   "publishedAt": 1751000038000,
   "theme": { "accent": "#e0b24a", "accent2": "#f0d080" },
+  "guiFile": "factory/plugins/mythic-drive/gui.html",
   "params": [
     { "name": "Gain",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Treble", "index": 1, "min": 0, "max": 1, "default": 0.5 },

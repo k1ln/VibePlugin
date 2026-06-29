@@ -4,6 +4,7 @@
   "explanation": "Large digital hall reverb. An input diffusion chain feeds an 8-line feedback delay network with a lossless Householder feedback matrix and per-line high-frequency damping, for a smooth, dense, long-tailed hall. Controls: dry/wet Mix, room Size, Decay (RT60 up to ~12 s), HF Damping, Pre-Delay and stereo Width.",
   "assembly": "factory/plugins/vast-hall/assembly.ts",
   "out": "factory/plugins/vast-hall/plugin.vstai",
+  "guiFile": "factory/plugins/vast-hall/gui.html",
   "publishedAt": 1751000001000,
   "theme": { "accent": "#5ad1ff", "accent2": "#7a8cff" },
   "params": [

@@ -1,0 +1,463 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --ac:#9ad0e0;        /* cool aqua accent */
+    --ac2:#c0e0f0;       /* pale ice highlight */
+    --panel:#0e1820;
+    --panel2:#0a1219;
+    --glass:#10212c;
+    --ink:#dff2f8;
+    --dim:#7fa6b6;
+    --line:rgba(154,208,224,.16);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:13px ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -8%,#13303c 0%,#0a151d 52%,#060c11 100%);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;min-height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===================== panel shell ===================== */
+  .unit{
+    position:relative;
+    width:min(640px,96vw);
+    border-radius:20px;
+    padding:20px 22px 22px;
+    background:
+      linear-gradient(165deg,#16252f 0%,var(--panel) 42%,var(--panel2) 100%);
+    box-shadow:
+      0 40px 90px -28px rgba(0,0,0,.82),
+      0 1px 0 rgba(255,255,255,.07) inset,
+      0 -28px 50px -30px rgba(0,0,0,.7) inset,
+      0 0 0 1px rgba(0,0,0,.5),
+      0 0 0 4px #0a141a;
+    animation:rise .7s cubic-bezier(.2,.85,.25,1) both;
+    overflow:hidden;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+
+  /* faint engraved grid texture */
+  .unit::before{
+    content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 26px),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.014) 0 1px,transparent 1px 26px);
+    mask:radial-gradient(120% 90% at 50% 0,#000 40%,transparent 100%);
+  }
+
+  /* ===================== header ===================== */
+  .head{display:flex;align-items:center;gap:14px;margin-bottom:16px;position:relative;z-index:2}
+  .logo{
+    width:42px;height:42px;flex:0 0 auto;border-radius:12px;
+    background:radial-gradient(120% 120% at 30% 20%,#1d4150,#0c1c25);
+    box-shadow:0 1px 0 rgba(255,255,255,.1) inset,0 0 0 1px var(--line),0 8px 18px -8px rgba(0,0,0,.7);
+    display:grid;place-items:center;
+  }
+  .title{line-height:1.05}
+  .title h1{
+    margin:0;font-size:18px;letter-spacing:.32em;font-weight:700;
+    text-transform:uppercase;
+    background:linear-gradient(180deg,#fff,var(--ac));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .title .sub{
+    font-size:9.5px;letter-spacing:.42em;text-transform:uppercase;color:var(--dim);
+    margin-top:3px;
+  }
+  .head .spacer{flex:1}
+  .gr-led{
+    display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.25em;
+    text-transform:uppercase;color:var(--dim);
+  }
+  .led{
+    width:9px;height:9px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#1a2c34,#0a141a);
+    box-shadow:0 0 0 1px rgba(0,0,0,.6) inset;
+    transition:box-shadow .08s,background .08s;
+  }
+  .led.on{
+    background:radial-gradient(circle at 35% 30%,#dff6ff,var(--ac));
+    box-shadow:0 0 10px 2px rgba(154,208,224,.7),0 0 0 1px rgba(0,0,0,.4) inset;
+  }
+
+  /* ===================== spectrum / sibilance scope ===================== */
+  .scope{
+    position:relative;z-index:2;
+    height:128px;border-radius:14px;margin-bottom:18px;overflow:hidden;
+    background:linear-gradient(180deg,#0a151c,#070e13);
+    box-shadow:0 0 0 1px var(--line),0 16px 30px -22px #000 inset,0 1px 0 rgba(255,255,255,.04);
+  }
+  .scope svg{display:block;width:100%;height:100%}
+  .scope .cap{
+    position:absolute;left:12px;top:9px;font-size:9px;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--dim);
+  }
+  .scope .duck{
+    position:absolute;right:12px;top:9px;font-size:9px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ac2);font-variant-numeric:tabular-nums;
+  }
+
+  /* ===================== controls ===================== */
+  .rack{
+    position:relative;z-index:2;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  }
+  @media(max-width:520px){.rack{grid-template-columns:repeat(2,1fr)}}
+
+  .cell{
+    border-radius:14px;padding:14px 10px 12px;text-align:center;
+    background:linear-gradient(170deg,#12222c,#0b151c);
+    box-shadow:0 0 0 1px var(--line),0 1px 0 rgba(255,255,255,.05) inset,0 14px 26px -22px #000;
+  }
+  .cell .lbl{
+    font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);
+    margin-bottom:10px;
+  }
+  .knob{
+    --a:0;                /* -135..135 deg pointer angle, set by JS */
+    position:relative;width:84px;height:84px;margin:0 auto;cursor:ns-resize;
+    touch-action:none;user-select:none;
+  }
+  .knob svg{display:block;width:100%;height:100%;overflow:visible}
+  .knob .body{
+    filter:drop-shadow(0 8px 12px rgba(0,0,0,.55));
+  }
+  .knob:active{cursor:grabbing}
+  .val{
+    margin-top:9px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;
+    color:var(--ink);letter-spacing:.02em;
+  }
+  .val small{color:var(--dim);font-weight:400;font-size:10px;margin-left:2px}
+
+  .hint{
+    position:relative;z-index:2;text-align:center;margin-top:14px;
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(127,166,182,.55);
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+
+    <div class="head">
+      <div class="logo">
+        <!-- stylised "sss" caught in a net -->
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M5 8c4-3 7 2 9-1" stroke="#9ad0e0" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M5 13c4-3 7 2 9-1" stroke="#c0e0f0" stroke-width="1.7" stroke-linecap="round" opacity=".75"/>
+          <path d="M5 18c4-3 7 2 9-1" stroke="#9ad0e0" stroke-width="1.7" stroke-linecap="round" opacity=".5"/>
+          <circle cx="18.5" cy="6" r="2.4" stroke="#c0e0f0" stroke-width="1.4"/>
+        </svg>
+      </div>
+      <div class="title">
+        <h1>De-Esser</h1>
+        <div class="sub">Sibilance Control</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="gr-led"><span class="led" id="led"></span>Reduction</div>
+    </div>
+
+    <!-- spectrum scope with highlighted sibilant band + sss particles -->
+    <div class="scope">
+      <div class="cap">Sibilant Band</div>
+      <div class="duck" id="duckTxt">-0.0 dB</div>
+      <svg viewBox="0 0 600 128" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="bandG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#9ad0e0" stop-opacity=".42"/>
+            <stop offset="1" stop-color="#9ad0e0" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="specG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#c0e0f0" stop-opacity=".9"/>
+            <stop offset="1" stop-color="#3f6f82" stop-opacity=".25"/>
+          </linearGradient>
+        </defs>
+        <!-- baseline grid -->
+        <g stroke="rgba(154,208,224,.10)" stroke-width="1">
+          <line x1="0" y1="32" x2="600" y2="32"/>
+          <line x1="0" y1="64" x2="600" y2="64"/>
+          <line x1="0" y1="96" x2="600" y2="96"/>
+        </g>
+        <!-- highlighted sibilant band (moves/scales with Frequency + ducking) -->
+        <rect id="band" x="380" y="0" width="120" height="128" fill="url(#bandG)"/>
+        <line id="bandEdgeL" x1="380" y1="0" x2="380" y2="128" stroke="#9ad0e0" stroke-width="1" stroke-dasharray="3 4" opacity=".5"/>
+        <line id="bandEdgeR" x1="500" y1="0" x2="500" y2="128" stroke="#9ad0e0" stroke-width="1" stroke-dasharray="3 4" opacity=".5"/>
+        <!-- animated spectrum curve -->
+        <path id="spec" d="" fill="url(#specG)" stroke="#c0e0f0" stroke-width="1.4"/>
+        <!-- "sss" particles streaming + being ducked at the band -->
+        <g id="particles"></g>
+      </svg>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <div class="hint">Drag vertically &nbsp;·&nbsp; Double-click to reset</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts P_*) ----
+  var PARAMS = [
+    { name:"Frequency", index:0, min:0, max:1, def:0.45, fmt:freqFmt },
+    { name:"Threshold", index:1, min:0, max:1, def:0.45, fmt:threshFmt },
+    { name:"Amount",    index:2, min:0, max:1, def:0.6,  fmt:amtFmt },
+    { name:"Mix",       index:3, min:0, max:1, def:1.0,  fmt:pctFmt }
+  ];
+
+  var state = PARAMS.map(function(p){ return p.def; });
+
+  // ---- value display formatters (norm 0..1 -> human) ----
+  function freqFmt(v){
+    var hz = 4000 + v*6000;
+    return { t:(hz/1000).toFixed(2), u:"kHz" };
+  }
+  function threshFmt(v){
+    var db = -50 + v*50;
+    return { t:db.toFixed(0), u:"dB" };
+  }
+  function amtFmt(v){
+    return { t:(v*24).toFixed(1), u:"dB" };
+  }
+  function pctFmt(v){
+    return { t:(v*100).toFixed(0), u:"%" };
+  }
+
+  // ---------------------------------------------------------------
+  //  host bridge
+  // ---------------------------------------------------------------
+  function push(i, v){
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+
+  // ---------------------------------------------------------------
+  //  knob factory — SVG arc + pointer, vertical drag
+  // ---------------------------------------------------------------
+  var SW = 270; // total sweep degrees
+
+  function makeKnob(p, idx){
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = p.name;
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+
+    knob.innerHTML =
+      '<svg viewBox="0 0 100 100">' +
+        '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(154,208,224,.14)" stroke-width="6" stroke-linecap="round" stroke-dasharray="198 264" transform="rotate(135 50 50)"/>' +
+        '<circle class="arc" cx="50" cy="50" r="42" fill="none" stroke="url(#kg'+idx+')" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 264" transform="rotate(135 50 50)"/>' +
+        '<g class="body">' +
+          '<circle cx="50" cy="50" r="30" fill="#0c1a22"/>' +
+          '<circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1"/>' +
+          '<circle cx="50" cy="46" r="29" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="2"/>' +
+        '</g>' +
+        '<g class="ptr">' +
+          '<line x1="50" y1="50" x2="50" y2="26" stroke="#dff2f8" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<circle cx="50" cy="26" r="2.6" fill="#c0e0f0"/>' +
+        '</g>' +
+        '<defs><linearGradient id="kg'+idx+'" x1="0" y1="0" x2="1" y2="1">' +
+          '<stop offset="0" stop-color="#c0e0f0"/><stop offset="1" stop-color="#9ad0e0"/>' +
+        '</linearGradient></defs>' +
+      '</svg>';
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    cell.appendChild(lbl);
+    cell.appendChild(knob);
+    cell.appendChild(val);
+
+    var arc = knob.querySelector(".arc");
+    var ptr = knob.querySelector(".ptr");
+
+    function render(){
+      var v = state[idx];
+      var ang = -135 + v*SW;
+      ptr.setAttribute("transform","rotate("+ang+" 50 50)");
+      arc.setAttribute("stroke-dasharray", (v*198).toFixed(1)+" 264");
+      var f = p.fmt(v);
+      val.innerHTML = f.t + ' <small>'+f.u+'</small>';
+    }
+
+    // ---- drag handling ----
+    var dragging=false, startY=0, startV=0;
+    function onDown(e){
+      dragging=true;
+      startY = (e.touches? e.touches[0].clientY : e.clientY);
+      startV = state[idx];
+      knob.style.filter="brightness(1.18)";
+      e.preventDefault();
+    }
+    function onMove(e){
+      if(!dragging) return;
+      var y = (e.touches? e.touches[0].clientY : e.clientY);
+      var dv = (startY - y)/200;            // 200px = full travel
+      var v = Math.max(0, Math.min(1, startV + dv));
+      state[idx]=v; render(); push(p.index, v);
+      e.preventDefault();
+    }
+    function onUp(){ dragging=false; knob.style.filter=""; }
+
+    knob.addEventListener("mousedown", onDown);
+    knob.addEventListener("touchstart", onDown, {passive:false});
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove, {passive:false});
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchend", onUp);
+
+    // wheel fine-tune
+    knob.addEventListener("wheel", function(e){
+      var v = Math.max(0,Math.min(1, state[idx] - Math.sign(e.deltaY)*0.02));
+      state[idx]=v; render(); push(p.index, v);
+      e.preventDefault();
+    }, {passive:false});
+
+    // double-click reset
+    knob.addEventListener("dblclick", function(){
+      state[idx]=p.def; render(); push(p.index, p.def);
+    });
+
+    p._render = render;
+    return cell;
+  }
+
+  var rack = document.getElementById("rack");
+  PARAMS.forEach(function(p, i){ rack.appendChild(makeKnob(p, i)); });
+
+  // ---------------------------------------------------------------
+  //  scope animation — spectrum + highlighted sibilant band + sss
+  // ---------------------------------------------------------------
+  var specEl  = document.getElementById("spec");
+  var bandEl  = document.getElementById("band");
+  var edgeL   = document.getElementById("bandEdgeL");
+  var edgeR   = document.getElementById("bandEdgeR");
+  var partG   = document.getElementById("particles");
+  var duckTxt = document.getElementById("duckTxt");
+  var led     = document.getElementById("led");
+
+  var W=600, H=128, N=80;
+
+  // sss particle pool — little dashes that stream rightward into the band
+  var particles=[];
+  for(var i=0;i<14;i++){
+    var t=document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("fill","#c0e0f0");
+    t.setAttribute("font-size", (7+Math.random()*5).toFixed(0));
+    t.setAttribute("font-family","ui-sans-serif,sans-serif");
+    t.textContent="s";
+    partG.appendChild(t);
+    particles.push({el:t, x:Math.random()*W, y:14+Math.random()*100, sp:0.8+Math.random()*1.4, base:0});
+  }
+
+  var phase=0;
+  var duckAmt=0;       // smoothed gain-reduction display 0..1
+
+  function bandX(){
+    // Frequency 0..1 maps centre 4..10kHz -> x along scope (log-ish feel)
+    var v = state[0];
+    var cx = 200 + v*320;          // band centre x
+    var halfW = 46;                 // visual band half-width
+    return { cx:cx, l:cx-halfW, r:cx+halfW };
+  }
+
+  function frame(){
+    if(document.hidden){ requestAnimationFrame(frame); return; }
+    phase += 0.045;
+
+    var b = bandX();
+    bandEl.setAttribute("x", b.l.toFixed(1));
+    bandEl.setAttribute("width", (b.r-b.l).toFixed(1));
+    edgeL.setAttribute("x1", b.l.toFixed(1)); edgeL.setAttribute("x2", b.l.toFixed(1));
+    edgeR.setAttribute("x1", b.r.toFixed(1)); edgeR.setAttribute("x2", b.r.toFixed(1));
+
+    // simulate sibilant energy: rises and falls; ducking responds to it
+    var sibDrive = 0.5 + 0.5*Math.sin(phase*1.7) * (0.6+0.4*Math.sin(phase*0.5));
+    var thr = state[1];                 // higher threshold -> harder to trigger
+    var over = Math.max(0, sibDrive - (0.25 + thr*0.6));
+    var targetDuck = Math.min(1, over*2.4) * state[2];   // scaled by Amount
+    targetDuck *= state[3];             // and by Mix
+    duckAmt += (targetDuck - duckAmt)*0.18;
+
+    // led + readout
+    if(duckAmt>0.04){ led.classList.add("on"); } else { led.classList.remove("on"); }
+    duckTxt.textContent = "-" + (duckAmt*24).toFixed(1) + " dB";
+
+    // build spectrum path: broadband hump + a sibilant peak inside the band
+    var d="M0 "+H;
+    for(var k=0;k<=N;k++){
+      var x = k/N*W;
+      // base voice spectrum: energy tilts down with frequency
+      var nrm = x/W;
+      var voice = 0.55*Math.exp(-Math.pow((nrm-0.18)/0.16,2));   // body hump
+      var air   = 0.16*(1-nrm);
+      // sibilant peak sitting in the band, wobbling
+      var dist = (x - b.cx)/52;
+      var sib = sibDrive*0.7*Math.exp(-dist*dist);
+      // duck the sibilant peak when reducing
+      sib *= (1 - duckAmt*0.92);
+      var amp = voice + air + sib + 0.02*Math.sin(phase*3+ k*0.6);
+      var y = H - amp*H*0.92;
+      if(y<2)y=2; if(y>H)y=H;
+      d += " L"+x.toFixed(1)+" "+y.toFixed(1);
+    }
+    d += " L"+W+" "+H+" Z";
+    specEl.setAttribute("d", d);
+
+    // animate sss particles: drift right, get "caught" (fade) in the band
+    for(var p=0;p<particles.length;p++){
+      var P=particles[p];
+      P.x += P.sp*(1.4 - duckAmt*0.9);
+      if(P.x>W){ P.x = -10; P.y = 14+Math.random()*100; }
+      var inBand = P.x > b.l && P.x < b.r;
+      var op;
+      if(inBand){
+        // caught & ducked: shrink + fade with reduction
+        op = 0.85*(1-duckAmt) + 0.05;
+        P.el.setAttribute("font-size", (6 - duckAmt*3).toFixed(1));
+      } else {
+        op = 0.35;
+        P.el.setAttribute("font-size","7");
+      }
+      P.el.setAttribute("x", P.x.toFixed(1));
+      P.el.setAttribute("y", P.y.toFixed(1));
+      P.el.setAttribute("opacity", op.toFixed(2));
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---------------------------------------------------------------
+  //  init: render knobs + push defaults to engine
+  // ---------------------------------------------------------------
+  function start(){
+    PARAMS.forEach(function(p,i){
+      if(p._render) p._render();
+      push(p.index, state[i]);
+    });
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

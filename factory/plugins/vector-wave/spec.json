@@ -1,0 +1,20 @@
+{
+  "name": "Vector Wave",
+  "isInstrument": true,
+  "explanation": "A polyphonic vector / wave-sequencing synthesizer. Four single-cycle waves are generated in code and placed on the corners of a square morph pad; a Vector X/Y joystick bilinearly crossfades between them while a slow Wave-Sequence rate walks that point around the pad so the timbre evolves over time on a held note. Up to eight voices keyed per note, each running two slightly detuned vector oscillators into a resonant low-pass with an attack/release contour. Controls: Vector X, Vector Y, Sequence Rate, Cutoff, Attack, Release, Detune and Level.",
+  "assembly": "factory/plugins/vector-wave/assembly.ts",
+  "out": "factory/plugins/vector-wave/x.vstai",
+  "publishedAt": 1751000075000,
+  "theme": { "accent": "#2ec4b6", "accent2": "#54d1ff" },
+  "guiFile": "factory/plugins/vector-wave/gui.html",
+  "params": [
+    { "name": "Vector X",      "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Vector Y",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Sequence Rate", "index": 2, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Cutoff",        "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Attack",        "index": 4, "min": 0, "max": 1, "default": 0.05 },
+    { "name": "Release",       "index": 5, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Detune",        "index": 6, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Level",         "index": 7, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

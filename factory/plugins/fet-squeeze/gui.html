@@ -1,0 +1,351 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FET Squeeze</title>
+<style>
+  :root{
+    --accent:#ff5a6e;
+    --accent2:#ff9a6a;
+    --metal0:#2b2d31;
+    --metal1:#4a4d54;
+    --metal2:#6b6f78;
+    --ink:#0d0e10;
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:#101113;overflow:hidden;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#e8e9ec;}
+  #stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 50% -10%,#26282c 0%,#0c0d0f 70%);}
+
+  /* ---------- the rack unit ---------- */
+  .unit{
+    position:relative;width:760px;height:392px;border-radius:10px;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.30)),
+      repeating-linear-gradient(90deg,#54585f 0px,#62666e 1px,#4d5158 2px,#5a5e66 3px),
+      linear-gradient(180deg,#5a5e66,#3e4148);
+    background-blend-mode:overlay,overlay,normal;
+    border:1px solid #2b2d31;
+    box-shadow:
+      0 30px 60px rgba(0,0,0,.6),
+      0 2px 0 rgba(255,255,255,.18) inset,
+      0 -3px 8px rgba(0,0,0,.5) inset;
+    display:flex;
+  }
+  /* brushed sheen sweeping across the faceplate */
+  .unit::after{
+    content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.10) 47%,rgba(255,255,255,.18) 50%,rgba(255,255,255,.10) 53%,transparent 70%);
+    background-size:300% 100%;
+    animation:sheen 9s linear infinite;
+    mix-blend-mode:screen;opacity:.5;
+  }
+  @keyframes sheen{0%{background-position:130% 0}100%{background-position:-130% 0}}
+
+  /* ---------- rack ears ---------- */
+  .ear{width:54px;flex:0 0 54px;position:relative;
+    background:linear-gradient(180deg,#3b3e44,#23252a);
+    border-right:1px solid rgba(0,0,0,.5);box-shadow:1px 0 0 rgba(255,255,255,.06) inset;}
+  .ear.right{border-right:none;border-left:1px solid rgba(0,0,0,.5);box-shadow:-1px 0 0 rgba(255,255,255,.06) inset;}
+  .screw{position:absolute;left:50%;width:22px;height:22px;border-radius:50%;transform:translateX(-50%);
+    background:radial-gradient(circle at 35% 30%,#9aa,#4c4f55 60%,#222 100%);
+    box-shadow:0 1px 2px rgba(0,0,0,.7),0 0 0 2px rgba(0,0,0,.25);}
+  .screw::before,.screw::after{content:"";position:absolute;left:50%;top:50%;background:#1a1b1e;border-radius:1px;}
+  .screw::before{width:14px;height:2.5px;transform:translate(-50%,-50%) rotate(var(--sl,28deg));}
+  .screw.t{top:16px}.screw.b{bottom:16px}
+
+  /* ---------- main faceplate ---------- */
+  .face{flex:1;position:relative;padding:16px 22px 14px;display:flex;flex-direction:column;}
+
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{
+    width:14px;height:14px;border-radius:3px;transform:rotate(45deg);
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 0 10px var(--accent),0 0 3px #fff inset;align-self:center;}
+  .brand h1{margin:0;font-size:20px;font-weight:800;letter-spacing:3px;
+    background:linear-gradient(180deg,#fff,#aeb1b8);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 1px 0 rgba(0,0,0,.4);}
+  .brand .sub{margin-left:auto;font-size:9px;letter-spacing:3px;color:#8b8f97;font-weight:700;text-transform:uppercase;}
+  .pwr{width:8px;height:8px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 8px var(--accent),0 0 2px #fff inset;animation:pulse 2.4s ease-in-out infinite;align-self:center;}
+  @keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+  .body{flex:1;display:flex;gap:18px;margin-top:12px;}
+
+  /* ---------- VU meter ---------- */
+  .meter{flex:0 0 268px;position:relative;border-radius:8px;padding:8px;
+    background:linear-gradient(180deg,#1b1c1f,#0a0b0c);
+    border:1px solid #000;box-shadow:0 2px 6px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.08);}
+  .meter .glass{position:relative;height:178px;border-radius:6px;overflow:hidden;
+    background:radial-gradient(120% 150% at 50% 120%,#f3e7c4 0%,#e9d59a 45%,#d9be78 100%);
+    box-shadow:0 0 0 2px #0a0b0c, 0 6px 14px rgba(0,0,0,.5) inset;}
+  .meter svg{display:block;width:100%;height:100%;}
+  .meter .label{position:absolute;left:0;right:0;bottom:9px;text-align:center;
+    font-size:9px;letter-spacing:3px;color:#6b5a2e;font-weight:800;}
+  .meter .vu{position:absolute;left:50%;top:14px;transform:translateX(-50%);
+    font-size:12px;letter-spacing:6px;color:#7a6630;font-weight:800;}
+  /* glass reflection */
+  .meter .glass::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(125deg,rgba(255,255,255,.45),transparent 40%);}
+  .meter .gr{position:absolute;left:8px;bottom:8px;font-size:8px;letter-spacing:1px;color:#3aa;}
+
+  /* ---------- knob bank ---------- */
+  .knobs{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;
+    gap:8px 6px;align-content:center;}
+  .knob{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    padding:4px 2px;border-radius:7px;}
+  /* 5 knobs auto-flow into the 3x2 grid (last bottom-right cell stays empty) */
+  .dial{position:relative;width:74px;height:74px;cursor:grab;touch-action:none;}
+  .dial.drag{cursor:grabbing;}
+  .dial svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+  .cap{position:absolute;inset:9px;border-radius:50%;
+    background:
+      radial-gradient(circle at 38% 30%,#5b5f67,#33363c 55%,#1b1d20 100%);
+    box-shadow:0 4px 8px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.18) inset,0 -3px 6px rgba(0,0,0,.5) inset;}
+  .cap::before{content:"";position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 0deg,rgba(255,255,255,.10),transparent 25%,rgba(0,0,0,.25) 50%,transparent 75%,rgba(255,255,255,.10));}
+  /* pointer notch on the cap */
+  .pointer{position:absolute;left:50%;top:8px;width:4px;height:20px;border-radius:2px;transform:translateX(-50%);
+    transform-origin:50% 29px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2));
+    box-shadow:0 0 8px var(--accent),0 0 2px #fff;}
+  .ring{fill:none;stroke:#0c0d0f;stroke-width:5;}
+  .ringFill{fill:none;stroke:url(#kg);stroke-width:5;stroke-linecap:round;
+    filter:drop-shadow(0 0 3px var(--accent));transition:stroke-dashoffset .03s linear;}
+  .tick{stroke:#1d1f23;stroke-width:1.5;}
+  .name{font-size:9px;letter-spacing:2px;color:#cdd0d6;font-weight:800;text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,.5);}
+  .val{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.5px;
+    font-variant-numeric:tabular-nums;min-height:12px;}
+
+  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;
+    font-size:8px;letter-spacing:2px;color:#7d818a;font-weight:700;}
+  .footer .vents{display:flex;gap:4px;}
+  .footer .vents i{width:26px;height:5px;border-radius:3px;
+    background:linear-gradient(180deg,#15161a,#2a2c31);box-shadow:0 1px 0 rgba(255,255,255,.05);}
+
+  @media (max-width:780px){
+    .unit{transform:scale(.82);}
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="unit">
+    <!-- left ear -->
+    <div class="ear">
+      <div class="screw t" style="--sl:35deg"></div>
+      <div class="screw b" style="--sl:-15deg"></div>
+    </div>
+
+    <!-- faceplate -->
+    <div class="face">
+      <div class="brand">
+        <span class="mark"></span>
+        <h1>FET&nbsp;SQUEEZE</h1>
+        <span class="pwr"></span>
+        <span class="sub">peak&nbsp;compressor</span>
+      </div>
+
+      <div class="body">
+        <!-- VU / gain-reduction meter -->
+        <div class="meter">
+          <div class="glass">
+            <svg viewBox="0 0 252 178" id="vuSvg">
+              <!-- scale arc -->
+              <path d="M26 150 A 120 120 0 0 1 226 150" fill="none" stroke="#8a7536" stroke-width="2"/>
+              <path d="M26 150 A 120 120 0 0 1 226 150" fill="none" stroke="#c0392b" stroke-width="3"
+                    stroke-dasharray="0 250 64 0"/>
+              <g id="vuTicks" stroke="#5a4d24" stroke-width="2"></g>
+              <text x="126" y="92" text-anchor="middle" font-size="11" font-weight="800"
+                    fill="#7a6630" letter-spacing="2">GAIN&nbsp;REDUCTION</text>
+              <!-- needle -->
+              <g id="needle" transform="rotate(-50 126 168)">
+                <line x1="126" y1="168" x2="126" y2="40" stroke="#1a1208" stroke-width="3" stroke-linecap="round"/>
+                <line x1="126" y1="168" x2="126" y2="44" stroke="#b03028" stroke-width="1.6" stroke-linecap="round"/>
+              </g>
+              <circle cx="126" cy="168" r="9" fill="#2a2415" stroke="#6b5a2e" stroke-width="1.5"/>
+              <circle cx="126" cy="168" r="3" fill="#7a6630"/>
+            </svg>
+            <div class="vu">VU</div>
+            <div class="gr" id="grReadout">-0.0 dB</div>
+          </div>
+        </div>
+
+        <!-- knob bank -->
+        <div class="knobs" id="knobs"></div>
+      </div>
+
+      <div class="footer">
+        <span>FET&nbsp;·&nbsp;CLASS-A&nbsp;DISCRETE</span>
+        <span class="vents"><i></i><i></i><i></i><i></i></span>
+        <span>MADE&nbsp;BY&nbsp;VIBE</span>
+      </div>
+    </div>
+
+    <!-- right ear -->
+    <div class="ear right">
+      <div class="screw t" style="--sl:18deg"></div>
+      <div class="screw b" style="--sl:48deg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- params from spec (indices are load-bearing) ----
+  var PARAMS = [
+    { name:"Input",   index:0, min:0, max:1, def:0.5, unit:"dB",  fmt:gainFmt },
+    { name:"Attack",  index:1, min:0, max:1, def:0.7, unit:"ms",  fmt:attackFmt },
+    { name:"Release", index:2, min:0, max:1, def:0.5, unit:"ms",  fmt:releaseFmt },
+    { name:"Ratio",   index:3, min:0, max:1, def:0.5, unit:":1",  fmt:ratioFmt },
+    { name:"Output",  index:4, min:0, max:1, def:0.5, unit:"dB",  fmt:gainFmt }
+  ];
+
+  // ---- value formatters (display only; setParam always gets raw [min,max]) ----
+  function gainFmt(v){ var db=(v*2-1)*24; return (db>=0?"+":"")+db.toFixed(1)+" dB"; }
+  function attackFmt(v){ var ms=0.05*Math.pow(2000,v); return ms<10?ms.toFixed(2)+" ms":ms.toFixed(0)+" ms"; }
+  function releaseFmt(v){ var ms=20*Math.pow(75,v); return ms<1000?ms.toFixed(0)+" ms":(ms/1000).toFixed(2)+" s"; }
+  function ratioFmt(v){ var r=2+v*18; return r.toFixed(1)+":1"; }
+
+  var ARC_START = -135, ARC_SWEEP = 270; // degrees
+
+  // current values keyed by index, for the meter sim
+  var state = {};
+
+  // ---- build VU ticks ----
+  (function(){
+    var g=document.getElementById("vuTicks");
+    for(var i=0;i<=8;i++){
+      var a=(-50 + (i/8)*100) * Math.PI/180; // -50..+50 deg
+      var cx=126, cy=168, r1=118, r2=128;
+      var sx=cx+Math.sin(a)*r1, sy=cy-Math.cos(a)*r1;
+      var ex=cx+Math.sin(a)*r2, ey=cy-Math.cos(a)*r2;
+      var ln=document.createElementNS("http://www.w3.org/2000/svg","line");
+      ln.setAttribute("x1",sx.toFixed(1));ln.setAttribute("y1",sy.toFixed(1));
+      ln.setAttribute("x2",ex.toFixed(1));ln.setAttribute("y2",ey.toFixed(1));
+      if(i>=6){ln.setAttribute("stroke","#b03028");ln.setAttribute("stroke-width","3");}
+      g.appendChild(ln);
+    }
+  })();
+
+  // ---- build knobs ----
+  var knobsEl = document.getElementById("knobs");
+  var ARC_LEN = 2*Math.PI*30 * (ARC_SWEEP/360);
+
+  PARAMS.forEach(function(p){
+    state[p.index] = p.def;
+
+    var cell=document.createElement("div"); cell.className="knob";
+
+    var nm=document.createElement("div"); nm.className="name"; nm.textContent=p.name;
+
+    var dial=document.createElement("div"); dial.className="dial"; dial.dataset.idx=p.index;
+
+    dial.innerHTML =
+      '<svg viewBox="0 0 74 74">'+
+        '<defs><linearGradient id="kg'+p.index+'" x1="0" y1="0" x2="1" y2="1">'+
+          '<stop offset="0" stop-color="var(--accent)"/>'+
+          '<stop offset="1" stop-color="var(--accent2)"/>'+
+        '</linearGradient></defs>'+
+        '<circle class="ring" cx="37" cy="37" r="30" '+
+          'stroke-dasharray="'+ARC_LEN+' 1000" transform="rotate(135 37 37)"/>'+
+        '<circle class="ringFill" cx="37" cy="37" r="30" stroke="url(#kg'+p.index+')" '+
+          'stroke-dasharray="'+ARC_LEN+' 1000" stroke-dashoffset="'+ARC_LEN+'" '+
+          'transform="rotate(135 37 37)"/>'+
+      '</svg>'+
+      '<div class="cap"></div>'+
+      '<div class="pointer"></div>';
+
+    var val=document.createElement("div"); val.className="val";
+
+    cell.appendChild(nm); cell.appendChild(dial); cell.appendChild(val);
+    knobsEl.appendChild(cell);
+
+    var fill = dial.querySelector(".ringFill");
+    var ptr  = dial.querySelector(".pointer");
+
+    function render(v){
+      var t=(v-p.min)/(p.max-p.min);
+      ptr.style.transform = "translateX(-50%) rotate("+(ARC_START + t*ARC_SWEEP)+"deg)";
+      fill.setAttribute("stroke-dashoffset", (ARC_LEN*(1-t)).toFixed(2));
+      val.textContent = p.fmt(v);
+    }
+
+    function commit(v){
+      v=Math.max(p.min,Math.min(p.max,v));
+      state[p.index]=v;
+      render(v);
+      if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
+
+    // pointer-drag (vertical) — full travel ~ 220px
+    var dragging=false, startY=0, startV=0;
+    dial.addEventListener("pointerdown",function(e){
+      dragging=true; startY=e.clientY; startV=state[p.index];
+      dial.classList.add("drag"); dial.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    dial.addEventListener("pointermove",function(e){
+      if(!dragging) return;
+      var dy=startY-e.clientY;
+      var range=p.max-p.min;
+      var fine=e.shiftKey?0.25:1;
+      commit(startV + (dy/220)*range*fine);
+    });
+    function end(e){ if(!dragging)return; dragging=false; dial.classList.remove("drag");
+      try{dial.releasePointerCapture(e.pointerId);}catch(_){ } }
+    dial.addEventListener("pointerup",end);
+    dial.addEventListener("pointercancel",end);
+    dial.addEventListener("dblclick",function(){ commit(p.def); });
+    dial.addEventListener("wheel",function(e){
+      e.preventDefault();
+      var step=(p.max-p.min)*0.04*(e.shiftKey?0.25:1);
+      commit(state[p.index] + (e.deltaY<0?step:-step));
+    },{passive:false});
+
+    p._render=render; p._commit=commit;
+  });
+
+  // ---- animated VU needle: react to Input/Ratio, idle sway ----
+  var needle=document.getElementById("needle");
+  var grOut=document.getElementById("grReadout");
+  var t0=performance.now();
+  var shownGR=0;
+  function loop(now){
+    var t=(now-t0)/1000;
+    // pseudo gain-reduction "amount" from settings + a musical wobble
+    var input = state[0], ratio = state[3];
+    var drive = input*0.85 + 0.15;
+    var ratioGain = 0.25 + ratio*0.75;
+    // target GR 0..1 with breathing + transient bumps
+    var breathe = 0.5 + 0.5*Math.sin(t*1.7);
+    var transient = Math.max(0, Math.sin(t*5.3)*Math.sin(t*2.1));
+    var target = drive*ratioGain*(0.35 + 0.4*breathe + 0.35*transient);
+    target = Math.max(0,Math.min(1,target));
+    // smooth toward target (asymmetric: fast attack, slow recover) influenced by Release knob
+    var rel = 0.02 + state[2]*0.10;
+    var k = target>shownGR ? 0.35 : rel;
+    shownGR += (target-shownGR)*k;
+    // map to needle angle -50..+50 deg
+    var ang = -50 + shownGR*100;
+    needle.setAttribute("transform","rotate("+ang.toFixed(2)+" 126 168)");
+    grOut.textContent = "-"+(shownGR*18).toFixed(1)+" dB";
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---- init + host hook ----
+  function ready(){
+    PARAMS.forEach(function(p){
+      p._render(p.def);
+      if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.index,p.def);
+    });
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@property --n0{syntax:'<number>';inherits:false;initial-value:0}
+@property --n1{syntax:'<number>';inherits:false;initial-value:0}
+@property --n2{syntax:'<number>';inherits:false;initial-value:0}
+@property --n3{syntax:'<number>';inherits:false;initial-value:0}
+@property --n4{syntax:'<number>';inherits:false;initial-value:0}
+:root{
+  --ac:#ffa94d;        /* amber LED / warm accent */
+  --ac2:#ffd166;       /* hotter LED highlight   */
+  --teal:#0e3b3a;      /* enclosure teal         */
+  --teal-lo:#06201f;
+  --teal-hi:#1b5856;
+  --metal:#cdb27a;     /* brushed brass screws   */
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#dfeae6;
+  background:
+    radial-gradient(120% 90% at 50% -10%,#13343a 0%,#081417 60%,#03090b 100%);
+  display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden}
+
+/* ===================== ENCLOSURE ===================== */
+.pedal{position:relative;width:100%;max-width:560px;border-radius:20px;padding:0 0 18px;overflow:hidden;
+  background:
+    linear-gradient(155deg,var(--teal-hi) 0%,var(--teal) 30%,var(--teal-lo) 100%);
+  border:1px solid rgba(0,0,0,.55);
+  box-shadow:
+    0 36px 80px rgba(0,0,0,.65),
+    inset 0 2px 0 rgba(255,255,255,.12),
+    inset 0 -3px 12px rgba(0,0,0,.6),
+    inset 0 0 0 2px rgba(0,0,0,.35);
+  /* powder-coat micro-speckle */
+  background-image:
+    linear-gradient(155deg,var(--teal-hi) 0%,var(--teal) 30%,var(--teal-lo) 100%),
+    repeating-radial-gradient(circle at 20% 30%,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);
+  background-blend-mode:overlay}
+/* brushed-metal sweep + faint sheen that drifts */
+.pedal::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:20px;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.07) 48%,transparent 62%);
+  background-size:300% 100%;animation:sheen 9s ease-in-out infinite}
+@keyframes sheen{0%{background-position:120% 0}55%,100%{background-position:-60% 0}}
+
+/* corner mounting screws */
+.screw{position:absolute;width:16px;height:16px;border-radius:50%;z-index:5;
+  background:radial-gradient(circle at 35% 30%,#f3e2b0,var(--metal) 55%,#5f4f2c 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.4)}
+.screw::after{content:"";position:absolute;inset:5px;border-radius:1px;background:rgba(0,0,0,.45);
+  transform:rotate(var(--r,40deg))}
+.screw.tl{top:10px;left:10px;--r:25deg}.screw.tr{top:10px;right:10px;--r:-15deg}
+.screw.bl{bottom:10px;left:10px;--r:65deg}.screw.br{bottom:10px;right:10px;--r:-40deg}
+
+/* ===================== HEADER PLATE ===================== */
+.plate{position:relative;z-index:2;margin:18px 22px 8px;padding:13px 16px;border-radius:12px;
+  background:linear-gradient(180deg,#04181a,#020c0d);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:12px}
+.pwr{position:relative;width:13px;height:13px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 40% 35%,#fff 0%,var(--ac2) 22%,var(--ac) 55%,#7a3d09 100%);
+  box-shadow:0 0 14px 2px var(--ac),0 0 3px #fff inset;animation:blink 1.7s steps(1,end) infinite}
+@keyframes blink{0%,62%{opacity:1;box-shadow:0 0 16px 3px var(--ac),0 0 3px #fff inset}
+  64%,70%{opacity:.35;box-shadow:0 0 4px var(--ac)}72%,100%{opacity:1;box-shadow:0 0 16px 3px var(--ac),0 0 3px #fff inset}}
+.tt{flex:1;min-width:0}
+.tt h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.16em;line-height:1;
+  color:#f4ead2;text-shadow:0 1px 0 #000,0 0 16px rgba(255,169,77,.25)}
+.tt .sub{margin-top:3px;font-size:9px;letter-spacing:.42em;color:#7fae9f;text-transform:uppercase}
+.model{font-size:8.5px;letter-spacing:.18em;color:#9bd0c2;text-transform:uppercase;text-align:right;line-height:1.5;opacity:.8}
+
+/* ===================== BBD CHIP / ECHO TRACK ===================== */
+.track{position:relative;z-index:2;margin:6px 22px 4px;height:78px;border-radius:11px;overflow:hidden;
+  background:linear-gradient(180deg,#030f10,#01080a);
+  border:1px solid rgba(255,255,255,.05);
+  box-shadow:inset 0 3px 10px rgba(0,0,0,.8),inset 0 0 0 1px rgba(0,0,0,.5)}
+/* the chip body sits on the left */
+.chip{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:74px;height:46px;border-radius:5px;z-index:3;
+  background:linear-gradient(160deg,#26282b,#0c0d0f);
+  border:1px solid #000;box-shadow:0 2px 5px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06)}
+.chip .notch{position:absolute;top:50%;left:5px;width:8px;height:8px;border-radius:50%;transform:translateY(-50%);
+  background:radial-gradient(circle,#000,#1a1c1f);box-shadow:inset 0 0 3px #000}
+.chip .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:7.5px;letter-spacing:.12em;color:#6f7a7d;text-align:center;line-height:1.3}
+/* chip legs */
+.chip i{position:absolute;width:5px;height:5px;background:linear-gradient(#d8d2c0,#7c7565);border-radius:0 0 2px 2px}
+.chip i.t{top:-4px}.chip i.b{bottom:-4px;border-radius:2px 2px 0 0}
+.chip i:nth-child(odd){}
+/* the 8 BBD "stage" LEDs that the signal walks through */
+.stages{position:absolute;left:98px;right:14px;top:0;bottom:0;display:flex;align-items:center;gap:0;z-index:2}
+.stage{flex:1;height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.stage b{width:8px;height:8px;border-radius:50%;background:#0a2422;
+  box-shadow:inset 0 0 3px #000;transition:none}
+.stage.on b{background:radial-gradient(circle at 40% 35%,#fff,var(--ac2) 35%,var(--ac) 70%);
+  box-shadow:0 0 10px 2px var(--ac),0 0 16px var(--ac)}
+/* dashed signal path under the LEDs */
+.stages::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;transform:translateY(8px);
+  background:repeating-linear-gradient(90deg,rgba(127,174,159,.35) 0 4px,transparent 4px 9px)}
+/* the visual "repeats" — echo blips that drift right and fade */
+.echoes{position:absolute;left:96px;right:8px;top:0;bottom:0;z-index:1;pointer-events:none}
+.blip{position:absolute;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;
+  background:radial-gradient(circle,var(--ac) 0%,transparent 70%);opacity:0}
+
+/* ===================== KNOB DECK ===================== */
+.deck{position:relative;z-index:2;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
+  padding:16px 16px 4px;margin:0 6px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:9px;padding:8px 2px 6px;border-radius:12px;
+  animation:rise .55s both;animation-delay:var(--d)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.cell:hover{background:rgba(255,255,255,.025)}
+
+/* the knob: chicken-head boutique pointer cap */
+.knob{position:relative;width:78px;height:78px;cursor:ns-resize;touch-action:none;user-select:none}
+/* outer chrome bezel + value arc */
+.knob .arc{position:absolute;inset:2px;border-radius:50%;
+  background:conic-gradient(from 220deg,
+    var(--ac) calc(var(--v)*280deg),
+    rgba(0,0,0,.45) calc(var(--v)*280deg) 280deg,
+    transparent 280deg);
+  filter:drop-shadow(0 0 calc(3px + var(--v)*8px) color-mix(in srgb,var(--ac) 70%,transparent));
+  -webkit-mask:radial-gradient(circle,transparent 32px,#000 33px);
+  mask:radial-gradient(circle,transparent 32px,#000 33px)}
+/* faint tick ring */
+.knob .ticks{position:absolute;inset:-3px;border-radius:50%;
+  background:repeating-conic-gradient(from 216deg,rgba(180,220,205,.32) 0 1deg,transparent 1deg 13.7deg);
+  -webkit-mask:radial-gradient(circle,transparent 39px,#000 40px,#000 42px,transparent 43px);
+  mask:radial-gradient(circle,transparent 39px,#000 40px,#000 42px,transparent 43px)}
+/* the rotating cap */
+.knob .cap{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 32%,#3a4a47 0%,#14201e 70%,#091211 100%);
+  box-shadow:
+    inset 0 3px 7px rgba(0,0,0,.7),
+    inset 0 -2px 0 rgba(255,255,255,.05),
+    0 2px 4px rgba(0,0,0,.6);
+  transform:rotate(calc((var(--v) - 0.5) * 280deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.knob .cap::before{content:"";position:absolute;left:50%;top:6px;width:4px;height:20px;margin-left:-2px;border-radius:2px;
+  background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 7px var(--ac);}
+/* tiny indicator LED at top of each knob mirrors value */
+.knob .dot{position:absolute;left:50%;top:-1px;width:6px;height:6px;margin-left:-3px;border-radius:50%;
+  background:radial-gradient(circle,#fff,var(--ac));opacity:calc(.25 + var(--v)*.75);
+  box-shadow:0 0 calc(2px + var(--v)*7px) var(--ac);transition:.12s}
+.knob.act .cap{transition:none}
+
+.nm{font-size:9.5px;letter-spacing:.2em;color:#bfe0d4;text-transform:uppercase}
+.val{font-size:13px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(255,169,77,.35)}
+.unit{font-size:8px;letter-spacing:.1em;color:#6f9b8d;margin-left:1px}
+
+/* value bubble while dragging */
+.bub{position:absolute;left:50%;top:-22px;transform:translate(-50%,5px) scale(.85);opacity:0;
+  padding:2px 7px;border-radius:6px;font-size:11px;font-weight:800;color:#0a1413;
+  background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 4px 12px rgba(0,0,0,.5);
+  pointer-events:none;font-variant-numeric:tabular-nums;transition:.14s;white-space:nowrap}
+.knob.act .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+
+/* footer label strip */
+.foot{position:relative;z-index:2;margin:8px 22px 0;padding-top:10px;display:flex;align-items:center;gap:10px;
+  border-top:1px dashed rgba(127,174,159,.22);font-size:8.5px;letter-spacing:.14em;color:#6f9b8d;text-transform:uppercase}
+.foot .bbd{color:#9bd0c2}
+.stomp{margin-left:auto;width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#e7dcc0,var(--metal) 60%,#4a3c20);
+  box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4)}
+</style></head><body>
+<div class="pedal">
+  <span class="screw tl"></span><span class="screw tr"></span>
+  <span class="screw bl"></span><span class="screw br"></span>
+
+  <div class="plate">
+    <span class="pwr" id="pwr"></span>
+    <div class="tt"><h1>BUCKET ECHO</h1><div class="sub">Bucket&nbsp;Brigade&nbsp;Delay</div></div>
+    <div class="model">BBD-3208<br>Analog Echo</div>
+  </div>
+
+  <div class="track">
+    <div class="chip">
+      <i class="t" style="left:8px"></i><i class="t" style="left:20px"></i><i class="t" style="left:32px"></i>
+      <i class="t" style="left:44px"></i><i class="t" style="left:56px"></i>
+      <i class="b" style="left:8px"></i><i class="b" style="left:20px"></i><i class="b" style="left:32px"></i>
+      <i class="b" style="left:44px"></i><i class="b" style="left:56px"></i>
+      <span class="notch"></span>
+      <span class="lbl">MN<br>3208</span>
+    </div>
+    <div class="stages" id="stages"></div>
+    <div class="echoes" id="echoes"></div>
+  </div>
+
+  <div class="deck" id="deck"></div>
+
+  <div class="foot">
+    <span class="bbd">●</span><span id="footTxt">512-stage analog delay line · in-loop low-pass · wow&amp;flutter</span>
+    <span class="stomp"></span>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---- spec params (re-read from spec.json) ----
+  var PARAMS=[
+    {name:"Time",      index:0,min:0,max:1,def:0.22,fmt:function(v){return Math.round(40+v*860)+"<span class='unit'>ms</span>";}},
+    {name:"Feedback",  index:1,min:0,max:1,def:0.45,fmt:function(v){return Math.round(v*100)+"<span class='unit'>%</span>";}},
+    {name:"Tone",      index:2,min:0,max:1,def:0.5, fmt:function(v){return (v<.5?"dark ":v>.5?"brite ":"")+Math.round(v*100);}},
+    {name:"Modulation",index:3,min:0,max:1,def:0.35,fmt:function(v){return Math.round(v*100)+"<span class='unit'>%</span>";}},
+    {name:"Mix",       index:4,min:0,max:1,def:0.5, fmt:function(v){return Math.round(v*100)+"<span class='unit'>%</span>";}}
+  ];
+  var STEP=0.001;
+  var deck=document.getElementById('deck');
+  var ctrls=[]; // {p,val,setN,norm,el}
+
+  PARAMS.forEach(function(p,idx){
+    var cell=document.createElement('div');
+    cell.className='cell'; cell.style.setProperty('--d',(idx*70)+'ms');
+    cell.innerHTML=
+      '<div class="knob"><span class="bub"></span><i class="ticks"></i><i class="arc"></i>'
+      +'<i class="cap"></i><i class="dot"></i></div>'
+      +'<div class="nm">'+p.name+'</div><div class="val"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var val=cell.querySelector('.val');
+    var bub=cell.querySelector('.bub');
+    var v=p.def;
+    function norm(){return (v-p.min)/((p.max-p.min)||1);}
+    function paint(){
+      var n=norm();
+      knob.style.setProperty('--v',n);
+      var t=p.fmt(v);
+      val.innerHTML=t; bub.textContent=val.textContent;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
+    function setN(n){
+      n=n<0?0:(n>1?1:n);
+      var nv=p.min+(p.max-p.min)*n;
+      nv=Math.round(nv/STEP)*STEP;
+      v=nv; paint();
+    }
+    // pointer drag (vertical)
+    knob.addEventListener('pointerdown',function(e){
+      knob._d=1; knob._y=e.clientY; knob._n=norm(); knob.classList.add('act');
+      knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!knob._d)return;
+      var sp=e.shiftKey?600:200; // fine with Shift
+      setN(knob._n+(knob._y-e.clientY)/sp);
+    });
+    function endDrag(){knob._d=0;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',endDrag);
+    knob.addEventListener('pointercancel',endDrag);
+    knob.addEventListener('lostpointercapture',endDrag);
+    // double-click resets to default
+    knob.addEventListener('dblclick',function(){v=p.def;paint();});
+    // wheel
+    knob.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?0.025:-0.025));},{passive:false});
+
+    // setV: apply an absolute (raw) value WITHOUT echoing back to the host
+    // (used for host->UI read-back so we don't fight the DAW with setParam).
+    function setV(raw,silent){
+      var nv=raw<p.min?p.min:(raw>p.max?p.max:raw);
+      v=nv;
+      var n=norm();
+      knob.style.setProperty('--v',n);
+      var t=p.fmt(v); val.innerHTML=t; bub.textContent=val.textContent;
+      if(!silent && window.vstai && window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
+
+    ctrls.push({p:p,get val(){return v;},norm:norm,setV:setV});
+    paint();
+  });
+
+  // ---- host -> UI read-back: if the host exposes getParam, pull the
+  //      authoritative value for every index on load so the knobs reflect
+  //      the saved/automation state instead of our defaults. Silent so we
+  //      don't immediately write the same value straight back to the host.
+  function syncFromHost(){
+    if(!(window.vstai && typeof window.vstai.getParam==='function')) return;
+    ctrls.forEach(function(c){
+      try{
+        var hv=window.vstai.getParam(c.p.index);
+        if(hv!=null && isFinite(hv)) c.setV(+hv,true);
+      }catch(e){}
+    });
+  }
+
+  // =========================================================
+  //  ANALOG ECHO ANIMATION — signal walks the BBD stages and
+  //  spawns fading "repeats". Driven by Time/Feedback/Mod/Mix.
+  // =========================================================
+  var NSTAGE=12, stagesEl=document.getElementById('stages'), echoesEl=document.getElementById('echoes');
+  var stages=[];
+  for(var s=0;s<NSTAGE;s++){var d=document.createElement('div');d.className='stage';d.innerHTML='<b></b>';stagesEl.appendChild(d);stages.push(d);}
+  function P(i){return ctrls[i].norm();} // normalized 0..1 of param i
+  var rootStyle=document.documentElement.style; // live accent-hue target (Tone)
+
+  var last=0, headPos=0;
+  function loop(ts){
+    requestAnimationFrame(loop);
+    if(!last)last=ts; var dt=(ts-last)/1000; last=ts;
+
+    var time=P(0), fb=P(1), tone=P(2), mod=P(3), mix=P(4);
+    // Tone = in-loop low-pass colour: dark (low) => deep amber/red & dimmer
+    //        repeats; bright (high) => hot golden, crisper repeats. Drives the
+    //        --ac / --ac2 accent hues live so the whole echo path responds.
+    var hue=18+tone*30;                 // 18deg(red-amber)..48deg(gold)
+    var sat=92-tone*14;                 // brighter tone slightly less saturated
+    var litA=42+tone*16;                // lightness of accent
+    rootStyle.setProperty('--ac','hsl('+hue.toFixed(0)+','+sat.toFixed(0)+'%,'+litA.toFixed(0)+'%)');
+    rootStyle.setProperty('--ac2','hsl('+(hue+12).toFixed(0)+',100%,'+(litA+18).toFixed(0)+'%)');
+    // brightness ceiling for stage LEDs scales with Tone (low-pass darkens)
+    var toneGlow=0.45+tone*0.55;
+    // clock speed: shorter Time => faster walk through the bucket brigade
+    var speed=(2.2 - time*1.7); // stages per second-ish factor
+    headPos=(headPos+dt*speed*3) % NSTAGE;
+
+    // wow/flutter: modulation jitters the lit position slightly
+    var wobble=Math.sin(ts/170)*mod*1.4 + Math.sin(ts/61)*mod*0.6;
+    var lit=Math.round(headPos+wobble);
+
+    for(var k=0;k<NSTAGE;k++){
+      var on=(((k%NSTAGE)+NSTAGE)%NSTAGE)===(((lit%NSTAGE)+NSTAGE)%NSTAGE);
+      // brightness trails off down the line by feedback (repeats fade)
+      var bb=stages[k].firstChild;
+      if(on){
+        stages[k].classList.add('on');
+        // later stages dimmer unless feedback high; Tone caps the ceiling
+        // (a dark low-pass tone literally dims the bucket-brigade glow)
+        var fade=Math.max(0,Math.min(1, (1 - k/NSTAGE)*(0.4+fb*0.9) ));
+        bb.style.opacity=((0.35+0.65*fade)*toneGlow).toFixed(2);
+      } else {
+        stages[k].classList.remove('on');
+      }
+    }
+
+    // spawn a drifting echo blip when the head crosses stage 0 (a new repeat)
+    if(headPos<lastHead) spawnEcho(fb,mix,time,tone);
+    lastHead=headPos;
+  }
+  var lastHead=0;
+
+  function spawnEcho(fb,mix,time,tone){
+    var b=document.createElement('div'); b.className='blip'; echoesEl.appendChild(b);
+    var startMix=(0.4+mix*0.6);
+    var life=900+ (1-time)*0 + 700; // ms total travel
+    // Tone tints each repeat: dark tone => deep amber, bright tone => gold,
+    // matching the in-loop low-pass colour of the BBD feedback path.
+    var hue=18+tone*30;
+    b.style.background='radial-gradient(circle,hsl('+hue.toFixed(0)+',95%,'+(48+tone*16).toFixed(0)+'%) 0%,transparent 70%)';
+    var t0=performance.now();
+    function step(now){
+      var e=(now-t0)/life;
+      if(e>=1){ b.remove(); return; }
+      // travels left->right, fading; feedback => slower fade / more visible
+      // tail; a darker Tone also fades the repeat faster (high-freq loss).
+      var x=e*100;
+      var op=startMix*Math.pow(1-e, 1.6 - fb*1.0)*(0.55+tone*0.45);
+      b.style.left=x.toFixed(1)+'%';
+      b.style.opacity=op.toFixed(3);
+      b.style.transform='scale('+(1+e*0.6)+')';
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function ready(){ syncFromHost(); requestAnimationFrame(loop); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

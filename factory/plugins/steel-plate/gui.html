@@ -1,0 +1,378 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@property --n{syntax:'<number>';inherits:false;initial-value:0}
+:root{
+  --ac:#9fb3c8;--ac2:#cfe0f0;
+  --steel0:#0d1117;--steel1:#3a4453;--steel2:#5d6877;--steel3:#828d9c;
+  --rivet:#1a2029;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#dbe4ee;
+  background:
+    radial-gradient(120% 90% at 50% -10%,#222b38 0%,#0c1016 60%,#05070b 100%);
+  display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden;
+}
+
+/* ===== outer industrial chassis / riveted frame ===== */
+.unit{
+  position:relative;width:100%;max-width:660px;border-radius:18px;padding:18px;
+  background:
+    linear-gradient(145deg,#2b333f,#11151c 70%);
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:
+    0 34px 80px rgba(0,0,0,.65),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 0 0 1px rgba(0,0,0,.5),
+    inset 0 -2px 22px rgba(0,0,0,.6);
+}
+/* brushed texture on the chassis */
+.unit::before{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(102deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+/* corner rivets on the frame */
+.frame-rivet{position:absolute;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 38% 30%,#9aa6b6,#3a424f 55%,#11151b 100%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 1px 2px rgba(0,0,0,.7);z-index:5}
+.frame-rivet.tl{top:9px;left:9px}.frame-rivet.tr{top:9px;right:9px}
+.frame-rivet.bl{bottom:9px;left:9px}.frame-rivet.br{bottom:9px;right:9px}
+
+/* ===== title plate ===== */
+.head{position:relative;display:flex;align-items:center;gap:12px;margin:2px 6px 14px;z-index:3}
+.maker{display:flex;align-items:center;gap:9px;flex:1}
+.hammer{width:26px;height:26px;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  background:linear-gradient(180deg,#eef4fb,#8b97a6);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.sub{font-size:9px;letter-spacing:.32em;color:#7d8a9c;text-transform:uppercase;margin-top:2px}
+.power{display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.22em;color:#8a97a9;text-transform:uppercase}
+.lamp{width:9px;height:9px;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 10px var(--ac),0 0 3px #fff inset;animation:hum 2.6s ease-in-out infinite}
+@keyframes hum{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* ===== the STEEL PLATE itself ===== */
+.plate-wrap{position:relative;border-radius:10px;padding:14px;
+  background:linear-gradient(180deg,#0a0d12,#05070b);
+  box-shadow:inset 0 4px 18px rgba(0,0,0,.8),inset 0 0 0 1px rgba(0,0,0,.6)}
+.plate{
+  position:relative;width:100%;height:240px;border-radius:6px;overflow:hidden;
+  /* brushed steel base */
+  background:
+    linear-gradient(168deg,var(--steel3) 0%,var(--steel2) 22%,var(--steel1) 55%,var(--steel0) 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(255,255,255,.22),
+    inset 0 -8px 26px rgba(0,0,0,.7),
+    inset 0 0 0 1px rgba(0,0,0,.5),
+    0 2px 0 rgba(255,255,255,.05);
+  transform:perspective(900px) rotateX(7deg);
+  transform-style:preserve-3d;
+}
+/* fine horizontal brush grain */
+.plate::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background:repeating-linear-gradient(91deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.05) 1px 2px,transparent 2px 4px);
+  mix-blend-mode:overlay;
+}
+/* moving anisotropic sheen — the "shimmer" of vibrating metal */
+.sheen{
+  position:absolute;inset:-30%;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+  background:linear-gradient(105deg,transparent 38%,rgba(207,224,240,.5) 49%,rgba(255,255,255,.85) 50%,rgba(207,224,240,.5) 51%,transparent 62%);
+  animation:sweep var(--sweepdur,6s) linear infinite;
+}
+@keyframes sweep{from{transform:translateX(-55%)}to{transform:translateX(55%)}}
+
+/* SVG ripple field rides on the plate */
+.ripple-svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* internal damping shadow that closes in with Damping (HF roll-off) */
+.damp-veil{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 130% at 50% 0%,transparent 30%,rgba(3,5,8,calc(var(--damp,.4)*.85)) 100%);
+  transition:background .25s ease}
+
+/* pre-delay marker: a darker offset gap entering from the left edge */
+.predelay{position:absolute;top:0;bottom:0;left:0;pointer-events:none;
+  width:calc(var(--pd,0)*46%);
+  background:linear-gradient(90deg,rgba(2,4,7,.85),rgba(2,4,7,0));
+  border-right:1px solid color-mix(in srgb,var(--ac) 40%,transparent);
+  transition:width .25s ease}
+
+/* corner mounting bolts ON the plate (decorative) */
+.bolt{position:absolute;width:16px;height:16px;border-radius:50%;z-index:4;
+  background:radial-gradient(circle at 36% 30%,#c3ccd8,#697585 45%,#1c222c 100%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.5),0 2px 3px rgba(0,0,0,.7)}
+.bolt::after{content:"";position:absolute;inset:4px;border-radius:50%;
+  background:radial-gradient(circle at 50% 40%,#2a313c,#0c0f14);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.9)}
+.bolt.a{top:8px;left:8px}.bolt.b{top:8px;right:8px}
+.bolt.c{bottom:8px;left:8px}.bolt.d{bottom:8px;right:8px}
+
+/* impulse meter readout on the plate */
+.exciter{position:absolute;left:12px;bottom:9px;display:flex;gap:4px;align-items:flex-end;height:26px;z-index:4}
+.exciter i{width:4px;border-radius:2px;background:linear-gradient(var(--ac2),var(--ac));
+  box-shadow:0 0 6px color-mix(in srgb,var(--ac) 70%,transparent);height:6px;transition:height .08s linear}
+
+/* ===== control rack (bolt-knobs) ===== */
+.rack{position:relative;z-index:3;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  margin-top:16px;padding:14px 10px 6px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.18));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 0 1px rgba(0,0,0,.45),0 -1px 0 rgba(0,0,0,.5)}
+.cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 2px;
+  animation:rise .55s both;animation-delay:var(--d)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* the bolt-knob: an industrial nut you turn */
+.knob{position:relative;width:74px;height:74px;cursor:ns-resize;user-select:none;touch-action:none}
+.knob svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.arc-bg{fill:none;stroke:rgba(0,0,0,.55);stroke-width:5;stroke-linecap:round}
+.arc-fg{fill:none;stroke-width:5;stroke-linecap:round;
+  filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ac) 75%,transparent));
+  transition:stroke-dashoffset .14s cubic-bezier(.2,.75,.25,1)}
+.nut{transform-box:fill-box;transform-origin:50% 50%;
+  transition:transform .14s cubic-bezier(.2,.75,.25,1)}
+.tick{stroke:#0a0d12;stroke-width:2}
+.bub{position:absolute;top:-12px;left:50%;transform:translate(-50%,4px) scale(.85);opacity:0;
+  font-size:11px;font-weight:800;color:#06080c;background:linear-gradient(var(--ac2),var(--ac));
+  padding:2px 7px;border-radius:6px;font-variant-numeric:tabular-nums;pointer-events:none;
+  box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.15s;white-space:nowrap}
+.knob.act .bub,.cell:hover .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+.nm{font-size:9.5px;letter-spacing:.16em;color:#9fb0c8;text-transform:uppercase;text-align:center;
+  /* engraved label plate */
+  text-shadow:0 1px 0 rgba(0,0,0,.6)}
+.val{font-size:12px;font-weight:800;color:#eef4fb;font-variant-numeric:tabular-nums}
+
+@media(max-width:560px){.rack{grid-template-columns:repeat(3,1fr)}.plate{height:200px}}
+</style></head><body>
+<div class="unit">
+  <span class="frame-rivet tl"></span><span class="frame-rivet tr"></span>
+  <span class="frame-rivet bl"></span><span class="frame-rivet br"></span>
+
+  <div class="head">
+    <div class="maker">
+      <svg class="hammer" viewBox="0 0 24 24" fill="none">
+        <path d="M3 21l7-7" stroke="#9fb0c8" stroke-width="2" stroke-linecap="round"/>
+        <rect x="11" y="3.5" width="9" height="6" rx="1.2" transform="rotate(45 15.5 6.5)" fill="#aeb9cc" stroke="#5d6877"/>
+      </svg>
+      <div>
+        <h1>Steel&nbsp;Plate</h1>
+        <div class="sub">Figure-8 Plate Reverb · Mk II</div>
+      </div>
+    </div>
+    <div class="power"><span class="lamp"></span>Excited</div>
+  </div>
+
+  <div class="plate-wrap">
+    <div class="plate" id="plate">
+      <div class="sheen" id="sheen"></div>
+      <svg class="ripple-svg" id="rsvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#cfe0f0" stop-opacity="0"/>
+            <stop offset="60%" stop-color="#cfe0f0" stop-opacity=".0"/>
+            <stop offset="100%" stop-color="#cfe0f0" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <g id="ripples"></g>
+      </svg>
+      <div class="predelay" id="predelay"></div>
+      <div class="damp-veil" id="dampveil"></div>
+      <span class="bolt a"></span><span class="bolt b"></span>
+      <span class="bolt c"></span><span class="bolt d"></span>
+      <div class="exciter" id="exciter"></div>
+    </div>
+  </div>
+
+  <div class="rack" id="rack"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- EXACT params from spec.json ----
+  var PARAMS=[
+    {name:"Mix",       index:0,min:0,max:1,def:0.35,unit:"%",scale:100},
+    {name:"Decay",     index:1,min:0,max:1,def:0.6, unit:"%",scale:100},
+    {name:"Damping",   index:2,min:0,max:1,def:0.4, unit:"%",scale:100},
+    {name:"Pre-Delay", index:3,min:0,max:1,def:0.0, unit:"ms",scale:200},
+    {name:"Modulation",index:4,min:0,max:1,def:0.3, unit:"%",scale:100}
+  ];
+  var ST={}; // index -> {val, paint}
+
+  function fmt(p,v){
+    var s=v*p.scale;
+    var d=p.scale>=100?(s>=100?0:1):(s>=100?0:1);
+    return (+s).toFixed(d)+(p.unit?(" "+p.unit):"");
+  }
+
+  // ---- build a bolt-knob cell ----
+  var R=27, CX=37, CY=37;            // arc geometry inside 74px svg
+  var START=135, SWEEP=270;          // degrees
+  var CIRC=2*Math.PI*R;
+  var ARC_LEN=CIRC*(SWEEP/360);
+
+  function polar(cx,cy,r,deg){var a=(deg-90)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+  function arcPath(r,a0,a1){
+    var p0=polar(CX,CY,r,a0),p1=polar(CX,CY,r,a1);
+    var large=(a1-a0)>180?1:0;
+    return "M"+p0[0].toFixed(2)+" "+p0[1].toFixed(2)+" A"+r+" "+r+" 0 "+large+" 1 "+p1[0].toFixed(2)+" "+p1[1].toFixed(2);
+  }
+
+  // hex-nut points
+  function hexPath(cx,cy,r){
+    var s="";for(var i=0;i<6;i++){var a=(i*60-90)*Math.PI/180;s+=(i?"L":"M")+(cx+r*Math.cos(a)).toFixed(2)+" "+(cy+r*Math.sin(a)).toFixed(2);}return s+"Z";
+  }
+
+  function buildCell(p,i){
+    var cell=document.createElement('div');
+    cell.className='cell';cell.style.setProperty('--d',(i*70)+'ms');
+    var gid='grad'+p.index, nid='nutg'+p.index;
+    cell.innerHTML=
+      '<div class="knob" data-i="'+p.index+'">'
+      +'<span class="bub"></span>'
+      +'<svg viewBox="0 0 74 74">'
+        +'<defs><linearGradient id="'+gid+'" x1="0" y1="1" x2="1" y2="0">'
+          +'<stop offset="0%" stop-color="#9fb3c8"/><stop offset="100%" stop-color="#cfe0f0"/></linearGradient>'
+          +'<radialGradient id="'+nid+'" cx="40%" cy="32%" r="75%">'
+          +'<stop offset="0%" stop-color="#aeb9cc"/><stop offset="48%" stop-color="#5d6877"/>'
+          +'<stop offset="100%" stop-color="#161b22"/></radialGradient></defs>'
+        +'<path class="arc-bg" d="'+arcPath(R,START,START+SWEEP)+'"/>'
+        +'<path class="arc-fg" stroke="url(#'+gid+')" d="'+arcPath(R,START,START+SWEEP)+'" stroke-dasharray="'+ARC_LEN.toFixed(2)+' '+CIRC.toFixed(2)+'"/>'
+        +'<g class="nut">'
+          +'<path d="'+hexPath(CX,CY,17)+'" fill="url(#'+nid+')" stroke="#0a0d12" stroke-width="1.2"/>'
+          +'<circle cx="'+CX+'" cy="'+CY+'" r="9.5" fill="#10151d" stroke="#404a59" stroke-width="1"/>'
+          +'<line class="tick" x1="'+CX+'" y1="'+(CY-9)+'" x2="'+CX+'" y2="'+(CY-15)+'"/>'
+        +'</g>'
+      +'</svg></div>'
+      +'<div class="nm">'+p.name+'</div><div class="val"></div>';
+    return cell;
+  }
+
+  // ---- plate visual driver state ----
+  var pState={mix:0.35,decay:0.6,damp:0.4,pd:0,mod:0.3};
+
+  function applyPlate(){
+    var plate=document.getElementById('plate');
+    var sheen=document.getElementById('sheen');
+    // damping closes the bright veil; less damping = brighter/longer shimmer
+    plate.style.setProperty('--damp',pState.damp);
+    document.getElementById('dampveil').style.setProperty('--damp',pState.damp);
+    document.getElementById('predelay').style.setProperty('--pd',pState.pd);
+    // modulation speeds the sheen sweep; more decay = brighter sheen
+    var dur=(9 - pState.mod*6.5).toFixed(2)+'s';
+    sheen.style.setProperty('--sweepdur',dur);
+    sheen.style.opacity=(0.25+pState.decay*0.55*(1-pState.damp*0.5)).toFixed(3);
+  }
+
+  // ---- animated ripple field (rAF) ----
+  var rg=document.getElementById('ripples');
+  var ripples=[]; // {el,x,y,t,life,amp}
+  function spawnRipple(strength){
+    if(ripples.length>14) return;
+    var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    var x=8+Math.random()*84, y=12+Math.random()*76;
+    c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',0);
+    c.setAttribute('fill','none');
+    c.setAttribute('stroke','#cfe0f0');
+    c.setAttribute('vector-effect','non-scaling-stroke');
+    c.setAttribute('stroke-width','1');
+    rg.appendChild(c);
+    // modulation warps the ripple via slight wobble; decay sets lifetime
+    ripples.push({el:c,x:x,y:y,t:0,life:0.9+pState.decay*2.6,amp:strength});
+  }
+
+  // exciter bars
+  var exEls=[];
+  (function(){var ex=document.getElementById('exciter');for(var i=0;i<14;i++){var b=document.createElement('i');ex.appendChild(b);exEls.push(b);}})();
+
+  var last=performance.now(), excite=0, spawnAcc=0;
+  function loop(now){
+    var dt=Math.min(0.05,(now-last)/1000); last=now;
+    // simulate an input "hit" envelope that re-triggers periodically (the plate being struck)
+    spawnAcc+=dt;
+    var period=0.9 - pState.mod*0.35;        // modulation = livelier retrigger
+    if(spawnAcc>period){ spawnAcc=0; excite=1; var n=1+Math.round(pState.decay*2); for(var k=0;k<n;k++) spawnRipple(0.7+Math.random()*0.3); }
+    excite*=Math.exp(-dt*(2.4+pState.damp*4)); // damping = faster decay of the strike
+
+    // ripples
+    for(var i=ripples.length-1;i>=0;i--){
+      var rp=ripples[i]; rp.t+=dt;
+      var f=rp.t/rp.life;
+      if(f>=1){ rg.removeChild(rp.el); ripples.splice(i,1); continue; }
+      var rad=f*46;
+      var wob=Math.sin(rp.t*9 + rp.x)*pState.mod*1.6; // modulation wobble
+      rp.el.setAttribute('r',(rad+wob).toFixed(2));
+      var op=(1-f)*0.5*rp.amp*(0.4+pState.decay*0.6)*(1-pState.damp*0.45);
+      rp.el.setAttribute('stroke-opacity',op.toFixed(3));
+    }
+
+    // exciter meter — pseudo spectrum from excite + decay tail, damped HF on the right
+    for(var j=0;j<exEls.length;j++){
+      var hfRoll=1-(j/exEls.length)*pState.damp*0.9; // right bars (HF) cut by damping
+      var base=excite*(0.5+Math.random()*0.5)*hfRoll;
+      var tail=pState.decay*0.25*(1-j/exEls.length)*Math.abs(Math.sin(now/300+j));
+      var h=2+(base+tail)*24;
+      exEls[j].style.height=h.toFixed(1)+'px';
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---- wire a knob ----
+  function wireKnob(cell,p){
+    var knob=cell.querySelector('.knob');
+    var fg=cell.querySelector('.arc-fg');
+    var nut=cell.querySelector('.nut');
+    var valEl=cell.querySelector('.val');
+    var bub=cell.querySelector('.bub');
+    var val=p.def;
+
+    function norm(){return (val-p.min)/((p.max-p.min)||1);}
+    function paint(){
+      var n=norm();
+      fg.style.strokeDashoffset=(ARC_LEN*(1-n)).toFixed(2);
+      nut.style.transform='rotate('+((n-0.5)*SWEEP)+'deg)';
+      var t=fmt(p,val); valEl.textContent=t; bub.textContent=t;
+      // feed plate visual
+      if(p.index===0)pState.mix=val;
+      else if(p.index===1)pState.decay=val;
+      else if(p.index===2)pState.damp=val;
+      else if(p.index===3)pState.pd=val;
+      else if(p.index===4)pState.mod=val;
+      applyPlate();
+      if(window.vstai&&window.vstai.setParam)window.vstai.setParam(p.index,val);
+    }
+    function setN(n){n=n<0?0:(n>1?1:n);val=p.min+(p.max-p.min)*n;paint();}
+
+    knob.addEventListener('pointerdown',function(e){
+      knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');
+      knob.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!knob._d)return; setN(knob._n+(knob._y-e.clientY)/200);
+    });
+    function end(){knob._d=0;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){val=p.def;paint();});
+    knob.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?0.02:-0.02));},{passive:false});
+
+    ST[p.index]={paint:paint};
+    paint();
+  }
+
+  function ready(){
+    var rack=document.getElementById('rack');
+    PARAMS.forEach(function(p,i){
+      var cell=buildCell(p,i);
+      rack.appendChild(cell);
+      wireKnob(cell,p);
+    });
+    applyPlate();
+  }
+
+  if(window.vstai&&window.vstai.onReady)window.vstai.onReady(ready);else ready();
+})();
+</script>
+</body></html>

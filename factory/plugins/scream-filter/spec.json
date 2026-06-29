@@ -1,0 +1,17 @@
+{
+  "name": "Scream Filter",
+  "isInstrument": false,
+  "explanation": "An aggressive Sallen-Key resonant filter. A high-pass and a low-pass run in series, each a 2-pole cell with a saturated resonance feedback path that can ring up to self-oscillation and scream. Signal is driven into that feedback with a tanh nonlinearity for the characteristic biting, distorted tone; the saturator also caps the self-oscillation so the output stays stable at extreme settings. Controls: LP Cutoff, HP Cutoff, Resonance, Drive and dry/wet Mix.",
+  "assembly": "factory/plugins/scream-filter/assembly.ts",
+  "out": "factory/plugins/scream-filter/x.vstai",
+  "publishedAt": 1751000058000,
+  "theme": { "accent": "#a8e063", "accent2": "#54d18f" },
+  "guiFile": "factory/plugins/scream-filter/gui.html",
+  "params": [
+    { "name": "LP Cutoff",  "index": 0, "min": 0, "max": 1, "default": 0.85 },
+    { "name": "HP Cutoff",  "index": 1, "min": 0, "max": 1, "default": 0.12 },
+    { "name": "Resonance",  "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Drive",      "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",        "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

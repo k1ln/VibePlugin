@@ -1,0 +1,362 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ac:#a8e063;        /* acid green accent */
+  --ac2:#54d18f;       /* teal-green highlight */
+  --panel:#3a3d3a;
+  --panel2:#242725;
+  --metal:#c7cdc8;
+  --ink:#0c1109;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#e6f3da;
+  background:
+    radial-gradient(120% 90% at 50% -10%,#23271f 0%,#15170f 55%,#08090a 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:22px;overflow:hidden;
+}
+
+/* ===== synth-module panel ===== */
+.panel{
+  position:relative;
+  width:360px;
+  border-radius:14px;
+  padding:18px 20px 22px;
+  background:
+    linear-gradient(155deg,#4a4e49 0%,var(--panel) 26%,#33352f 70%,#22241f 100%);
+  box-shadow:
+    0 42px 80px -22px rgba(0,0,0,.8),
+    0 2px 0 rgba(255,255,255,.10) inset,
+    0 -22px 44px -18px rgba(0,0,0,.6) inset,
+    0 0 0 2px #15170f,
+    0 0 0 5px #0a0c08;
+  animation:rise .65s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+/* brushed-metal micro texture */
+.panel::before{
+  content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;
+  background:
+    repeating-linear-gradient(92deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
+    radial-gradient(140% 60% at 28% 0%,rgba(255,255,255,.12),transparent 55%);
+  mix-blend-mode:screen;opacity:.55;
+}
+/* hex mounting bolts */
+.bolt{position:absolute;width:14px;height:14px;border-radius:3px;
+  background:radial-gradient(circle at 35% 30%,#e3e8e1,#878d83 55%,#3d423b);
+  box-shadow:0 1px 2px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.35) inset;
+  transform:rotate(15deg)}
+.bolt::after{content:"";position:absolute;inset:3px;border-radius:1px;
+  background:linear-gradient(0deg,transparent 44%,#4a4f47 44% 56%,transparent 56%)}
+.bolt.tl{top:11px;left:11px}.bolt.tr{top:11px;right:11px}
+.bolt.bl{bottom:11px;left:11px}.bolt.br{bottom:11px;right:11px}
+
+/* ===== header ===== */
+.head{position:relative;display:flex;align-items:center;justify-content:space-between;margin:0 4px 12px}
+.title{}
+.brand{font-size:8.5px;letter-spacing:.4em;color:#bfe39a;opacity:.7;text-transform:uppercase}
+h1{
+  margin:2px 0 0;font-size:23px;font-weight:900;letter-spacing:.01em;line-height:1;
+  font-style:italic;
+  background:linear-gradient(180deg,#f3ffe2,var(--ac) 55%,#4fae3c);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.3);
+  filter:drop-shadow(0 2px 6px rgba(40,60,0,.5));
+}
+.sub{font-size:8px;letter-spacing:.26em;color:#a9cf86;opacity:.6;text-transform:uppercase;margin-top:4px}
+
+/* tiny patch jack (MS-20 nod) */
+.jack{position:relative;width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+  background:radial-gradient(circle at 42% 35%,#3b3e39,#181a16 70%);
+  box-shadow:0 0 0 2px #0c0e09,0 0 0 4px #2c2f2a,inset 0 2px 5px rgba(0,0,0,.9);}
+.jack::before{content:"";position:absolute;inset:9px;border-radius:50%;
+  background:radial-gradient(circle at 45% 35%,#13150f,#000 75%);
+  box-shadow:inset 0 0 6px rgba(0,0,0,.9),0 0 7px var(--ac2)}
+.jack::after{content:"";position:absolute;inset:13px;border-radius:50%;
+  background:radial-gradient(circle,var(--ac2),#0c4a30);opacity:.55;
+  animation:jackpulse 2.4s ease-in-out infinite}
+@keyframes jackpulse{0%,100%{opacity:.35}50%{opacity:.8}}
+
+/* ===== response window — the screaming peak ===== */
+.window{
+  position:relative;height:128px;margin:4px 2px 16px;border-radius:11px;overflow:hidden;
+  background:
+    radial-gradient(120% 150% at 50% 130%,#0e1a0c,#04080a 72%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),
+             0 0 0 2px rgba(120,220,140,.08),
+             inset 0 2px 10px rgba(0,0,0,.85),
+             inset 0 0 38px rgba(84,209,143,.08);
+}
+.window svg{position:absolute;inset:0;width:100%;height:100%}
+.window::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.09),transparent 28%)}
+.gridln{stroke:rgba(120,220,140,.10);stroke-width:1}
+.gridv{stroke:rgba(120,220,140,.055);stroke-width:1}
+.flow{stroke-dasharray:4 10;animation:flow 1.3s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-14}}
+/* the response curve */
+#curve{fill:none;stroke:var(--ac);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 6px var(--ac));}
+#fill{fill:url(#grad);opacity:.22}
+/* the resonant peak marker — glows hotter as Q rises */
+#peak{fill:none;stroke:#fff;stroke-width:2;}
+.peakdot{transform-origin:center}
+/* sweeping scan line */
+#scan{stroke:rgba(168,224,99,.0);stroke-width:1.5}
+
+/* ===== knob deck ===== */
+.deck{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 4px;margin:0 2px}
+.pot{display:flex;flex-direction:column;align-items:center;gap:6px;
+  animation:pop .5s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.knob{position:relative;width:60px;height:60px;cursor:ns-resize;touch-action:none;user-select:none}
+/* tick skirt */
+.skirt{position:absolute;inset:-2px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(220,240,210,.5) 0 1deg,transparent 1deg 13.846deg);
+  -webkit-mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33px,transparent 34px);
+  mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33px,transparent 34px)}
+/* glowing value arc */
+.arc{position:absolute;inset:1px;border-radius:50%;
+  background:conic-gradient(from 215deg,var(--ac) calc(var(--n)*270deg),rgba(255,255,255,.05) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n)*7px) var(--ac));
+  transition:--n .12s cubic-bezier(.2,.8,.25,1)}
+/* metal cap */
+.cap{position:absolute;top:9px;left:9px;width:42px;height:42px;border-radius:50%;
+  background:radial-gradient(circle at 50% 28%,#454a42 0%,#1d211b 62%,#0d100b 100%);
+  box-shadow:inset 0 2px 5px rgba(255,255,255,.13),inset 0 -5px 12px rgba(0,0,0,.8),0 3px 8px rgba(0,0,0,.55)}
+.cap::before{content:"";position:absolute;inset:5px;border-radius:50%;
+  background:repeating-conic-gradient(#262b23 0 9deg,#0e120c 9deg 18deg);opacity:.5}
+/* pointer notch */
+.ptr{position:absolute;top:5px;left:50%;width:3px;height:17px;margin-left:-1.5px;border-radius:3px;
+  background:linear-gradient(var(--ac2),var(--ac));
+  box-shadow:0 0 7px var(--ac),0 0 2px #fff;
+  transform-origin:50% 25px;
+  transform:rotate(calc((var(--n) - .5) * 270deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.pname{font-size:8.5px;font-weight:800;letter-spacing:.1em;color:#0d1808;
+  background:linear-gradient(var(--ac2),var(--ac));padding:2px 7px;border-radius:999px;
+  text-transform:uppercase;box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 2px 4px rgba(0,0,0,.4);white-space:nowrap}
+.pval{font-size:10.5px;font-weight:800;color:#eefce0;font-variant-numeric:tabular-nums;
+  min-height:13px;text-shadow:0 0 8px rgba(168,224,99,.4)}
+.knob.act .cap{box-shadow:inset 0 2px 5px rgba(255,255,255,.13),inset 0 -5px 12px rgba(0,0,0,.8),0 3px 12px rgba(168,224,99,.55)}
+
+/* patchbay strip / footer */
+.foot{display:flex;align-items:center;justify-content:space-between;margin:16px 4px 0;
+  padding-top:11px;border-top:1px solid rgba(120,220,140,.12)}
+.serial{font-size:7.5px;letter-spacing:.2em;color:#8fbf6f;opacity:.55;text-transform:uppercase}
+.osc{display:flex;align-items:center;gap:6px}
+.osclbl{font-size:7.5px;letter-spacing:.2em;color:#8fbf6f;opacity:.55;text-transform:uppercase}
+.led{width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#eaffd8,var(--ac) 50%,#3a5a18 90%);
+  box-shadow:0 0 9px var(--ac)}
+</style>
+</head>
+<body>
+<div class="panel">
+  <span class="bolt tl"></span><span class="bolt tr"></span>
+  <span class="bolt bl"></span><span class="bolt br"></span>
+
+  <div class="head">
+    <div class="title">
+      <div class="brand">Dual Sallen-Key VCF</div>
+      <h1>Scream Filter</h1>
+      <div class="sub">Resonant HP &middot; LP Series</div>
+    </div>
+    <div class="jack" title="Patch in"></div>
+  </div>
+
+  <!-- frequency-response window with the screaming resonant peak -->
+  <div class="window">
+    <svg viewBox="0 0 340 128" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="var(--ac)" stop-opacity="0.9"/>
+          <stop offset="1" stop-color="var(--ac2)" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line class="gridln" x1="0" y1="64" x2="340" y2="64"/>
+      <line class="gridln flow" x1="0" y1="32" x2="340" y2="32"/>
+      <line class="gridln flow" x1="0" y1="96" x2="340" y2="96"/>
+      <line class="gridv" x1="85"  y1="0" x2="85"  y2="128"/>
+      <line class="gridv" x1="170" y1="0" x2="170" y2="128"/>
+      <line class="gridv" x1="255" y1="0" x2="255" y2="128"/>
+      <path id="fill" d=""/>
+      <path id="curve" d=""/>
+      <line id="scan" x1="0" y1="0" x2="0" y2="128"/>
+      <circle id="peak" class="peakdot" cx="0" cy="0" r="0"/>
+    </svg>
+  </div>
+
+  <!-- knob deck -->
+  <div class="deck" id="deck"></div>
+
+  <div class="foot">
+    <div class="serial">SK-2 &middot; 8P7SXGP</div>
+    <div class="osc"><span class="osclbl">Self-Osc</span><span class="led" id="oled"></span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"LP Cut", index:0,min:0,max:1,def:0.85},
+    {name:"HP Cut", index:1,min:0,max:1,def:0.12},
+    {name:"Reso",   index:2,min:0,max:1,def:0.55},
+    {name:"Drive",  index:3,min:0,max:1,def:0.35},
+    {name:"Mix",    index:4,min:0,max:1,def:1}
+  ];
+  var state={};
+  var deck=document.getElementById('deck');
+  var curveEl=document.getElementById('curve');
+  var fillEl=document.getElementById('fill');
+  var peakEl=document.getElementById('peak');
+  var scanEl=document.getElementById('scan');
+  var oled=document.getElementById('oled');
+
+  function pct(v){ return Math.round(v*100)+"%"; }
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*65)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0">'+
+        '<i class="skirt"></i>'+
+        '<i class="arc"></i>'+
+        '<i class="cap"></i>'+
+        '<i class="ptr"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var ptr=cell.querySelector('.ptr');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var nn=norm();
+      arc.style.setProperty('--n',nn);
+      ptr.style.setProperty('--n',nn);
+      val.textContent=pct(nn);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      onChange();
+    }
+    function setNorm(nn){ nn=nn<0?0:nn>1?1:nn; v=p.min+(p.max-p.min)*nn; paint(); }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true;startY=e.clientY;startN=norm();
+      knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?700:230;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){drag=false;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){v=p.def;paint();});
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault();setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  // ---- live filter response curve with the screaming resonant peak ----
+  // x axis log-freq across the window; HP rolls off lows, LP rolls off highs,
+  // both gain a sharp resonant peak at their corner that grows with Reso.
+  var W=340,H=128,N=160;
+  function onChange(){
+    var lp =state[0]!=null?state[0]:0.85; // LP cutoff norm
+    var hp =state[1]!=null?state[1]:0.12; // HP cutoff norm
+    var res=state[2]!=null?state[2]:0.55;
+    var drv=state[3]!=null?state[3]:0.35;
+    var mix=state[4]!=null?state[4]:1;
+
+    // peak sharpness/height grows with resonance (Q) and a touch of drive
+    var Q=0.6+res*res*22;            // resonance peak gain
+    var pk=1+res*(2.4+drv*1.4);      // visual peak multiplier
+    var pts=[],fillpts=[];
+    var maxY=0,maxX=0;
+    for(var i=0;i<=N;i++){
+      var x=i/N;                     // 0..1 across freq axis
+      // distance to each corner (in normalized freq)
+      var dl=(x-lp), dh=(x-hp);
+      // low-pass magnitude (1 below cutoff, rolls off above) + resonant bump
+      var lpMag=1/Math.sqrt(1+Math.pow(Math.max(0,(x-lp))*9,4));
+      var lpRes=pk/(1+Q*dl*dl*40);
+      var lpTot=Math.min(2.2,lpMag+lpRes*Math.exp(-Math.abs(dl)*6));
+      // high-pass magnitude (1 above cutoff) + resonant bump
+      var hpMag=1/Math.sqrt(1+Math.pow(Math.max(0,(hp-x))*11,4));
+      var hpRes=pk/(1+Q*dh*dh*40);
+      var hpTot=Math.min(2.2,hpMag+hpRes*Math.exp(-Math.abs(dh)*6));
+      // series response = product, clamped
+      var mag=Math.min(2.4,lpTot*hpTot);
+      mag*=mix; mag+=(1-mix)*0.55;
+      var py=H-12 - mag*40;
+      if(py<2)py=2;
+      var px=x*W;
+      pts.push(px.toFixed(1)+","+py.toFixed(1));
+      fillpts.push(px.toFixed(1)+","+py.toFixed(1));
+      if((H-py)>maxY){maxY=H-py;maxX=px;}
+    }
+    curveEl.setAttribute('d','M'+pts.join(' L'));
+    fillEl.setAttribute('d','M0,'+H+' L'+fillpts.join(' L')+' L'+W+','+H+' Z');
+
+    // peak marker glows hotter & sharper with resonance
+    var hot=Math.min(1,res*1.1+drv*0.2);
+    peakEl.setAttribute('cx',maxX.toFixed(1));
+    peakEl.setAttribute('cy',(H-maxY).toFixed(1));
+    peakEl.setAttribute('r',(2+res*4).toFixed(1));
+    peakEl.setAttribute('stroke','#ffffff');
+    peakEl.setAttribute('stroke-width',(1+res*2).toFixed(1));
+    peakEl.style.filter='drop-shadow(0 0 '+(3+hot*14)+'px var(--ac)) drop-shadow(0 0 '+(hot*8)+'px #fff)';
+    // curve sharpens (hotter glow) with resonance
+    curveEl.style.filter='drop-shadow(0 0 '+(4+hot*12)+'px var(--ac))';
+    curveEl.setAttribute('stroke', res>0.9?'#eaffd8':'var(--ac)');
+
+    // self-oscillation LED brightens as resonance approaches the edge
+    var osc=Math.max(0,(res-0.78)/0.22);
+    oled.style.boxShadow='0 0 '+(5+osc*16)+'px var(--ac)';
+    oled.style.opacity=(0.4+osc*0.6).toFixed(2);
+  }
+
+  // animated scan sweep — a soft moving highlight along the curve
+  var t0=performance.now();
+  function loop(now){
+    var ph=((now-t0)/2600)%1;
+    var sx=ph*W;
+    scanEl.setAttribute('x1',sx.toFixed(1));
+    scanEl.setAttribute('x2',sx.toFixed(1));
+    var res=state[2]!=null?state[2]:0.55;
+    scanEl.setAttribute('stroke','rgba(168,224,99,'+(0.05+res*0.18).toFixed(3)+')');
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  PARAMS.forEach(buildKnob);
+
+  function ready(){ onChange(); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

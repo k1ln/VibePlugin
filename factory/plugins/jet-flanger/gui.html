@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jet Flanger</title>
+<style>
+  :root{
+    --accent:#40b8d0;
+    --accent2:#7ad0e8;
+    --steel0:#0a0f14;
+    --steel1:#141d26;
+    --steel2:#1f2b38;
+    --rim:#2c3e4d;
+    --txt:#cfe6ee;
+    --txtdim:#6f8a96;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--steel0)}
+  body{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    color:var(--txt);
+    -webkit-user-select:none;user-select:none;
+    -webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;align-items:center;
+  }
+  #panel{
+    position:relative;
+    width:660px;height:420px;
+    border-radius:20px;
+    background:
+      radial-gradient(140% 120% at 50% -20%, #1c2a36 0%, #0d141b 55%, #070b0f 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(122,208,232,.10),
+      inset 0 0 60px rgba(0,0,0,.6),
+      0 30px 60px rgba(0,0,0,.55);
+    border:1px solid #1b2832;
+    overflow:hidden;
+  }
+  /* brushed-metal sheen sweeping across the whole panel */
+  #panel::before{
+    content:"";position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(96deg, rgba(255,255,255,.018) 0 2px, transparent 2px 5px);
+    pointer-events:none;mix-blend-mode:screen;opacity:.6;
+  }
+  /* whoosh streak layer that sweeps right→off and back */
+  #streaks{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:20px}
+  .streak{
+    position:absolute;height:2px;left:-40%;width:140%;
+    background:linear-gradient(90deg,transparent,var(--accent2),transparent);
+    opacity:0;filter:blur(.4px);
+    transform:translateX(-30%);
+    animation:whoosh var(--dur,2.4s) linear infinite;
+  }
+  @keyframes whoosh{
+    0%{transform:translateX(-60%) scaleX(.7);opacity:0}
+    15%{opacity:.55}
+    60%{opacity:.18}
+    100%{transform:translateX(60%) scaleX(1.3);opacity:0}
+  }
+
+  header{
+    position:absolute;top:20px;left:26px;right:26px;
+    display:flex;align-items:center;justify-content:space-between;z-index:6;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px}
+  .brand h1{
+    font-size:21px;font-weight:800;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--txt);
+    text-shadow:0 0 18px rgba(64,184,208,.35);
+  }
+  .brand h1 b{color:var(--accent2);font-weight:800}
+  .sub{font-size:9px;letter-spacing:.42em;color:var(--txtdim);text-transform:uppercase}
+  .rpm{
+    font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:.18em;
+    color:var(--accent2);border:1px solid var(--rim);border-radius:20px;
+    padding:5px 12px;background:rgba(8,14,19,.6);
+    box-shadow:inset 0 0 12px rgba(64,184,208,.12);
+  }
+
+  /* ───── TURBINE ───── */
+  #turbineWrap{
+    position:absolute;left:34px;top:84px;width:300px;height:300px;
+    z-index:4;cursor:ns-resize;touch-action:none;
+  }
+  #turbine{display:block;width:100%;height:100%;overflow:visible}
+  .spin{transform-origin:160px 160px;animation:spin var(--spin,3s) linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinR{transform-origin:160px 160px;animation:spinR calc(var(--spin,3s)*1.7) linear infinite}
+  @keyframes spinR{to{transform:rotate(-360deg)}}
+  .glowring{filter:drop-shadow(0 0 8px rgba(64,184,208,.55))}
+  .knobcap{cursor:ns-resize}
+  #turbineHint{
+    position:absolute;left:0;right:0;bottom:-2px;text-align:center;
+    font-size:9px;letter-spacing:.3em;color:var(--txtdim);text-transform:uppercase;
+    pointer-events:none;
+  }
+
+  /* ───── RACK of vertical fader-throttles ───── */
+  #rack{
+    position:absolute;right:30px;top:96px;
+    display:flex;gap:14px;z-index:5;
+  }
+  .ctrl{
+    width:62px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  }
+  .ctrl .nm{
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--txtdim);
+  }
+  .track{
+    position:relative;width:30px;height:188px;border-radius:16px;
+    background:linear-gradient(180deg,#06090c,#10181f);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.8),inset 0 0 0 1px var(--rim);
+    cursor:ns-resize;touch-action:none;overflow:hidden;
+  }
+  /* glowing fill from bottom to thumb (or bipolar centre for Regen) */
+  .fill{
+    position:absolute;left:0;right:0;bottom:0;
+    background:linear-gradient(180deg,var(--accent2),var(--accent));
+    box-shadow:0 0 16px rgba(64,184,208,.6);
+    transition:none;
+  }
+  .midline{
+    position:absolute;left:4px;right:4px;top:50%;height:1px;
+    background:repeating-linear-gradient(90deg,var(--txtdim) 0 3px,transparent 3px 6px);
+    opacity:.45;display:none;
+  }
+  .ctrl.bipolar .midline{display:block}
+  .thumb{
+    position:absolute;width:40px;height:18px;border-radius:5px;left:50%;margin-left:-20px;
+    background:linear-gradient(180deg,#3a4b59,#1b2630);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(122,208,232,.5),
+      inset 0 -2px 4px rgba(0,0,0,.6);
+    pointer-events:none;
+  }
+  .thumb::after{
+    content:"";position:absolute;left:7px;right:7px;top:50%;height:2px;margin-top:-1px;
+    background:var(--accent2);border-radius:2px;box-shadow:0 0 6px var(--accent2);
+  }
+  .val{
+    font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:.05em;
+    color:var(--accent2);min-height:13px;
+  }
+
+  footer{
+    position:absolute;left:0;right:0;bottom:11px;text-align:center;
+    font-size:8px;letter-spacing:.5em;color:#3c5563;text-transform:uppercase;z-index:6;
+  }
+</style>
+</head>
+<body>
+<div id="panel">
+  <div id="streaks"></div>
+
+  <header>
+    <div class="brand">
+      <div>
+        <h1>JET<b>·</b>FLANGER</h1>
+        <div class="sub">Through-Zero Turbine Sweep</div>
+      </div>
+    </div>
+    <div class="rpm" id="rpm">— RPM</div>
+  </header>
+
+  <!-- TURBINE = Rate (drag) -->
+  <div id="turbineWrap" data-idx="0" title="Drag the turbine to set sweep Rate">
+    <svg id="turbine" viewBox="0 0 320 320">
+      <defs>
+        <radialGradient id="cone" cx="50%" cy="42%" r="62%">
+          <stop offset="0%" stop-color="#24323f"/>
+          <stop offset="55%" stop-color="#121b23"/>
+          <stop offset="100%" stop-color="#070b0f"/>
+        </radialGradient>
+        <radialGradient id="hub" cx="42%" cy="38%" r="65%">
+          <stop offset="0%" stop-color="#9fdcec"/>
+          <stop offset="35%" stop-color="var(--accent)"/>
+          <stop offset="100%" stop-color="#0c3a45"/>
+        </radialGradient>
+        <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#46606f"/>
+          <stop offset="48%" stop-color="#1d2a34"/>
+          <stop offset="100%" stop-color="#0c141a"/>
+        </linearGradient>
+        <linearGradient id="bladeHi" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(122,208,232,.0)"/>
+          <stop offset="100%" stop-color="rgba(122,208,232,.6)"/>
+        </linearGradient>
+      </defs>
+
+      <!-- outer cowling -->
+      <circle cx="160" cy="160" r="150" fill="url(#cone)" stroke="#243440" stroke-width="2"/>
+      <circle cx="160" cy="160" r="150" fill="none" stroke="#0a1015" stroke-width="6" opacity=".6"/>
+      <!-- intake ring ticks -->
+      <g id="ticks" opacity=".7"></g>
+
+      <!-- progress arc (Rate amount) -->
+      <circle id="rateArc" class="glowring" cx="160" cy="160" r="138" fill="none"
+              stroke="var(--accent)" stroke-width="4" stroke-linecap="round"
+              stroke-dasharray="867" stroke-dashoffset="650"
+              transform="rotate(-90 160 160)"/>
+
+      <!-- spinning fan -->
+      <g class="spin">
+        <g id="blades"></g>
+      </g>
+      <!-- counter-rotating inner stator for depth -->
+      <g class="spinR" opacity=".5">
+        <g id="stator"></g>
+      </g>
+
+      <!-- hub / spinner -->
+      <circle cx="160" cy="160" r="34" fill="url(#hub)" stroke="#0a3d49" stroke-width="2"/>
+      <circle cx="160" cy="160" r="34" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1"/>
+      <path d="M160 132 L150 160 L160 168 L170 160 Z" fill="#06121a" opacity=".55"/>
+      <circle cx="153" cy="151" r="6" fill="rgba(255,255,255,.7)"/>
+    </svg>
+    <div id="turbineHint">Rate · drag ↕ · dbl-click resets</div>
+  </div>
+
+  <!-- RACK: Depth, Regen, Manual, Mix -->
+  <div id="rack"></div>
+
+  <footer>boutique modulation · ducted-fan flanger</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // EXACT params from spec.json
+  var PARAMS = [
+    {name:"Rate",   index:0, min:0, max:1, def:0.25},
+    {name:"Depth",  index:1, min:0, max:1, def:0.70},
+    {name:"Regen",  index:2, min:0, max:1, def:0.65, bipolar:true},
+    {name:"Manual", index:3, min:0, max:1, def:0.20},
+    {name:"Mix",    index:4, min:0, max:1, def:0.50}
+  ];
+  var vals = PARAMS.map(function(p){return p.def;});
+
+  function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+  function norm(p){return (vals[p.index]-p.min)/(p.max-p.min);} // 0..1
+  function send(p){
+    if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index, vals[p.index]);
+  }
+
+  // ── build turbine geometry (blades + ticks + stator) ──
+  var blades=document.getElementById("blades"),
+      stator=document.getElementById("stator"),
+      ticks=document.getElementById("ticks");
+  var NB=14;
+  for(var i=0;i<NB;i++){
+    var a=i*(360/NB);
+    var g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("transform","rotate("+a+" 160 160)");
+    var b=document.createElementNS("http://www.w3.org/2000/svg","path");
+    b.setAttribute("d","M160 50 C 178 84, 182 118, 168 130 L160 132 L152 130 C 138 118, 142 84, 160 50 Z");
+    b.setAttribute("fill","url(#blade)");
+    b.setAttribute("stroke","#0a141b");
+    b.setAttribute("stroke-width","1");
+    var hi=document.createElementNS("http://www.w3.org/2000/svg","path");
+    hi.setAttribute("d","M160 52 C 176 86, 180 116, 167 128");
+    hi.setAttribute("fill","none");
+    hi.setAttribute("stroke","url(#bladeHi)");
+    hi.setAttribute("stroke-width","2");
+    g.appendChild(b);g.appendChild(hi);blades.appendChild(g);
+  }
+  for(var j=0;j<10;j++){
+    var sa=j*36+18;
+    var s=document.createElementNS("http://www.w3.org/2000/svg","g");
+    s.setAttribute("transform","rotate("+sa+" 160 160)");
+    var sb=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    sb.setAttribute("x","156");sb.setAttribute("y","96");
+    sb.setAttribute("width","8");sb.setAttribute("height","30");
+    sb.setAttribute("rx","3");sb.setAttribute("fill","#1a2a34");
+    sb.setAttribute("stroke","rgba(122,208,232,.35)");sb.setAttribute("stroke-width","1");
+    s.appendChild(sb);stator.appendChild(s);
+  }
+  for(var k=0;k<48;k++){
+    var ta=k*(360/48);
+    var t=document.createElementNS("http://www.w3.org/2000/svg","line");
+    t.setAttribute("x1","160");t.setAttribute("y1","14");
+    t.setAttribute("x2","160");t.setAttribute("y2",(k%4===0)?"24":"19");
+    t.setAttribute("transform","rotate("+ta+" 160 160)");
+    t.setAttribute("stroke",(k%4===0)?"var(--accent)":"#33485a");
+    t.setAttribute("stroke-width",(k%4===0)?"1.6":"1");t.setAttribute("opacity",".55");
+    ticks.appendChild(t);
+  }
+
+  // ── whoosh streaks ──
+  var sl=document.getElementById("streaks");
+  for(var w=0;w<5;w++){
+    var d=document.createElement("div");d.className="streak";
+    d.style.top=(12+w*19)+"%";
+    d.style.animationDelay=(-w*0.42)+"s";
+    sl.appendChild(d);
+  }
+  var streakEls=sl.querySelectorAll(".streak");
+
+  // ── motion driven by Rate + Depth ──
+  var spinEl=document.querySelector(".spin");
+  var spinREl=document.querySelector(".spinR");
+  var rpmEl=document.getElementById("rpm");
+  function applyMotion(){
+    var rate=norm(PARAMS[0]);          // 0..1
+    var depth=norm(PARAMS[1]);
+    // spin period: slow (6s) → fast (0.45s)
+    var spin=(6.0 - rate*5.55).toFixed(3)+"s";
+    spinEl.style.animationDuration=spin;
+    spinREl.style.animationDuration=(parseFloat(spin)*1.7)+"s";
+    var dur=(3.2 - rate*2.6).toFixed(3)+"s";
+    streakEls.forEach(function(e){
+      e.style.animationDuration=dur;
+      e.style.opacity=(0.25+depth*0.75);
+    });
+    // rate arc
+    var arc=document.getElementById("rateArc");
+    arc.setAttribute("stroke-dashoffset", (867*(1-rate)).toFixed(1));
+    // faux RPM readout
+    var rpm=Math.round(800+rate*32000);
+    rpmEl.textContent=rpm.toLocaleString()+" RPM";
+  }
+
+  // ── TURBINE drag → Rate ──
+  (function(){
+    var wrap=document.getElementById("turbineWrap");
+    var p=PARAMS[0];
+    var dragging=false,startY=0,startV=0;
+    function setN(n){vals[p.index]=clamp(n,0,1)*(p.max-p.min)+p.min;applyMotion();send(p);}
+    wrap.addEventListener("pointerdown",function(e){
+      dragging=true;startY=e.clientY;startV=norm(p);
+      wrap.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    wrap.addEventListener("pointermove",function(e){
+      if(!dragging)return;
+      var dy=(startY-e.clientY)/220;
+      setN(startV+dy);
+    });
+    function end(){dragging=false;}
+    wrap.addEventListener("pointerup",end);
+    wrap.addEventListener("pointercancel",end);
+    wrap.addEventListener("dblclick",function(){vals[p.index]=p.def;applyMotion();send(p);});
+  })();
+
+  // ── RACK faders: Depth, Regen, Manual, Mix ──
+  var rack=document.getElementById("rack");
+  var TRACK_H=188;
+  [PARAMS[1],PARAMS[2],PARAMS[3],PARAMS[4]].forEach(function(p){
+    var c=document.createElement("div");c.className="ctrl"+(p.bipolar?" bipolar":"");
+    c.innerHTML=
+      '<div class="nm">'+p.name+'</div>'+
+      '<div class="track"><div class="fill"></div><div class="midline"></div><div class="thumb"></div></div>'+
+      '<div class="val"></div>';
+    rack.appendChild(c);
+    var track=c.querySelector(".track"),
+        fill=c.querySelector(".fill"),
+        thumb=c.querySelector(".thumb"),
+        valEl=c.querySelector(".val");
+
+    function fmt(){
+      var v=vals[p.index];
+      if(p.name==="Manual"){ return (0.2+v*9.8).toFixed(2)+" ms"; }
+      if(p.name==="Regen"){ var b=(v*2-1); return (b>=0?"+":"")+Math.round(b*100)+"%"; }
+      return Math.round(v*100)+"%";
+    }
+    function render(){
+      var n=norm(p); // 0..1
+      var y=(1-n)*TRACK_H;
+      thumb.style.top=y+"px";
+      if(p.bipolar){
+        // fill from centre toward thumb
+        var mid=TRACK_H/2;
+        if(y<=mid){ fill.style.top=y+"px"; fill.style.bottom=(TRACK_H-mid)+"px"; }
+        else { fill.style.top=mid+"px"; fill.style.bottom=(TRACK_H-y)+"px"; }
+      } else {
+        fill.style.top="auto";fill.style.bottom="0";fill.style.height=(n*TRACK_H)+"px";
+      }
+      valEl.textContent=fmt();
+    }
+    function setFromY(clientY){
+      var r=track.getBoundingClientRect();
+      var n=clamp(1-(clientY-r.top)/r.height,0,1);
+      vals[p.index]=n*(p.max-p.min)+p.min;render();send(p);
+    }
+    var dragging=false;
+    track.addEventListener("pointerdown",function(e){
+      dragging=true;track.setPointerCapture(e.pointerId);setFromY(e.clientY);e.preventDefault();
+    });
+    track.addEventListener("pointermove",function(e){if(dragging)setFromY(e.clientY);});
+    function end(){dragging=false;}
+    track.addEventListener("pointerup",end);
+    track.addEventListener("pointercancel",end);
+    track.addEventListener("dblclick",function(){vals[p.index]=p.def;render();send(p);});
+
+    p._render=render;
+  });
+
+  // ── init ──
+  function ready(){
+    applyMotion();
+    PARAMS.forEach(function(p){ if(p._render)p._render(); send(p); });
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

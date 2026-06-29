@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Punch Comp</title>
+<style>
+  @property --gr{syntax:'<number>';inherits:false;initial-value:0}
+  :root{
+    --ac:#ff6b6b; --ac2:#ff9a9a;
+    --steel:#2a3038; --steel2:#161a20;
+    --face:#1d2228;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:#e8edf3;
+    font:13px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% -10%,#20262f 0%,#0c0f13 60%,#05070a 100%);
+    display:flex; align-items:center; justify-content:center; padding:18px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== rack unit chassis ===== */
+  .unit{
+    position:relative; width:100%; max-width:640px;
+    border-radius:14px; overflow:hidden;
+    background:
+      linear-gradient(180deg,#3a424d 0%,#262c34 6%,#1b2026 12%,#1b2026 90%,#13171c 100%);
+    box-shadow:
+      0 40px 80px rgba(0,0,0,.65),
+      0 2px 0 rgba(255,255,255,.07) inset,
+      0 -2px 0 rgba(0,0,0,.5) inset,
+      0 0 0 1px rgba(0,0,0,.7);
+    animation:boot .6s ease both;
+  }
+  @keyframes boot{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+
+  /* brushed-metal faceplate texture */
+  .unit::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background:repeating-linear-gradient(90deg,
+      rgba(255,255,255,.015) 0 1px, rgba(0,0,0,.02) 1px 2px);
+    mix-blend-mode:overlay;
+  }
+  /* warm accent glow that drifts behind the plate */
+  .unit::after{
+    content:""; position:absolute; inset:-30%; z-index:0; pointer-events:none;
+    background:radial-gradient(closest-side,
+      color-mix(in srgb,var(--ac) 18%,transparent),transparent 70%);
+    filter:blur(40px); animation:drift 9s ease-in-out infinite alternate;
+  }
+  @keyframes drift{from{transform:translate(-18%,-6%)}to{transform:translate(18%,8%)}}
+
+  /* mounting screws */
+  .screw{position:absolute; width:13px; height:13px; border-radius:50%; z-index:6;
+    background:radial-gradient(circle at 38% 32%,#5a6470,#1a1e24 75%);
+    box-shadow:0 1px 2px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.5) inset;}
+  .screw::after{content:""; position:absolute; inset:3px; border-radius:1px;
+    background:linear-gradient(40deg,transparent 44%,rgba(0,0,0,.55) 44% 56%,transparent 56%);}
+  .screw.tl{top:10px;left:10px} .screw.tr{top:10px;right:10px}
+  .screw.bl{bottom:10px;left:10px} .screw.br{bottom:10px;right:10px}
+
+  /* ===== header ===== */
+  .hd{position:relative; z-index:2; display:flex; align-items:center; gap:12px;
+    padding:16px 30px 12px;}
+  .pwr{width:11px;height:11px;border-radius:50%;flex:none;
+    background:var(--ac);
+    box-shadow:0 0 10px var(--ac),0 0 3px #fff inset;
+    animation:beat 1.6s ease-in-out infinite;}
+  @keyframes beat{0%,100%{opacity:.5;box-shadow:0 0 5px var(--ac)}50%{opacity:1;box-shadow:0 0 16px var(--ac),0 0 4px #fff inset}}
+  .titles{flex:1;min-width:0}
+  .brand{font-size:9px;letter-spacing:.42em;color:#8593a6;text-transform:uppercase;margin-bottom:2px}
+  h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.02em;line-height:1;
+    background:linear-gradient(92deg,#fff,var(--ac2) 60%,var(--ac));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 1px 0 rgba(0,0,0,.4);}
+  .model{font-size:9px;letter-spacing:.3em;color:#7b8aa0;text-transform:uppercase;
+    border:1px solid rgba(255,255,255,.13);border-radius:4px;padding:5px 9px;white-space:nowrap;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.2))}
+
+  /* ===== meter section ===== */
+  .meterbay{position:relative; z-index:2; margin:6px 22px 16px; border-radius:11px;
+    padding:14px 16px 12px;
+    background:linear-gradient(180deg,#0a0d11,#04060a);
+    box-shadow:0 2px 6px rgba(0,0,0,.6) inset,0 0 0 1px rgba(255,255,255,.04),
+      0 0 0 1px rgba(0,0,0,.6);}
+  .mlabel{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .mlabel .t{font-size:9px;letter-spacing:.34em;color:#7f8da0;text-transform:uppercase}
+  .gnum{font-size:13px;font-weight:800;color:var(--ac);font-variant-numeric:tabular-nums;
+    text-shadow:0 0 12px color-mix(in srgb,var(--ac) 70%,transparent)}
+  .gnum small{color:#7f8da0;font-weight:600;font-size:9px;letter-spacing:.1em}
+
+  /* segmented bar-graph: 28 LED segments that light from the right as GR rises */
+  .bars{display:flex; gap:2px; height:46px; align-items:stretch}
+  .seg{flex:1; border-radius:2px; position:relative;
+    background:#11161c;
+    box-shadow:0 0 0 1px rgba(0,0,0,.55) inset;
+    overflow:hidden;}
+  .seg i{position:absolute; inset:0; opacity:0;
+    transition:opacity .05s linear;}
+  /* color zones come from JS via class */
+  .seg.on i{opacity:1}
+  .seg.g i{background:linear-gradient(180deg,#7dffb0,#2bd47e);box-shadow:0 0 8px #2bd47e}
+  .seg.y i{background:linear-gradient(180deg,#ffe07d,#ffb02b);box-shadow:0 0 8px #ffb02b}
+  .seg.r i{background:linear-gradient(180deg,var(--ac2),var(--ac));box-shadow:0 0 9px var(--ac)}
+  /* scale ticks under the bars */
+  .scale{display:flex;justify-content:space-between;margin-top:6px;
+    font-size:8px;letter-spacing:.05em;color:#5f6c80;font-variant-numeric:tabular-nums}
+
+  /* needle VU mini on the right — a sweeping pointer driven by GR */
+  .meterrow{display:flex;gap:14px;align-items:stretch}
+  .barcol{flex:1;min-width:0}
+  .vu{flex:none;width:96px;position:relative;border-radius:9px;overflow:hidden;
+    background:radial-gradient(120% 140% at 50% 120%,#1a2027,#0a0e12);
+    box-shadow:0 0 0 1px rgba(255,255,255,.05) inset,0 2px 5px rgba(0,0,0,.5) inset}
+  .vu svg{display:block;width:100%;height:100%}
+  .vu .arc{fill:none;stroke:rgba(255,255,255,.1);stroke-width:1.5}
+  .vu .arc.hot{stroke:var(--ac);opacity:.5}
+  .vu .needle{stroke:var(--ac);stroke-width:2;stroke-linecap:round;
+    filter:drop-shadow(0 0 4px var(--ac));
+    transform-box:fill-box;transform-origin:50% 100%;
+    transition:transform .08s cubic-bezier(.3,.8,.3,1)}
+  .vu .vt{font:7px ui-sans-serif;fill:#6b7890;letter-spacing:.1em}
+
+  /* ===== controls deck ===== */
+  .deck{position:relative; z-index:2; display:grid;
+    grid-template-columns:repeat(5,1fr); gap:4px;
+    padding:4px 18px 14px;}
+  .ctl{display:flex;flex-direction:column;align-items:center;gap:9px;
+    padding:12px 4px 12px;border-radius:11px;
+    transition:background .18s ease,transform .18s ease;
+    animation:rise .5s both;}
+  .ctl:nth-child(1){animation-delay:.06s}.ctl:nth-child(2){animation-delay:.12s}
+  .ctl:nth-child(3){animation-delay:.18s}.ctl:nth-child(4){animation-delay:.24s}
+  .ctl:nth-child(5){animation-delay:.30s}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .ctl:hover{background:rgba(255,255,255,.03)}
+
+  /* the knob — chunky aluminium VCA knob with skirt + indent line */
+  .knob{position:relative;width:74px;height:74px;cursor:ns-resize;
+    touch-action:none;user-select:none;-webkit-user-select:none}
+  .knob .ring{position:absolute;inset:-3px;border-radius:50%;
+    background:conic-gradient(from 215deg,
+      var(--ac) calc(var(--gr)*290deg),
+      rgba(255,255,255,.07) calc(var(--gr)*290deg) 290deg,
+      transparent 290deg);
+    filter:drop-shadow(0 0 calc(2px + var(--gr)*8px) color-mix(in srgb,var(--ac) 60%,transparent));
+    transition:--gr .12s cubic-bezier(.2,.8,.25,1);
+    -webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);
+    mask:radial-gradient(circle,transparent 33px,#000 34px);}
+  /* faint tick crown */
+  .knob .crown{position:absolute;inset:-3px;border-radius:50%;
+    background:repeating-conic-gradient(from 215deg,
+      rgba(255,255,255,.16) 0 .8deg,transparent .8deg 20.7deg);
+    -webkit-mask:radial-gradient(circle,transparent 36px,#000 37px,#000 39px,transparent 40px);
+    mask:radial-gradient(circle,transparent 36px,#000 37px,#000 39px,transparent 40px);}
+  .knob .body{position:absolute;inset:8px;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 26%,#4b545f,#2b323b 52%,#10141a 100%);
+    box-shadow:
+      0 4px 10px rgba(0,0,0,.6),
+      0 1px 0 rgba(255,255,255,.1) inset,
+      0 -3px 6px rgba(0,0,0,.6) inset;}
+  /* brushed sheen on cap */
+  .knob .body::before{content:"";position:absolute;inset:0;border-radius:50%;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.05) 0 2deg,transparent 2deg 5deg);
+    opacity:.4;-webkit-mask:radial-gradient(circle,#000 60%,transparent 72%);
+    mask:radial-gradient(circle,#000 60%,transparent 72%)}
+  /* indicator notch — rotates with value */
+  .knob .ind{position:absolute;top:8px;left:50%;width:4px;height:24px;margin-left:-2px;
+    border-radius:3px;background:linear-gradient(var(--ac),var(--ac2));
+    box-shadow:0 0 9px var(--ac),0 0 2px #fff;
+    transform-origin:50% 29px;
+    transform:rotate(calc((var(--gr) - .5) * 290deg));
+    transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+  .knob.live .body{box-shadow:0 4px 10px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.1) inset,
+      0 -3px 6px rgba(0,0,0,.6) inset,0 0 0 2px color-mix(in srgb,var(--ac) 45%,transparent)}
+
+  .ctl .nm{font-size:10px;letter-spacing:.16em;color:#9fadc2;text-transform:uppercase;font-weight:600}
+  .ctl .val{font-size:13px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 10px color-mix(in srgb,var(--ac) 40%,transparent)}
+  .ctl .unitlbl{font-size:8px;color:#6f7d92;letter-spacing:.1em;margin-top:-6px}
+
+  .foot{position:relative;z-index:2;font-size:10.5px;line-height:1.5;color:#7b889d;
+    margin:0 22px 14px;padding-top:11px;border-top:1px solid rgba(255,255,255,.06)}
+  .foot b{color:var(--ac2);font-weight:700}
+</style>
+</head>
+<body>
+  <div class="unit">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="hd">
+      <span class="pwr"></span>
+      <div class="titles">
+        <div class="brand">1LN Studio Series</div>
+        <h1>Punch&nbsp;Comp</h1>
+      </div>
+      <div class="model">VCA&nbsp;·&nbsp;mono-link</div>
+    </div>
+
+    <div class="meterbay">
+      <div class="mlabel">
+        <span class="t">Gain Reduction</span>
+        <span class="gnum" id="grNum">0.0<small> dB</small></span>
+      </div>
+      <div class="meterrow">
+        <div class="barcol">
+          <div class="bars" id="bars"></div>
+          <div class="scale"><span>0</span><span>-3</span><span>-6</span><span>-10</span><span>-15</span><span>-20+</span></div>
+        </div>
+        <div class="vu">
+          <svg viewBox="0 0 96 70" preserveAspectRatio="xMidYMid meet">
+            <path class="arc" d="M14 60 A38 38 0 0 1 82 60"/>
+            <path class="arc hot" d="M58 22 A38 38 0 0 1 82 60"/>
+            <line class="needle" id="needle" x1="48" y1="60" x2="48" y2="22"/>
+            <circle cx="48" cy="60" r="3.5" fill="#3a434f" stroke="#0a0e12"/>
+            <text class="vt" x="10" y="58">-20</text>
+            <text class="vt" x="74" y="58">0</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- spec-derived param table (index + range + default + display) ----
+  // value sent to host is the RAW normalised param in [min,max] = [0,1].
+  // display maps the same normalised value into musical units, purely for UI.
+  var PARAMS = [
+    { i:0, name:"Threshold", min:0, max:1, def:0.35, unit:"dB",
+      disp:function(n){ return (-60 + n*60).toFixed(1); } },          // -60..0 dB
+    { i:1, name:"Ratio",     min:0, max:1, def:0.30, unit:":1",
+      disp:function(n){ var r=1+n*19; return r.toFixed(r<10?1:0)+":1"; }, raw:true }, // 1:1..20:1
+    { i:2, name:"Attack",    min:0, max:1, def:0.20, unit:"ms",
+      disp:function(n){ var v=0.1*Math.pow(2000,n); return (v<10?v.toFixed(1):Math.round(v))+""; } }, // .1..200ms
+    { i:3, name:"Release",   min:0, max:1, def:0.30, unit:"ms",
+      disp:function(n){ var v=5*Math.pow(400,n); return v<1000?Math.round(v)+"":(v/1000).toFixed(2)+"k"; } }, //5..2000ms
+    { i:4, name:"Gain",      min:0, max:1, def:0.32, unit:"dB",
+      disp:function(n){ return (n*24).toFixed(1); } }                 // 0..+24 dB
+  ];
+
+  var deck = document.getElementById('deck');
+  var state = {};   // index -> normalised value
+
+  function host(i,v){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i,v); }
+
+  // index -> setter, so host automation / external controllers can drive knobs
+  var followers = {};
+
+  function buildKnob(p){
+    var cell = document.createElement('div'); cell.className='ctl';
+    cell.innerHTML =
+      '<div class="knob" tabindex="0">'+
+        '<div class="ring"></div><div class="crown"></div>'+
+        '<div class="body"></div><div class="ind"></div>'+
+      '</div>'+
+      '<div class="nm">'+p.name+'</div>'+
+      '<div class="val">--</div>'+
+      '<div class="unitlbl">'+p.unit+'</div>';
+    deck.appendChild(cell);
+
+    var knob = cell.querySelector('.knob');
+    var ring = cell.querySelector('.ring');
+    var ind  = cell.querySelector('.ind');
+    var out  = cell.querySelector('.val');
+
+    var norm = p.def;
+
+    // render the knob for the current `norm`. push=true also sends to host.
+    function paint(push){
+      ring.style.setProperty('--gr', norm);
+      ind.style.setProperty('--gr', norm);
+      out.textContent = p.disp(norm);
+      var v = p.min + norm*(p.max-p.min);
+      state[p.i] = v;
+      if(push!==false) host(p.i, v);
+    }
+    function setNorm(n){ norm = n<0?0:(n>1?1:n); paint(true); }
+
+    // host automation / external controller — update UI WITHOUT echoing back.
+    followers[p.i] = function(raw){
+      var n = (p.max>p.min) ? (raw - p.min)/(p.max-p.min) : raw;
+      norm = n<0?0:(n>1?1:n); paint(false);
+    };
+
+    // pointer drag (vertical) — fine with shift
+    var dragY=0, dragN=0, active=false;
+    knob.addEventListener('pointerdown', function(e){
+      active=true; dragY=e.clientY; dragN=norm;
+      knob.classList.add('live'); knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove', function(e){
+      if(!active) return;
+      var span = e.shiftKey ? 620 : 200;
+      setNorm(dragN + (dragY - e.clientY)/span);
+    });
+    function end(){ active=false; knob.classList.remove('live'); }
+    knob.addEventListener('pointerup', end);
+    knob.addEventListener('pointercancel', end);
+    knob.addEventListener('dblclick', function(){ setNorm(p.def); });
+    knob.addEventListener('wheel', function(e){
+      e.preventDefault();
+      setNorm(norm + (e.deltaY<0?1:-1)*(e.shiftKey?0.004:0.02));
+    }, {passive:false});
+    // keyboard for accessibility
+    knob.addEventListener('keydown', function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){ setNorm(norm+0.02); e.preventDefault(); }
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){ setNorm(norm-0.02); e.preventDefault(); }
+      else if(e.key==='Home'){ setNorm(p.def); e.preventDefault(); }
+    });
+
+    return { p:p, get:function(){ return norm; }, paint:paint };
+  }
+
+  // ---- build segmented GR meter ----
+  var BARS=28, barEls=[];
+  var barsWrap=document.getElementById('bars');
+  for(var b=0;b<BARS;b++){
+    var s=document.createElement('div'); s.className='seg';
+    // color zone by position: leftmost (heaviest GR) = red
+    var frac=b/(BARS-1);
+    s.classList.add(frac>0.78?'r':(frac>0.5?'y':'g'));
+    s.innerHTML='<i></i>'; barsWrap.appendChild(s); barEls.push(s);
+  }
+  var grNum=document.getElementById('grNum');
+  var needle=document.getElementById('needle');
+
+  var knobs = PARAMS.map(buildKnob);
+
+  // footer (uses spec explanation flavour, kept short)
+  document.getElementById('foot').innerHTML =
+    '<b>Punch Comp</b> — stereo-linked RMS+peak detector into a dB-domain '+
+    'gain computer with over-easy soft knee. Drag knobs vertically '+
+    '(shift = fine), double-click to reset.';
+
+  // =====================================================================
+  //  Animated GR meter — a *simulated* envelope so the unit always looks
+  //  alive: a recurring transient ducks the gain by an amount that scales
+  //  with Threshold & Ratio, shaped by Attack/Release. Purely cosmetic.
+  // =====================================================================
+  var gr=0;          // current gain reduction, 0..1 (1 = ~24dB max)
+  var phase=0;       // transient clock
+  var last=performance.now();
+
+  function tEnv(){    // value of the synthetic input transient 0..1
+    // pulse train ~ 2.2 Hz with sharp attacks, used to drive GR
+    var x = phase % 1;
+    return Math.exp(-x*7) * (1 - 0.35*Math.sin(phase*0.7));
+  }
+
+  function frame(now){
+    var dt = Math.min(0.05,(now-last)/1000); last=now;
+    phase += dt*2.2;
+
+    var thr = knobs[0].get();   // higher thr => earlier compression
+    var rat = knobs[1].get();   // more ratio => deeper GR
+    var atk = knobs[2].get();   // attack normalised
+    var rel = knobs[3].get();
+
+    // target GR from the synthetic transient above threshold
+    var drive = tEnv();
+    var over = drive - (1 - thr)*0.55;          // how far over threshold
+    var target = over>0 ? over * (0.25 + rat*0.9) : 0;
+    target = target<0?0:(target>1?1:target);
+
+    // attack/release smoothing — map normalised times to coefficients
+    var aMs = 0.1*Math.pow(2000,atk);
+    var rMs = 5*Math.pow(400,rel);
+    var coef = target>gr
+      ? 1 - Math.exp(-dt*1000/(aMs+0.5))
+      : 1 - Math.exp(-dt*1000/(rMs+0.5));
+    gr += (target-gr)*coef;
+
+    // ---- paint segments ----
+    var lit = gr*BARS;
+    for(var k=0;k<BARS;k++){
+      // segments light from the RIGHT (light GR) leftward (heavy GR)
+      var idxFromRight = (BARS-1-k);
+      if(idxFromRight < lit) barEls[k].classList.add('on');
+      else barEls[k].classList.remove('on');
+    }
+    var db = gr*24;
+    grNum.innerHTML = (db<0.05?'0.0':'-'+db.toFixed(1))+'<small> dB</small>';
+
+    // ---- needle: 0dB at right (-... -52deg) to -20+ swings left ----
+    var ang = -52 + gr*104;          // degrees: rest right-ish, sweeps left
+    needle.style.transform = 'rotate('+ang+'deg)';
+
+    requestAnimationFrame(frame);
+  }
+
+  function start(){
+    knobs.forEach(function(k){ k.paint(true); });   // init host + UI to defaults
+
+    // follow value changes coming from OUTSIDE the GUI (DAW automation, etc.)
+    if(window.vstai && window.vstai.onParam){
+      window.vstai.onParam(function(i,v){
+        var f = followers[i]; if(f) f(+v);
+      });
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(start);
+  else start();
+})();
+</script>
+</body>
+</html>

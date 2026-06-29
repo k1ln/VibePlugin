@@ -3,6 +3,7 @@
   "isInstrument": false,
   "explanation": "Bright, modulated digital hall reverb. An 8-line feedback delay network whose read taps are modulated by per-line LFOs (interpolated fractional delays) to dissolve metallic ringing into a lush, chorused tail. A Tone control trades a dark, damped decay for open high-frequency air. Controls: Mix, Size, Decay, Tone, Modulation depth and Pre-Delay.",
   "assembly": "factory/plugins/shimmer-hall/assembly.ts",
+  "guiFile": "factory/plugins/shimmer-hall/gui.html",
   "out": "factory/plugins/shimmer-hall/plugin.vstai",
   "publishedAt": 1751000002000,
   "theme": { "accent": "#b08cff", "accent2": "#ff8cf0" },

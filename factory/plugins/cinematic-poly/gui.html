@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cinematic Poly</title>
+<style>
+  :root {
+    --accent: #e0b070;
+    --accent2: #c08040;
+    --wood1: #5a3320;
+    --wood2: #3a1f12;
+    --panel1: #211b18;
+    --panel2: #16110e;
+    --ink: #efe2cf;
+    --ink-dim: #9c8a76;
+    --metal1: #46403a;
+    --metal2: #24201c;
+  }
+
+  * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a221d 0%, #120d0a 60%, #0a0706 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    min-height: 100%;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .cabinet {
+    width: 100%;
+    max-width: 880px;
+    border-radius: 16px;
+    padding: 14px;
+    background:
+      linear-gradient(180deg, #1d1714 0%, #100c0a 100%);
+    box-shadow:
+      0 26px 60px rgba(0,0,0,0.7),
+      0 2px 0 rgba(255,255,255,0.05) inset,
+      0 -2px 0 rgba(0,0,0,0.6) inset;
+    position: relative;
+    display: flex;
+    gap: 10px;
+  }
+
+  /* wooden end cheeks */
+  .cheek {
+    width: 30px;
+    flex: 0 0 30px;
+    border-radius: 10px;
+    background:
+      repeating-linear-gradient(180deg,
+        rgba(0,0,0,0.18) 0px, rgba(0,0,0,0.18) 2px,
+        rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 5px),
+      linear-gradient(95deg, var(--wood1), var(--wood2));
+    box-shadow:
+      0 2px 0 rgba(255,210,150,0.18) inset,
+      0 -6px 14px rgba(0,0,0,0.6) inset,
+      0 14px 26px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .cheek::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 7px;
+    border: 1px solid rgba(0,0,0,0.4);
+    box-shadow: 0 1px 0 rgba(255,210,150,0.12) inset;
+  }
+
+  .face {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-radius: 10px;
+    padding: 16px 18px 14px;
+    background:
+      linear-gradient(180deg, var(--panel1), var(--panel2));
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 -16px 30px rgba(0,0,0,0.5) inset;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* faint brushed-metal sheen sweeping across the panel */
+  .face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg,
+      transparent 30%,
+      rgba(224,176,112,0.06) 48%,
+      rgba(224,176,112,0.10) 50%,
+      transparent 70%);
+    background-size: 280% 100%;
+    animation: sheen 9s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes sheen {
+    0%, 100% { background-position: 120% 0; }
+    50% { background-position: -40% 0; }
+  }
+
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 12px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-orb {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--accent), var(--accent2) 60%, #5a2f12);
+    box-shadow:
+      0 0 18px rgba(224,176,112,0.55),
+      0 2px 4px rgba(0,0,0,0.6),
+      0 1px 0 rgba(255,255,255,0.4) inset;
+    animation: orbPulse 4s ease-in-out infinite;
+  }
+  @keyframes orbPulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(224,176,112,0.4), 0 2px 4px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.4) inset; }
+    50% { box-shadow: 0 0 26px rgba(224,176,112,0.8), 0 2px 4px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.5) inset; }
+  }
+  .titles h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fff3df, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .titles .sub {
+    margin: 2px 0 0;
+    font-size: 9.5px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* voice/activity indicator lamps */
+  .lamps {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .lamp {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #2a211a;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 1px 1px rgba(255,255,255,0.06) inset;
+    transition: background 0.12s, box-shadow 0.12s;
+  }
+  .lamp.on {
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent), 0 0 0 1px rgba(0,0,0,0.5);
+  }
+
+  /* the dual-layer glow scope across the top */
+  .scope {
+    position: relative;
+    z-index: 2;
+    height: 70px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    background:
+      linear-gradient(180deg, #0d0907, #060403);
+    box-shadow:
+      0 0 0 1px rgba(224,176,112,0.18),
+      0 8px 18px rgba(0,0,0,0.5) inset;
+    overflow: hidden;
+  }
+  .scope canvas { width: 100%; height: 100%; display: block; }
+
+  .controls {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px 8px;
+    margin-bottom: 14px;
+  }
+
+  .knob-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px 6px;
+    border-radius: 9px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.18));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .knob {
+    width: 70px;
+    height: 70px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { width: 100%; height: 100%; display: block; }
+  .lbl {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .val {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    min-height: 13px;
+  }
+
+  /* ribbon controller strip */
+  .ribbon-wrap {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 12px;
+  }
+  .ribbon-label {
+    font-size: 8.5px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 4px 2px;
+  }
+  .ribbon {
+    height: 26px;
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    touch-action: none;
+    background:
+      linear-gradient(180deg, #2b231d, #15100c);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.6),
+      0 2px 6px rgba(0,0,0,0.5) inset,
+      0 1px 0 rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+  .ribbon-grooves {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px,
+      transparent 1px, transparent 14px);
+  }
+  .ribbon-glow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 46px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 13px;
+    background: radial-gradient(closest-side, var(--accent), rgba(224,176,112,0.0));
+    opacity: 0.35;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .ribbon.touched .ribbon-glow { opacity: 0.85; }
+
+  /* keyboard */
+  .keys {
+    position: relative;
+    z-index: 2;
+    height: 116px;
+    border-radius: 7px;
+    padding: 7px 7px 0;
+    background: linear-gradient(180deg, #0c0907, #050302);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.5) inset, 0 0 0 1px rgba(224,176,112,0.12);
+    display: flex;
+    position: relative;
+  }
+  .key {
+    position: relative;
+    flex: 1 1 0;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #f3ead8 0%, #d8cab2 88%, #b6a888 100%);
+    box-shadow:
+      0 -1px 0 rgba(0,0,0,0.3) inset,
+      0 4px 5px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: background 0.04s, transform 0.04s;
+  }
+  .key.down {
+    background: linear-gradient(180deg, var(--accent) 0%, #d8a45c 70%, #b6843c 100%);
+    transform: translateY(2px);
+    box-shadow: 0 0 14px rgba(224,176,112,0.7) inset, 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .key.black {
+    position: absolute;
+    top: 7px;
+    width: 5.4%;
+    height: 64%;
+    margin: 0;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a221c 0%, #100c09 100%);
+    box-shadow: 0 3px 4px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,255,255,0.08) inset;
+    z-index: 3;
+  }
+  .key.black.down {
+    background: linear-gradient(180deg, var(--accent2) 0%, #6a3c16 100%);
+    box-shadow: 0 0 12px rgba(192,128,64,0.8) inset;
+    transform: translateY(1px);
+  }
+
+  .footer {
+    position: relative;
+    z-index: 2;
+    margin-top: 9px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+</style>
+</head>
+<body>
+  <div class="cabinet">
+    <div class="cheek"></div>
+    <div class="face">
+      <header>
+        <div class="brand">
+          <div class="logo-orb"></div>
+          <div class="titles">
+            <h1>Cinematic Poly</h1>
+            <p class="sub">Dual-Layer Grand Polysynth</p>
+          </div>
+        </div>
+        <div class="lamps" id="lamps"></div>
+      </header>
+
+      <div class="scope"><canvas id="scope"></canvas></div>
+
+      <div class="controls" id="controls"></div>
+
+      <div class="ribbon-wrap">
+        <p class="ribbon-label">Ribbon &mdash; Brightness</p>
+        <div class="ribbon" id="ribbon">
+          <div class="ribbon-grooves"></div>
+          <div class="ribbon-glow" id="ribbonGlow"></div>
+        </div>
+      </div>
+
+      <div class="keys" id="keys"></div>
+
+      <div class="footer">
+        <span>8 Voices &middot; 2 Layers</span>
+        <span>Drag knobs &middot; dbl-click resets</span>
+      </div>
+    </div>
+    <div class="cheek"></div>
+  </div>
+
+<script>
+  "use strict";
+
+  // ---- host bridge --------------------------------------------------
+  function setParam(i, v) {
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+  function hostNoteOn(n, vel) {
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(n, vel);
+  }
+  function hostNoteOff(n) {
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(n);
+  }
+
+  // ---- parameter model (indices match assembly.ts / spec.json) ------
+  var PARAMS = [
+    { name: "Detune",     index: 0, min: 0, max: 1, def: 0.35, fmt: pct },
+    { name: "Cutoff",     index: 1, min: 0, max: 1, def: 0.5,  fmt: pct },
+    { name: "Resonance",  index: 2, min: 0, max: 1, def: 0.3,  fmt: pct },
+    { name: "Filt Env",   index: 3, min: 0, max: 1, def: 0.55, fmt: pct },
+    { name: "Attack",     index: 4, min: 0, max: 1, def: 0.18, fmt: secs },
+    { name: "Release",    index: 5, min: 0, max: 1, def: 0.4,  fmt: secs },
+    { name: "Brightness", index: 6, min: 0, max: 1, def: 0.55, fmt: pct },
+    { name: "Level",      index: 7, min: 0, max: 1, def: 0.7,  fmt: pct }
+  ];
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function secs(v, p) {
+    // Attack maps ~0..2.2s, Release ~0.02..3.5s in the DSP; show approx time.
+    var t = p.index === 4 ? 0.002 + v * 2.2 : 0.02 + v * 3.5;
+    return t < 1 ? Math.round(t * 1000) + " ms" : t.toFixed(2) + " s";
+  }
+
+  var ACCENT = "#e0b070";
+  var ACCENT2 = "#c08040";
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // ---- knob factory (SVG, drag vertical, wheel, dbl-click reset) ----
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "knob-cell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    function arc(r, a0, a1) {
+      var x0 = 50 + r * Math.cos(a0), y0 = 50 + r * Math.sin(a0);
+      var x1 = 50 + r * Math.cos(a1), y1 = 50 + r * Math.sin(a1);
+      var large = (a1 - a0) > Math.PI ? 1 : 0;
+      return "M " + x0 + " " + y0 + " A " + r + " " + r + " 0 " + large + " 1 " + x1 + " " + y1;
+    }
+    var A_START = Math.PI * 0.75;
+    var A_END = Math.PI * 2.25;
+
+    var track = document.createElementNS(NS, "path");
+    track.setAttribute("d", arc(38, A_START, A_END));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "#000");
+    track.setAttribute("stroke-width", "7");
+    track.setAttribute("stroke-linecap", "round");
+    track.setAttribute("opacity", "0.55");
+    svg.appendChild(track);
+
+    var fill = document.createElementNS(NS, "path");
+    fill.setAttribute("fill", "none");
+    fill.setAttribute("stroke", "url(#g" + p.index + ")");
+    fill.setAttribute("stroke-width", "7");
+    fill.setAttribute("stroke-linecap", "round");
+    svg.appendChild(fill);
+
+    var defs = document.createElementNS(NS, "defs");
+    var grad = document.createElementNS(NS, "linearGradient");
+    grad.setAttribute("id", "g" + p.index);
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "1");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "0");
+    var st1 = document.createElementNS(NS, "stop");
+    st1.setAttribute("offset", "0%"); st1.setAttribute("stop-color", ACCENT2);
+    var st2 = document.createElementNS(NS, "stop");
+    st2.setAttribute("offset", "100%"); st2.setAttribute("stop-color", ACCENT);
+    grad.appendChild(st1); grad.appendChild(st2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // body
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "27");
+    body.setAttribute("fill", "#1c1713");
+    body.setAttribute("stroke", "#0a0706");
+    body.setAttribute("stroke-width", "2");
+    svg.appendChild(body);
+
+    var bevel = document.createElementNS(NS, "circle");
+    bevel.setAttribute("cx", "50"); bevel.setAttribute("cy", "47"); bevel.setAttribute("r", "24");
+    bevel.setAttribute("fill", "none");
+    bevel.setAttribute("stroke", "rgba(255,225,180,0.18)");
+    bevel.setAttribute("stroke-width", "1.5");
+    svg.appendChild(bevel);
+
+    var pointer = document.createElementNS(NS, "line");
+    pointer.setAttribute("x1", "50"); pointer.setAttribute("y1", "50");
+    pointer.setAttribute("stroke", ACCENT);
+    pointer.setAttribute("stroke-width", "3");
+    pointer.setAttribute("stroke-linecap", "round");
+    svg.appendChild(pointer);
+
+    knob.appendChild(svg);
+    cell.appendChild(knob);
+
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = p.name;
+    cell.appendChild(lbl);
+
+    var val = document.createElement("div");
+    val.className = "val";
+    cell.appendChild(val);
+
+    function norm() { return (values[p.index] - p.min) / (p.max - p.min); }
+
+    function paint() {
+      var t = norm();
+      var a = A_START + t * (A_END - A_START);
+      fill.setAttribute("d", arc(38, A_START, a + 0.0001));
+      var px = 50 + 30 * Math.cos(a), py = 50 + 30 * Math.sin(a);
+      pointer.setAttribute("x2", px);
+      pointer.setAttribute("y2", py);
+      val.textContent = p.fmt(values[p.index], p);
+      var glow = 0.3 + t * 0.7;
+      pointer.setAttribute("stroke", ACCENT);
+      pointer.style.filter = "drop-shadow(0 0 " + (2 + t * 4) + "px rgba(224,176,112," + glow + "))";
+    }
+
+    function setNorm(t) {
+      t = Math.max(0, Math.min(1, t));
+      values[p.index] = p.min + t * (p.max - p.min);
+      setParam(p.index, values[p.index]);
+      paint();
+      if (p.index === 6) syncRibbon();
+    }
+
+    var dragging = false, lastY = 0;
+    knob.addEventListener("pointerdown", function (e) {
+      dragging = true; lastY = e.clientY;
+      knob.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    knob.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dy = lastY - e.clientY;
+      lastY = e.clientY;
+      var speed = e.shiftKey ? 0.0008 : 0.004;
+      setNorm(norm() + dy * speed);
+    });
+    function endDrag(e) {
+      dragging = false;
+      try { knob.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+    knob.addEventListener("pointerup", endDrag);
+    knob.addEventListener("pointercancel", endDrag);
+    knob.addEventListener("dblclick", function () {
+      values[p.index] = p.def;
+      setParam(p.index, p.def);
+      paint();
+      if (p.index === 6) syncRibbon();
+    });
+    knob.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      setNorm(norm() + (e.deltaY < 0 ? 0.03 : -0.03));
+    }, { passive: false });
+
+    p._paint = paint;
+    return cell;
+  }
+
+  // ---- build knobs --------------------------------------------------
+  var controls = document.getElementById("controls");
+  PARAMS.forEach(function (p) { controls.appendChild(makeKnob(p)); });
+
+  // ---- ribbon controller (mirrors Brightness, index 6) --------------
+  var ribbon = document.getElementById("ribbon");
+  var ribbonGlow = document.getElementById("ribbonGlow");
+  var BRIGHT = PARAMS[6];
+
+  function syncRibbon() {
+    var t = values[6];
+    ribbonGlow.style.left = (8 + t * 84) + "%";
+  }
+  function ribbonSet(clientX) {
+    var r = ribbon.getBoundingClientRect();
+    var t = (clientX - r.left) / r.width;
+    t = Math.max(0, Math.min(1, t));
+    values[6] = t;
+    setParam(6, t);
+    BRIGHT._paint();
+    syncRibbon();
+  }
+  var ribDrag = false;
+  ribbon.addEventListener("pointerdown", function (e) {
+    ribDrag = true;
+    ribbon.classList.add("touched");
+    ribbon.setPointerCapture(e.pointerId);
+    ribbonSet(e.clientX);
+  });
+  ribbon.addEventListener("pointermove", function (e) {
+    if (ribDrag) ribbonSet(e.clientX);
+  });
+  function ribEnd(e) {
+    ribDrag = false;
+    ribbon.classList.remove("touched");
+    try { ribbon.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  ribbon.addEventListener("pointerup", ribEnd);
+  ribbon.addEventListener("pointercancel", ribEnd);
+
+  // ---- keyboard -----------------------------------------------------
+  var keysEl = document.getElementById("keys");
+  var START_NOTE = 48; // C3
+  var WHITE_COUNT = 17;
+  var WHITE_SEMI = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK_AFTER = [0, 1, 3, 4, 5]; // white indices that have a black to their right
+  var whiteNotes = [];
+
+  for (var i = 0; i < WHITE_COUNT; i++) {
+    var oct = Math.floor(i / 7);
+    var deg = i % 7;
+    var note = START_NOTE + oct * 12 + WHITE_SEMI[deg];
+    whiteNotes.push(note);
+    var k = document.createElement("div");
+    k.className = "key";
+    k.dataset.note = note;
+    keysEl.appendChild(k);
+  }
+
+  // black keys positioned absolutely over the whites
+  function placeBlacks() {
+    var existing = keysEl.querySelectorAll(".key.black");
+    existing.forEach(function (e) { e.remove(); });
+    var rect = keysEl.getBoundingClientRect();
+    var pad = 7;
+    var usable = rect.width - pad * 2;
+    var wWidth = usable / WHITE_COUNT;
+    for (var w = 0; w < WHITE_COUNT - 1; w++) {
+      var deg = w % 7;
+      if (BLACK_AFTER.indexOf(deg) === -1) continue;
+      var oct = Math.floor(w / 7);
+      var degSemi = WHITE_SEMI[deg];
+      var blackNote = START_NOTE + oct * 12 + degSemi + 1;
+      var bk = document.createElement("div");
+      bk.className = "key black";
+      bk.dataset.note = blackNote;
+      var center = pad + (w + 1) * wWidth;
+      bk.style.left = "calc(" + (center / rect.width * 100) + "% - 2.7%)";
+      keysEl.appendChild(bk);
+    }
+  }
+
+  var activeNotes = {};
+  function pressNote(note, el) {
+    if (activeNotes[note]) return;
+    activeNotes[note] = el;
+    el.classList.add("down");
+    hostNoteOn(note, 0.9);
+    burst(note);
+  }
+  function releaseNote(note) {
+    var el = activeNotes[note];
+    if (!el) return;
+    el.classList.remove("down");
+    hostNoteOff(note);
+    delete activeNotes[note];
+  }
+
+  function noteFromEvent(e) {
+    var t = document.elementFromPoint(e.clientX, e.clientY);
+    if (t && t.dataset && t.dataset.note) return { note: +t.dataset.note, el: t };
+    return null;
+  }
+
+  var mouseDown = false;
+  keysEl.addEventListener("pointerdown", function (e) {
+    mouseDown = true;
+    var hit = noteFromEvent(e);
+    if (hit) pressNote(hit.note, hit.el);
+    e.preventDefault();
+  });
+  keysEl.addEventListener("pointermove", function (e) {
+    if (!mouseDown) return;
+    var hit = noteFromEvent(e);
+    if (hit && !activeNotes[hit.note]) {
+      // mono-glide while dragging: release others
+      for (var n in activeNotes) releaseNote(+n);
+      pressNote(hit.note, hit.el);
+    }
+  });
+  function releaseAll() {
+    mouseDown = false;
+    for (var n in activeNotes) releaseNote(+n);
+  }
+  window.addEventListener("pointerup", releaseAll);
+  window.addEventListener("pointercancel", releaseAll);
+
+  // computer-keyboard play (a row maps to white keys)
+  var KEYMAP = "awsedftgyhujkolp;";
+  var keyDownSet = {};
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var idx = KEYMAP.indexOf(e.key.toLowerCase());
+    if (idx < 0 || idx >= whiteNotes.length) return;
+    var note = whiteNotes[idx];
+    var el = keysEl.querySelector('.key[data-note="' + note + '"]');
+    if (el) { keyDownSet[e.key.toLowerCase()] = note; pressNote(note, el); }
+  });
+  window.addEventListener("keyup", function (e) {
+    var note = keyDownSet[e.key.toLowerCase()];
+    if (note != null) { releaseNote(note); delete keyDownSet[e.key.toLowerCase()]; }
+  });
+
+  // ---- voice lamps --------------------------------------------------
+  var lampsEl = document.getElementById("lamps");
+  var lamps = [];
+  for (var L = 0; L < 8; L++) {
+    var lp = document.createElement("div");
+    lp.className = "lamp";
+    lampsEl.appendChild(lp);
+    lamps.push(lp);
+  }
+  function updateLamps() {
+    var count = Object.keys(activeNotes).length;
+    for (var i = 0; i < 8; i++) {
+      lamps[i].classList.toggle("on", i < count);
+    }
+  }
+
+  // ---- animated dual-layer scope ------------------------------------
+  var canvas = document.getElementById("scope");
+  var ctx = canvas.getContext("2d");
+  var bursts = [];
+  function burst(note) {
+    bursts.push({ x: ((note - START_NOTE) % 24) / 24, life: 1 });
+    updateLamps();
+  }
+  // remove finished notes from lamp count
+  var _origRelease = releaseNote;
+  releaseNote = function (note) { _origRelease(note); updateLamps(); };
+
+  function resizeCanvas() {
+    var r = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = r.width * dpr;
+    canvas.height = r.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    placeBlacks();
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  var t0 = performance.now();
+  function frame(now) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var r = canvas.getBoundingClientRect();
+    var W = r.width, H = r.height;
+    ctx.clearRect(0, 0, W, H);
+
+    var active = Object.keys(activeNotes).length;
+    var energy = Math.min(1, active / 4);
+    var bright = values[6];
+    var t = (now - t0) / 1000;
+
+    // two amber sine layers — brighter/faster with brightness + voices
+    for (var layer = 0; layer < 2; layer++) {
+      var amp = (layer === 0 ? 0.34 : 0.2) * (0.25 + energy * 0.9);
+      var fr = (layer === 0 ? 2.0 : 3.0 + bright * 3.0);
+      var speed = (layer === 0 ? 1.4 : 2.2);
+      var alpha = layer === 0 ? 0.85 : 0.5 + bright * 0.4;
+      ctx.beginPath();
+      for (var x = 0; x <= W; x += 3) {
+        var ph = (x / W) * Math.PI * 2 * fr + t * speed;
+        var env = 0.5 + 0.5 * Math.sin((x / W) * Math.PI);
+        var y = H / 2 + Math.sin(ph) * H * amp * env;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = layer === 0 ? ACCENT : ACCENT2;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = layer === 0 ? 2 : 1.4;
+      ctx.shadowColor = ACCENT;
+      ctx.shadowBlur = 6 + bright * 10;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+
+    // note bursts (vertical light columns fading out)
+    for (var b = bursts.length - 1; b >= 0; b--) {
+      var bb = bursts[b];
+      bb.life -= 0.04;
+      if (bb.life <= 0) { bursts.splice(b, 1); continue; }
+      var bx = bb.x * W;
+      var grad = ctx.createLinearGradient(bx, 0, bx, H);
+      grad.addColorStop(0, "rgba(224,176,112,0)");
+      grad.addColorStop(0.5, "rgba(224,176,112," + (bb.life * 0.5) + ")");
+      grad.addColorStop(1, "rgba(224,176,112,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(bx - 8, 0, 16, H);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---- init ---------------------------------------------------------
+  function ready() {
+    PARAMS.forEach(function (p) {
+      setParam(p.index, values[p.index]);
+      p._paint();
+    });
+    syncRibbon();
+    resizeCanvas();
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
+  else ready();
+</script>
+</body>
+</html>

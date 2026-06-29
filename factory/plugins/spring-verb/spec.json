@@ -6,6 +6,7 @@
   "out": "factory/plugins/spring-verb/x.vstai",
   "publishedAt": 1751000014000,
   "theme": { "accent": "#4dd2a6", "accent2": "#7ee8c0" },
+  "guiFile": "factory/plugins/spring-verb/gui.html",
   "params": [
     { "name": "Decay",   "index": 0, "min": 0, "max": 1, "default": 0.55 },
     { "name": "Tension", "index": 1, "min": 0, "max": 1, "default": 0.5 },

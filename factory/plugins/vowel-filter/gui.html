@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vowel Filter</title>
+<style>
+  :root {
+    --accent: #ff9ec0;
+    --accent2: #ffd089;
+    --bg0: #1a1016;
+    --bg1: #241420;
+    --panel: #2c1a28;
+    --ink: #ffe9f2;
+    --muted: #b78aa2;
+    --line: rgba(255,158,192,0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #3a1f30 0%, var(--bg1) 42%, var(--bg0) 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 680px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18)),
+      var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      inset 0 -2px 18px rgba(0,0,0,0.4);
+    padding: 22px 24px 26px;
+    overflow: hidden;
+  }
+
+  /* ---------- header ---------- */
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .logo {
+    width: 42px; height: 42px;
+    border-radius: 13px;
+    background:
+      radial-gradient(70% 70% at 35% 25%, var(--accent), #c75d85 70%, #7c3354 100%);
+    box-shadow:
+      0 6px 16px rgba(255,99,150,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -4px 10px rgba(0,0,0,0.35);
+    position: relative;
+    flex: none;
+  }
+  .logo::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 52%;
+    width: 16px; height: 20px;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+    background: radial-gradient(60% 60% at 50% 38%, var(--accent2), #b35a2e 70%, #3a1408 100%);
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+  }
+  .titles h1 {
+    margin: 0;
+    font-size: 19px;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .titles p {
+    margin: 2px 0 0;
+    font-size: 10.5px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- mouth stage ---------- */
+  .stage {
+    position: relative;
+    border-radius: 16px;
+    background:
+      radial-gradient(80% 120% at 50% 0%, #3b2030 0%, #1d0f18 75%),
+      #160b12;
+    border: 1px solid var(--line);
+    box-shadow: inset 0 2px 22px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.02);
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+  .stage svg { display: block; width: 100%; height: auto; }
+
+  .vowel-tag {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-shadow: 0 0 24px rgba(255,158,192,0.55);
+    transition: opacity 0.15s;
+  }
+
+  /* gum / lip parts get gentle idle motion */
+  @keyframes breathe {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(1.2px); }
+  }
+  #upperLip { animation: breathe 3.4s ease-in-out infinite; transform-origin: center; }
+  #lowerLip { animation: breathe 3.4s ease-in-out infinite reverse; transform-origin: center; }
+
+  @keyframes glow {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  .formantGlow { animation: glow 2.2s ease-in-out infinite; }
+
+  /* ---------- controls ---------- */
+  .vowel-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .vbtn {
+    appearance: none;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.25)), #2a1824;
+    color: var(--muted);
+    font-size: 20px;
+    font-weight: 800;
+    padding: 12px 0 14px;
+    cursor: pointer;
+    transition: transform 0.08s, color 0.15s, box-shadow 0.2s, background 0.2s;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 10px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .vbtn small {
+    display: block;
+    font-size: 8.5px;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-top: 4px;
+    opacity: 0.5;
+  }
+  .vbtn:hover { color: var(--ink); transform: translateY(-1px); }
+  .vbtn.active {
+    color: #1a0d14;
+    background: linear-gradient(180deg, var(--accent), #e07ba1);
+    box-shadow:
+      0 0 0 1px rgba(255,158,192,0.5),
+      0 6px 18px rgba(255,99,150,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .vbtn.active small { opacity: 0.7; }
+
+  .knobs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 480px) {
+    .knobs { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 6px 10px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.18));
+    border: 1px solid var(--line);
+  }
+  .knob .dial {
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob .label {
+    font-size: 9.5px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .knob .val {
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="head">
+      <div class="logo"></div>
+      <div class="titles">
+        <h1>Vowel Filter</h1>
+        <p>Formant &middot; Talkbox</p>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="vowel-tag" id="vowelTag">A</div>
+      <svg viewBox="0 0 360 180" id="mouthSvg" aria-hidden="true">
+        <defs>
+          <radialGradient id="mouthGrad" cx="50%" cy="50%" r="65%">
+            <stop offset="0%" stop-color="#5a1326"/>
+            <stop offset="60%" stop-color="#360a17"/>
+            <stop offset="100%" stop-color="#1a050c"/>
+          </radialGradient>
+          <linearGradient id="lipGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffb9d2"/>
+            <stop offset="55%" stop-color="#ff8fb6"/>
+            <stop offset="100%" stop-color="#c75d85"/>
+          </linearGradient>
+          <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3"/>
+          </filter>
+        </defs>
+
+        <!-- formant resonance bands behind the mouth -->
+        <g class="formantGlow" filter="url(#soft)">
+          <ellipse id="band1" cx="180" cy="90" rx="60" ry="40" fill="rgba(255,158,192,0.30)"/>
+          <ellipse id="band2" cx="180" cy="90" rx="36" ry="24" fill="rgba(255,208,137,0.30)"/>
+          <ellipse id="band3" cx="180" cy="90" rx="18" ry="12" fill="rgba(255,255,255,0.20)"/>
+        </g>
+
+        <!-- mouth cavity, shaped by the vowel -->
+        <ellipse id="cavity" cx="180" cy="90" rx="70" ry="46" fill="url(#mouthGrad)"
+                 stroke="rgba(0,0,0,0.5)" stroke-width="2"/>
+
+        <!-- tongue -->
+        <path id="tongue" d="M120 118 Q180 100 240 118 Q180 150 120 118 Z" fill="#a83a55" opacity="0.85"/>
+
+        <!-- lips -->
+        <path id="upperLip" d="M104 90 Q180 38 256 90 Q180 64 104 90 Z" fill="url(#lipGrad)"
+              stroke="rgba(120,30,60,0.6)" stroke-width="1.5"/>
+        <path id="lowerLip" d="M104 90 Q180 142 256 90 Q180 116 104 90 Z" fill="url(#lipGrad)"
+              stroke="rgba(120,30,60,0.6)" stroke-width="1.5"/>
+      </svg>
+    </div>
+
+    <div class="vowel-row" id="vowelRow"></div>
+
+    <div class="knobs" id="knobs"></div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices MUST match spec.json) ----
+  var P = {
+    VOWEL: 0,
+    RES:   1,
+    RATE:  2,
+    DEPTH: 3,
+    MIX:   4
+  };
+
+  var VOWELS = ["A", "E", "I", "O", "U"];
+  var VOWEL_SUB = ["ah", "eh", "ee", "oh", "oo"];
+
+  // morph targets per vowel: mouth shape descriptors for the animation
+  // [openY (cavity ry), wide (cavity rx), lipPucker (0..1)]
+  var SHAPES = [
+    { rx: 78, ry: 52, pucker: 0.0, tongue: 118 }, // A wide open
+    { rx: 70, ry: 36, pucker: 0.1, tongue: 110 }, // E
+    { rx: 60, ry: 24, pucker: 0.0, tongue: 96 },  // I narrow, tongue high
+    { rx: 50, ry: 44, pucker: 0.5, tongue: 122 }, // O rounded
+    { rx: 38, ry: 30, pucker: 0.85, tongue: 116 } // U pucker
+  ];
+
+  var host = null;
+  var pending = {};
+
+  function pushParam(index, value) {
+    if (host && host.setParam) {
+      host.setParam(index, value);
+    } else {
+      pending[index] = value;
+    }
+  }
+
+  // ---------------------------------------------------------------
+  //  KNOB factory
+  // ---------------------------------------------------------------
+  function makeKnob(def) {
+    var wrap = document.createElement("div");
+    wrap.className = "knob";
+
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("class", "dial");
+
+    var track = document.createElementNS(NS, "path");
+    track.setAttribute("d", arcPath(50, 50, 38, 135, 405));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(255,255,255,0.10)");
+    track.setAttribute("stroke-width", "8");
+    track.setAttribute("stroke-linecap", "round");
+    svg.appendChild(track);
+
+    var fill = document.createElementNS(NS, "path");
+    fill.setAttribute("fill", "none");
+    fill.setAttribute("stroke", def.color);
+    fill.setAttribute("stroke-width", "8");
+    fill.setAttribute("stroke-linecap", "round");
+    svg.appendChild(fill);
+
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "27");
+    body.setAttribute("fill", "url(#kbody)");
+    svg.appendChild(body);
+
+    // gradient defs (one per knob, fine)
+    var defs = document.createElementNS(NS, "defs");
+    defs.innerHTML =
+      '<radialGradient id="kbody" cx="38%" cy="30%" r="75%">' +
+      '<stop offset="0%" stop-color="#4a2c3c"/>' +
+      '<stop offset="70%" stop-color="#2a1824"/>' +
+      '<stop offset="100%" stop-color="#160b12"/></radialGradient>';
+    svg.insertBefore(defs, track);
+
+    var notch = document.createElementNS(NS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "28");
+    notch.setAttribute("stroke", def.color);
+    notch.setAttribute("stroke-width", "3.5");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    wrap.appendChild(svg);
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = def.label;
+    wrap.appendChild(label);
+
+    var val = document.createElement("div");
+    val.className = "val";
+    wrap.appendChild(val);
+
+    var value = def.def;
+
+    function norm() { return (value - def.min) / (def.max - def.min); }
+
+    function render() {
+      var t = norm();
+      var ang = 135 + t * 270;
+      fill.setAttribute("d", arcPath(50, 50, 38, 135, ang));
+      var rad = (ang - 90) * Math.PI / 180;
+      notch.setAttribute("x2", (50 + Math.cos(rad) * 22).toFixed(2));
+      notch.setAttribute("y2", (50 + Math.sin(rad) * 22).toFixed(2));
+      val.textContent = def.format(value);
+    }
+
+    function set(v, push) {
+      value = Math.max(def.min, Math.min(def.max, v));
+      render();
+      if (push) pushParam(def.index, value);
+    }
+
+    // drag
+    var dragging = false, lastY = 0;
+    function down(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      e.preventDefault();
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var span = def.max - def.min;
+      set(value + dy / 180 * span, true);
+      e.preventDefault();
+    }
+    function up() { dragging = false; }
+
+    svg.addEventListener("mousedown", down);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    svg.addEventListener("touchstart", down, { passive: false });
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", up);
+
+    svg.addEventListener("dblclick", function () { set(def.def, true); });
+    svg.addEventListener("wheel", function (e) {
+      var span = def.max - def.min;
+      set(value - Math.sign(e.deltaY) * span * 0.02, true);
+      e.preventDefault();
+    }, { passive: false });
+
+    set(def.def, false);
+
+    return { el: wrap, set: function (v) { set(v, true); }, get: function () { return value; } };
+  }
+
+  function arcPath(cx, cy, r, a0, a1) {
+    var s = polar(cx, cy, r, a0);
+    var e = polar(cx, cy, r, a1);
+    var large = (a1 - a0) > 180 ? 1 : 0;
+    return "M " + s.x + " " + s.y + " A " + r + " " + r + " 0 " + large + " 1 " + e.x + " " + e.y;
+  }
+  function polar(cx, cy, r, deg) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return { x: (cx + r * Math.cos(rad)).toFixed(2), y: (cy + r * Math.sin(rad)).toFixed(2) };
+  }
+
+  // ---------------------------------------------------------------
+  //  build knobs
+  // ---------------------------------------------------------------
+  var knobsHost = document.getElementById("knobs");
+
+  var resKnob = makeKnob({
+    label: "Resonance", index: P.RES, min: 0, max: 1, def: 0.6, color: "#ff9ec0",
+    format: function (v) { return Math.round(v * 100) + "%"; }
+  });
+  var rateKnob = makeKnob({
+    label: "LFO Rate", index: P.RATE, min: 0, max: 1, def: 0.25, color: "#ffd089",
+    format: function (v) {
+      var hz = 0.02 + v * v * 7.98;
+      return hz.toFixed(2) + " Hz";
+    }
+  });
+  var depthKnob = makeKnob({
+    label: "LFO Depth", index: P.DEPTH, min: 0, max: 1, def: 0.35, color: "#ff9ec0",
+    format: function (v) { return Math.round(v * 100) + "%"; }
+  });
+  var mixKnob = makeKnob({
+    label: "Mix", index: P.MIX, min: 0, max: 1, def: 1.0, color: "#ffd089",
+    format: function (v) { return Math.round(v * 100) + "%"; }
+  });
+
+  knobsHost.appendChild(resKnob.el);
+  knobsHost.appendChild(rateKnob.el);
+  knobsHost.appendChild(depthKnob.el);
+  knobsHost.appendChild(mixKnob.el);
+
+  // ---------------------------------------------------------------
+  //  vowel selector buttons
+  // ---------------------------------------------------------------
+  var vowelRow = document.getElementById("vowelRow");
+  var vowelTag = document.getElementById("vowelTag");
+  var currentVowel = 0;
+  var btns = [];
+
+  function selectVowel(i, push) {
+    currentVowel = i;
+    for (var k = 0; k < btns.length; k++) {
+      btns[k].classList.toggle("active", k === i);
+    }
+    if (push) pushParam(P.VOWEL, i);
+  }
+
+  VOWELS.forEach(function (v, i) {
+    var b = document.createElement("button");
+    b.className = "vbtn";
+    b.innerHTML = v + "<small>" + VOWEL_SUB[i].toUpperCase() + "</small>";
+    b.addEventListener("click", function () { selectVowel(i, true); });
+    vowelRow.appendChild(b);
+    btns.push(b);
+  });
+
+  // ---------------------------------------------------------------
+  //  mouth animation — morphs toward current vowel + LFO sweep
+  // ---------------------------------------------------------------
+  var cavity = document.getElementById("cavity");
+  var tongue = document.getElementById("tongue");
+  var upperLip = document.getElementById("upperLip");
+  var lowerLip = document.getElementById("lowerLip");
+  var band1 = document.getElementById("band1");
+  var band2 = document.getElementById("band2");
+  var band3 = document.getElementById("band3");
+
+  // animated continuous vowel position (eased toward target, plus LFO)
+  var animPos = 0;
+  var lfoT = 0;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function shapeAt(p) {
+    var i0 = Math.floor(p);
+    var i1 = Math.min(i0 + 1, SHAPES.length - 1);
+    var f = p - i0;
+    var a = SHAPES[i0], b = SHAPES[i1];
+    return {
+      rx: lerp(a.rx, b.rx, f),
+      ry: lerp(a.ry, b.ry, f),
+      pucker: lerp(a.pucker, b.pucker, f),
+      tongue: lerp(a.tongue, b.tongue, f)
+    };
+  }
+
+  function tick(now) {
+    if (document.hidden) { requestAnimationFrame(tick); return; }
+
+    // LFO contribution mirrors the DSP: depth sweeps vowel position over time
+    var depth = depthKnob.get();
+    var rate = rateKnob.get();
+    var hz = 0.02 + rate * rate * 7.98;
+    lfoT += hz / 60;
+    var lfo = 0.5 + 0.5 * Math.sin(lfoT * Math.PI * 2);
+
+    var target = currentVowel + depth * (lfo - 0.5) * 4.0;
+    target = Math.max(0, Math.min(4, target));
+
+    // ease the displayed position toward target
+    animPos += (target - animPos) * 0.12;
+
+    var s = shapeAt(animPos);
+    var res = resKnob.get();
+
+    // cavity opening
+    cavity.setAttribute("rx", s.rx.toFixed(1));
+    cavity.setAttribute("ry", s.ry.toFixed(1));
+
+    // lips: pucker pulls them inward + rounds them
+    var lw = lerp(76, 30, s.pucker);   // half-width of lips
+    var lh = lerp(s.ry * 0.95, 22, s.pucker);
+    upperLip.setAttribute("d",
+      "M " + (180 - lw) + " 90 Q 180 " + (90 - lh) + " " + (180 + lw) + " 90 Q 180 " + (90 - lh * 0.45) + " " + (180 - lw) + " 90 Z");
+    lowerLip.setAttribute("d",
+      "M " + (180 - lw) + " 90 Q 180 " + (90 + lh) + " " + (180 + lw) + " 90 Q 180 " + (90 + lh * 0.45) + " " + (180 - lw) + " 90 Z");
+
+    // tongue raise
+    tongue.setAttribute("d",
+      "M 120 " + (s.tongue + 4) + " Q 180 " + s.tongue + " 240 " + (s.tongue + 4) +
+      " Q 180 150 120 " + (s.tongue + 4) + " Z");
+
+    // formant resonance bands react to resonance + sweep
+    var sharp = 0.4 + res * 1.6;
+    band1.setAttribute("rx", (s.rx * 0.85).toFixed(1));
+    band1.setAttribute("ry", (s.ry * 0.85 / sharp + 6).toFixed(1));
+    band2.setAttribute("rx", (s.rx * 0.5).toFixed(1));
+    band2.setAttribute("ry", (s.ry * 0.5 / sharp + 4).toFixed(1));
+    band3.setAttribute("rx", (s.rx * 0.26).toFixed(1));
+    band3.setAttribute("ry", (s.ry * 0.26 / sharp + 3).toFixed(1));
+
+    // big vowel letter follows the swept position when LFO is active
+    var near = Math.round(animPos);
+    vowelTag.textContent = VOWELS[Math.max(0, Math.min(4, near))];
+    vowelTag.style.opacity = (0.55 + 0.45 * (1 - Math.abs(animPos - near))).toFixed(2);
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ---------------------------------------------------------------
+  //  host wiring
+  // ---------------------------------------------------------------
+  function start() {
+    host = window.vstai;
+    // flush any params set before the host appeared
+    for (var k in pending) {
+      if (pending.hasOwnProperty(k)) host.setParam(+k, pending[k]);
+    }
+    pending = {};
+    // ensure defaults are pushed once on load
+    selectVowel(0, true);
+    resKnob.set(resKnob.get());
+    rateKnob.set(rateKnob.get());
+    depthKnob.set(depthKnob.get());
+    mixKnob.set(mixKnob.get());
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else if (window.vstai) {
+    start();
+  } else {
+    // poll briefly for a late-injected host
+    var tries = 0;
+    var iv = setInterval(function () {
+      if (window.vstai) {
+        clearInterval(iv);
+        if (window.vstai.onReady) window.vstai.onReady(start); else start();
+      } else if (++tries > 80) {
+        clearInterval(iv);
+      }
+    }, 50);
+  }
+})();
+</script>
+</body>
+</html>

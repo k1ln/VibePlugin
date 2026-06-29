@@ -1,0 +1,351 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vast Hall</title>
+<style>
+  :root{
+    --ac:#5ad1ff;       /* accent  */
+    --ac2:#7a8cff;      /* accent2 */
+    --ink:#dfeefc;
+    --dim:#7e93b4;
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+  html,body{margin:0;height:100%}
+  body{
+    font:13px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);
+    background:#04060b;
+    overflow:hidden;
+    position:relative;
+  }
+  /* ============ THE HALL — receding nave of arches ============ */
+  .stage{position:absolute;inset:0;perspective:760px;perspective-origin:50% 42%;overflow:hidden}
+  .floor{
+    position:absolute;left:-30%;right:-30%;bottom:0;height:62%;
+    background:
+      linear-gradient(180deg,transparent,rgba(90,209,255,.05) 40%,rgba(10,16,28,.9)),
+      repeating-linear-gradient(90deg,transparent 0 48px,rgba(122,140,255,.06) 48px 49px);
+    transform:rotateX(72deg);transform-origin:bottom center;
+    box-shadow:0 0 120px 40px rgba(90,209,255,.06) inset;
+    opacity:.7;
+  }
+  /* nave: depth-stacked archways drawn as one repeating SVG, slow drift */
+  .nave{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+        transform-style:preserve-3d}
+  .ring{
+    position:absolute;left:50%;top:42%;width:340px;height:430px;margin:-215px 0 0 -170px;
+    border-radius:50% 50% 8% 8% / 60% 60% 5% 5%;
+    border:1.5px solid rgba(160,205,255,.16);
+    border-bottom:0;
+    box-shadow:0 0 24px rgba(90,209,255,.10), inset 0 0 30px rgba(122,140,255,.08);
+    animation:recede 9s linear infinite;
+    will-change:transform,opacity;
+  }
+  /* twelve arches phased through one 9s recede cycle for an endless tunnel */
+  .ring:nth-child(1){animation-delay:0s}
+  .ring:nth-child(2){animation-delay:-.75s}
+  .ring:nth-child(3){animation-delay:-1.5s}
+  .ring:nth-child(4){animation-delay:-2.25s}
+  .ring:nth-child(5){animation-delay:-3s}
+  .ring:nth-child(6){animation-delay:-3.75s}
+  .ring:nth-child(7){animation-delay:-4.5s}
+  .ring:nth-child(8){animation-delay:-5.25s}
+  .ring:nth-child(9){animation-delay:-6s}
+  .ring:nth-child(10){animation-delay:-6.75s}
+  .ring:nth-child(11){animation-delay:-7.5s}
+  .ring:nth-child(12){animation-delay:-8.25s}
+  @keyframes recede{
+    0%  {transform:translateZ(620px) scale(1.9);opacity:0}
+    12% {opacity:.9}
+    100%{transform:translateZ(-1700px) scale(.06);opacity:0}
+  }
+  /* volumetric light shaft pouring down the centre */
+  .shaft{
+    position:absolute;left:50%;top:-8%;width:230px;height:120%;margin-left:-115px;
+    background:linear-gradient(180deg,rgba(90,209,255,.30),rgba(122,140,255,.05) 55%,transparent);
+    filter:blur(20px);
+    transform:rotate(2deg);
+    mix-blend-mode:screen;
+    animation:breathe 7s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .shaft.b{left:32%;width:120px;margin-left:0;transform:rotate(-7deg);animation-delay:-2.4s;opacity:.6}
+  .shaft.c{left:64%;width:140px;margin-left:0;transform:rotate(8deg);animation-delay:-4s;opacity:.55}
+  @keyframes breathe{0%,100%{opacity:.55;filter:blur(20px)}50%{opacity:1;filter:blur(28px)}}
+  /* drifting dust motes — a particle shimmer (pure CSS, transform only) */
+  .motes{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen}
+  .mote{position:absolute;width:3px;height:3px;border-radius:50%;
+    background:radial-gradient(circle,#cdeeff,rgba(90,209,255,0));
+    animation:rise linear infinite;will-change:transform,opacity}
+  @keyframes rise{
+    0%{transform:translateY(20px) scale(.6);opacity:0}
+    15%{opacity:.9}
+    85%{opacity:.5}
+    100%{transform:translateY(-120px) scale(1.3);opacity:0}
+  }
+  .vignette{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 38%,transparent 40%,rgba(2,4,9,.7) 88%)}
+
+  /* ============ FOREGROUND UI ============ */
+  .wrap{position:absolute;inset:0;display:flex;flex-direction:column;
+        justify-content:space-between;padding:20px 26px 22px}
+  .head{display:flex;align-items:baseline;gap:14px;text-shadow:0 2px 18px rgba(0,0,0,.7)}
+  .head h1{
+    margin:0;font-size:23px;font-weight:300;letter-spacing:.42em;
+    text-transform:uppercase;
+    background:linear-gradient(90deg,var(--ac),var(--ac2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .head .tag{font-size:9.5px;letter-spacing:.34em;color:var(--dim);text-transform:uppercase}
+  .head .rt{margin-left:auto;font-size:10px;letter-spacing:.18em;color:var(--dim)}
+  .head .rt b{color:var(--ac);font-variant-numeric:tabular-nums;font-weight:600}
+
+  /* the airy minimalist control bar */
+  .bar{
+    display:flex;gap:6px;align-items:flex-end;justify-content:center;
+    padding:18px 20px 14px;border-radius:20px;
+    background:linear-gradient(180deg,rgba(18,26,42,.46),rgba(8,12,22,.62));
+    border:1px solid rgba(122,140,255,.16);
+    box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  }
+  .cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:9px;
+         padding:4px 2px;border-radius:14px;cursor:ns-resize;position:relative;
+         transition:background .25s}
+  .cell:hover{background:rgba(90,209,255,.05)}
+  .cell .name{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
+              transition:color .25s}
+  .cell:hover .name{color:var(--ac)}
+  .cell .val{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink);
+             letter-spacing:.04em;min-height:14px}
+  .cell svg{display:block;overflow:visible}
+  /* the dial body */
+  .track{fill:none;stroke:rgba(122,140,255,.18);stroke-width:5;stroke-linecap:round}
+  .fill{fill:none;stroke:url(#g);stroke-width:5;stroke-linecap:round;
+        filter:drop-shadow(0 0 6px var(--ac));transition:filter .2s}
+  .cell:hover .fill,.cell.drag .fill{filter:drop-shadow(0 0 11px var(--ac))}
+  .hub{fill:rgba(10,16,28,.85);stroke:rgba(122,140,255,.25);stroke-width:1}
+  .tick{stroke:var(--ac);stroke-width:2.5;stroke-linecap:round;
+        filter:drop-shadow(0 0 5px var(--ac))}
+  .glow{fill:var(--ac);opacity:0;transition:opacity .2s}
+  .cell.drag .glow{opacity:.10}
+  /* ripple emitted on the surrounding hall when a dial moves */
+  .ping{position:absolute;left:50%;top:0;width:14px;height:14px;margin-left:-7px;
+        border-radius:50%;border:1px solid var(--ac);pointer-events:none;opacity:0}
+  .ping.go{animation:ping .6s ease-out}
+  @keyframes ping{0%{opacity:.7;transform:scale(.4)}100%{opacity:0;transform:scale(7)}}
+
+  @media (prefers-reduced-motion:reduce){
+    .ring,.shaft,.mote{animation-duration:0s !important}
+  }
+</style>
+</head>
+<body>
+  <div class="stage" aria-hidden="true">
+    <div class="floor"></div>
+    <div class="nave" id="nave">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    </div>
+    <div class="shaft" id="shaft"></div>
+    <div class="shaft b"></div>
+    <div class="shaft c"></div>
+    <div class="motes" id="motes"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>Vast&nbsp;Hall</h1>
+      <span class="tag">Cathedral&nbsp;Reverb</span>
+      <span class="rt">RT60&nbsp;·&nbsp;<b id="rt">—</b></span>
+    </div>
+    <div class="bar" id="bar"></div>
+  </div>
+
+<script>
+(function(){
+  // ---- params straight from spec.json (index/min/max/default) ----
+  var PARAMS=[
+    {name:"Mix",       index:0, min:0,   max:1,    def:0.3,  unit:"%",  fmt:function(v){return Math.round(v*100)+"%"}},
+    {name:"Size",      index:1, min:0.3, max:1,    def:0.75, unit:"",   fmt:function(v){return Math.round(v*100)+"%"}},
+    {name:"Decay",     index:2, min:0,   max:1,    def:0.6,  unit:"",   fmt:function(v){return Math.round(v*100)+"%"}},
+    {name:"Damping",   index:3, min:0,   max:1,    def:0.45, unit:"",   fmt:function(v){return Math.round(v*100)+"%"}},
+    {name:"Pre-Delay", index:4, min:0,   max:0.12, def:0.02, unit:"ms", fmt:function(v){return (v*1000).toFixed(0)+" ms"}},
+    {name:"Width",     index:5, min:0,   max:1,    def:1,    unit:"",   fmt:function(v){return Math.round(v*100)+"%"}}
+  ];
+
+  var NS="http://www.w3.org/2000/svg";
+  function el(t,a){var e=document.createElementNS(NS,t);if(a)for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+  var bar=document.getElementById("bar");
+  var cells=[];
+  var state=PARAMS.map(function(p){return p.def;});
+
+  // arc geometry for a 270° dial
+  var R=26, CX=32, CY=33;
+  var A0=135, A1=405;                       // start/sweep in degrees (clockwise from top-left)
+  function pt(deg){var r=deg*Math.PI/180;return [CX+R*Math.cos(r), CY+R*Math.sin(r)];}
+  function arcPath(from,to){
+    var a=pt(from), b=pt(to);
+    var large=(to-from)>180?1:0;
+    return "M"+a[0].toFixed(2)+" "+a[1].toFixed(2)+" A"+R+" "+R+" 0 "+large+" 1 "+b[0].toFixed(2)+" "+b[1].toFixed(2);
+  }
+
+  PARAMS.forEach(function(p,ci){
+    var cell=document.createElement("div");
+    cell.className="cell";
+
+    var name=document.createElement("div");name.className="name";name.textContent=p.name;
+    var svg=el("svg",{width:64,height:66,viewBox:"0 0 64 66"});
+
+    // gradient def (per-cell so each dial gets its own glow)
+    var defs=el("defs");
+    var grad=el("linearGradient",{id:"g"+ci,x1:"0",y1:"0",x2:"1",y2:"1"});
+    grad.appendChild(el("stop",{offset:"0","stop-color":"var(--ac2)"}));
+    grad.appendChild(el("stop",{offset:"1","stop-color":"var(--ac)"}));
+    defs.appendChild(grad);svg.appendChild(defs);
+
+    var glow=el("circle",{cx:CX,cy:CY,r:R+7,class:"glow"});svg.appendChild(glow);
+    svg.appendChild(el("path",{class:"track",d:arcPath(A0,A1)}));
+    var fill=el("path",{class:"fill",d:arcPath(A0,A0+1)});
+    fill.style.stroke="url(#g"+ci+")";svg.appendChild(fill);
+    svg.appendChild(el("circle",{class:"hub",cx:CX,cy:CY,r:10}));
+    var tick=el("line",{class:"tick",x1:CX,y1:CY,x2:CX,y2:CY-R+2});svg.appendChild(tick);
+
+    var val=document.createElement("div");val.className="val";
+    var ping=document.createElement("div");ping.className="ping";
+
+    cell.appendChild(name);cell.appendChild(svg);cell.appendChild(val);cell.appendChild(ping);
+    bar.appendChild(cell);
+
+    var c={p:p,cell:cell,fill:fill,tick:tick,val:val,ping:ping};
+    cells.push(c);
+    bindDrag(c,ci);
+    render(c);
+  });
+
+  function norm(c){return (state[c.p.index]-c.p.min)/(c.p.max-c.p.min);} // 0..1
+  function render(c){
+    var n=Math.max(0,Math.min(1,norm(c)));
+    var ang=A0+n*(A1-A0);
+    c.fill.setAttribute("d",arcPath(A0, Math.max(A0+0.5,ang)));
+    c.tick.setAttribute("transform","rotate("+(ang+90)+" "+CX+" "+CY+")");
+    c.val.textContent=c.p.fmt(state[c.p.index]);
+  }
+
+  // ---- host bridge ----
+  function send(c){
+    var v=state[c.p.index];
+    if(window.vstai&&window.vstai.setParam) window.vstai.setParam(c.p.index, v);
+  }
+  function setVal(c,v,push){
+    v=Math.max(c.p.min,Math.min(c.p.max,v));
+    state[c.p.index]=v;
+    render(c);
+    if(push!==false) send(c);
+    updateScene();
+  }
+
+  // ---- pointer drag (vertical = change). dbl-click resets to default ----
+  function bindDrag(c,ci){
+    var cell=c.cell, dragging=false, startY=0, startV=0;
+    function down(e){
+      dragging=true;cell.classList.add("drag");
+      startY=(e.touches?e.touches[0].clientY:e.clientY);
+      startV=state[c.p.index];
+      e.preventDefault();
+      ripple(c);
+      window.addEventListener("pointermove",move);
+      window.addEventListener("pointerup",up);
+    }
+    function move(e){
+      if(!dragging)return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var span=c.p.max-c.p.min;
+      // fine control with shift; 180px ≈ full range
+      var k=(e.shiftKey?4:1);
+      var dv=(startY-y)/180*span/k;
+      setVal(c,startV+dv);
+      ripple(c);
+    }
+    function up(){
+      dragging=false;cell.classList.remove("drag");
+      window.removeEventListener("pointermove",move);
+      window.removeEventListener("pointerup",up);
+    }
+    cell.addEventListener("pointerdown",down);
+    // wheel nudge
+    cell.addEventListener("wheel",function(e){
+      e.preventDefault();
+      var span=c.p.max-c.p.min;
+      setVal(c, state[c.p.index] - Math.sign(e.deltaY)*span*0.03);
+      ripple(c);
+    },{passive:false});
+    // dbl-click → default
+    cell.addEventListener("dblclick",function(){setVal(c,c.p.def);ripple(c);});
+  }
+
+  var rT=0;
+  function ripple(c){
+    var now=Date.now(); if(now-rT<70)return; rT=now;
+    c.ping.classList.remove("go"); void c.ping.offsetWidth; c.ping.classList.add("go");
+  }
+
+  // ---- live scene response: Size/Decay/Damping/Width reshape the hall ----
+  var nave=document.getElementById("nave");
+  var shaft=document.getElementById("shaft");
+  var rtEl=document.getElementById("rt");
+  function v(i){return state[i];}
+  function updateScene(){
+    var size=v(1), decay=v(2), damp=v(3), width=v(5), mix=v(0);
+    // longer decay → slower, brighter recede; size → wider nave
+    var dur=(11 - decay*6).toFixed(2);              // 5..11s
+    nave.style.setProperty("--spd",dur);
+    var rings=nave.children;
+    for(var i=0;i<rings.length;i++){
+      rings[i].style.animationDuration=dur+"s";
+      rings[i].style.opacity=(0.55+mix*0.45);
+      // width spreads the arches horizontally
+      rings[i].style.width=(300+size*120)+"px";
+      rings[i].style.marginLeft=(-(300+size*120)/2)+"px";
+      // damping dims the high-frequency shimmer (cooler, darker arches)
+      rings[i].style.filter="brightness("+(1.25-damp*0.6)+") saturate("+(0.6+(1-damp)*0.8)+")";
+    }
+    nave.style.transform="scaleX("+(0.7+width*0.6)+")";
+    shaft.style.opacity=(0.4+mix*0.6);
+    // pseudo RT60 readout: decay + size, up to ~12s (matches the spec note)
+    var rt60=(0.3 + decay*decay*11 + (size-0.3)*1.5).toFixed(1);
+    rtEl.textContent=rt60+" s";
+  }
+
+  // ---- dust motes (built once, randomised) ----
+  (function(){
+    var box=document.getElementById("motes");
+    for(var i=0;i<34;i++){
+      var m=document.createElement("div");m.className="mote";
+      m.style.left=(Math.random()*100)+"%";
+      m.style.top=(30+Math.random()*65)+"%";
+      var d=6+Math.random()*9;
+      m.style.animationDuration=d+"s";
+      m.style.animationDelay=(-Math.random()*d)+"s";
+      var s=0.5+Math.random()*1.4;
+      m.style.transform="scale("+s+")";
+      box.appendChild(m);
+    }
+  })();
+
+  // ---- host ready: init every param to default + push once ----
+  function ready(){
+    cells.forEach(function(c){ render(c); send(c); });
+    updateScene();
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

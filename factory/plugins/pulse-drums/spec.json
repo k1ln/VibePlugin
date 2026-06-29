@@ -4,6 +4,7 @@
   "explanation": "A hybrid analog + sample drum machine. The body voices (kick, snare, tom) are fully synthesized analog-style, while the metallic voices (closed hat, open hat and crash) are real one-shot recordings baked in from public-domain / CC0 samples and decoded at startup. Each incoming note triggers a voice, and the controls shape tuning, the body decays, snare snap, hat and cymbal decay, brightness, accent and the kick click.",
   "assembly": "factory/plugins/pulse-drums/assembly.ts",
   "out": "factory/plugins/pulse-drums/x.vstai",
+  "guiFile": "factory/plugins/pulse-drums/gui.html",
   "publishedAt": 1751000031000,
   "theme": { "accent": "#ff5470", "accent2": "#ff8090" },
   "params": [

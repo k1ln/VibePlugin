@@ -6,6 +6,7 @@
   "out": "factory/plugins/jet-flanger/x.vstai",
   "publishedAt": 1751000022000,
   "theme": { "accent": "#40b8d0", "accent2": "#7ad0e8" },
+  "guiFile": "factory/plugins/jet-flanger/gui.html",
   "params": [
     { "name": "Rate",   "index": 0, "min": 0, "max": 1, "default": 0.25 },
     { "name": "Depth",  "index": 1, "min": 0, "max": 1, "default": 0.7 },

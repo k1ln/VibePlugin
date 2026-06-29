@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Granular Cloud</title>
+<style>
+  :root {
+    --accent:  #a0b0ff;
+    --accent2: #d0c0ff;
+    --bg0: #07060f;
+    --bg1: #110d22;
+    --ink: #e8e6ff;
+    --ink-dim: #8d88b8;
+    --panel: rgba(22, 18, 44, 0.55);
+    --stroke: rgba(160, 176, 255, 0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- ambient backdrop ---------- */
+  .stage {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background:
+      radial-gradient(1200px 700px at 75% -10%, rgba(208,192,255,0.18), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(160,176,255,0.16), transparent 60%),
+      linear-gradient(180deg, var(--bg1), var(--bg0) 70%);
+  }
+
+  /* the particle cloud canvas sits behind everything */
+  #cloud {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
+  }
+
+  /* slow drifting nebula veils */
+  .veil {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: screen;
+  }
+  .veil.a {
+    width: 46vmax; height: 46vmax;
+    left: -8vmax; top: -10vmax;
+    background: radial-gradient(circle, rgba(160,176,255,0.45), transparent 65%);
+    animation: drift1 26s ease-in-out infinite alternate;
+  }
+  .veil.b {
+    width: 40vmax; height: 40vmax;
+    right: -10vmax; bottom: -12vmax;
+    background: radial-gradient(circle, rgba(208,192,255,0.45), transparent 65%);
+    animation: drift2 31s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(8vmax, 6vmax) scale(1.15); }
+  }
+  @keyframes drift2 {
+    from { transform: translate(0,0) scale(1.1); }
+    to   { transform: translate(-7vmax, -5vmax) scale(0.95); }
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 2;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 26px 22px 34px;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .mark {
+    width: 46px; height: 46px;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 10px rgba(160,176,255,0.6));
+  }
+  .title-block h1 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .title-block .sub {
+    margin-top: 3px;
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* ---------- control grid ---------- */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 26px 22px 20px;
+    backdrop-filter: blur(14px) saturate(1.2);
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 10px;
+    justify-items: center;
+  }
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .knob {
+    position: relative;
+    width: 132px;
+    padding: 8px 4px 12px;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .knob .dial {
+    cursor: ns-resize;
+    display: block;
+    margin: 0 auto;
+    touch-action: none;
+  }
+  .knob .name {
+    margin-top: 6px;
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    transition: color 0.2s;
+  }
+  .knob .val {
+    margin-top: 2px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .knob:hover .name { color: var(--accent); }
+
+  .glow-ring { transition: opacity 0.2s; opacity: 0.5; }
+  .knob:hover .glow-ring,
+  .knob.dragging .glow-ring { opacity: 1; }
+
+  .hint {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(141,136,184,0.6);
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="veil a"></div>
+    <div class="veil b"></div>
+    <canvas id="cloud"></canvas>
+
+    <div class="wrap">
+      <header>
+        <svg class="mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id="mg" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#d0c0ff"/>
+              <stop offset="100%" stop-color="#a0b0ff"/>
+            </radialGradient>
+          </defs>
+          <circle cx="16" cy="22" r="9" fill="url(#mg)" opacity="0.85"/>
+          <circle cx="28" cy="16" r="7" fill="url(#mg)" opacity="0.7"/>
+          <circle cx="33" cy="27" r="8" fill="url(#mg)" opacity="0.8"/>
+          <circle cx="9"  cy="12" r="2.4" fill="#fff" opacity="0.9"/>
+          <circle cx="40" cy="36" r="2" fill="#fff" opacity="0.8"/>
+          <circle cx="22" cy="36" r="1.6" fill="#fff" opacity="0.7"/>
+        </svg>
+        <div class="title-block">
+          <h1>GRANULAR CLOUD</h1>
+          <div class="sub">grain delay &middot; particle resynthesis</div>
+        </div>
+      </header>
+
+      <div class="panel">
+        <div class="grid" id="grid"></div>
+        <div class="hint">drag vertically &middot; double-click to reset</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices match the DSP module) ----
+  var PARAMS = [
+    { name: "Size",     index: 0, min: 0, max: 1, def: 0.45, fmt: sizeFmt },
+    { name: "Density",  index: 1, min: 0, max: 1, def: 0.50, fmt: densFmt },
+    { name: "Pitch",    index: 2, min: 0, max: 1, def: 0.50, fmt: pitchFmt },
+    { name: "Spray",    index: 3, min: 0, max: 1, def: 0.40, fmt: pctFmt },
+    { name: "Feedback", index: 4, min: 0, max: 1, def: 0.35, fmt: pctFmt },
+    { name: "Mix",      index: 5, min: 0, max: 1, def: 0.60, fmt: pctFmt }
+  ];
+
+  function pctFmt(v)  { return Math.round(v * 100) + "%"; }
+  function sizeFmt(v) { return Math.round(20 + v * 380) + " ms"; }
+  function densFmt(v) { return Math.round(4 + v * v * 120) + " gr/s"; }
+  function pitchFmt(v){
+    var s = Math.round((v - 0.5) * 24);
+    return (s > 0 ? "+" : "") + s + " st";
+  }
+
+  // live state used by the particle cloud
+  var state = { size: 0.45, density: 0.5, pitch: 0.5, spray: 0.4, feedback: 0.35, mix: 0.6 };
+  var stateKey = ["size", "density", "pitch", "spray", "feedback", "mix"];
+
+  // ---- host bridge ----
+  function pushParam(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  // ---- knob factory (SVG) ----
+  var R = 40, CX = 50, CY = 50;
+  var A0 = 135, A1 = 405;           // sweep degrees (270°)
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(r, fromDeg, toDeg) {
+    var p0 = polar(CX, CY, r, fromDeg);
+    var p1 = polar(CX, CY, r, toDeg);
+    var large = (toDeg - fromDeg) > 180 ? 1 : 0;
+    return "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " +
+           p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  function makeKnob(p) {
+    var el = document.createElement("div");
+    el.className = "knob";
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "dial");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("width", "104");
+    svg.setAttribute("height", "104");
+
+    var gid = "grad" + p.index;
+    svg.innerHTML =
+      '<defs>' +
+        '<linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1">' +
+          '<stop offset="0%" stop-color="var(--accent)"/>' +
+          '<stop offset="100%" stop-color="var(--accent2)"/>' +
+        '</linearGradient>' +
+        '<radialGradient id="body' + p.index + '" cx="50%" cy="38%" r="65%">' +
+          '<stop offset="0%" stop-color="#2a2450"/>' +
+          '<stop offset="100%" stop-color="#0d0a1c"/>' +
+        '</radialGradient>' +
+        '<filter id="gb' + p.index + '" x="-50%" y="-50%" width="200%" height="200%">' +
+          '<feGaussianBlur stdDeviation="2.4"/>' +
+        '</filter>' +
+      '</defs>' +
+      // outer track
+      '<path d="' + arcPath(R, A0, A1) + '" stroke="rgba(160,176,255,0.14)" stroke-width="6" fill="none" stroke-linecap="round"/>' +
+      // glow under value arc
+      '<path class="glow-ring" d="' + arcPath(R, A0, A0) + '" stroke="url(#' + gid + ')" stroke-width="7" fill="none" stroke-linecap="round" filter="url(#gb' + p.index + ')" data-arc="glow"/>' +
+      // value arc
+      '<path d="' + arcPath(R, A0, A0) + '" stroke="url(#' + gid + ')" stroke-width="4" fill="none" stroke-linecap="round" data-arc="val"/>' +
+      // knob body
+      '<circle cx="50" cy="50" r="27" fill="url(#body' + p.index + ')" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>' +
+      '<circle cx="50" cy="42" r="27" fill="rgba(255,255,255,0.04)"/>' +
+      // pointer
+      '<line data-pointer x1="50" y1="50" x2="50" y2="28" stroke="var(--accent2)" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="50" cy="50" r="3.2" fill="var(--accent)"/>';
+
+    var name = document.createElement("div");
+    name.className = "name";
+    name.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    el.appendChild(svg);
+    el.appendChild(name);
+    el.appendChild(val);
+
+    var glow = svg.querySelector('[data-arc="glow"]');
+    var arc  = svg.querySelector('[data-arc="val"]');
+    var ptr  = svg.querySelector('[data-pointer]');
+
+    var value = p.def;
+
+    function render() {
+      var t = (value - p.min) / (p.max - p.min);
+      t = Math.max(0, Math.min(1, t));
+      var deg = A0 + t * (A1 - A0);
+      var d = arcPath(R, A0, Math.max(A0 + 0.01, deg));
+      arc.setAttribute("d", d);
+      glow.setAttribute("d", d);
+      ptr.setAttribute("transform", "rotate(" + (deg - 270) + " 50 50)");
+      val.textContent = p.fmt(value);
+      state[stateKey[p.index]] = t;
+    }
+
+    function commit(v) {
+      value = Math.max(p.min, Math.min(p.max, v));
+      render();
+      pushParam(p.index, value);
+    }
+
+    // ---- drag interaction ----
+    var dragging = false, lastY = 0, startVal = 0;
+
+    function onDown(e) {
+      dragging = true;
+      el.classList.add("dragging");
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startVal = value;
+      e.preventDefault();
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchend", onUp);
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      var span = p.max - p.min;
+      var fine = (e.shiftKey ? 0.25 : 1);
+      commit(value + dy * span / 200 * fine);
+      lastY = y;
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      el.classList.remove("dragging");
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchend", onUp);
+    }
+
+    svg.addEventListener("mousedown", onDown);
+    svg.addEventListener("touchstart", onDown, { passive: false });
+    svg.addEventListener("dblclick", function () { commit(p.def); });
+    svg.addEventListener("wheel", function (e) {
+      var span = p.max - p.min;
+      commit(value - Math.sign(e.deltaY) * span * 0.02);
+      e.preventDefault();
+    }, { passive: false });
+
+    // initialise
+    commit(p.def);
+    return el;
+  }
+
+  function buildUI() {
+    var grid = document.getElementById("grid");
+    for (var i = 0; i < PARAMS.length; i++) {
+      grid.appendChild(makeKnob(PARAMS[i]));
+    }
+  }
+
+  // ---- generative grain-particle cloud ----
+  var canvas = document.getElementById("cloud");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, DPR = 1;
+  var grains = [];
+  var MAXP = 130;
+
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    canvas.width = Math.max(1, Math.floor(W * DPR));
+    canvas.height = Math.max(1, Math.floor(H * DPR));
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function spawnGrain() {
+    // pitch shifts hue toward warm (high) or cool (low)
+    var hue = 232 + (state.pitch - 0.5) * 70;     // ~ blue->violet
+    return {
+      x: Math.random() * W,
+      y: H * (0.35 + Math.random() * 0.6),
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: -0.15 - Math.random() * 0.5,
+      life: 0,
+      ttl: 60 + Math.random() * 160,
+      r: 1 + Math.random() * 3,
+      hue: hue
+    };
+  }
+
+  function step() {
+    if (document.hidden) { requestAnimationFrame(step); return; }
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+
+    // density controls population; spray controls scatter; size controls grain radius
+    var target = Math.floor(20 + state.density * MAXP);
+    while (grains.length < target) grains.push(spawnGrain());
+
+    var sprayJ = 0.2 + state.spray * 2.2;
+    var sizeMul = 0.6 + state.size * 2.2;
+    var mixAlpha = 0.12 + state.mix * 0.35;
+    var fbDrag = 1 - state.feedback * 0.015;
+
+    for (var i = grains.length - 1; i >= 0; i--) {
+      var g = grains[i];
+      g.life++;
+      // brownian scatter driven by spray
+      g.vx += (Math.random() - 0.5) * 0.06 * sprayJ;
+      g.vy += (Math.random() - 0.5) * 0.05 * sprayJ;
+      g.vx *= fbDrag;
+      g.x += g.vx;
+      g.y += g.vy;
+
+      var t = g.life / g.ttl;
+      if (t >= 1 || g.x < -20 || g.x > W + 20 || g.y < -20) {
+        if (grains.length > target) { grains.splice(i, 1); continue; }
+        // recycle
+        var ng = spawnGrain();
+        grains[i] = ng;
+        continue;
+      }
+
+      // Hann-like envelope on alpha (grains fade in/out)
+      var env = Math.sin(Math.PI * t);
+      var a = env * mixAlpha;
+      var rr = g.r * sizeMul;
+
+      var grd = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, rr * 4);
+      grd.addColorStop(0, "hsla(" + g.hue + ",90%,80%," + a + ")");
+      grd.addColorStop(1, "hsla(" + g.hue + ",90%,70%,0)");
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, rr * 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // bright core
+      ctx.fillStyle = "hsla(" + g.hue + ",100%,92%," + (a * 1.4) + ")";
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, rr * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = "source-over";
+    requestAnimationFrame(step);
+  }
+
+  // ---- boot ----
+  function boot() {
+    resize();
+    buildUI();
+    requestAnimationFrame(step);
+  }
+
+  window.addEventListener("resize", resize);
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

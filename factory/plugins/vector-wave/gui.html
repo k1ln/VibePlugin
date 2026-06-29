@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vector Wave</title>
+<style>
+  :root{
+    --accent:#2ec4b6;
+    --accent2:#54d1ff;
+    --bg0:#04161a;
+    --bg1:#072a30;
+    --panel:#0a3138;
+    --ink:#bfeef0;
+    --dim:#5e8f93;
+    --grid:rgba(46,196,182,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI',Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(120% 90% at 20% 0%,#0b3b42 0%,var(--bg1) 45%,var(--bg0) 100%);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100%;padding:18px;overflow:hidden;
+  }
+  .shell{
+    width:560px;border-radius:18px;position:relative;
+    background:linear-gradient(160deg,#0c373f 0%,#082a30 60%,#062227 100%);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(255,255,255,.06),
+      inset 0 0 0 1px rgba(46,196,182,.18);
+    padding:18px 20px 22px;
+  }
+  /* faint moving grid behind everything for 90s-workstation depth */
+  .shell::before{
+    content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:22px 22px;opacity:.5;
+    animation:drift 14s linear infinite;
+    mask:radial-gradient(120% 120% at 50% 30%,#000 40%,transparent 90%);
+  }
+  @keyframes drift{to{background-position:22px 22px,22px 22px;}}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;position:relative;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .logo{width:30px;height:30px;}
+  .title{font-weight:800;letter-spacing:.14em;font-size:15px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{font-size:9px;letter-spacing:.34em;color:var(--dim);margin-top:2px;}
+  .led{width:9px;height:9px;border-radius:50%;background:var(--accent2);
+    box-shadow:0 0 8px var(--accent2),0 0 16px var(--accent2);
+    animation:pulse 2.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.45;}50%{opacity:1;}}
+
+  .main{display:flex;gap:18px;position:relative;}
+
+  /* ---------- vector pad ---------- */
+  .padwrap{flex:0 0 246px;}
+  .pad{
+    width:246px;height:246px;border-radius:14px;position:relative;cursor:crosshair;
+    background:radial-gradient(120% 120% at 50% 50%,#0a3036 0%,#05181c 100%);
+    box-shadow:inset 0 0 0 1px rgba(46,196,182,.25),inset 0 0 40px rgba(0,0,0,.6);
+    overflow:hidden;touch-action:none;
+  }
+  .pad svg{position:absolute;inset:0;width:100%;height:100%;}
+  .corner{position:absolute;font-size:8.5px;letter-spacing:.18em;color:var(--dim);
+    text-transform:uppercase;pointer-events:none;}
+  .c-tl{top:7px;left:9px;}.c-tr{top:7px;right:9px;}.c-bl{bottom:7px;left:9px;}.c-br{bottom:7px;right:9px;}
+  .puck{
+    position:absolute;width:26px;height:26px;border-radius:50%;left:0;top:0;
+    margin:-13px 0 0 -13px;pointer-events:none;
+    background:radial-gradient(circle at 35% 30%,#eafffe,var(--accent2) 55%,var(--accent) 100%);
+    box-shadow:0 0 14px var(--accent2),0 0 30px rgba(84,209,255,.6),0 3px 6px rgba(0,0,0,.5);
+  }
+  .puck::after{content:"";position:absolute;inset:-12px;border-radius:50%;
+    border:1px solid rgba(84,209,255,.4);animation:halo 2.2s ease-out infinite;}
+  @keyframes halo{0%{transform:scale(.6);opacity:.8;}100%{transform:scale(1.5);opacity:0;}}
+  .orbit{position:absolute;border:1px dashed rgba(84,209,255,.35);border-radius:50%;
+    left:0;top:0;pointer-events:none;transform:translate(-50%,-50%);display:none;}
+  .padmeta{display:flex;justify-content:space-between;margin-top:8px;font-size:10px;}
+  .padmeta b{color:var(--accent2);font-variant-numeric:tabular-nums;}
+
+  /* ---------- right column ---------- */
+  .right{flex:1;display:flex;flex-direction:column;gap:12px;}
+
+  /* wave-sequence timeline */
+  .seq{background:rgba(4,18,21,.6);border-radius:10px;padding:9px 10px 7px;
+    box-shadow:inset 0 0 0 1px rgba(46,196,182,.16);}
+  .seqhead{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.2em;
+    color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
+  .timeline{display:flex;gap:5px;height:42px;align-items:flex-end;position:relative;}
+  .step{flex:1;height:100%;border-radius:5px;position:relative;overflow:hidden;
+    background:rgba(46,196,182,.07);box-shadow:inset 0 0 0 1px rgba(46,196,182,.18);}
+  .step svg{position:absolute;inset:0;width:100%;height:100%;opacity:.85;}
+  .step.on{background:rgba(46,196,182,.2);box-shadow:inset 0 0 0 1px var(--accent),0 0 12px rgba(46,196,182,.5);}
+
+  /* knobs */
+  .knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 6px;}
+  .knob{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:ns-resize;padding:4px 0;}
+  .dial{width:54px;height:54px;position:relative;}
+  .dial svg{width:100%;height:100%;transform:rotate(-90deg);}
+  .dial .cap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:9px;color:var(--accent2);font-variant-numeric:tabular-nums;pointer-events:none;}
+  .klabel{font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;}
+  .knob:hover .ring{stroke:var(--accent2);}
+  footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center;
+    font-size:8px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase;position:relative;}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 40 40" fill="none">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2ec4b6"/><stop offset="1" stop-color="#54d1ff"/></linearGradient></defs>
+          <rect x="3" y="3" width="34" height="34" rx="9" stroke="url(#lg)" stroke-width="2"/>
+          <path d="M8 28 C14 8,26 32,32 12" stroke="url(#lg)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          <circle cx="20" cy="20" r="3" fill="#54d1ff"/>
+        </svg>
+        <div>
+          <div class="title">VECTOR WAVE</div>
+          <div class="sub">VECTOR · WAVE-SEQUENCE SYNTHESIZER</div>
+        </div>
+      </div>
+      <div class="led"></div>
+    </header>
+
+    <div class="main">
+      <div class="padwrap">
+        <div class="pad" id="pad">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(46,196,182,.18)" stroke-width=".5"/>
+            <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(46,196,182,.18)" stroke-width=".5"/>
+          </svg>
+          <span class="corner c-tl">Saw</span>
+          <span class="corner c-tr">Pulse</span>
+          <span class="corner c-bl">Sine</span>
+          <span class="corner c-br">Tri</span>
+          <div class="orbit" id="orbit"></div>
+          <div class="puck" id="puck"></div>
+        </div>
+        <div class="padmeta">
+          <span>X <b id="vx">0.50</b></span>
+          <span>VECTOR JOYSTICK</span>
+          <span>Y <b id="vy">0.50</b></span>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="seq">
+          <div class="seqhead"><span>Wave Sequence</span><span id="seqlbl">RATE 0.30</span></div>
+          <div class="timeline" id="timeline"></div>
+        </div>
+        <div class="knobs" id="knobs"></div>
+      </div>
+    </div>
+
+    <footer><span>8-VOICE POLY</span><span>MORPH ENGINE</span><span>v1.0</span></footer>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,+v); }
+  function clamp(x,a,b){ return x<a?a:(x>b?b:x); }
+
+  // ---- single-cycle wave shapes for the previews (match the DSP corners) ----
+  function shape(name,n,phase){
+    var t=(n+ (phase||0))%1; var w=2*Math.PI*t, s=0,k;
+    if(name==='sine') return Math.sin(w);
+    if(name==='tri')  return 4*(t<0.5?t:1-t)-1;
+    if(name==='saw'){ for(k=1;k<=8;k++) s+=Math.sin(w*k)/k; return s*0.55; }
+    for(k=1;k<=9;k+=2) s+=Math.sin(w*k)/k; return s*0.95; // pulse
+  }
+  function wavePath(name,wp,phase,W,H){
+    var d='',N=48,i,x,y;
+    for(i=0;i<=N;i++){ x=i/N*W; y=H/2-shape(name,i/N,phase)*(H*0.36);
+      d+=(i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1); }
+    return d;
+  }
+
+  // ---- VECTOR PAD (params 0 = X, 1 = Y) ----
+  var pad=document.getElementById('pad'),puck=document.getElementById('puck'),
+      orbit=document.getElementById('orbit'),
+      vxEl=document.getElementById('vx'),vyEl=document.getElementById('vy');
+  var vx=0.5, vy=0.5;            // defaults
+  function paintPad(){
+    var w=pad.clientWidth,h=pad.clientHeight;
+    puck.style.left=(vx*w)+'px';
+    puck.style.top=((1-vy)*h)+'px';     // y up
+    vxEl.textContent=vx.toFixed(2);
+    vyEl.textContent=vy.toFixed(2);
+    paintOrbit();
+  }
+  function setPadFromEvent(e){
+    var r=pad.getBoundingClientRect();
+    var px=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    var py=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+    vx=clamp(px/r.width,0,1);
+    vy=clamp(1-py/r.height,0,1);
+    send(0,vx); send(1,vy); paintPad();
+  }
+  var dragPad=false;
+  pad.addEventListener('pointerdown',function(e){ dragPad=true; pad.setPointerCapture(e.pointerId); setPadFromEvent(e); });
+  pad.addEventListener('pointermove',function(e){ if(dragPad) setPadFromEvent(e); });
+  pad.addEventListener('pointerup',function(){ dragPad=false; });
+  pad.addEventListener('dblclick',function(){ vx=0.5; vy=0.5; send(0,vx); send(1,vy); paintPad(); });
+
+  // ---- KNOBS (params 2..7) ----
+  var defs=[
+    {i:2,name:'Seq Rate',def:0.3},
+    {i:3,name:'Cutoff',  def:0.6},
+    {i:4,name:'Attack',  def:0.05},
+    {i:5,name:'Release', def:0.4},
+    {i:6,name:'Detune',  def:0.25},
+    {i:7,name:'Level',   def:0.6}
+  ];
+  var seqRate=0.3;
+  var host=document.getElementById('knobs');
+  var R=22, CIRC=2*Math.PI*R;
+  defs.forEach(function(p){
+    var wrap=document.createElement('div'); wrap.className='knob';
+    wrap.innerHTML=
+      '<div class="dial"><svg viewBox="0 0 60 60">'+
+        '<circle cx="30" cy="30" r="22" fill="none" stroke="rgba(46,196,182,.16)" stroke-width="5"/>'+
+        '<circle class="ring" cx="30" cy="30" r="22" fill="none" stroke="#2ec4b6" stroke-width="5" '+
+          'stroke-linecap="round" stroke-dasharray="'+CIRC.toFixed(2)+'" stroke-dashoffset="'+CIRC.toFixed(2)+'"/>'+
+      '</svg><div class="cap">0</div></div>'+
+      '<div class="klabel">'+p.name+'</div>';
+    host.appendChild(wrap);
+    var ring=wrap.querySelector('.ring'), cap=wrap.querySelector('.cap');
+    var val=p.def;
+    function paint(){
+      var frac=clamp(val,0,1);
+      ring.style.strokeDashoffset=(CIRC*(1-frac*0.78)).toFixed(2); // 0..280deg arc
+      cap.textContent=val.toFixed(2);
+      if(p.i===2){ seqRate=val; document.getElementById('seqlbl').textContent='RATE '+val.toFixed(2); }
+    }
+    function commit(){ send(p.i,val); paint(); }
+    var dragging=false,lastY=0;
+    wrap.addEventListener('pointerdown',function(e){ dragging=true; lastY=e.clientY; wrap.setPointerCapture(e.pointerId); });
+    wrap.addEventListener('pointermove',function(e){
+      if(!dragging) return;
+      val=clamp(val+(lastY-e.clientY)/170,0,1); lastY=e.clientY; commit();
+    });
+    wrap.addEventListener('pointerup',function(){ dragging=false; });
+    wrap.addEventListener('dblclick',function(){ val=p.def; commit(); });
+    commit();
+  });
+
+  // ---- WAVE-SEQUENCE TIMELINE (visualises the rotating corner steps) ----
+  var STEPS=['saw','pulse','sine','tri'];   // rotation order across the pad
+  var tl=document.getElementById('timeline'), steps=[];
+  for(var s=0;s<8;s++){
+    var name=STEPS[s%4];
+    var d=document.createElement('div'); d.className='step';
+    d.innerHTML='<svg viewBox="0 0 100 100" preserveAspectRatio="none">'+
+      '<path d="'+wavePath(name,0,0,100,100)+'" fill="none" stroke="#54d1ff" stroke-width="2.5"/></svg>';
+    tl.appendChild(d); steps.push(d);
+  }
+
+  // ---- ANIMATION: orbit + timeline scan driven by seq rate ----
+  var seqPos=0, last=performance.now();
+  function paintOrbit(){
+    var w=pad.clientWidth, rad=0.35*seqRate; // matches DSP orbit
+    var rpx=rad*w;
+    if(rad<0.01){ orbit.style.display='none'; return; }
+    orbit.style.display='block';
+    orbit.style.width=(rpx*2)+'px'; orbit.style.height=(rpx*2)+'px';
+    orbit.style.left=(vx*w)+'px'; orbit.style.top=((1-vy)*pad.clientHeight)+'px';
+  }
+  function frame(now){
+    var dt=(now-last)/1000; last=now;
+    var stepsPerSec=0.05+seqRate*seqRate*12.0;     // matches DSP
+    seqPos=(seqPos+stepsPerSec*dt)%8;
+    var cur=Math.floor(seqPos);
+    for(var k=0;k<8;k++) steps[k].classList.toggle('on',k===cur);
+    // glide the puck visual marker around the orbit (purely cosmetic feedback)
+    paintOrbit();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function ready(){
+    // push defaults to the host and paint
+    send(0,vx); send(1,vy);
+    paintPad();
+  }
+  window.addEventListener('resize',paintPad);
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

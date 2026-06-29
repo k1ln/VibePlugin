@@ -1,0 +1,17 @@
+{
+  "name": "Multiband",
+  "isInstrument": false,
+  "explanation": "A three-band dynamics processor for mastering. The signal is split into low, mid and high bands by two crossovers (~220 Hz and ~2.5 kHz), and each band is compressed independently with its own threshold so the lows can pump without dulling the highs. A shared ratio sets how hard each band squeezes; the bands recombine through a makeup/output trim. Controls: Low Thresh, Mid Thresh, High Thresh, Ratio and Output.",
+  "assembly": "factory/plugins/multiband/assembly.ts",
+  "out": "factory/plugins/multiband/x.vstai",
+  "publishedAt": 1751000073000,
+  "theme": { "accent": "#ff8a5a", "accent2": "#ffd166" },
+  "guiFile": "factory/plugins/multiband/gui.html",
+  "params": [
+    { "name": "Low Thresh",  "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mid Thresh",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "High Thresh", "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Ratio",       "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output",      "index": 4, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

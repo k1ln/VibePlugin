@@ -1,0 +1,17 @@
+{
+  "name": "Iron Drive",
+  "isInstrument": false,
+  "explanation": "Transformer-style iron-core saturation. The iron saturates earliest in the lows, so a tunable low-end push is fed back into the drive stage, a hysteresis-flavoured soft saturator adds asymmetric even + odd harmonic warmth, and a gentle high-frequency rounding tames the top. A post Tone tilt, dry/wet Mix and Output trim finish it. Controls: Drive, Low, Tone, Mix and Output.",
+  "assembly": "factory/plugins/iron-drive/assembly.ts",
+  "out": "factory/plugins/iron-drive/x.vstai",
+  "publishedAt": 1751000077000,
+  "theme": { "accent": "#cf7a3a", "accent2": "#e0a860" },
+  "guiFile": "factory/plugins/iron-drive/gui.html",
+  "params": [
+    { "name": "Drive",  "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Low",     "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tone",    "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",     "index": 3, "min": 0, "max": 1, "default": 1 },
+    { "name": "Output",  "index": 4, "min": 0, "max": 1, "default": 0.55 }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Air Exciter",
+  "isInstrument": false,
+  "explanation": "A psychoacoustic harmonic exciter that adds air and presence. It splits off the upper band, runs it through an asymmetric soft-saturator to synthesise new high-frequency harmonics that were not in the dry signal, brightens that stream with an Air tilt, and blends a controlled amount back on top of the untouched dry path. Controls: Tune, Amount, Air and Mix.",
+  "assembly": "factory/plugins/air-exciter/assembly.ts",
+  "out": "factory/plugins/air-exciter/x.vstai",
+  "publishedAt": 1751000054000,
+  "theme": { "accent": "#bfe3ff", "accent2": "#e6f0ff" },
+  "guiFile": "factory/plugins/air-exciter/gui.html",
+  "params": [
+    { "name": "Tune",   "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Amount", "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Air",    "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",    "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

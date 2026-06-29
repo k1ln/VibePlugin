@@ -1,0 +1,290 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+/* ============================================================
+   VELVET EQ — a Pultec-style passive program equalizer.
+   Cream + blue vintage faceplate, brushed-steel chicken-head
+   knobs, engraved legends, brass screws, a glowing tube and a
+   velvet seam. Everything inline: CSS + SVG + JS, no assets.
+   ============================================================ */
+:root{
+  --ac:#f0a0ff;          /* spec accent  */
+  --ac2:#c08cff;         /* spec accent2 */
+  --cream:#ede2c8;
+  --cream-d:#d8c9a4;
+  --ink:#1c2a44;         /* vintage navy ink */
+  --ink-soft:#3a4a66;
+  --steel:#cfd6df;
+  --brass:#c9a64a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;display:flex;align-items:center;justify-content:center;padding:22px;
+  font:13px "Times New Roman",Georgia,ui-serif,serif;color:var(--ink);
+  background:
+    radial-gradient(120% 90% at 50% -10%,#3a2d52 0%,#1a1326 55%,#0c0712 100%);
+  -webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+
+/* ---- the faceplate ---- */
+.unit{position:relative;width:100%;max-width:680px;border-radius:14px;
+  padding:18px 20px 20px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.10),rgba(0,0,0,.16)),
+    repeating-linear-gradient(92deg,rgba(0,0,0,.015) 0 2px,rgba(255,255,255,.02) 2px 4px),
+    linear-gradient(160deg,#f3ead2 0%,#e7dabc 42%,#d9c9a3 100%);
+  box-shadow:
+    0 40px 80px rgba(0,0,0,.6),
+    0 4px 0 #b6a47e,
+    0 8px 0 #8f7f5e,
+    inset 0 2px 1px rgba(255,255,255,.55),
+    inset 0 -3px 6px rgba(80,60,30,.35);
+  border:1px solid #b9a87f;
+  animation:lift .7s cubic-bezier(.2,.8,.25,1) both}
+@keyframes lift{from{opacity:0;transform:translateY(24px) scale(.985)}to{opacity:1;transform:none}}
+
+/* subtle paper grain over the whole plate */
+.unit::after{content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;
+  background:radial-gradient(140% 100% at 50% 0,transparent 60%,rgba(60,42,18,.18) 100%);
+  mix-blend-mode:multiply}
+
+/* brass corner screws */
+.screw{position:absolute;width:15px;height:15px;border-radius:50%;z-index:5;
+  background:radial-gradient(circle at 38% 32%,#f6e6b0,#b9892f 60%,#7c5a17 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.25)}
+.screw::before{content:"";position:absolute;inset:3px;border-radius:50%;
+  background:linear-gradient(#a37a26,#7c5a17);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4)}
+.screw::after{content:"";position:absolute;top:50%;left:18%;right:18%;height:1.6px;margin-top:-.8px;
+  background:rgba(40,26,8,.85);transform:rotate(var(--sl,24deg));border-radius:2px}
+.screw.tl{top:9px;left:9px} .screw.tr{top:9px;right:9px;--sl:-20deg}
+.screw.bl{bottom:9px;left:9px;--sl:-34deg} .screw.br{bottom:9px;right:9px;--sl:14deg}
+
+/* ---- header / nameplate ---- */
+.head{position:relative;z-index:2;display:flex;align-items:center;gap:14px;
+  padding:4px 8px 14px;margin:0 6px 6px;border-bottom:1px double #b09a6e}
+.tube{position:relative;width:34px;height:46px;flex:0 0 auto;border-radius:11px 11px 6px 6px;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(180,160,120,.15));
+  border:1px solid #b6a47e;box-shadow:inset 0 0 8px rgba(0,0,0,.25)}
+.tube i{position:absolute;left:50%;bottom:7px;width:5px;height:26px;margin-left:-2.5px;border-radius:3px;
+  background:linear-gradient(180deg,#fff5c2,var(--ac));
+  box-shadow:0 0 10px 3px var(--ac),0 0 26px 8px color-mix(in srgb,var(--ac) 55%,transparent);
+  animation:glow 2.6s ease-in-out infinite}
+@keyframes glow{0%,100%{opacity:.55;filter:blur(.2px)}45%{opacity:1;filter:blur(.6px)}60%{opacity:.8}}
+.tube b{position:absolute;left:7px;right:7px;bottom:3px;height:4px;border-radius:0 0 4px 4px;
+  background:#5a4a2c;box-shadow:0 1px 0 rgba(255,255,255,.3)}
+.title{flex:1}
+.title h1{margin:0;font-size:27px;font-weight:700;letter-spacing:.06em;line-height:1;
+  font-family:Georgia,"Times New Roman",serif;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,255,255,.6),0 -1px 0 rgba(0,0,0,.12)}
+.title h1 em{font-style:italic;color:var(--ink-soft);font-weight:600}
+.title .sub{margin-top:3px;font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;
+  color:#7a6a44;font-family:ui-sans-serif,system-ui,sans-serif}
+.model{font-family:ui-sans-serif,system-ui,sans-serif;font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:#6e5e3c;text-align:right;line-height:1.5;
+  border:1px solid #b09a6e;border-radius:5px;padding:5px 8px;background:rgba(255,255,255,.18)}
+.model b{display:block;font-size:11px;letter-spacing:.1em;color:var(--ink)}
+
+/* ---- the two bands ---- */
+.bands{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  padding:6px 4px 2px}
+.band{position:relative;border-radius:11px;padding:14px 12px 16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(120,100,60,.07));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 0 1px rgba(120,100,60,.22),
+    inset 0 -10px 18px rgba(90,70,30,.10)}
+.band > .legend{display:flex;align-items:center;gap:9px;margin:0 2px 12px;
+  font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;letter-spacing:.28em;
+  text-transform:uppercase;color:#6c5c38;font-weight:700}
+.legend .ln{flex:1;height:1px;background:linear-gradient(90deg,#b09a6e,transparent)}
+.legend.r .ln{background:linear-gradient(270deg,#b09a6e,transparent)}
+.band .row{display:flex;gap:6px;justify-content:space-around}
+
+/* ---- a knob station ---- */
+.k{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;min-width:0;
+  animation:pop .55s both;animation-delay:var(--d,0ms)}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.dialwrap{position:relative;width:90px;height:90px;cursor:grab;touch-action:none;user-select:none}
+.dialwrap.drag{cursor:grabbing}
+.dialwrap svg{display:block;width:100%;height:100%;overflow:visible}
+
+/* the rotating chicken-head pointer group is spun via CSS var */
+.spin{transform-box:fill-box;transform-origin:50% 50%;
+  transform:rotate(calc((var(--n,0) - .5) * 290deg));
+  transition:transform .12s cubic-bezier(.2,.8,.2,1)}
+.dialwrap.drag .spin{transition:none}
+
+.knobcap{filter:drop-shadow(0 6px 6px rgba(0,0,0,.45))}
+.tickactive{stroke:var(--ac);filter:drop-shadow(0 0 3px var(--ac))}
+
+.nm{font-family:ui-sans-serif,system-ui,sans-serif;font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:#5e4f30;font-weight:700;text-align:center;line-height:1.2}
+.val{font-family:"Courier New",ui-monospace,monospace;font-size:12px;font-weight:700;
+  color:var(--ink);background:linear-gradient(#cdd9e6,#aebccd);
+  border:1px solid #7f93ab;border-radius:4px;padding:1px 8px;min-width:54px;text-align:center;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.4);
+  letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.dialwrap.drag ~ .val,.k:hover .val{color:#0a1426}
+
+/* footer seam — the "velvet" */
+.seam{position:relative;z-index:2;margin:16px 6px 0;height:14px;border-radius:7px;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 3px,rgba(255,255,255,.05) 3px 6px),
+    linear-gradient(180deg,var(--ac2),color-mix(in srgb,var(--ac) 60%,#2a1640));
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.3);
+  overflow:hidden}
+.seam::before{content:"";position:absolute;top:0;left:-40%;width:40%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+  filter:blur(2px);animation:sheen 5.5s ease-in-out infinite}
+@keyframes sheen{0%{left:-40%}55%,100%{left:120%}}
+.tag{position:relative;z-index:2;text-align:center;margin-top:8px;
+  font-family:ui-sans-serif,system-ui,sans-serif;font-size:9px;letter-spacing:.26em;
+  text-transform:uppercase;color:#6e5e3c}
+</style></head><body>
+<div class="unit">
+  <span class="screw tl"></span><span class="screw tr"></span>
+  <span class="screw bl"></span><span class="screw br"></span>
+
+  <div class="head">
+    <div class="tube"><i></i><b></b></div>
+    <div class="title">
+      <h1>Velvet&nbsp;<em>EQ</em></h1>
+      <div class="sub">Passive&nbsp;·&nbsp;Program&nbsp;Equalizer</div>
+    </div>
+    <div class="model">Type<b>VEL&middot;1A</b>6&nbsp;Controls</div>
+  </div>
+
+  <div class="bands" id="bands">
+    <div class="band">
+      <div class="legend"><span>Low&nbsp;Frequency</span><span class="ln"></span></div>
+      <div class="row" id="low"></div>
+    </div>
+    <div class="band">
+      <div class="legend r"><span class="ln"></span><span>High&nbsp;Frequency</span></div>
+      <div class="row" id="high"></div>
+    </div>
+  </div>
+
+  <div class="seam"></div>
+  <div class="tag">Boost &amp; attenuate at once — the Velvet curve</div>
+</div>
+
+<script>
+(function(){
+  // --- param map, re-read straight from spec.json -------------------
+  var PARAMS = [
+    {sec:"low",  name:"Low Freq",        index:0, min:0, max:1, def:0.3, unit:"hz"},
+    {sec:"low",  name:"Low Boost",       index:1, min:0, max:1, def:0,   unit:"db"},
+    {sec:"low",  name:"Low Atten",       index:2, min:0, max:1, def:0,   unit:"db"},
+    {sec:"high", name:"High Boost Freq", index:3, min:0, max:1, def:0.4, unit:"khz"},
+    {sec:"high", name:"High Boost",      index:4, min:0, max:1, def:0,   unit:"db"},
+    {sec:"high", name:"High Atten",      index:5, min:0, max:1, def:0,   unit:"db"}
+  ];
+  // friendly readouts mapped from the normalized 0..1 value (display only;
+  // the host always receives the raw [min,max] value via setParam).
+  var LOWF=[20,30,60,100],  HIGHF=[3,4,5,8,10,12,16];
+  function fmt(p,val){
+    var n=(val-p.min)/((p.max-p.min)||1);
+    if(p.unit==="hz"){  return LOWF[Math.min(LOWF.length-1,Math.round(n*(LOWF.length-1)))] + " Hz"; }
+    if(p.unit==="khz"){ return HIGHF[Math.min(HIGHF.length-1,Math.round(n*(HIGHF.length-1)))] + " kHz"; }
+    return (n*10).toFixed(1).replace(/\.0$/,"")+" dB";  // 0..+10 / 0..-10 readout
+  }
+
+  var NS="http://www.w3.org/2000/svg";
+  function el(t,a){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+  // build the steel chicken-head knob as an SVG
+  function buildSvg(){
+    var svg=el("svg",{viewBox:"0 0 100 100"});
+    var g=el("defs",{});
+    svg.appendChild(g);
+
+    // engraved tick ring (static)
+    var N=21, ring=el("g",{});
+    for(var i=0;i<N;i++){
+      var a=(-145 + i*(290/(N-1)))*Math.PI/180;
+      var r1=45, r2=(i===0||i===N-1||i===(N-1)/2)?37:40;
+      var x1=50+Math.cos(a-Math.PI/2)*r1, y1=50+Math.sin(a-Math.PI/2)*r1;
+      var x2=50+Math.cos(a-Math.PI/2)*r2, y2=50+Math.sin(a-Math.PI/2)*r2;
+      ring.appendChild(el("line",{x1:x1,y1:y1,x2:x2,y2:y2,
+        stroke:"#5e4f30","stroke-width":(r2<39?1.8:1.1),"stroke-linecap":"round",opacity:.75}));
+    }
+    svg.appendChild(ring);
+
+    // outer skirt
+    svg.appendChild(el("circle",{cx:50,cy:50,r:33,fill:"url(#skirt)"}));
+    // brushed steel cap (rotates)
+    var spin=el("g",{class:"spin"});
+    spin.appendChild(el("circle",{cx:50,cy:50,r:30,fill:"url(#steel)",class:"knobcap"}));
+    spin.appendChild(el("circle",{cx:50,cy:50,r:30,fill:"none",stroke:"#7c8aa0","stroke-width":1,opacity:.6}));
+    // brushed lines on the cap
+    for(var j=-26;j<=26;j+=3.2){
+      spin.appendChild(el("line",{x1:50-Math.sqrt(900-j*j),y1:50+j,x2:50+Math.sqrt(900-j*j),y2:50+j,
+        stroke:"rgba(255,255,255,.22)","stroke-width":.5}));
+    }
+    // the chicken-head pointer (a tapered wedge reaching past the cap)
+    spin.appendChild(el("path",{d:"M50 14 L57 47 L50 56 L43 47 Z",fill:"url(#point)",
+      stroke:"#243049","stroke-width":1,"stroke-linejoin":"round"}));
+    // tip jewel that glows in the accent
+    spin.appendChild(el("circle",{cx:50,cy:19,r:3,fill:"var(--ac)",
+      style:"filter:drop-shadow(0 0 4px var(--ac))"}));
+    // hub
+    spin.appendChild(el("circle",{cx:50,cy:50,r:6,fill:"url(#hub)",stroke:"#1b2436","stroke-width":1}));
+    svg.appendChild(spin);
+
+    // gradient defs
+    g.innerHTML =
+      '<radialGradient id="steel" cx="42%" cy="34%" r="75%">'+
+        '<stop offset="0" stop-color="#fbfdff"/><stop offset=".45" stop-color="#cdd6e1"/>'+
+        '<stop offset="1" stop-color="#8794a6"/></radialGradient>'+
+      '<radialGradient id="skirt" cx="50%" cy="42%" r="62%">'+
+        '<stop offset="0" stop-color="#2b3650"/><stop offset=".7" stop-color="#1b2438"/>'+
+        '<stop offset="1" stop-color="#0d131f"/></radialGradient>'+
+      '<linearGradient id="point" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0" stop-color="#eef3fa"/><stop offset="1" stop-color="#9fb0c8"/></linearGradient>'+
+      '<radialGradient id="hub" cx="40%" cy="35%" r="70%">'+
+        '<stop offset="0" stop-color="#e9eef6"/><stop offset="1" stop-color="#5a6678"/></radialGradient>';
+    return svg;
+  }
+
+  function mount(p,parent,delay){
+    var k=document.createElement("div"); k.className="k"; k.style.setProperty("--d",delay+"ms");
+    var dw=document.createElement("div"); dw.className="dialwrap";
+    dw.appendChild(buildSvg());
+    var nm=document.createElement("div"); nm.className="nm"; nm.textContent=p.name;
+    var val=document.createElement("div"); val.className="val";
+    k.appendChild(dw); k.appendChild(nm); k.appendChild(val); parent.appendChild(k);
+
+    var value=p.def;
+    function norm(){return (value-p.min)/((p.max-p.min)||1);}
+    function paint(){
+      var n=norm(); dw.style.setProperty("--n",n);
+      val.textContent=fmt(p,value);
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,value);
+    }
+    function setN(n){ n=n<0?0:n>1?1:n; value=p.min+(p.max-p.min)*n; paint(); }
+
+    var sy=0, sn=0, dragging=false;
+    dw.addEventListener("pointerdown",function(e){
+      dragging=true; sy=e.clientY; sn=norm(); dw.classList.add("drag");
+      dw.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    dw.addEventListener("pointermove",function(e){
+      if(!dragging)return; var fine=e.shiftKey?700:220;
+      setN(sn+(sy-e.clientY)/fine);
+    });
+    function end(){dragging=false; dw.classList.remove("drag");}
+    dw.addEventListener("pointerup",end);
+    dw.addEventListener("pointercancel",end);
+    dw.addEventListener("dblclick",function(){value=p.def;paint();});
+    dw.addEventListener("wheel",function(e){e.preventDefault();setN(norm()+(e.deltaY<0?.025:-.025));},{passive:false});
+
+    paint();
+  }
+
+  function ready(){
+    var low=document.getElementById("low"), high=document.getElementById("high"), d=0;
+    PARAMS.forEach(function(p){
+      mount(p, p.sec==="low"?low:high, d); d+=70;
+    });
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

@@ -20,7 +20,7 @@ Legend for the "Docs" column:
 | 1 | ✅ ~~Lexicon 224~~ → **Vast Hall** | Digital hall | P, O |
 | 2 | ✅ ~~Lexicon 480L~~ → **Shimmer Hall** | Digital hall | P |
 | 3 | EMT 140 | Plate | M, P |
-| 4 | EMT 250 | Early digital | P |
+| 4 | ✅ ~~EMT 250~~ → **Pearl Reverb** | Early digital | P |
 | 5 | AKG BX20 | Spring | M, S |
 | 6 | Fender outboard spring tank (Accutronics) | Spring | S, P |
 | 7 | ✅ ~~Spring reverb (generic 2/3-spring tank)~~ → **Spring Verb** | Spring | P, O |
@@ -35,38 +35,38 @@ Legend for the "Docs" column:
 ### Delay / Echo (15–26)
 | # | Unit | Type | Docs |
 |---|------|------|------|
-| 15 | Roland RE-201 Space Echo | Tape | S, O |
+| 15 | ✅ ~~Roland RE-201 Space Echo~~ → **Space Tape Echo** | Tape | S, O |
 | 16 | Maestro Echoplex EP-3 | Tape | S |
-| 17 | Binson Echorec | Magnetic drum | S |
+| 17 | ✅ ~~Binson Echorec~~ → **Magnetic Echo** | Magnetic drum | S |
 | 18 | ✅ ~~Electro-Harmonix Memory Man~~ → **Bucket Echo** | BBD analog | S, O |
 | 19 | Boss DM-2 | BBD analog | S, O |
-| 20 | TC Electronic 2290 | Digital | — |
+| 20 | ✅ ~~TC Electronic 2290~~ → **Studio Delay** | Digital | — |
 | 21 | Lexicon PCM42 | Digital | S |
 | 22 | Roland SDE-3000 | Digital | S |
 | 23 | BBD bucket-brigade model (generic) | BBD | P, O |
 | 24 | Tape delay physical model (wow/flutter) | Tape | P, O |
 | 25 | Korg SDD-3000 | Digital | S |
-| 26 | Multi-tap / ping-pong delay | Digital | O |
+| 26 | ✅ ~~Multi-tap / ping-pong delay~~ → **Ping Delay** | Digital | O |
 
 ### Modulation (27–42)
 | # | Unit | Type | Docs |
 |---|------|------|------|
 | 27 | ✅ ~~MXR Phase 90~~ → **Sweep Phaser** | Phaser | S, O |
 | 28 | Electro-Harmonix Small Stone | Phaser | S, O |
-| 29 | Mu-Tron Bi-Phase | Phaser | S |
+| 29 | ✅ ~~Mu-Tron Bi-Phase~~ → **Twin Phaser** | Phaser | S |
 | 30 | Boss CE-1 Chorus Ensemble | BBD chorus | S, O |
 | 31 | ✅ ~~Roland Juno chorus (BBD)~~ → **Lush Chorus** | Chorus | S, O |
 | 32 | TC Electronic SCF | Chorus/flanger | S |
-| 33 | ✅ ~~true~~ → **Jet Flanger** | Flanger | S, O |
+| 33 | ✅ ~~Electric Mistress~~ → **Jet Flanger** | Flanger | S, O |
 | 34 | A/DA Flanger | Flanger | S |
 | 35 | MXR Flanger | Flanger | S |
-| 36 | Uni-Vibe | Phase/vibe | S, O |
+| 36 | ✅ ~~Uni-Vibe~~ → **Vibe Phaser** | Phase/vibe | S, O |
 | 37 | ✅ ~~Leslie 122 rotary speaker~~ → **Rotary Cabinet** | Rotary | P, O |
 | 38 | Boss DC-2 Dimension C | Dimensional chorus | S |
-| 39 | Roland Dimension D (SDD-320) | Chorus | S, O |
+| 39 | ✅ ~~Roland Dimension D (SDD-320)~~ → **Dimensional** | Chorus | S, O |
 | 40 | Boss BF-2 | Flanger | S |
 | 41 | Demeter Tremulator | Tremolo | S |
-| 42 | Optical/bias tremolo (Fender amp) | Tremolo | S, O |
+| 42 | ✅ ~~Optical/bias tremolo (Fender amp)~~ → **Bias Tremolo** | Tremolo | S, O |
 
 ### Distortion / Drive / Fuzz (43–58)
 | # | Unit | Type | Docs |
@@ -75,17 +75,17 @@ Legend for the "Docs" column:
 | 44 | ✅ ~~Boss DS-1~~ → **Crunch Distortion** | Distortion | S, P, O |
 | 45 | ✅ ~~ProCo RAT~~ → **Grit Distortion** | Distortion | S, O |
 | 46 | ✅ ~~Big Muff Pi~~ → **Mammoth Fuzz** | Fuzz | S, O |
-| 47 | ✅ ~~true~~ → **Germanium Fuzz** | Fuzz | S, P, O |
+| 47 | ✅ ~~Fuzz Face~~ → **Germanium Fuzz** | Fuzz | S, P, O |
 | 48 | Tone Bender MkII | Fuzz | S, O |
 | 49 | Boss SD-1 | Overdrive | S, O |
-| 50 | Klon Centaur | Overdrive | S, O |
+| 50 | ✅ ~~Klon Centaur~~ → **Mythic Drive** | Overdrive | S, O |
 | 51 | MXR Distortion+ | Distortion | S, O |
 | 52 | Marshall Guv'nor | Distortion | S |
-| 53 | Octavia | Octave fuzz | S |
+| 53 | ✅ ~~Octavia~~ → **Octave Up** | Octave fuzz | S |
 | 54 | Diode/tube clipping stage (generic VA) | Drive | P, O |
 | 55 | ✅ ~~Tape saturation model~~ → **Reel Saturator** | Saturation | P, O |
 | 56 | Transformer/iron saturation | Saturation | P |
-| 57 | Wavefolder (West Coast) | Distortion | P, O |
+| 57 | ✅ ~~Wavefolder (West Coast)~~ → **Wave Folder** | Distortion | P, O |
 | 58 | ✅ ~~Bitcrusher / sample-rate reducer~~ → **Bit Crusher** | Digital | O |
 
 ### Dynamics (59–72)
@@ -93,54 +93,54 @@ Legend for the "Docs" column:
 |---|------|------|------|
 | 59 | ✅ ~~Teletronix LA-2A~~ → **Opto Glow** | Opto comp | S, P, O |
 | 60 | ✅ ~~Universal Audio 1176~~ → **FET Squeeze** | FET comp | S, P, O |
-| 61 | dbx 160 | VCA comp | S, P |
-| 62 | SSL bus compressor | VCA comp | S, O |
+| 61 | ✅ ~~dbx 160~~ → **Punch Comp** | VCA comp | S, P |
+| 62 | ✅ ~~SSL bus compressor~~ → **Bus Glue** | VCA comp | S, O |
 | 63 | API 2500 | VCA comp | S |
-| 64 | Fairchild 670 | Vari-mu | S, P |
+| 64 | ✅ ~~Fairchild 670~~ → **Vari-Mu** | Vari-mu | S, P |
 | 65 | Empirical Labs Distressor | Comp | S |
 | 66 | Vari-mu tube compressor (generic) | Vari-mu | P, O |
 | 67 | Diode-bridge compressor (Neve 33609) | Comp | S |
 | 68 | Optical compressor model (generic) | Opto | P, O |
-| 69 | Brickwall limiter (look-ahead) | Limiter | P, O |
-| 70 | Multiband compressor | Dynamics | P, O |
-| 71 | Noise gate / expander | Dynamics | P, O |
-| 72 | De-esser | Dynamics | P |
+| 69 | ✅ ~~Brickwall limiter (look-ahead)~~ → **Brickwall** | Limiter | P, O |
+| 70 | ✅ ~~Multiband compressor~~ → **Multiband** | Dynamics | P, O |
+| 71 | ✅ ~~Noise gate / expander~~ → **Noise Gate** | Dynamics | P, O |
+| 72 | ✅ ~~De-esser~~ → **De-Esser** | Dynamics | P |
 
 ### EQ / Filter (73–86)
 | # | Unit | Type | Docs |
 |---|------|------|------|
 | 73 | ✅ ~~Pultec EQP-1A~~ → **Velvet EQ** | Passive program EQ | S, P, O |
-| 74 | Neve 1073 | Console EQ/pre | S, O |
-| 75 | API 550A | Console EQ | S, O |
+| 74 | ✅ ~~Neve 1073~~ → **Console EQ** | Console EQ/pre | S, O |
+| 75 | ✅ ~~API 550A~~ → **Discrete EQ** | Console EQ | S, O |
 | 76 | SSL 4000 channel EQ | Console EQ | S, O |
 | 77 | Maag EQ4 (air band) | EQ | S |
 | 78 | ✅ ~~Moog ladder filter~~ → **Ladder Filter** | Resonant LPF | P, O |
-| 79 | Roland TB-303 filter | Resonant filter | P, O |
-| 80 | MS-20 Sallen-Key filter | Filter | P, O |
-| 81 | State-variable filter (Chamberlin) | Filter | P, O |
-| 82 | Cry Baby wah | Inductor wah | S, P, O |
+| 79 | ✅ ~~Roland TB-303 filter~~ → **Squelch Filter** | Resonant filter | P, O |
+| 80 | ✅ ~~MS-20 Sallen-Key filter~~ → **Scream Filter** | Filter | P, O |
+| 81 | ✅ ~~State-variable filter (Chamberlin)~~ → **State Filter** | Filter | P, O |
+| 82 | ✅ ~~Cry Baby wah~~ → **Vocal Wah** | Inductor wah | S, P, O |
 | 83 | Mu-Tron III | Envelope filter | S, O |
-| 84 | Vocal formant filter | Filter | P, O |
-| 85 | Linkwitz-Riley crossover | Filter | P, O |
-| 86 | Tilt EQ / baxandall shelf | EQ | P, O |
+| 84 | ✅ ~~Vocal formant filter~~ → **Vowel Filter** | Filter | P, O |
+| 85 | ✅ ~~Linkwitz-Riley crossover~~ → **Crossover** | Filter | P, O |
+| 86 | ✅ ~~Tilt EQ / baxandall shelf~~ → **Tilt EQ** | EQ | P, O |
 
 ### Pitch / Spectral / Misc (87–100)
 | # | Unit | Type | Docs |
 |---|------|------|------|
-| 87 | Eventide H910 Harmonizer | Pitch shift | S, P |
+| 87 | ✅ ~~Eventide H910 Harmonizer~~ → **Pitch Shifter** | Pitch shift | S, P |
 | 88 | Eventide H3000 | Multi-FX/pitch | P |
 | 89 | Antares Auto-Tune | Pitch correction | P |
-| 90 | DigiTech Whammy | Pitch shift | P |
+| 90 | ✅ ~~DigiTech Whammy~~ → **Whammy** | Pitch shift | P |
 | 91 | PSOLA / phase-vocoder pitch shift | Pitch | P, O |
 | 92 | Talk box | Formant | S |
-| 93 | Vocoder (channel, EMS-style) | Spectral | P, O |
-| 94 | Roland Bee Baa / ring modulator | Ring mod | P, O |
-| 95 | Frequency shifter (Bode/single-sideband) | Spectral | P, O |
-| 96 | Aphex Aural Exciter | Harmonic exciter | S, P |
-| 97 | BBE Sonic Maximizer | Phase/exciter | S |
+| 93 | ✅ ~~Vocoder (channel, EMS-style)~~ → **Robot Voice** | Spectral | P, O |
+| 94 | ✅ ~~Roland Bee Baa / ring modulator~~ → **Ring Mod** | Ring mod | P, O |
+| 95 | ✅ ~~Frequency shifter (Bode/single-sideband)~~ → **Freq Shifter** | Spectral | P, O |
+| 96 | ✅ ~~Aphex Aural Exciter~~ → **Air Exciter** | Harmonic exciter | S, P |
+| 97 | ✅ ~~BBE Sonic Maximizer~~ → **Sonic Max** | Phase/exciter | S |
 | 98 | Dolby A/SR + Dolby HX (noise/character) | Companding | P |
 | 99 | Leslie + tube preamp combo (organ chain) | Combo | P, O |
-| 100 | Granular delay/cloud processor | Granular | P, O |
+| 100 | ✅ ~~Granular delay/cloud processor~~ → **Granular Cloud** | Granular | P, O |
 
 ---
 
@@ -154,7 +154,7 @@ Legend for the "Docs" column:
 | 3 | Moog Prodigy | Mono | S, O |
 | 4 | Moog Source | Mono | S |
 | 5 | Micromoog | Mono | S |
-| 6 | Memorymoog | Polysynth | S |
+| 6 | ✅ ~~Memorymoog~~ → **Poly Moog** | Polysynth | S |
 | 7 | Moog Taurus | Bass pedals | S |
 | 8 | Moog Rogue | Mono | S |
 | 9 | Multimoog | Mono | S |
@@ -201,10 +201,10 @@ Legend for the "Docs" column:
 ### ARP / EMS / early modular (41–50)
 | # | Synth | Era / type | Docs |
 |---|-------|-----------|------|
-| 41 | ARP 2600 | Semi-modular | S, O |
-| 42 | ARP Odyssey | Duo | S, O |
+| 41 | ✅ ~~ARP 2600~~ → **Patch 2600** | Semi-modular | S, O |
+| 42 | ✅ ~~ARP Odyssey~~ → **Duo Synth** | Duo | S, O |
 | 43 | ARP Axxe | Mono | S |
-| 44 | ARP Solina String Ensemble | String machine | S, O |
+| 44 | ✅ ~~ARP Solina String Ensemble~~ → **String Ensemble** | String machine | S, O |
 | 45 | EMS VCS3 / Synthi A | Modular | S, O |
 | 46 | EMS Synthi 100 | Modular | S |
 | 47 | Buchla 100/200 (West Coast) | Modular | P, O |
@@ -217,13 +217,13 @@ Legend for the "Docs" column:
 |---|-------|-----------|------|
 | 51 | ✅ ~~Yamaha DX7~~ → **FM Tines** | FM | S, P, O |
 | 52 | Yamaha DX21/27/100 | FM | S, O |
-| 53 | Yamaha CS-80 | Poly | S, O |
+| 53 | ✅ ~~Yamaha CS-80~~ → **Cinematic Poly** | Poly | S, O |
 | 54 | Yamaha CS-60 / CS-50 | Poly | S |
 | 55 | Yamaha CS-15 / CS-10 | Mono | S |
 | 56 | Yamaha TX81Z | FM | S, O |
 | 57 | Yamaha SY77 / SY99 | FM+sample | S |
 | 58 | Native FM (Chowning algorithm, generic) | FM | P, O |
-| 59 | Casio CZ-101 (phase distortion) | PD synthesis | S, P, O |
+| 59 | ✅ ~~Casio CZ-101 (phase distortion)~~ → **Phase Synth** | PD synthesis | S, P, O |
 | 60 | Casio VL-1 | Mini digital | S, O |
 | 61 | Kawai K5 (additive) | Additive | S |
 | 62 | Korg DW-8000 | Hybrid digital | S |
@@ -251,7 +251,7 @@ Legend for the "Docs" column:
 | 76 | Ensoniq Mirage | Sampler | S |
 | 77 | ✅ ~~E-mu SP-1200~~ → **Grit Sampler** | Drum sampler | S, O |
 | 78 | Akai MPC60 / 3000 | Drum sampler | S, O |
-| 79 | PPG Wave 2.2 / 2.3 | Wavetable | S, O |
+| 79 | ✅ ~~PPG Wave 2.2 / 2.3~~ → **Wave Table** | Wavetable | S, O |
 | 80 | Waldorf Microwave | Wavetable | S, O |
 
 ### Drum machines & grooveboxes (81–88)

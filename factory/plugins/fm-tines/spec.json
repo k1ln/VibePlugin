@@ -6,6 +6,7 @@
   "out": "factory/plugins/fm-tines/x.vstai",
   "publishedAt": 1751000019000,
   "theme": { "accent": "#7ab8ff", "accent2": "#9ad0ff" },
+  "guiFile": "factory/plugins/fm-tines/gui.html",
   "params": [
     { "name": "Ratio",      "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "FMAmount",   "index": 1, "min": 0, "max": 1, "default": 0.55 },

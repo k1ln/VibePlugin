@@ -1,0 +1,357 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@property --grind{syntax:'<number>';inherits:false;initial-value:0}
+@property --sludge{syntax:'<number>';inherits:false;initial-value:0}
+@property --vol{syntax:'<number>';inherits:false;initial-value:0}
+@property --mix{syntax:'<number>';inherits:false;initial-value:0}
+:root{
+  --steel:#c0c8d0;--steel2:#9aa6b4;
+  --rust:#a5552a;--rust2:#6e3217;
+  --plate:#21211e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#d6dae0;
+  background:#0a0a09;display:flex;align-items:center;justify-content:center;padding:16px;
+  -webkit-user-select:none;user-select:none;overflow:hidden;
+}
+
+/* ===== RUSTED CONCRETE FACEPLATE ===== */
+.machine{
+  position:relative;width:100%;max-width:600px;border-radius:6px;overflow:hidden;
+  background:
+    /* rust bleed */
+    radial-gradient(140% 60% at 18% -8%,rgba(165,85,42,.40),transparent 55%),
+    radial-gradient(120% 70% at 92% 108%,rgba(110,50,23,.45),transparent 50%),
+    /* concrete mottle */
+    repeating-radial-gradient(circle at 30% 20%,rgba(0,0,0,.05) 0 2px,transparent 2px 5px),
+    repeating-radial-gradient(circle at 78% 72%,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),
+    linear-gradient(160deg,#33332e,#1a1a17 60%,#111110);
+  box-shadow:
+    0 40px 80px rgba(0,0,0,.7),
+    inset 0 2px 0 rgba(255,255,255,.06),
+    inset 0 -3px 14px rgba(0,0,0,.8),
+    inset 0 0 0 2px rgba(0,0,0,.5);
+  border:1px solid #2c2c27;
+}
+/* grime/grain noise overlay */
+.machine::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:6;mix-blend-mode:overlay;opacity:.5;
+  background-image:
+    repeating-linear-gradient(43deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(137deg,rgba(0,0,0,.06) 0 1px,transparent 1px 4px);
+}
+/* scratched diagonal hazard stripes top corner */
+.machine::after{
+  content:"";position:absolute;top:-30px;right:-30px;width:150px;height:150px;transform:rotate(45deg);z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(180,120,30,.16) 0 12px,transparent 12px 24px);
+  -webkit-mask:radial-gradient(circle at 50% 120%,#000 40%,transparent 70%);
+  mask:radial-gradient(circle at 50% 120%,#000 40%,transparent 70%);
+}
+
+/* corner bolts */
+.bolt{position:absolute;width:18px;height:18px;border-radius:50%;z-index:5;
+  background:radial-gradient(circle at 38% 32%,#8d949c,#3c3f42 60%,#16181a);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -2px 3px rgba(0,0,0,.7),0 2px 3px rgba(0,0,0,.6);}
+.bolt::after{content:"";position:absolute;inset:5px;border-radius:1px;background:linear-gradient(#1c1e20,#0b0c0d);transform:rotate(22deg);
+  box-shadow:inset 0 0 2px rgba(0,0,0,.9);}
+.bolt.tl{top:10px;left:10px}.bolt.tr{top:10px;right:10px}
+.bolt.bl{bottom:10px;left:10px}.bolt.br{bottom:10px;right:10px}
+
+/* ===== HEADER PLATE ===== */
+.head{position:relative;z-index:4;display:flex;align-items:center;gap:12px;padding:18px 30px 12px}
+.stencil{
+  font-weight:800;font-size:26px;letter-spacing:.14em;line-height:1;
+  font-family:"Arial Black","Helvetica Neue",sans-serif;text-transform:uppercase;
+  color:transparent;-webkit-text-stroke:1.4px #cdd2d8;
+  background:repeating-linear-gradient(90deg,#e2e6ea 0 14px,rgba(226,230,234,.45) 14px 17px);
+  -webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.6));
+}
+.stencil .x{-webkit-text-stroke-color:var(--rust);color:transparent;
+  background:repeating-linear-gradient(90deg,#c9692f 0 14px,rgba(201,105,47,.4) 14px 17px);-webkit-background-clip:text;background-clip:text;}
+.sub{margin-left:auto;text-align:right}
+.tag{font-size:9px;letter-spacing:.32em;color:#7d8489;text-transform:uppercase}
+.serial{font-size:9px;letter-spacing:.18em;color:#5d6266;margin-top:3px}
+.pwr{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rust);margin-right:5px;
+  box-shadow:0 0 8px var(--rust),0 0 2px #ffae6e inset;animation:flick 3.3s infinite}
+@keyframes flick{0%,93%,97%{opacity:1}94%,96%{opacity:.25}}
+
+/* ===== MAIN DECK ===== */
+.deck{position:relative;z-index:4;display:grid;grid-template-columns:1.25fr 1fr;gap:18px;padding:6px 30px 8px}
+.rivetline{position:absolute;left:30px;right:30px;top:0;height:1px;z-index:4;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.6),transparent)}
+
+/* ---- GRINDER (Distortion) ---- */
+.grinder{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px 0 10px;border-radius:8px;
+  background:radial-gradient(circle at 50% 42%,rgba(0,0,0,.55),rgba(0,0,0,.15) 70%,transparent);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.03)}
+.grind-wrap{position:relative;width:160px;height:160px;cursor:grab;touch-action:none}
+.grind-wrap:active{cursor:grabbing}
+/* sparks ring (intensifies with distortion) */
+.sparks{position:absolute;inset:-14px;border-radius:50%;pointer-events:none;opacity:calc(.15 + var(--grind)*.85);
+  background:
+    radial-gradient(circle at 50% -2%,rgba(255,160,60,.9),transparent 6%),
+    radial-gradient(circle at 100% 50%,rgba(255,120,40,.9),transparent 6%),
+    radial-gradient(circle at 50% 102%,rgba(255,180,80,.9),transparent 6%),
+    radial-gradient(circle at 0% 50%,rgba(255,140,50,.9),transparent 6%);
+  filter:blur(calc(1px + var(--grind)*3px));animation:spin calc(1.4s - var(--grind)*1s) linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* heat glow */
+.heat{position:absolute;inset:6px;border-radius:50%;pointer-events:none;
+  box-shadow:0 0 calc(6px + var(--grind)*40px) calc(var(--grind)*8px) rgba(255,90,20,calc(.2 + var(--grind)*.55));
+  background:radial-gradient(circle,rgba(255,70,20,calc(var(--grind)*.30)),transparent 65%)}
+/* serrated grinding wheel — rotates while dragging */
+.wheel{position:absolute;inset:14px;border-radius:50%;
+  background:
+    conic-gradient(from 0deg,#4a4d52,#1d1f22 8%,#5b5f64 16%,#222428 24%,#54585d 32%,#1d1f22 40%,#5b5f64 48%,#222428 56%,#54585d 64%,#1d1f22 72%,#5b5f64 80%,#222428 88%,#4a4d52 100%);
+  box-shadow:inset 0 0 0 3px #0c0d0e,inset 0 4px 14px rgba(0,0,0,.8),0 2px 6px rgba(0,0,0,.6);
+  transform:rotate(calc(var(--grind)*900deg));transition:transform .12s linear;
+  animation:idle calc(7s - var(--grind)*5.5s) linear infinite}
+@keyframes idle{to{transform:rotate(360deg)}}
+/* teeth ring */
+.teeth{position:absolute;inset:8px;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(#7c8085 0 3deg,transparent 3deg 9deg);
+  -webkit-mask:radial-gradient(circle,transparent 64px,#000 65px,#000 72px,transparent 73px);
+  mask:radial-gradient(circle,transparent 64px,#000 65px,#000 72px,transparent 73px);}
+/* hub cap with the value */
+.hub{position:absolute;inset:46px;border-radius:50%;z-index:2;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 42% 34%,#3a3d42,#121315 72%);
+  box-shadow:inset 0 2px 5px rgba(255,255,255,.08),inset 0 -3px 8px rgba(0,0,0,.8),0 0 0 2px #0a0b0c,0 0 0 4px rgba(255,120,40,calc(var(--grind)*.6));}
+.hub b{font-size:20px;font-weight:800;color:#e9c6a4;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 calc(2px + var(--grind)*12px) rgba(255,120,40,.9)}
+.dlabel{margin-top:10px;font-size:11px;letter-spacing:.3em;color:#b9bfc5;text-transform:uppercase}
+.dsub{font-size:9px;letter-spacing:.22em;color:#6e7479;margin-top:2px}
+
+/* ---- RIGHT COLUMN ---- */
+.side{display:flex;flex-direction:column;gap:14px;justify-content:center}
+
+/* SLUDGE filter gauge (vertical, fills DOWN/darker as value rises) */
+.gauge{position:relative;display:flex;gap:12px;align-items:stretch;
+  padding:10px 12px;border-radius:8px;background:linear-gradient(#16140f,#0c0b08);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,255,255,.04)}
+.tube{position:relative;width:34px;border-radius:5px;overflow:hidden;cursor:ns-resize;touch-action:none;
+  background:linear-gradient(90deg,#2b2823,#3a362e,#26231e);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.7),inset 2px 0 4px rgba(255,255,255,.05)}
+/* sludge fills from the TOP and darkens the signal as Filter rises (reversed tone) */
+.muck{position:absolute;left:0;right:0;top:0;height:calc(var(--sludge)*100%);
+  background:linear-gradient(180deg,#1a1610,#0c0a06);
+  box-shadow:inset 0 -6px 10px rgba(0,0,0,.8);transition:height .12s ease}
+.muck::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:7px;
+  background:repeating-linear-gradient(90deg,#3d342a 0 6px,#241e17 6px 12px);border-radius:0 0 3px 3px;
+  filter:blur(.4px);box-shadow:0 0 6px rgba(0,0,0,.6)}
+/* bubbles in the sludge */
+.bub{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(120,90,55,.5);
+  left:var(--bx);bottom:0;animation:rise var(--bt) linear infinite;opacity:calc(var(--sludge))}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:.6}100%{transform:translateY(-90px);opacity:0}}
+.gmeta{display:flex;flex-direction:column;justify-content:center;flex:1;gap:4px}
+.gmeta .gn{font-size:11px;letter-spacing:.26em;color:#caa37a;text-transform:uppercase}
+.gmeta .gv{font-size:22px;font-weight:800;color:#e9d3b5;font-variant-numeric:tabular-nums}
+.gmeta .gd{font-size:9px;letter-spacing:.14em;color:#a99270;line-height:1.4}
+/* keyboard focus ring on custom controls */
+.grind-wrap:focus-visible,.tube:focus-visible,.track:focus-visible{
+  outline:2px solid #e8a25a;outline-offset:3px;border-radius:8px}
+.grind-wrap:focus-visible{border-radius:50%}
+
+/* CHUNKY industrial sliders for Volume + Mix */
+.fader{position:relative;padding:8px 12px 10px;border-radius:8px;
+  background:linear-gradient(#1b1b17,#0e0e0c);box-shadow:inset 0 2px 6px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.03)}
+.fhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.fhead .fn{font-size:10px;letter-spacing:.26em;color:#aab0b6;text-transform:uppercase}
+.fhead .fvv{font-size:14px;font-weight:800;color:var(--steel);font-variant-numeric:tabular-nums}
+.track{position:relative;height:14px;border-radius:7px;cursor:pointer;touch-action:none;
+  background:linear-gradient(#070707,#191917);box-shadow:inset 0 1px 3px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.04)}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px 0 0 7px;
+  background:linear-gradient(90deg,var(--rust2),var(--rust) 60%,var(--steel));box-shadow:0 0 10px rgba(165,85,42,.4);transition:width .1s ease}
+.track .grip{position:absolute;top:50%;width:22px;height:30px;margin-left:-11px;transform:translateY(-50%);border-radius:4px;
+  background:linear-gradient(#9aa0a6,#4b4f54 55%,#2a2d30);
+  box-shadow:0 2px 5px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 3px rgba(0,0,0,.6);transition:left .1s ease}
+.track .grip::after{content:"";position:absolute;inset:5px 8px;border-radius:1px;
+  background:repeating-linear-gradient(90deg,#2c2f32 0 2px,#73787d 2px 4px)}
+
+/* footer plate */
+.plate{position:relative;z-index:4;margin:6px 30px 18px;padding-top:11px;
+  border-top:1px solid rgba(0,0,0,.55);box-shadow:0 -1px 0 rgba(255,255,255,.04);
+  font-size:10px;line-height:1.5;color:#7b7468;letter-spacing:.03em}
+.plate b{color:#b08a5e;font-weight:700}
+</style></head><body>
+<div class="machine">
+  <span class="bolt tl"></span><span class="bolt tr"></span><span class="bolt bl"></span><span class="bolt br"></span>
+
+  <div class="head">
+    <div class="stencil">GR<span class="x">I</span>T</div>
+    <div class="sub">
+      <div class="tag"><span class="pwr"></span>diode clipper</div>
+      <div class="serial">UNIT&nbsp;//&nbsp;HG-666</div>
+    </div>
+  </div>
+
+  <div class="deck">
+    <div class="rivetline"></div>
+
+    <!-- DISTORTION : the grinder -->
+    <div class="grinder">
+      <div class="grind-wrap" id="grind" data-i="0" data-min="0" data-max="1" data-def="0.5" data-step="0.001"
+           role="slider" tabindex="0" aria-label="Distortion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50%">
+        <div class="sparks"></div>
+        <div class="heat"></div>
+        <div class="wheel"></div>
+        <div class="teeth"></div>
+        <div class="hub"><b id="dval">50</b></div>
+      </div>
+      <div class="dlabel">Distortion</div>
+      <div class="dsub">high-gain&nbsp;·&nbsp;asymmetric</div>
+    </div>
+
+    <div class="side">
+
+      <!-- FILTER : sludge gauge (darker as you turn it up) -->
+      <div class="gauge">
+        <div class="tube" id="filt" data-i="1" data-min="0" data-max="1" data-def="0.4" data-step="0.001"
+             role="slider" tabindex="0" aria-label="Filter, reversed tone (higher is darker)" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0.4" aria-valuetext="0.40, darker">
+          <div class="muck" id="muck">
+            <span class="bub" style="--bx:6px;--bt:2.4s"></span>
+            <span class="bub" style="--bx:18px;--bt:3.1s"></span>
+            <span class="bub" style="--bx:12px;--bt:2.7s"></span>
+          </div>
+        </div>
+        <div class="gmeta">
+          <span class="gn">Filter</span>
+          <span class="gv" id="fval">0.40</span>
+          <span class="gd">reversed tone —<br>drag up = darker / muddier</span>
+        </div>
+      </div>
+
+      <!-- VOLUME -->
+      <div class="fader" id="vol" data-i="2" data-min="0" data-max="1" data-def="0.6" data-step="0.001">
+        <div class="fhead"><span class="fn">Volume</span><span class="fvv" id="vval">0.60</span></div>
+        <div class="track" id="vtrack" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0.6" aria-valuetext="0.60"><div class="fill" id="vfill"></div><div class="grip" id="vgrip"></div></div>
+      </div>
+
+      <!-- MIX -->
+      <div class="fader" id="mix" data-i="3" data-min="0" data-max="1" data-def="1" data-step="0.001">
+        <div class="fhead"><span class="fn">Mix · dry/wet</span><span class="fvv" id="mval">1.00</span></div>
+        <div class="track" id="mtrack" role="slider" tabindex="0" aria-label="Mix, dry to wet" aria-valuemin="0" aria-valuemax="1" aria-valuenow="1" aria-valuetext="1.00"><div class="fill" id="mfill"></div><div class="grip" id="mgrip"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="plate"><b>GRIT</b> — hard-edged high-gain diode distortion. Drives an asymmetric hard clipper for an aggressive, cutting character. Mind the heat.</div>
+</div>
+
+<script>
+(function(){
+  var root=document.querySelector('.machine');
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function clamp(n){ return n<0?0:(n>1?1:n); }
+  function fmt(v){ return (+v).toFixed(2); }
+  // arrow/home/end keyboard nudging for any role=slider; calls setN with the new value
+  function keyNudge(el,getN,setN,coarse){
+    var step=coarse?.05:.01;
+    el.addEventListener('keydown',function(e){
+      var n=getN(),k=e.key,h=0;
+      if(k==='ArrowUp'||k==='ArrowRight')h=step;
+      else if(k==='ArrowDown'||k==='ArrowLeft')h=-step;
+      else if(k==='PageUp')h=step*5;
+      else if(k==='PageDown')h=-step*5;
+      else if(k==='Home'){setN(0);e.preventDefault();return;}
+      else if(k==='End'){setN(1);e.preventDefault();return;}
+      else return;
+      setN(n+h);e.preventDefault();
+    });
+  }
+
+  // ---- DISTORTION grinder (rotary drag) ----
+  function grinder(){
+    var el=document.getElementById('grind'), val=+el.dataset.def, def=val, i=+el.dataset.i;
+    var dv=document.getElementById('dval');
+    function norm(){ return val; }
+    function paint(){
+      root.style.setProperty('--grind',val);
+      var pc=Math.round(val*100);
+      dv.textContent=pc;
+      el.setAttribute('aria-valuenow',pc);
+      el.setAttribute('aria-valuetext',pc+'%');
+      send(i,val);
+    }
+    function setN(n){ val=clamp(n); paint(); }
+    var dy=0,n0=0,drag=0;
+    el.addEventListener('pointerdown',function(e){drag=1;dy=e.clientY;n0=norm();el.setPointerCapture(e.pointerId);e.preventDefault();});
+    el.addEventListener('pointermove',function(e){ if(!drag)return; setN(n0+(dy-e.clientY)/220); });
+    el.addEventListener('pointerup',function(){drag=0;});
+    el.addEventListener('pointercancel',function(){drag=0;});
+    el.addEventListener('dblclick',function(){val=def;paint();});
+    el.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?.03:-.03));},{passive:false});
+    keyNudge(el,norm,setN,false);
+    paint();
+  }
+
+  // ---- FILTER sludge tube (vertical drag) ----
+  function filter(){
+    var el=document.getElementById('filt'), val=+el.dataset.def, def=val, i=+el.dataset.i;
+    var muck=document.getElementById('muck'), fv=document.getElementById('fval');
+    function norm(){ return val; }
+    function paint(){
+      muck.style.height=(val*100)+'%';
+      root.style.setProperty('--sludge',val);
+      fv.textContent=fmt(val);
+      el.setAttribute('aria-valuenow',fmt(val));
+      el.setAttribute('aria-valuetext',fmt(val)+', '+(val>.5?'darker':'brighter'));
+      send(i,val);
+    }
+    function setN(n){ val=clamp(n); paint(); }
+    var drag=0;
+    // bottom-up mapping: dragging up raises the value (standard fader feel),
+    // the muck still fills visually from the top so "higher = more sludge = darker".
+    function fromY(e){ var r=el.getBoundingClientRect(); return clamp(1-(e.clientY-r.top)/r.height); }
+    el.addEventListener('pointerdown',function(e){drag=1;el.setPointerCapture(e.pointerId);
+      setN(fromY(e));e.preventDefault();});
+    el.addEventListener('pointermove',function(e){ if(!drag)return; setN(fromY(e)); });
+    el.addEventListener('pointerup',function(){drag=0;});
+    el.addEventListener('pointercancel',function(){drag=0;});
+    el.addEventListener('dblclick',function(){val=def;paint();});
+    el.addEventListener('wheel',function(e){e.preventDefault();setN(val+(e.deltaY<0?.03:-.03));},{passive:false});
+    keyNudge(el,norm,setN,false);
+    paint();
+  }
+
+  // ---- FADERS (Volume, Mix) ----
+  function fader(cellId,trackId,fillId,gripId,valId){
+    var el=document.getElementById(cellId), tr=document.getElementById(trackId),
+        fill=document.getElementById(fillId), grip=document.getElementById(gripId), vv=document.getElementById(valId);
+    var val=+el.dataset.def, def=val, i=+el.dataset.i;
+    function norm(){ return val; }
+    function paint(){
+      var pct=val*100;
+      fill.style.width=pct+'%';
+      grip.style.left=pct+'%';
+      vv.textContent=fmt(val);
+      tr.setAttribute('aria-valuenow',fmt(val));
+      tr.setAttribute('aria-valuetext',fmt(val));
+      send(i,val);
+    }
+    function setN(n){ val=clamp(n); paint(); }
+    function fromX(e){ var r=tr.getBoundingClientRect(); return clamp((e.clientX-r.left)/r.width); }
+    var drag=0;
+    tr.addEventListener('pointerdown',function(e){drag=1;tr.setPointerCapture(e.pointerId);setN(fromX(e));e.preventDefault();});
+    tr.addEventListener('pointermove',function(e){ if(!drag)return; setN(fromX(e)); });
+    tr.addEventListener('pointerup',function(){drag=0;});
+    tr.addEventListener('pointercancel',function(){drag=0;});
+    tr.addEventListener('dblclick',function(){val=def;paint();});
+    tr.addEventListener('wheel',function(e){e.preventDefault();setN(val+(e.deltaY<0?.02:-.02));},{passive:false});
+    keyNudge(tr,norm,setN,false);
+    paint();
+  }
+
+  function ready(){
+    grinder();
+    filter();
+    fader('vol','vtrack','vfill','vgrip','vval');
+    fader('mix','mtrack','mfill','mgrip','mval');
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

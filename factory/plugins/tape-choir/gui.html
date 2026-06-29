@@ -1,0 +1,301 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tape Choir</title><style>
+@property --n{syntax:'<number>';inherits:true;initial-value:0}
+:root{
+  --ac:#c89bff;--ac2:#e0b0ff;
+  --wood1:#3a2417;--wood2:#28160c;--wood3:#1b0e07;
+  --brass:#caa15a;--brass2:#8c6a32;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#efe6dc;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:
+    radial-gradient(120% 90% at 50% -10%,#241a26 0%,#100a12 55%,#070409 100%);
+}
+
+/* ============ WOODEN CABINET ============ */
+.cab{
+  position:relative;width:100%;max-width:660px;border-radius:14px;overflow:hidden;
+  background:
+    linear-gradient(180deg,rgba(255,235,200,.05),rgba(0,0,0,.35)),
+    repeating-linear-gradient(96deg,var(--wood1) 0 6px,var(--wood2) 6px 13px,var(--wood3) 13px 17px,var(--wood2) 17px 24px),
+    linear-gradient(160deg,#42291a,#1a0e07);
+  border:1px solid #0c0704;
+  box-shadow:
+    0 34px 70px rgba(0,0,0,.7),
+    inset 0 2px 0 rgba(255,210,160,.14),
+    inset 0 -3px 12px rgba(0,0,0,.65),
+    inset 0 0 0 6px #160b05,
+    inset 0 0 0 7px rgba(202,161,90,.18);
+}
+/* faint amber room-light bloom */
+.cab::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;
+  background:radial-gradient(80% 50% at 50% 0%,color-mix(in srgb,var(--ac) 14%,transparent),transparent 70%);
+  mix-blend-mode:screen}
+
+/* ===== nameplate header ===== */
+.head{position:relative;z-index:3;display:flex;align-items:center;gap:13px;
+  margin:13px 16px 0;padding:9px 15px;border-radius:9px;
+  background:linear-gradient(180deg,#1c1009,#0d0703);
+  border:1px solid #4a2f1c;
+  box-shadow:inset 0 1px 0 rgba(255,200,150,.12),0 3px 9px rgba(0,0,0,.5)}
+.bolt{width:7px;height:7px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f1d9a6,var(--brass2) 70%,#3a2a12);
+  box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.6)}
+.plate{flex:1;display:flex;flex-direction:column;line-height:1}
+h1{margin:0;font-size:20px;letter-spacing:.16em;font-weight:800;font-family:Georgia,"Times New Roman",serif;
+  background:linear-gradient(180deg,#f3e6cf 0%,var(--brass) 55%,var(--brass2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.5))}
+.sub{margin-top:4px;font-size:9px;letter-spacing:.34em;text-transform:uppercase;color:#a6885f}
+.power{display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.2em;color:#a6885f;text-transform:uppercase}
+.led{width:9px;height:9px;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 10px var(--ac),0 0 3px #fff inset;animation:flick 3.4s ease-in-out infinite}
+@keyframes flick{0%,100%{opacity:.6}45%{opacity:1}48%{opacity:.7}50%{opacity:1}}
+
+/* ============ THE TAPE BAY (hero) ============ */
+.bay{position:relative;z-index:2;margin:13px 16px;height:148px;border-radius:9px;overflow:hidden;
+  background:linear-gradient(180deg,#070707,#000);
+  border:1px solid #000;
+  box-shadow:inset 0 3px 14px rgba(0,0,0,.9),inset 0 0 0 2px #2a1b10,0 2px 0 rgba(255,210,160,.08)}
+
+/* spinning supply / take-up reels flanking the bay */
+.reel{position:absolute;top:50%;width:78px;height:78px;margin-top:-39px;border-radius:50%;z-index:4;
+  background:
+    radial-gradient(circle at 50% 50%,#1a1a1c 0 19px,transparent 19px),
+    conic-gradient(from 0deg,#2a2a2e,#0e0e10 25%,#2a2a2e 50%,#0e0e10 75%,#2a2a2e);
+  border:1px solid #000;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.8),0 0 0 3px #120c07,0 0 0 5px rgba(202,161,90,.25),0 6px 14px rgba(0,0,0,.6);
+  animation:spin 3.2s linear infinite}
+.reel::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(202,161,90,.0) 0 30deg,rgba(202,161,90,.22) 30deg 32deg);
+  -webkit-mask:radial-gradient(circle,transparent 19px,#000 20px,#000 30px,transparent 31px);
+  mask:radial-gradient(circle,transparent 19px,#000 20px,#000 30px,transparent 31px)}
+.reel::after{content:"";position:absolute;top:50%;left:50%;width:11px;height:11px;margin:-5.5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f1d9a6,var(--brass2));box-shadow:0 0 0 2px #160b05,inset 0 0 2px #000}
+.reel.left{left:-26px}.reel.right{right:-26px;animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* the scrolling tape strips — each "voice" lane */
+.tape{position:absolute;left:46px;right:46px;height:24px;border-radius:2px;overflow:hidden;
+  background:linear-gradient(180deg,#4a2c1c,#2c1810 50%,#180c07);
+  box-shadow:inset 0 1px 2px rgba(255,190,140,.25),inset 0 -2px 4px rgba(0,0,0,.7),0 1px 3px rgba(0,0,0,.5);
+  border-top:1px solid rgba(255,190,140,.18);border-bottom:1px solid #000}
+.tape i{position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,
+    transparent 0 26px,
+    color-mix(in srgb,var(--ac) 55%,transparent) 26px 27px,
+    transparent 27px 40px,
+    rgba(255,200,150,.10) 40px 41px,
+    transparent 41px 60px);
+  animation:roll 1.7s linear infinite}
+/* magnetic-signal scribble overlaid so the lane "carries audio" */
+.tape b{position:absolute;inset:0;opacity:.5;
+  background:repeating-linear-gradient(90deg,
+    transparent 0 3px,rgba(224,176,255,.5) 3px 4px,transparent 4px 9px,rgba(224,176,255,.28) 9px 10px,transparent 10px 14px);
+  animation:roll 0.9s linear infinite}
+@keyframes roll{to{background-position-x:-160px}}
+.tape.t1{top:18px}
+.tape.t2{top:62px;opacity:.9}
+.tape.t3{top:106px;opacity:.78}
+.tape.t2 i{animation-duration:1.45s}
+.tape.t3 i{animation-duration:2.1s}
+
+/* the fixed playback head + capstan, dead-centre, where tape meets the key */
+.head-unit{position:absolute;top:0;bottom:0;left:50%;width:34px;margin-left:-17px;z-index:5;pointer-events:none}
+.head-unit::before{content:"";position:absolute;top:8px;bottom:8px;left:50%;width:2px;margin-left:-1px;
+  background:linear-gradient(180deg,transparent,var(--ac) 20%,var(--ac) 80%,transparent);
+  box-shadow:0 0 12px var(--ac);opacity:.85}
+.head-unit .gap{position:absolute;top:50%;left:50%;width:13px;height:30px;margin:-15px 0 0 -6.5px;border-radius:3px;
+  background:linear-gradient(180deg,#cfcfd4,#6a6a72 50%,#9a9aa2);
+  border:1px solid #2a2a30;box-shadow:0 0 14px color-mix(in srgb,var(--ac) 60%,transparent),inset 0 0 4px rgba(0,0,0,.6)}
+.head-unit .gap::after{content:"";position:absolute;top:3px;bottom:3px;left:50%;width:1px;margin-left:-.5px;background:#1a1a1f}
+/* wow/flutter shimmer pass over the whole bay, intensity = Flutter */
+.bay .flut{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:var(--flut,.3);
+  background:linear-gradient(110deg,transparent 30%,rgba(224,176,255,.18) 50%,transparent 70%);
+  background-size:240% 100%;animation:shim 2.6s ease-in-out infinite}
+@keyframes shim{0%,100%{background-position:120% 0}50%{background-position:-20% 0}}
+
+/* ============ CONTROL DECK ============ */
+.deck{position:relative;z-index:2;margin:0 16px;padding:6px 4px 2px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:4px;justify-items:center}
+.cell{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 4px 6px;border-radius:11px;
+  animation:rise .55s both;animation-delay:var(--d)}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.92)}to{opacity:1;transform:none}}
+.cell:hover{background:rgba(255,220,180,.04)}
+
+/* vintage chicken-head knob seated on a brass washer */
+.knob{position:relative;width:78px;height:78px;cursor:ns-resize;touch-action:none;user-select:none}
+.knob .ring{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 225deg,var(--ac) calc(var(--n)*270deg),rgba(255,255,255,.07) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(3px + var(--n)*8px) color-mix(in srgb,var(--ac) 65%,transparent));
+  transition:--n .15s cubic-bezier(.2,.8,.25,1)}
+.knob .tk{position:absolute;inset:-4px;border-radius:50%;
+  background:repeating-conic-gradient(from 226deg,rgba(255,220,180,.3) 0 1.1deg,transparent 1.1deg 13.5deg);
+  -webkit-mask:radial-gradient(circle,transparent 41px,#000 42px,#000 46px,transparent 47px);
+  mask:radial-gradient(circle,transparent 41px,#000 42px,#000 46px,transparent 47px)}
+.knob .wash{position:absolute;top:9px;left:9px;width:60px;height:60px;border-radius:50%;
+  background:radial-gradient(circle at 50% 35%,var(--brass),var(--brass2) 60%,#3a2a12 100%);
+  box-shadow:inset 0 1px 2px rgba(255,230,180,.4),inset 0 -2px 5px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.5)}
+.knob .cap{position:absolute;top:14px;left:14px;width:50px;height:50px;border-radius:50%;
+  background:radial-gradient(circle at 42% 30%,#2c2c30,#0c0c0e 78%);
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.8),inset 0 -1px 0 rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.6);
+  transform:rotate(calc((var(--n) - .5)*270deg));transition:transform .15s cubic-bezier(.2,.8,.25,1)}
+/* the chicken-head pointer beak */
+.knob .cap::before{content:"";position:absolute;top:-3px;left:50%;width:0;height:0;margin-left:-7px;
+  border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:16px solid var(--ac);
+  filter:drop-shadow(0 0 5px var(--ac))}
+.knob .cap::after{content:"";position:absolute;top:50%;left:50%;width:8px;height:8px;margin:-4px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f1d9a6,var(--brass2))}
+.bub{position:absolute;top:-13px;left:50%;transform:translate(-50%,4px) scale(.85);opacity:0;pointer-events:none;
+  font-size:11px;font-weight:800;color:#1a0e22;background:var(--ac2);padding:2px 7px;border-radius:5px;
+  font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:.16s;white-space:nowrap;z-index:9}
+.cell:hover .bub,.knob.act .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+.nm{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#caa884;font-weight:700}
+.val{font-size:12px;color:#f3e6cf;font-variant-numeric:tabular-nums;font-weight:700;font-family:Georgia,serif}
+
+/* ============ KEYBOARD strip at the foot ============ */
+.kbd{position:relative;z-index:2;margin:8px 16px 16px;height:62px;border-radius:0 0 7px 7px;
+  display:flex;padding:0 4px;
+  background:linear-gradient(180deg,#1a0f08,#0c0704);
+  border:1px solid #000;box-shadow:inset 0 3px 8px rgba(0,0,0,.7),0 2px 0 rgba(255,210,160,.07)}
+.kbd .wk{position:relative;flex:1;margin:5px 1px;border-radius:0 0 4px 4px;
+  background:linear-gradient(180deg,#efe6d6,#cdc2af);
+  box-shadow:inset 0 -3px 4px rgba(0,0,0,.2),0 1px 1px rgba(0,0,0,.4)}
+.kbd .bk{position:absolute;top:0;width:11px;height:34px;border-radius:0 0 3px 3px;z-index:2;
+  background:linear-gradient(180deg,#241910,#0c0704);box-shadow:0 2px 3px rgba(0,0,0,.6),inset 0 -2px 2px rgba(255,200,150,.1)}
+.note{position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:7px;letter-spacing:.1em;color:#9a8a72}
+
+/* footer caption */
+.ft{position:relative;z-index:2;font-size:10px;line-height:1.5;color:#9a8366;
+  margin:0 16px 14px;padding-top:9px;border-top:1px solid rgba(202,161,90,.18);font-style:italic}
+</style></head><body>
+
+<div class="cab">
+  <div class="head">
+    <span class="bolt"></span>
+    <div class="plate">
+      <h1>TAPE&nbsp;CHOIR</h1>
+      <span class="sub">Tape · Replay · Ensemble</span>
+    </div>
+    <div class="power"><span class="led"></span>ON</div>
+    <span class="bolt"></span>
+  </div>
+
+  <div class="bay" id="bay">
+    <div class="reel left"></div>
+    <div class="reel right"></div>
+    <div class="tape t1"><i></i><b></b></div>
+    <div class="tape t2"><i></i><b></b></div>
+    <div class="tape t3"><i></i><b></b></div>
+    <div class="flut"></div>
+    <div class="head-unit"><div class="gap"></div></div>
+  </div>
+
+  <div class="deck" id="deck"></div>
+
+  <div class="kbd" id="kbd"></div>
+
+  <div class="ft" id="ft"></div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Attack", index:0, min:0, max:1, def:0.18},
+    {name:"Release",index:1, min:0, max:1, def:0.40},
+    {name:"Tone",   index:2, min:0, max:1, def:0.55},
+    {name:"Flutter",index:3, min:0, max:1, def:0.30},
+    {name:"Drive",  index:4, min:0, max:1, def:0.25},
+    {name:"Tune",   index:5, min:0, max:1, def:0.50},
+    {name:"Level",  index:6, min:0, max:1, def:0.70}
+  ];
+  var DESC="A tape-replay keyboard ensemble — each key plays a looped, pitch-tracked string choir baked from a CC0 recording, shaped by tape wow, flutter and saturation.";
+  document.getElementById('ft').textContent=DESC;
+
+  var deck=document.getElementById('deck'), bay=document.getElementById('bay');
+  var reg=[]; // {p,el,ring,cap,val,bub,setN,norm}
+
+  function fmt(v){return (Math.round(v*100)).toString();} // 0..1 shown as 0..100
+
+  function makeCell(p,i){
+    var cell=document.createElement('div'); cell.className='cell'; cell.style.setProperty('--d',(i*55)+'ms');
+    cell.innerHTML=
+      '<div class="knob"><i class="tk"></i><i class="ring"></i><i class="wash"></i><i class="cap"></i><span class="bub"></span></div>'+
+      '<div class="nm">'+p.name+'</div><div class="val"></div>';
+    deck.appendChild(cell);
+    var knob=cell.querySelector('.knob'),ring=cell.querySelector('.ring'),cap=cell.querySelector('.cap'),
+        val=cell.querySelector('.val'),bub=cell.querySelector('.bub');
+    var value=p.def;
+    function norm(){return (value-p.min)/((p.max-p.min)||1);}
+    function paint(){
+      var n=norm();
+      ring.style.setProperty('--n',n);
+      cap.style.setProperty('--n',n);
+      var t=fmt(value); val.textContent=t; bub.textContent=p.name+' '+t;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,value);
+      onChange(p.index,n);
+    }
+    function setN(n){ n=n<0?0:(n>1?1:n); value=p.min+(p.max-p.min)*n; paint(); }
+    knob.addEventListener('pointerdown',function(e){
+      knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');
+      try{knob.setPointerCapture(e.pointerId);}catch(_){}; e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){ if(!knob._d)return; setN(knob._n+(knob._y-e.clientY)/190); });
+    function end(){knob._d=0;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ value=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?.025:-.025)); },{passive:false});
+    reg.push({p:p,paint:paint});
+    paint();
+  }
+
+  // ---- live link controls -> tape animation -------------------------
+  var tapes=[bay.querySelector('.tape.t1 i'),bay.querySelector('.tape.t2 i'),bay.querySelector('.tape.t3 i')];
+  var reels=bay.querySelectorAll('.reel');
+  var flut=bay.querySelector('.flut');
+  var st={attack:.18,release:.40,tone:.55,flutter:.30,drive:.25,tune:.50,level:.70};
+  var MAP=['attack','release','tone','flutter','drive','tune','level'];
+  function onChange(index,n){
+    st[MAP[index]]=n;
+    // Tune -> tape scroll speed (also the reel spin): faster when detuned up
+    var spd=2.4-st.tune*1.6+st.attack*0.6; // seconds per cycle
+    tapes.forEach(function(t,k){ t.style.animationDuration=(spd*(1+k*0.28))+'s'; });
+    reels.forEach(function(r,k){ r.style.animationDuration=(spd*1.6)+'s'; });
+    // Flutter -> shimmer intensity + speed
+    flut.style.setProperty('--flut',(0.12+st.flutter*0.7).toFixed(3));
+    flut.style.animationDuration=(3.2-st.flutter*2.2).toFixed(2)+'s';
+    // Drive -> magnetic-signal contrast on the tape, Level -> overall glow
+    bay.style.filter='saturate('+(0.8+st.drive*1.1).toFixed(2)+') brightness('+(0.78+st.level*0.5).toFixed(2)+')';
+    // Tone -> warmth tint of the whole cabinet head LED hue handled by --ac stays; tint bay border
+    bay.style.boxShadow='inset 0 3px 14px rgba(0,0,0,.9),inset 0 0 0 2px #2a1b10,0 2px 0 rgba(255,210,160,.08),inset 0 0 '+(8+st.tone*34).toFixed(0)+'px color-mix(in srgb,var(--ac) '+(8+st.tone*22).toFixed(0)+'%,transparent)';
+  }
+
+  // ---- decorative keyboard ------------------------------------------
+  (function(){
+    var kbd=document.getElementById('kbd');
+    var pat=[1,0,1,1,0,1,0]; // which white keys carry a black key after them (C C# D D# E F F# ...)
+    var seq=[0,1,2,3,4,5,6,0,1,2,3,4,5,6]; // 14 white keys ~2 octaves
+    var blackAfter=[1,1,0,1,1,1,0]; // C D F G A have a sharp
+    for(var i=0;i<14;i++){
+      var wk=document.createElement('div'); wk.className='wk'; kbd.appendChild(wk);
+    }
+    // overlay black keys
+    var whites=kbd.querySelectorAll('.wk');
+    for(var i=0;i<whites.length;i++){
+      var deg=i%7;
+      if(blackAfter[deg] && i<whites.length-1){
+        var bk=document.createElement('div'); bk.className='bk';
+        whites[i].appendChild(bk);
+        bk.style.right='-6px';
+      }
+    }
+  })();
+
+  function ready(){ PARAMS.forEach(makeCell); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

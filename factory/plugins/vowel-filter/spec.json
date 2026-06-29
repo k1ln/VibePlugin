@@ -1,0 +1,17 @@
+{
+  "name": "Vowel Filter",
+  "isInstrument": false,
+  "explanation": "A formant filter that gives any source a singing, talkbox colour. Three parallel band-pass resonators are tuned to the first three vocal formants, and a Vowel control morphs the bank smoothly through A, E, I, O and U; Resonance sharpens the peaks and an optional LFO auto-sweeps the vowel for a talking-wah motion.",
+  "assembly": "factory/plugins/vowel-filter/assembly.ts",
+  "out": "factory/plugins/vowel-filter/x.vstai",
+  "publishedAt": 1751000049000,
+  "theme": { "accent": "#ff9ec0", "accent2": "#ffd089" },
+  "guiFile": "factory/plugins/vowel-filter/gui.html",
+  "params": [
+    { "name": "Vowel",     "index": 0, "min": 0, "max": 4, "default": 0, "step": 1 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "LFO Rate",  "index": 2, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "LFO Depth", "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

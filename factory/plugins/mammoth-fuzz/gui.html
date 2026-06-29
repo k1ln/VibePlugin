@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mammoth Fuzz</title>
+<style>
+:root{
+  --accent:#ff7a3c;
+  --accent2:#ffb454;
+  --enclosure:#2b6b5a;
+  --enclosure2:#1c4a3e;
+  --metal:#c9ccc7;
+  --bg:#0b0f0e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;}
+body{
+  background:
+    radial-gradient(120% 90% at 50% -10%, #14201d 0%, #060908 70%, #020403 100%);
+  font-family:"Helvetica Neue",Arial,sans-serif;
+  color:#e9e4d8;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  -webkit-user-select:none;user-select:none;
+  touch-action:none;
+}
+
+/* ===== woolly fuzz texture backdrop ===== */
+.fuzz-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  opacity:.5;
+}
+.fuzz-bg span{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, rgba(255,180,84,.22), rgba(255,122,60,.05) 60%, transparent 72%);
+  filter:blur(6px);
+  animation:drift linear infinite;
+}
+@keyframes drift{
+  0%{transform:translate3d(0,0,0) scale(1);}
+  50%{transform:translate3d(var(--dx),var(--dy),0) scale(1.25);}
+  100%{transform:translate3d(0,0,0) scale(1);}
+}
+
+/* ===== pedal enclosure ===== */
+.pedal{
+  position:relative;z-index:2;
+  width:340px;
+  padding:26px 26px 30px;
+  border-radius:18px;
+  background:
+    linear-gradient(180deg, var(--enclosure) 0%, var(--enclosure2) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.18),
+    inset 0 -8px 22px rgba(0,0,0,.55),
+    inset 0 0 60px rgba(0,0,0,.25),
+    0 28px 60px rgba(0,0,0,.7),
+    0 4px 0 #0d2620;
+  border:1px solid rgba(0,0,0,.4);
+}
+/* brushed-metal sheen overlay */
+.pedal::before{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px);
+  mix-blend-mode:overlay;
+}
+/* moving specular highlight */
+.pedal::after{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.10) 48%, transparent 62%);
+  background-size:300% 100%;
+  animation:sheen 7s ease-in-out infinite;
+}
+@keyframes sheen{0%,100%{background-position:160% 0;}50%{background-position:-60% 0;}}
+
+/* corner screws */
+.screw{
+  position:absolute;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #f2f2ee, #8a8d88 55%, #4c4f4a 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.6), inset 0 0 2px rgba(0,0,0,.5);
+}
+.screw::before{
+  content:"";position:absolute;inset:3px;border-radius:50%;
+  background:linear-gradient(0deg,#5b5e58,#9a9d97);
+}
+.screw::after{
+  content:"";position:absolute;left:50%;top:50%;width:11px;height:2px;
+  background:#2a2c28;border-radius:1px;
+  transform:translate(-50%,-50%) rotate(var(--rot,40deg));
+  box-shadow:0 1px 0 rgba(255,255,255,.2);
+}
+.screw.tl{top:9px;left:9px;--rot:35deg;}
+.screw.tr{top:9px;right:9px;--rot:-50deg;}
+.screw.bl{bottom:9px;left:9px;--rot:-25deg;}
+.screw.br{bottom:9px;right:9px;--rot:60deg;}
+
+/* ===== silkscreen nameplate ===== */
+.nameplate{position:relative;text-align:center;margin:4px 0 18px;}
+.brand{
+  font-size:10px;letter-spacing:.42em;text-transform:uppercase;
+  color:rgba(255,255,255,.55);margin-bottom:4px;text-indent:.42em;
+}
+.title{
+  font-family:"Arial Black","Helvetica Neue",sans-serif;
+  font-weight:900;font-style:italic;
+  font-size:34px;line-height:.92;letter-spacing:-1px;
+  text-transform:uppercase;
+  background:linear-gradient(180deg,#fff,var(--accent2) 55%,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:.6px rgba(0,0,0,.25);
+  filter:drop-shadow(0 2px 1px rgba(0,0,0,.5));
+}
+.title .big{font-size:46px;}
+.tag{
+  margin-top:6px;font-size:8.5px;letter-spacing:.28em;text-transform:uppercase;
+  color:rgba(255,255,255,.45);
+}
+
+/* ===== knob row ===== */
+.knobs{display:grid;grid-template-columns:1fr 1fr;gap:22px 26px;margin:6px 6px 22px;}
+.knob-cell{display:flex;flex-direction:column;align-items:center;}
+.knob{
+  position:relative;width:78px;height:78px;cursor:grab;touch-action:none;
+}
+.knob:active{cursor:grabbing;}
+.knob .base{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 18%, #4a4d49 0%, #2a2c29 40%, #161817 100%);
+  box-shadow:0 6px 12px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.12);
+}
+/* rubber knob cap with ridges */
+.knob .cap{
+  position:absolute;inset:9px;border-radius:50%;
+  background:
+    radial-gradient(circle at 38% 30%, #3c3e3b, #1a1c1a 70%, #0c0d0c 100%);
+  box-shadow:inset 0 3px 6px rgba(255,255,255,.10), inset 0 -6px 10px rgba(0,0,0,.7), 0 2px 4px rgba(0,0,0,.5);
+}
+.knob .cap::before{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg, rgba(255,255,255,.05) 0 4deg, transparent 4deg 12deg);
+}
+/* rotating pointer group */
+.knob .dial{position:absolute;inset:0;will-change:transform;}
+.knob .tick{
+  position:absolute;left:50%;top:7px;width:4px;height:24px;margin-left:-2px;
+  border-radius:2px;
+  background:linear-gradient(180deg,var(--accent2),var(--accent));
+  box-shadow:0 0 7px var(--accent), 0 0 2px #fff;
+}
+/* dotted tick scale */
+.scale{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;}
+.scale i{
+  position:absolute;left:50%;top:0;width:2px;height:5px;margin-left:-1px;
+  background:rgba(255,255,255,.35);transform-origin:1px 46px;
+}
+.scale i.on{background:var(--accent2);box-shadow:0 0 4px var(--accent);}
+.k-name{margin-top:9px;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.72);}
+.k-val{margin-top:2px;font-size:13px;font-weight:700;color:var(--accent2);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 6px rgba(255,180,84,.5);}
+
+/* ===== footswitch + LED bar ===== */
+.foot-row{display:flex;align-items:center;justify-content:space-between;padding:0 14px;}
+.led-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px;}
+.led{
+  width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #5a1500, #2a0a00);
+  box-shadow:inset 0 0 3px rgba(0,0,0,.8);transition:background .15s;
+}
+.led.on{
+  background:radial-gradient(circle at 35% 30%, #fff, var(--accent2) 40%, var(--accent) 75%);
+  box-shadow:0 0 10px var(--accent), 0 0 22px rgba(255,122,60,.7), inset 0 0 4px #fff;
+  animation:ledpulse 1.6s ease-in-out infinite;
+}
+@keyframes ledpulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.35);}}
+.led-lbl{font-size:7.5px;letter-spacing:.2em;color:rgba(255,255,255,.45);text-transform:uppercase;}
+
+.footswitch{
+  position:relative;width:96px;height:96px;border-radius:50%;cursor:pointer;
+  background:radial-gradient(circle at 50% 28%, #d6d9d4, #9a9d98 45%, #5b5e59 100%);
+  box-shadow:0 8px 16px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.5), inset 0 -6px 10px rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .09s ease, box-shadow .09s ease;
+}
+.footswitch .stem{
+  width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle at 45% 35%, #f4f5f2, #b9bcb7 50%, #6c6f6a 100%);
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.7), inset 0 -4px 8px rgba(0,0,0,.45), 0 2px 4px rgba(0,0,0,.4);
+}
+.footswitch.pressed{transform:translateY(4px) scale(.97);box-shadow:0 3px 7px rgba(0,0,0,.6), inset 0 2px 4px rgba(0,0,0,.4);}
+.footswitch::after{
+  content:"";position:absolute;inset:-6px;border-radius:50%;
+  border:2px solid rgba(0,0,0,.25);
+}
+
+/* ribbed jack plates */
+.jacks{display:flex;flex-direction:column;align-items:center;gap:5px;width:64px;}
+.jack{width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, #4a4d48, #161816 70%);
+  box-shadow:inset 0 0 4px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.1);}
+.jack i{display:block;width:8px;height:8px;border-radius:50%;margin:8px auto;background:#000;box-shadow:inset 0 0 3px rgba(255,255,255,.15);}
+.jacks .jlbl{font-size:7px;letter-spacing:.15em;color:rgba(255,255,255,.4);text-transform:uppercase;}
+
+.bypass-note{text-align:center;margin-top:14px;font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+</style>
+</head>
+<body>
+<div class="fuzz-bg" id="fuzzbg"></div>
+
+<div class="pedal" id="pedal">
+  <span class="screw tl"></span><span class="screw tr"></span>
+  <span class="screw bl"></span><span class="screw br"></span>
+
+  <div class="nameplate">
+    <div class="brand">Boutique &middot; Tone Co.</div>
+    <div class="title"><span class="big">M</span>ammoth <span class="big">F</span>uzz</div>
+    <div class="tag">Cascaded Sustaining Fuzz</div>
+  </div>
+
+  <div class="knobs" id="knobs"></div>
+
+  <div class="foot-row">
+    <div class="jacks">
+      <div class="jack"><i></i></div><div class="jlbl">In</div>
+    </div>
+    <div class="footswitch" id="footswitch"><div class="stem"></div></div>
+    <div class="led-wrap">
+      <div class="led on" id="led"></div><div class="led-lbl">On</div>
+    </div>
+  </div>
+  <div class="bypass-note">True&nbsp;Bypass &mdash; Tap&nbsp;Footswitch</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var PARAMS=[
+    {name:"Sustain",index:0,min:0,max:1,def:0.7},
+    {name:"Tone",   index:1,min:0,max:1,def:0.5},
+    {name:"Volume", index:2,min:0,max:1,def:0.6},
+    {name:"Mix",    index:3,min:0,max:1,def:1}
+  ];
+  var MINA=-135, MAXA=135; // sweep degrees
+
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function fmt(p,v){ return Math.round((v-p.min)/(p.max-p.min)*100)+"%"; }
+
+  // build woolly background blobs
+  (function(){
+    var bg=document.getElementById('fuzzbg'),f=document.createDocumentFragment();
+    for(var i=0;i<14;i++){
+      var s=document.createElement('span');
+      var sz=60+Math.random()*160;
+      s.style.width=s.style.height=sz+'px';
+      s.style.left=(Math.random()*100)+'%';
+      s.style.top=(Math.random()*100)+'%';
+      s.style.setProperty('--dx',(Math.random()*60-30)+'px');
+      s.style.setProperty('--dy',(Math.random()*60-30)+'px');
+      s.style.animationDuration=(8+Math.random()*10)+'s';
+      s.style.animationDelay=(-Math.random()*10)+'s';
+      f.appendChild(s);
+    }
+    bg.appendChild(f);
+  })();
+
+  var knobsEl=document.getElementById('knobs');
+  var controls=[];
+
+  PARAMS.forEach(function(p){
+    var cell=document.createElement('div');cell.className='knob-cell';
+    var k=document.createElement('div');k.className='knob';k.tabIndex=-1;
+    k.innerHTML=
+      '<div class="base"></div>'+
+      '<div class="scale"></div>'+
+      '<div class="cap"></div>'+
+      '<div class="dial"><div class="tick"></div></div>';
+    var name=document.createElement('div');name.className='k-name';name.textContent=p.name;
+    var val=document.createElement('div');val.className='k-val';
+    cell.appendChild(k);cell.appendChild(name);cell.appendChild(val);
+    knobsEl.appendChild(cell);
+
+    // build tick scale
+    var scale=k.querySelector('.scale');
+    var N=11;
+    for(var t=0;t<N;t++){
+      var i=document.createElement('i');
+      var ang=MINA+(MAXA-MINA)*(t/(N-1));
+      i.style.transform='rotate('+ang+'deg)';
+      i.dataset.ang=ang;
+      scale.appendChild(i);
+    }
+
+    var dial=k.querySelector('.dial');
+    var ctl={p:p,dial:dial,val:val,scale:scale,value:p.def};
+
+    function render(v){
+      ctl.value=v;
+      var norm=(v-p.min)/(p.max-p.min);
+      var deg=MINA+(MAXA-MINA)*norm;
+      dial.style.transform='rotate('+deg+'deg)';
+      val.textContent=fmt(p,v);
+      // light up scale ticks up to current
+      var lit=scale.querySelectorAll('i');
+      for(var j=0;j<lit.length;j++){
+        var a=+lit[j].dataset.ang;
+        if(a<=deg+0.5) lit[j].classList.add('on'); else lit[j].classList.remove('on');
+      }
+    }
+    function set(v,emit){
+      v=Math.max(p.min,Math.min(p.max,v));
+      render(v);
+      if(emit) send(p.index,v);
+    }
+    ctl.set=set;
+
+    // pointer drag (vertical)
+    var dragging=false,startY=0,startV=0;
+    k.addEventListener('pointerdown',function(e){
+      dragging=true;startY=e.clientY;startV=ctl.value;
+      k.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    k.addEventListener('pointermove',function(e){
+      if(!dragging)return;
+      var dy=startY-e.clientY;
+      var span=p.max-p.min;
+      var fine=e.shiftKey?0.25:1;
+      set(startV+(dy/180)*span*fine,true);
+    });
+    function endDrag(e){ if(dragging){dragging=false;try{k.releasePointerCapture(e.pointerId);}catch(_){}}}
+    k.addEventListener('pointerup',endDrag);
+    k.addEventListener('pointercancel',endDrag);
+    // wheel
+    k.addEventListener('wheel',function(e){
+      e.preventDefault();
+      var span=p.max-p.min;
+      set(ctl.value-(e.deltaY>0?1:-1)*span*0.04,true);
+    },{passive:false});
+    // double-click reset
+    k.addEventListener('dblclick',function(){ set(p.def,true); });
+
+    controls.push(ctl);
+  });
+
+  // footswitch / bypass (visual only — does not touch params)
+  var fs=document.getElementById('footswitch'),led=document.getElementById('led'),on=true;
+  fs.addEventListener('pointerdown',function(){fs.classList.add('pressed');});
+  function relFs(){fs.classList.remove('pressed');}
+  fs.addEventListener('pointerup',relFs);
+  fs.addEventListener('pointercancel',relFs);
+  fs.addEventListener('click',function(){
+    on=!on; led.classList.toggle('on',on);
+    document.getElementById('pedal').style.filter=on?'':'saturate(.4) brightness(.85)';
+  });
+
+  function ready(){ controls.forEach(function(c){ c.set(c.p.def,true); }); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

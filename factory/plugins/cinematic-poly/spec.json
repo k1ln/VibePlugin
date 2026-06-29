@@ -1,0 +1,20 @@
+{
+  "name": "Cinematic Poly",
+  "isInstrument": true,
+  "explanation": "A lush, grand polyphonic synthesizer for cinematic brass-leaning pads and swells. Up to eight voices keyed by note, each running two detuned layers of saw + pulse oscillators into their own resonant low-pass with a filter ADSR, then an amplitude ADSR; a gentle global ensemble chorus and brightness tilt add the wide, choral sheen. Controls: Detune, Cutoff, Resonance, Filter Env Amount, Attack, Release, Brightness and Level.",
+  "assembly": "factory/plugins/cinematic-poly/assembly.ts",
+  "out": "factory/plugins/cinematic-poly/x.vstai",
+  "publishedAt": 1751000064000,
+  "theme": { "accent": "#e0b070", "accent2": "#c08040" },
+  "guiFile": "factory/plugins/cinematic-poly/gui.html",
+  "params": [
+    { "name": "Detune",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Cutoff",       "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance",    "index": 2, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "FilterEnvAmt", "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Attack",       "index": 4, "min": 0, "max": 1, "default": 0.18 },
+    { "name": "Release",      "index": 5, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Brightness",   "index": 6, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level",        "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

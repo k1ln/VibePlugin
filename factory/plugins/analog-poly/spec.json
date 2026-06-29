@@ -6,6 +6,7 @@
   "out": "factory/plugins/analog-poly/x.vstai",
   "publishedAt": 1751000018000,
   "theme": { "accent": "#ff7ad1", "accent2": "#b08cff" },
+  "guiFile": "factory/plugins/analog-poly/gui.html",
   "params": [
     { "name": "Detune",        "index": 0, "min": 0, "max": 1, "default": 0.3 },
     { "name": "Cutoff",        "index": 1, "min": 0, "max": 1, "default": 0.55 },

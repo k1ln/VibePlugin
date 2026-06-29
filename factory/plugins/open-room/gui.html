@@ -1,0 +1,382 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --ac:#45c8e0; --ac2:#7ae0f0;
+    --ink:#0c1116; --line:#1f2a33;
+    --paper:#0a0e12;
+    --wall:#2a3a44;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:#dfeef4;
+    font:13px/1.4 ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% 8%, #10171d 0%, #070a0d 60%, #04060899 100%);
+    display:flex; align-items:center; justify-content:center; padding:18px;
+    overflow:hidden;
+  }
+  .room{
+    position:relative; width:100%; max-width:660px; aspect-ratio:1.42/1; min-height:430px;
+    border-radius:6px; overflow:hidden;
+    background:
+      linear-gradient(180deg, rgba(20,30,38,.5), rgba(6,9,12,.85));
+    box-shadow:
+      0 40px 90px rgba(0,0,0,.7),
+      inset 0 0 0 1px rgba(122,224,240,.10),
+      inset 0 0 120px rgba(0,0,0,.6);
+  }
+  /* faint Bauhaus grid floor */
+  .room::before{
+    content:""; position:absolute; inset:0; z-index:0; opacity:.07; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(122,224,240,.6) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122,224,240,.6) 1px, transparent 1px);
+    background-size:34px 34px;
+    -webkit-mask:linear-gradient(180deg, transparent 40%, #000 100%);
+    mask:linear-gradient(180deg, transparent 40%, #000 100%);
+  }
+
+  /* ---- the architectural wireframe SVG ---- */
+  svg.scene{position:absolute; inset:0; width:100%; height:100%; z-index:1; pointer-events:none}
+  .edge{fill:none; stroke:var(--ac); stroke-width:1.1; vector-effect:non-scaling-stroke;
+        filter:drop-shadow(0 0 3px color-mix(in srgb,var(--ac) 50%,transparent))}
+  .edge.back{stroke:color-mix(in srgb,var(--ac) 55%,#26323b); stroke-width:.9}
+  .edge.faint{stroke:rgba(122,224,240,.16); stroke-width:.8}
+  .floorshade{fill:url(#fg); opacity:.5}
+  .corner{fill:var(--ac2)}
+  .ray{fill:none; stroke:var(--ac2); stroke-width:1.4; vector-effect:non-scaling-stroke;
+       stroke-linecap:round; filter:drop-shadow(0 0 4px var(--ac2));
+       stroke-dasharray:14 240; opacity:.9}
+  .pulse{fill:var(--ac2); filter:drop-shadow(0 0 6px var(--ac2))}
+  .source{fill:#fff; filter:drop-shadow(0 0 8px var(--ac))}
+
+  @keyframes travel{ to{ stroke-dashoffset:-254 } }
+  @keyframes hit{ 0%,82%{ r:0; opacity:0 } 88%{ r:7; opacity:.9 } 100%{ r:14; opacity:0 } }
+  @keyframes breathe{ 0%,100%{ r:4; opacity:.85 } 50%{ r:6.5; opacity:1 } }
+
+  /* ---- header ---- */
+  .hd{position:absolute; top:0; left:0; right:0; z-index:4;
+      display:flex; align-items:baseline; gap:12px; padding:16px 20px 0}
+  .hd .mark{width:14px; height:14px; flex:0 0 auto; align-self:center; position:relative}
+  .hd .mark i{position:absolute; inset:0; border:1.5px solid var(--ac); border-radius:1px}
+  .hd .mark i:nth-child(2){inset:4px; border-color:var(--ac2); border-radius:50%;
+      animation:breathe 3.4s ease-in-out infinite}
+  h1{margin:0; font-size:15px; font-weight:800; letter-spacing:.34em; text-transform:uppercase;
+     color:#eaf7fb}
+  h1 span{color:var(--ac)}
+  .sub{font-size:9.5px; letter-spacing:.26em; text-transform:uppercase; color:#5f7686; margin-left:auto;
+       white-space:nowrap}
+
+  /* ---- Bauhaus control rail (bottom) ---- */
+  .rail{position:absolute; left:0; right:0; bottom:0; z-index:5;
+        display:grid; grid-template-columns:repeat(5,1fr); gap:0;
+        padding:0; background:linear-gradient(0deg, rgba(5,8,11,.94), rgba(5,8,11,.0));
+        border-top:1px solid rgba(122,224,240,.14)}
+  .ctl{position:relative; padding:14px 8px 16px; display:flex; flex-direction:column;
+       align-items:center; gap:9px; cursor:ns-resize; user-select:none; touch-action:none;
+       border-right:1px solid rgba(122,224,240,.07);
+       transition:background .2s ease}
+  .ctl:last-child{border-right:0}
+  .ctl:hover{background:rgba(122,224,240,.05)}
+  .ctl .arc{position:relative; width:54px; height:54px}
+  .ctl .arc svg{width:100%; height:100%; overflow:visible}
+  .trk{fill:none; stroke:rgba(122,224,240,.13); stroke-width:3.2; stroke-linecap:round}
+  .fil{fill:none; stroke:var(--ac); stroke-width:3.2; stroke-linecap:round;
+       filter:drop-shadow(0 0 5px color-mix(in srgb,var(--ac) 60%,transparent));
+       transition:stroke-dashoffset .12s cubic-bezier(.2,.8,.25,1)}
+  /* the Bauhaus index: a bar that points to value */
+  .hub{position:absolute; left:50%; top:50%; width:3px; height:20px; margin:-20px 0 0 -1.5px;
+       background:linear-gradient(var(--ac2),var(--ac)); border-radius:2px;
+       transform-origin:50% 100%; box-shadow:0 0 6px var(--ac2);
+       transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+  .dot{position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px 0 0 -4px;
+       border-radius:50%; background:#0a0e12; box-shadow:inset 0 0 0 1.5px var(--ac2)}
+  .ctl .nm{font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:#7f95a4; font-weight:700}
+  .ctl .va{font-size:14px; font-weight:800; color:#eaf7fb; font-variant-numeric:tabular-nums;
+           letter-spacing:.02em; line-height:1}
+  .ctl .va small{font-size:8.5px; color:#5f7686; font-weight:600; margin-left:1px}
+  .ctl.act{background:rgba(122,224,240,.07)}
+  .ctl.act .fil{stroke:var(--ac2)}
+  /* primitive accent square (Bauhaus) per control, lit when high */
+  .ctl .chip{position:absolute; top:9px; right:10px; width:6px; height:6px; border-radius:1px;
+       background:var(--ac); opacity:.18; transition:opacity .15s, transform .15s}
+  .ctl:nth-child(2) .chip{border-radius:50%}
+  .ctl:nth-child(3) .chip{transform:rotate(45deg)}
+  .ctl:nth-child(5) .chip{border-radius:50% 50% 50% 0}
+
+  /* entrance */
+  .ctl{animation:rise .55s both} .ctl{animation-delay:calc(.12s + var(--i)*.06s)}
+  @keyframes rise{from{opacity:0; transform:translateY(14px)}to{opacity:1; transform:none}}
+  .room svg.scene .edge{stroke-dasharray:1; animation:none}
+
+  .hint{position:absolute; left:20px; bottom:96px; z-index:4; font-size:9px; letter-spacing:.18em;
+        text-transform:uppercase; color:#4a5f6e; opacity:.0; transition:opacity .3s}
+  .room:hover .hint{opacity:.7}
+</style>
+</head>
+<body>
+  <div class="room" id="room">
+    <svg class="scene" id="scene" viewBox="0 0 660 460" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="fg" cx="50%" cy="38%" r="60%">
+          <stop offset="0%" stop-color="#7ae0f0" stop-opacity=".22"/>
+          <stop offset="100%" stop-color="#7ae0f0" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- one-point-perspective wireframe room.
+           OUTER = front opening (room walls), INNER = back wall.
+           These get repositioned by JS based on Room Size -->
+      <polygon class="floorshade" id="floorshade" points="0,0 0,0 0,0 0,0"/>
+
+      <!-- perspective connectors (corners front->back) -->
+      <line class="edge faint" id="c1"/>
+      <line class="edge faint" id="c2"/>
+      <line class="edge faint" id="c3"/>
+      <line class="edge faint" id="c4"/>
+
+      <!-- back wall rectangle -->
+      <rect class="edge back" id="back" rx="2"/>
+      <!-- front opening rectangle -->
+      <rect class="edge" id="front" rx="2"/>
+
+      <!-- corner nodes (front) -->
+      <circle class="corner" id="n1" r="2.4"/>
+      <circle class="corner" id="n2" r="2.4"/>
+      <circle class="corner" id="n3" r="2.4"/>
+      <circle class="corner" id="n4" r="2.4"/>
+
+      <!-- sound source -->
+      <circle class="source" id="src" r="4"><animate attributeName="r" values="3.4;5;3.4" dur="2.6s" repeatCount="indefinite"/></circle>
+
+      <!-- bouncing sound rays (paths set by JS) -->
+      <g id="rays"></g>
+    </svg>
+
+    <div class="hd">
+      <div class="mark"><i></i><i></i></div>
+      <h1>OPEN&nbsp;<span>ROOM</span></h1>
+      <div class="sub">Algorithmic Hall</div>
+    </div>
+
+    <div class="hint">drag · dbl-click resets · wheel fine</div>
+
+    <div class="rail" id="rail"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- spec params (index, min, max, default) ----
+  var PARAMS = [
+    {i:0, name:"Mix",       min:0, max:1, def:0.35, unit:"%",  pct:true},
+    {i:1, name:"Room Size", min:0, max:1, def:0.7,  unit:"%",  pct:true},
+    {i:2, name:"Damping",   min:0, max:1, def:0.4,  unit:"%",  pct:true},
+    {i:3, name:"Width",     min:0, max:1, def:1,    unit:"%",  pct:true},
+    {i:4, name:"Pre-Delay", min:0, max:1, def:0,    unit:"ms", pct:false, ms:120}
+  ];
+
+  var state = {}; // index -> value
+  var ARC_R = 22, CIRC = 2*Math.PI*ARC_R;
+  var GAP = 0.32; // fraction of circle left open at bottom (Bauhaus open arc)
+  var SWEEP = 1-GAP, START = 90 + (GAP*180); // degrees
+
+  function fmt(p,v){
+    if(p.pct) return Math.round(v*100) + "";
+    if(p.ms)  return Math.round(v*p.ms) + "";
+    return (Math.round(v*100)/100)+"";
+  }
+
+  // ---------- build controls ----------
+  var rail = document.getElementById('rail');
+  var ctlMap = {};
+  PARAMS.forEach(function(p,idx){
+    var el = document.createElement('div');
+    el.className='ctl'; el.style.setProperty('--i', idx);
+    el.innerHTML =
+      '<span class="chip"></span>'+
+      '<div class="arc"><svg viewBox="0 0 54 54">'+
+        '<circle class="trk" cx="27" cy="27" r="'+ARC_R+'"></circle>'+
+        '<circle class="fil" cx="27" cy="27" r="'+ARC_R+'"></circle>'+
+        '</svg>'+
+        '<div class="hub"></div><div class="dot"></div>'+
+      '</div>'+
+      '<div class="va"><span class="num">0</span><small>'+p.unit+'</small></div>'+
+      '<div class="nm">'+p.name+'</div>';
+    rail.appendChild(el);
+    ctlMap[p.i]={el:el,
+      fil:el.querySelector('.fil'),
+      hub:el.querySelector('.hub'),
+      num:el.querySelector('.num'),
+      chip:el.querySelector('.chip'),
+      p:p};
+    // open-arc dasharray
+    var f=el.querySelector('.fil'), t=el.querySelector('.trk');
+    f.style.strokeDasharray = CIRC; t.style.strokeDasharray = (CIRC*SWEEP)+' '+CIRC;
+    f.style.transform='rotate('+START+'deg)'; f.style.transformOrigin='27px 27px';
+    t.style.transform='rotate('+START+'deg)'; t.style.transformOrigin='27px 27px';
+  });
+
+  function norm(p,v){ return (v-p.min)/((p.max-p.min)||1); }
+
+  function paint(p){
+    var c=ctlMap[p.i], n=norm(p,state[p.i]);
+    // arc fill: dashoffset from full(empty) to sweep
+    var visible = CIRC*SWEEP*n;
+    c.fil.style.strokeDashoffset = (CIRC - visible);
+    // hub angle: maps n in [0,1] over the swept range, pointing outward
+    var ang = -SWEEP*180 + n*(SWEEP*360); // degrees, 0 = straight up
+    c.hub.style.transform='rotate('+ang+'deg)';
+    c.num.textContent = fmt(p,state[p.i]);
+    c.chip.style.opacity = (0.18+0.82*n).toFixed(3);
+    c.chip.style.transform = (p.i===2?'rotate(45deg) ':'')+'scale('+(0.7+0.5*n).toFixed(2)+')';
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.i, state[p.i]);
+    syncRoom();
+  }
+
+  function setN(p,n){
+    n = n<0?0:(n>1?1:n);
+    state[p.i] = p.min + (p.max-p.min)*n;
+    paint(p);
+  }
+
+  // ---------- drag wiring ----------
+  PARAMS.forEach(function(p){
+    var c=ctlMap[p.i], el=c.el, drag=null;
+    el.addEventListener('pointerdown', function(e){
+      drag={y:e.clientY, n:norm(p,state[p.i])};
+      el.classList.add('act'); el.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    el.addEventListener('pointermove', function(e){
+      if(!drag) return;
+      var dy=(drag.y-e.clientY)/200;
+      setN(p, drag.n+dy);
+    });
+    function end(){ drag=null; el.classList.remove('act'); }
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('dblclick', function(){ state[p.i]=p.def; paint(p); });
+    el.addEventListener('wheel', function(e){
+      e.preventDefault();
+      setN(p, norm(p,state[p.i]) + (e.deltaY<0?0.02:-0.02));
+    }, {passive:false});
+  });
+
+  // =================================================================
+  //  ARCHITECTURAL WIREFRAME ROOM  (driven by params)
+  // =================================================================
+  var VB=660, VH=460, CX=330, CY=205;
+  var els={
+    front:document.getElementById('front'),
+    back:document.getElementById('back'),
+    fs:document.getElementById('floorshade'),
+    c:[document.getElementById('c1'),document.getElementById('c2'),document.getElementById('c3'),document.getElementById('c4')],
+    n:[document.getElementById('n1'),document.getElementById('n2'),document.getElementById('n3'),document.getElementById('n4')],
+    src:document.getElementById('src'),
+    rays:document.getElementById('rays')
+  };
+
+  function syncRoom(){
+    var size = state[1]!=null?state[1]:0.7;   // Room Size -> depth of back wall
+    var width = state[3]!=null?state[3]:1;     // Width -> horizontal spread
+    var damp = state[2]!=null?state[2]:0.4;    // Damping -> ray brightness/length
+    var mix  = state[0]!=null?state[0]:0.35;   // Mix -> number/opacity of rays
+    var pre  = state[4]!=null?state[4]:0;      // Pre-Delay -> source offset
+
+    // front opening — fixed-ish, modulated a touch by width
+    var fw = (300 + width*120);                 // front half-width*2
+    var fh = 230;
+    var fx = CX - fw/2, fy = CY - fh/2 + 6;
+    els.front.setAttribute('x',fx); els.front.setAttribute('y',fy);
+    els.front.setAttribute('width',fw); els.front.setAttribute('height',fh);
+
+    // back wall — smaller & higher as size grows (deeper room = vanishing point)
+    var depth = 0.30 + size*0.42;               // 0..1 perspective shrink
+    var bw = fw*(1-depth*0.74), bh = fh*(1-depth*0.74);
+    var bx = CX - bw/2, by = CY - bh/2 - size*18; // recede upward slightly
+    els.back.setAttribute('x',bx); els.back.setAttribute('y',by);
+    els.back.setAttribute('width',bw); els.back.setAttribute('height',bh);
+
+    // front corners
+    var FC=[[fx,fy],[fx+fw,fy],[fx+fw,fy+fh],[fx,fy+fh]];
+    var BC=[[bx,by],[bx+bw,by],[bx+bw,by+bh],[bx,by+bh]];
+    for(var k=0;k<4;k++){
+      els.n[k].setAttribute('cx',FC[k][0]); els.n[k].setAttribute('cy',FC[k][1]);
+      els.c[k].setAttribute('x1',FC[k][0]); els.c[k].setAttribute('y1',FC[k][1]);
+      els.c[k].setAttribute('x2',BC[k][0]); els.c[k].setAttribute('y2',BC[k][1]);
+    }
+    // floor shade quad (front-bottom to back-bottom)
+    els.fs.setAttribute('points',
+      FC[3][0]+','+FC[3][1]+' '+FC[2][0]+','+FC[2][1]+' '+BC[2][0]+','+BC[2][1]+' '+BC[3][0]+','+BC[3][1]);
+
+    // source position — center of back wall, nudged by pre-delay
+    var sx = CX + (pre-0.5)*bw*0.5*pre, sy = by+bh*0.55;
+    els.src.setAttribute('cx', CX + (pre)*bw*0.32);
+    els.src.setAttribute('cy', sy);
+
+    // ----- rays: bounce between front opening and back wall edges -----
+    // ray count grows with mix; reach grows with size; brightness with low damping
+    var count = Math.max(2, Math.round(2 + mix*6));
+    var reach = 0.55 + size*0.45;
+    var bright = 0.30 + (1-damp)*0.70;
+    var srcX = +els.src.getAttribute('cx'), srcY = +els.src.getAttribute('cy');
+
+    // rebuild ray set only if count changed (cheap)
+    if(els.rays.childElementCount !== count){
+      els.rays.innerHTML='';
+      for(var r=0;r<count;r++){
+        var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('class','ray');
+        els.rays.appendChild(path);
+        var p2=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        p2.setAttribute('class','pulse'); p2.setAttribute('r','0');
+        els.rays.appendChild(p2);
+      }
+    }
+    var paths = els.rays.querySelectorAll('.ray');
+    var pulses = els.rays.querySelectorAll('.pulse');
+    var corners = FC.concat(BC); // 8 reflection targets
+
+    for(var r=0;r<paths.length;r++){
+      // each ray zig-zags from source to a few wall points
+      var a = (r/paths.length)*Math.PI*2;
+      var t1 = corners[(r*3)%8], t2 = corners[(r*5+2)%8], t3=corners[(r*7+4)%8];
+      // pull bounce points toward source by (1-reach) so short rooms = tight bounce
+      function lerp(p,q,t){ return [p[0]+(q[0]-p[0])*t, p[1]+(q[1]-p[1])*t]; }
+      var bp1=lerp([srcX,srcY],t1,reach);
+      var bp2=lerp([srcX,srcY],t2,reach*0.85);
+      var bp3=lerp([srcX,srcY],t3,reach);
+      var d='M'+srcX+' '+srcY+' L'+bp1[0]+' '+bp1[1]+' L'+bp2[0]+' '+bp2[1]+' L'+bp3[0]+' '+bp3[1];
+      var pa=paths[r];
+      pa.setAttribute('d',d);
+      pa.style.opacity = (bright* (0.55+0.45*Math.sin(r))).toFixed(3);
+      // animate travel along the ray
+      var dur = (2.2 + r*0.35 + (1-size)*1.5).toFixed(2);
+      pa.style.animation = 'travel '+dur+'s linear infinite';
+      pa.style.animationDelay = (-r*0.4)+'s';
+      // pulse rides to bounce endpoint timed with damp (longer dwell = less damp)
+      var pu=pulses[r];
+      pu.setAttribute('cx',bp3[0]); pu.setAttribute('cy',bp3[1]);
+      pu.style.animation='hit '+dur+'s ease-in infinite';
+      pu.style.animationDelay=(-r*0.4)+'s';
+      pu.style.opacity=bright.toFixed(2);
+    }
+  }
+
+  // ---------- init / host ----------
+  function ready(){
+    PARAMS.forEach(function(p){ state[p.i]=p.def; });
+    PARAMS.forEach(function(p){ paint(p); });
+    syncRoom();
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
+  else ready();
+})();
+</script>
+</body>
+</html>

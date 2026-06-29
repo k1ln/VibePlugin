@@ -1,0 +1,455 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Opto Glow</title>
+<style>
+  @property --gr{syntax:'<number>';inherits:true;initial-value:0}
+  :root{
+    --ac:#ffd166;       /* amber tube glow */
+    --ac2:#ffb454;      /* warm filament  */
+    --vu:#5fb0d6;       /* vintage blue VU */
+    --gr:0;             /* live gain reduction 0..1 */
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#e9e0cf;
+    background:
+      radial-gradient(120% 90% at 50% -10%,#2a2118 0%,#140f0a 55%,#0a0705 100%);
+    display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden;
+  }
+
+  /* ===== CHASSIS — warm cream-bronze faceplate over a dark vented case ===== */
+  .unit{
+    position:relative;width:100%;max-width:600px;border-radius:16px;overflow:hidden;
+    background:
+      linear-gradient(160deg,#3a2f22 0%,#241b12 60%,#1a130c 100%);
+    border:1px solid rgba(0,0,0,.7);
+    box-shadow:
+      0 38px 80px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,221,160,.10),
+      inset 0 0 0 1px rgba(0,0,0,.5);
+    padding:0 0 18px;
+    animation:wake .8s ease both;
+  }
+  @keyframes wake{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+
+  /* brushed metal sheen sweeping the faceplate */
+  .unit::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background:
+      repeating-linear-gradient(96deg,rgba(255,255,255,.025) 0 2px,transparent 2px 5px),
+      linear-gradient(180deg,rgba(255,236,200,.06),transparent 30%);
+    mix-blend-mode:screen;
+  }
+  /* ambient warmth that breathes with the tube */
+  .unit::after{
+    content:"";position:absolute;left:50%;top:46%;width:70%;height:60%;z-index:0;pointer-events:none;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(closest-side,
+      color-mix(in srgb,var(--ac) calc(14% + var(--gr)*28%),transparent),transparent 72%);
+    filter:blur(40px);
+  }
+
+  /* ===== HEADER PLATE ===== */
+  .head{
+    position:relative;z-index:2;display:flex;align-items:center;gap:13px;
+    padding:15px 22px 13px;
+    background:linear-gradient(180deg,rgba(255,236,200,.07),rgba(0,0,0,.18));
+    border-bottom:1px solid rgba(0,0,0,.55);
+    box-shadow:0 1px 0 rgba(255,221,160,.07);
+  }
+  /* power lamp — amber, pulses faintly like a warming tube */
+  .lamp{
+    width:13px;height:13px;border-radius:50%;flex:none;position:relative;
+    background:radial-gradient(circle at 38% 32%,#fff6e0,var(--ac) 55%,#8a5a16 100%);
+    box-shadow:0 0 10px var(--ac),0 0 24px color-mix(in srgb,var(--ac) 60%,transparent),inset 0 0 3px #fff;
+    animation:filament 3.4s ease-in-out infinite;
+  }
+  @keyframes filament{0%,100%{filter:brightness(.8)}50%{filter:brightness(1.25)}}
+  .brand{flex:1;line-height:1}
+  .brand h1{
+    margin:0;font-size:21px;font-weight:800;letter-spacing:.14em;
+    font-family:"Hoefler Text",Georgia,"Times New Roman",serif;
+    color:#f4e6c8;text-shadow:0 1px 0 #000,0 0 18px color-mix(in srgb,var(--ac) 40%,transparent);
+  }
+  .brand .sub{
+    font-size:9.5px;letter-spacing:.42em;text-transform:uppercase;color:#b89a6a;margin-top:4px;
+  }
+  .model{
+    font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#7d6a4c;
+    border:1px solid rgba(255,221,160,.18);border-radius:4px;padding:5px 9px;text-align:center;
+    background:rgba(0,0,0,.25);
+  }
+  .model b{display:block;color:#d9c599;font-size:11px;letter-spacing:.16em}
+
+  /* ===== STAGE: the optical cell + the VU ===== */
+  .stage{
+    position:relative;z-index:2;display:grid;grid-template-columns:1fr 1.15fr;gap:18px;
+    padding:20px 22px 6px;align-items:center;
+  }
+
+  /* --- OPTICAL CELL — glowing photocell that pulses with gain reduction --- */
+  .cellwrap{display:flex;flex-direction:column;align-items:center;gap:9px}
+  .cell{
+    position:relative;width:148px;height:148px;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 50%,#1a120a 0%,#0c0805 70%);
+    border:2px solid rgba(0,0,0,.7);
+    box-shadow:
+      inset 0 0 30px rgba(0,0,0,.85),
+      inset 0 3px 6px rgba(0,0,0,.8),
+      0 8px 22px rgba(0,0,0,.6),
+      0 1px 0 rgba(255,221,160,.12);
+    overflow:hidden;
+  }
+  /* glass dome highlight */
+  .cell::after{
+    content:"";position:absolute;left:18%;top:12%;width:42%;height:28%;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(255,255,255,.22),transparent);
+    filter:blur(3px);pointer-events:none;z-index:5;
+  }
+  /* the LED light source whose intensity = peak reduction drive, modulated live */
+  .glow{
+    position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle at 50% 52%,
+      color-mix(in srgb,#fff7e6 calc(70% + var(--gr)*30%),transparent) 0%,
+      var(--ac) calc(8% + var(--gr)*10%),
+      var(--ac2) calc(20% + var(--gr)*16%),
+      transparent calc(46% + var(--gr)*34%));
+    filter:blur(calc(3px + var(--gr)*3px)) brightness(calc(.55 + var(--gr)*1.1));
+    transition:--gr .12s linear;
+    animation:flicker 5.5s ease-in-out infinite;
+  }
+  @keyframes flicker{0%,100%{opacity:.92}43%{opacity:1}71%{opacity:.96}}
+  /* the photocell — a small dark eye at center that catches the light */
+  .eye{
+    position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+    width:30px;height:30px;border-radius:50%;z-index:4;
+    background:radial-gradient(circle at 42% 38%,#3a2c18,#100a04 75%);
+    box-shadow:
+      inset 0 0 8px rgba(0,0,0,.9),
+      0 0 calc(6px + var(--gr)*26px) color-mix(in srgb,var(--ac) calc(40% + var(--gr)*60%),transparent);
+  }
+  /* concentric scribe rings on the bezel */
+  .rings{position:absolute;inset:8px;border-radius:50%;z-index:3;pointer-events:none;
+    background:repeating-radial-gradient(circle at 50% 52%,transparent 0 9px,rgba(255,221,160,.05) 9px 9.6px);}
+  .celllabel{
+    font-size:9px;letter-spacing:.34em;text-transform:uppercase;color:#a98c5e;text-align:center;
+  }
+  .celllabel b{color:#e7d1a0}
+
+  /* --- VU METER — vintage blue backlit needle --- */
+  .vu{
+    position:relative;border-radius:9px;padding:14px 16px 11px;overflow:hidden;
+    background:
+      radial-gradient(120% 150% at 50% 120%,#cfe0ea 0%,#9fc3d6 40%,#6f9cb6 100%);
+    border:1px solid rgba(0,0,0,.5);
+    box-shadow:
+      inset 0 2px 7px rgba(0,0,0,.45),
+      inset 0 0 24px rgba(40,90,120,.4),
+      0 6px 16px rgba(0,0,0,.5);
+  }
+  .vu .face{position:relative;height:96px}
+  .vu svg{width:100%;height:100%;overflow:visible;display:block}
+  .vu .arc{fill:none;stroke:#2a4458;stroke-width:1.4;opacity:.55}
+  .vu .tickmaj{stroke:#1c3445;stroke-width:1.6}
+  .vu .tickred{stroke:#b23a2f;stroke-width:2.4}
+  .vu .scaletxt{fill:#1c3445;font:8px ui-sans-serif,sans-serif;font-weight:700}
+  .vu .redtxt{fill:#b23a2f}
+  /* the needle pivots from below; angle tracks gain reduction */
+  .needle{
+    transform-box:fill-box;transform-origin:50% 100%;
+    transform:rotate(calc(-46deg + var(--gr)*92deg));
+    transition:transform .16s cubic-bezier(.3,.8,.3,1);
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));
+  }
+  .vu .badge{
+    position:absolute;left:14px;bottom:9px;font-size:7.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:#264a60;font-weight:800;
+  }
+  .vu .mode{
+    position:absolute;right:14px;bottom:9px;font-size:7.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:#264a60;font-weight:800;
+  }
+  /* glass reflection on the meter */
+  .vu::after{content:"";position:absolute;left:0;top:0;width:100%;height:46%;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.35),transparent);}
+
+  /* ===== KNOB ROW ===== */
+  .rack{
+    position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);
+    gap:6px;padding:14px 18px 4px;margin-top:6px;
+    border-top:1px solid rgba(0,0,0,.5);
+    box-shadow:0 -1px 0 rgba(255,221,160,.06);
+  }
+  .ctl{
+    display:flex;flex-direction:column;align-items:center;gap:9px;padding:10px 4px 4px;
+    border-radius:11px;transition:background .2s ease,transform .2s ease;
+    animation:rise .6s both;
+  }
+  .ctl:nth-child(1){animation-delay:.05s}.ctl:nth-child(2){animation-delay:.12s}
+  .ctl:nth-child(3){animation-delay:.19s}.ctl:nth-child(4){animation-delay:.26s}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .ctl:hover{background:rgba(255,221,160,.05);transform:translateY(-2px)}
+
+  /* bakelite knob with chicken-head pointer */
+  .knob{position:relative;width:78px;height:78px;cursor:ns-resize;user-select:none;touch-action:none}
+  .knob .skirt{
+    position:absolute;inset:0;border-radius:50%;
+    background:
+      conic-gradient(from -135deg,
+        var(--ac) calc(var(--kn)*270deg),
+        rgba(0,0,0,.55) calc(var(--kn)*270deg) 270deg,
+        transparent 270deg);
+    filter:drop-shadow(0 0 calc(3px + var(--kn)*7px) color-mix(in srgb,var(--ac) 55%,transparent));
+    transition:--kn .12s cubic-bezier(.2,.75,.25,1);
+  }
+  @property --kn{syntax:'<number>';inherits:false;initial-value:0}
+  .knob .body{
+    position:absolute;inset:9px;border-radius:50%;
+    background:
+      radial-gradient(circle at 42% 30%,#574531 0%,#2c2114 60%,#160f08 100%);
+    box-shadow:
+      inset 0 2px 5px rgba(255,221,160,.14),
+      inset 0 -4px 9px rgba(0,0,0,.8),
+      0 3px 7px rgba(0,0,0,.55);
+  }
+  .knob .body::before{ /* fluting / grip ticks */
+    content:"";position:absolute;inset:0;border-radius:50%;opacity:.4;
+    background:repeating-conic-gradient(from 0deg,rgba(0,0,0,.5) 0 3deg,transparent 3deg 12deg);
+    -webkit-mask:radial-gradient(circle,transparent 60%,#000 61%);
+    mask:radial-gradient(circle,transparent 60%,#000 61%);
+  }
+  .knob .ptr{
+    position:absolute;left:50%;top:9px;width:4px;height:24px;margin-left:-2px;border-radius:2px;
+    background:linear-gradient(var(--ac),var(--ac2));
+    box-shadow:0 0 7px var(--ac),0 1px 1px rgba(0,0,0,.6);
+    transform-origin:50% calc(39px - 9px);
+    transform:rotate(calc((var(--kn) - .5)*270deg));
+    transition:transform .12s cubic-bezier(.2,.75,.25,1);
+  }
+  .knob .bub{
+    position:absolute;left:50%;top:-14px;transform:translate(-50%,5px) scale(.85);opacity:0;
+    font-size:11px;font-weight:800;color:#1a1206;background:var(--ac);
+    padding:2px 8px;border-radius:6px;font-variant-numeric:tabular-nums;pointer-events:none;
+    box-shadow:0 4px 11px rgba(0,0,0,.5);transition:.16s;white-space:nowrap;
+  }
+  .ctl:hover .bub,.knob.act .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+  .nm{
+    font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#bba074;text-align:center;
+  }
+  .val{font-size:12px;font-weight:800;color:#f1e2c2;font-variant-numeric:tabular-nums}
+
+  .foot{
+    position:relative;z-index:2;font-size:10.5px;line-height:1.5;color:#9a865f;
+    margin:10px 22px 0;padding-top:11px;border-top:1px solid rgba(0,0,0,.45);
+    box-shadow:0 -1px 0 rgba(255,221,160,.05);
+  }
+  /* vented screw heads in the corners for that boutique hardware feel */
+  .screw{position:absolute;width:9px;height:9px;border-radius:50%;z-index:3;
+    background:radial-gradient(circle at 38% 34%,#5a4a33,#1a130b);
+    box-shadow:inset 0 0 2px rgba(0,0,0,.8),0 1px 0 rgba(255,221,160,.1)}
+  .screw::after{content:"";position:absolute;inset:2.5px;border-top:1.4px solid rgba(0,0,0,.7);transform:rotate(35deg)}
+  .screw.tl{left:11px;top:11px}.screw.tr{right:11px;top:11px}
+  .screw.bl{left:11px;bottom:11px}.screw.br{right:11px;bottom:11px}
+</style>
+</head>
+<body>
+  <div class="unit">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="head">
+      <span class="lamp"></span>
+      <div class="brand">
+        <h1>OPTO&nbsp;GLOW</h1>
+        <div class="sub">Optical&nbsp;Leveling&nbsp;Amplifier</div>
+      </div>
+      <div class="model">Tube&nbsp;Stage<b>T-4B</b></div>
+    </div>
+
+    <div class="stage">
+      <div class="cellwrap">
+        <div class="cell">
+          <div class="glow"></div>
+          <div class="rings"></div>
+          <div class="eye"></div>
+        </div>
+        <div class="celllabel">Photocell&nbsp;·&nbsp;<b id="grTxt">0.0 dB</b>&nbsp;GR</div>
+      </div>
+
+      <div class="vu">
+        <div class="face">
+          <svg viewBox="0 0 240 100" preserveAspectRatio="xMidYMax meet">
+            <!-- scale arc -->
+            <path class="arc" d="M22,92 A100,100 0 0 1 218,92"/>
+            <!-- ticks + labels generated below; pivot at 120,118 -->
+            <g id="ticks"></g>
+            <!-- needle -->
+            <g class="needle">
+              <rect x="118.6" y="22" width="2.8" height="84" rx="1.4" fill="#13202b"/>
+              <circle cx="120" cy="104" r="6" fill="#1a2c3a"/>
+              <circle cx="120" cy="104" r="2.4" fill="#38566b"/>
+            </g>
+          </svg>
+          <span class="badge">VU&nbsp;·&nbsp;Gain&nbsp;Reduction</span>
+          <span class="mode" id="vuMode">Compress</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+
+<script>
+(function(){
+  var PARAMS = [
+    {name:"Peak Reduction", index:0, min:0, max:1, def:0.5},
+    {name:"Gain",          index:1, min:0, max:1, def:0.35},
+    {name:"Emphasis",      index:2, min:0, max:1, def:0.25},
+    {name:"Mix",           index:3, min:0, max:1, def:1}
+  ];
+  var SUB = "Program-driven optical leveling — a warming tube glows the photocell for slow, two-stage release.";
+
+  var root = document.documentElement;
+  var rack = document.getElementById('rack');
+  document.getElementById('foot').textContent = SUB;
+
+  // current normalized values keyed by index (for live glow target)
+  var nval = {};
+
+  // ---- format a param as a friendly display string ----
+  function disp(p, v){
+    if(p.index===1){ // Gain as makeup dB
+      return (v<=0?'0':'+'+(v*40).toFixed(0)) + ' dB';
+    }
+    if(p.index===0) return Math.round(v*100) + ' %';   // peak reduction
+    if(p.index===2) return Math.round(v*100) + ' %';   // emphasis (compress<->limit)
+    if(p.index===3) return Math.round(v*100) + ' %';   // mix
+    return v.toFixed(2);
+  }
+
+  function build(p){
+    var ctl = document.createElement('div'); ctl.className='ctl';
+    ctl.innerHTML =
+      '<div class="knob">'+
+        '<i class="skirt"></i><i class="body"></i><i class="ptr"></i>'+
+        '<span class="bub"></span>'+
+      '</div>'+
+      '<div class="nm">'+p.name+'</div>'+
+      '<div class="val"></div>';
+    rack.appendChild(ctl);
+
+    var knob = ctl.querySelector('.knob');
+    var skirt = ctl.querySelector('.skirt');
+    var ptr  = ctl.querySelector('.ptr');
+    var bub  = ctl.querySelector('.bub');
+    var out  = ctl.querySelector('.val');
+    var span = (p.max - p.min) || 1;
+    var val = p.def;
+
+    function norm(){ return (val - p.min)/span; }
+    function paint(){
+      var n = norm();
+      skirt.style.setProperty('--kn', n);
+      ptr.style.setProperty('--kn', n);
+      var t = disp(p, val);
+      out.textContent = t; bub.textContent = t;
+      nval[p.index] = n;
+      if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.index, val);
+      updateGlow();
+    }
+    function setN(n){
+      n = n<0?0:(n>1?1:n);
+      val = p.min + span*n;
+      paint();
+    }
+
+    knob.addEventListener('pointerdown', function(e){
+      knob._d=1; knob._y=e.clientY; knob._n=norm(); knob.classList.add('act');
+      try{ knob.setPointerCapture(e.pointerId); }catch(_){}
+      e.preventDefault();
+    });
+    knob.addEventListener('pointermove', function(e){
+      if(!knob._d) return;
+      setN(knob._n + (knob._y - e.clientY)/200);
+    });
+    function end(){ knob._d=0; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup', end);
+    knob.addEventListener('pointercancel', end);
+    knob.addEventListener('lostpointercapture', end);
+    knob.addEventListener('dblclick', function(){ val=p.def; paint(); });
+    knob.addEventListener('wheel', function(e){
+      e.preventDefault(); setN(norm() + (e.deltaY<0?0.025:-0.025));
+    }, {passive:false});
+
+    paint();
+  }
+
+  // ---- VU scale: ticks + labels along the arc ----
+  (function(){
+    var g = document.getElementById('ticks');
+    var marks = [
+      {a:-46,l:'-20',red:false},{a:-30,l:'-10',red:false},{a:-15,l:'-7',red:false},
+      {a:0,l:'-5',red:false},{a:15,l:'-3',red:false},{a:30,l:'-1',red:true},{a:46,l:'0',red:true}
+    ];
+    var cx=120, cy=104, rIn=78, rOut=88, rTxt=66;
+    marks.forEach(function(m){
+      var rad = (m.a-90)*Math.PI/180; // 0deg points up
+      var c=Math.cos(rad), s=Math.sin(rad);
+      var ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+      ln.setAttribute('x1', cx + c*rIn); ln.setAttribute('y1', cy + s*rIn);
+      ln.setAttribute('x2', cx + c*rOut); ln.setAttribute('y2', cy + s*rOut);
+      ln.setAttribute('class', m.red?'tickred':'tickmaj');
+      g.appendChild(ln);
+      var tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+      tx.setAttribute('x', cx + c*rTxt); tx.setAttribute('y', cy + s*rTxt + 3);
+      tx.setAttribute('text-anchor','middle');
+      tx.setAttribute('class', 'scaletxt'+(m.red?' redtxt':''));
+      tx.textContent = m.l;
+      g.appendChild(tx);
+    });
+  })();
+
+  // ---- LIVE GLOW: photocell + VU driven by Peak Reduction & Emphasis, with
+  //      a gentle program-like wander so the cell feels alive (rAF, no busy loop)
+  var grTxt = document.getElementById('grTxt');
+  var vuMode = document.getElementById('vuMode');
+  var target = 0, shown = 0, t0 = performance.now();
+  function updateGlow(){ /* recompute target from current params */
+    var pr = nval[0]!=null?nval[0]:0.5;
+    var em = nval[2]!=null?nval[2]:0.25;
+    // base reduction from peak reduction, sharpened by emphasis (limit)
+    target = pr;
+    vuMode.textContent = em < 0.5 ? 'Compress' : 'Limit';
+  }
+  function tick(now){
+    var t = (now - t0)/1000;
+    var pr = nval[0]!=null?nval[0]:0.5;
+    // program-dependent wander: slow LFO + faster ripple, scaled by drive
+    var prog = (0.5 + 0.5*Math.sin(t*1.6)) * (0.65 + 0.35*Math.sin(t*5.3+1));
+    var live = target * (0.45 + 0.55*prog);
+    // opto two-stage release: smooth toward live, quick up / slow down
+    var up = live > shown;
+    shown += (live - shown) * (up ? 0.35 : 0.06);
+    root.style.setProperty('--gr', shown.toFixed(4));
+    // GR readout in dB (peak reduction up to ~18 dB)
+    grTxt.textContent = (shown*18).toFixed(1) + ' dB';
+    requestAnimationFrame(tick);
+  }
+
+  function ready(){
+    PARAMS.forEach(build);
+    updateGlow();
+    requestAnimationFrame(tick);
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

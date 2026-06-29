@@ -1,0 +1,16 @@
+{
+  "name": "Brickwall",
+  "isInstrument": false,
+  "explanation": "A look-ahead brickwall limiter: a short look-ahead delay feeds a fast peak detector that pulls the gain down before each transient arrives, so the output never exceeds the Ceiling. Threshold drives the input into the limiter, Release sets how quickly the gain recovers, and Gain is a post makeup trim. Transparent on quiet input, an absolute wall on loud.",
+  "assembly": "factory/plugins/brickwall/assembly.ts",
+  "out": "factory/plugins/brickwall/x.vstai",
+  "publishedAt": 1751000045000,
+  "theme": { "accent": "#ff6b6b", "accent2": "#ffb36b" },
+  "guiFile": "factory/plugins/brickwall/gui.html",
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Ceiling",   "index": 1, "min": 0, "max": 1, "default": 1.0 },
+    { "name": "Release",   "index": 2, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Gain",      "index": 3, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

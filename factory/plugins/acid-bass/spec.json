@@ -4,6 +4,7 @@
   "explanation": "A monophonic squelch-bass synth: one saw<->square morphing oscillator feeding a 4-pole resonant low-pass with a fast-decaying filter envelope for the classic acid sweep. Accent boosts the filter envelope and level on hard hits, Glide slides pitch between notes (last-note priority), and high Resonance pushes toward self-oscillation while staying bounded.",
   "assembly": "factory/plugins/acid-bass/assembly.ts",
   "out": "factory/plugins/acid-bass/x.vstai",
+  "guiFile": "factory/plugins/acid-bass/gui.html",
   "publishedAt": 1751000017000,
   "theme": { "accent": "#c6ff3d", "accent2": "#9ae66e" },
   "params": [

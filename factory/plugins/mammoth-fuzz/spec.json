@@ -4,6 +4,7 @@
   "explanation": "A thick, sustaining fuzz. Two cascaded soft-clipping gain stages with inter-stage high-pass filtering deliver long sustain and rich harmonics, while a mid-scooped Tone control tilts the voice between dark/bassy and bright/cutting. Controls: Sustain, Tone, Volume and dry/wet Mix.",
   "assembly": "factory/plugins/mammoth-fuzz/assembly.ts",
   "out": "factory/plugins/mammoth-fuzz/x.vstai",
+  "guiFile": "factory/plugins/mammoth-fuzz/gui.html",
   "publishedAt": 1751000007000,
   "theme": { "accent": "#ff7a3c", "accent2": "#ffb454" },
   "params": [

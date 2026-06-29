@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio Delay</title>
+  <style>
+    :root {
+      --accent: #5ad1ff;
+      --accent2: #80c8ff;
+      --bg0: #0a0e14;
+      --bg1: #121823;
+      --panel: #1a2230;
+      --panel2: #222c3c;
+      --rail: #06090e;
+      --ink: #cdd9e6;
+      --ink-dim: #6b7a8d;
+      --led-off: #103040;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg0);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      min-height: 100%;
+      background:
+        radial-gradient(1200px 500px at 50% -10%, rgba(90,209,255,0.08), transparent 60%),
+        linear-gradient(180deg, #0c111a 0%, #070a10 100%);
+    }
+
+    /* ---- the rack unit ---- */
+    .rack {
+      width: 100%;
+      max-width: 880px;
+      border-radius: 14px;
+      padding: 18px;
+      position: relative;
+      background: linear-gradient(180deg, #2a3543 0%, #161d28 100%);
+      box-shadow:
+        0 30px 70px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        inset 0 -2px 6px rgba(0,0,0,0.5);
+      border: 1px solid #0b0f16;
+    }
+
+    /* rack ears / screws */
+    .screw {
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #5b6675, #1b2230 70%);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .screw::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #0c1118, #2a323e);
+    }
+    .screw.tl { top: 10px; left: 10px; }
+    .screw.tr { top: 10px; right: 10px; }
+    .screw.bl { bottom: 10px; left: 10px; }
+    .screw.br { bottom: 10px; right: 10px; }
+
+    .faceplate {
+      border-radius: 9px;
+      padding: 16px 20px 20px;
+      background:
+        repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 4px),
+        linear-gradient(180deg, #1d2734 0%, #141b26 100%);
+      border: 1px solid #0a0e15;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      margin: 0 18px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+
+    .logo-mark {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(160deg, #16202c, #0c121a);
+      border: 1px solid rgba(90,209,255,0.35);
+      box-shadow: 0 0 14px rgba(90,209,255,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .logo-mark svg { display: block; }
+
+    .titles h1 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .titles .sub {
+      font-size: 9.5px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-top: 2px;
+    }
+
+    .model-badge {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(90,209,255,0.3);
+      border-radius: 20px;
+      padding: 4px 11px;
+      background: rgba(90,209,255,0.06);
+    }
+
+    /* ---- segmented ms display ---- */
+    .display-wrap {
+      margin-top: 16px;
+      border-radius: 8px;
+      padding: 14px 18px;
+      background:
+        radial-gradient(120% 140% at 50% -20%, rgba(90,209,255,0.10), transparent 60%),
+        linear-gradient(180deg, #04080d, #02050a);
+      border: 1px solid #0a121b;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(90,209,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      overflow: hidden;
+    }
+
+    .seg-block { display: flex; align-items: baseline; gap: 8px; }
+    .seg {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      text-shadow: 0 0 8px rgba(90,209,255,0.65), 0 0 22px rgba(90,209,255,0.35);
+    }
+    .seg.dim {
+      color: rgba(90,209,255,0.18);
+      text-shadow: none;
+      position: absolute;
+    }
+    .seg-host { position: relative; }
+    .seg-unit {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    /* tap indicator lane */
+    .taps {
+      flex: 1;
+      max-width: 360px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 46px;
+      padding: 0 4px;
+    }
+    .tap {
+      flex: 1;
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #07131c, #050a10);
+      box-shadow: inset 0 0 0 1px rgba(90,209,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .tap .fill {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 0%;
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      box-shadow: 0 0 10px rgba(90,209,255,0.7);
+      transition: height 0.06s linear;
+    }
+
+    .status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .pwr {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .pwr .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--accent); }
+      50% { opacity: 0.45; box-shadow: 0 0 4px var(--accent); }
+    }
+
+    /* ---- knob row ---- */
+    .controls {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 700px) {
+      .controls { grid-template-columns: repeat(3, 1fr); row-gap: 18px; }
+    }
+
+    .cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 6px 10px;
+      border-radius: 9px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18));
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .knob {
+      width: 78px; height: 78px;
+      cursor: ns-resize;
+      position: relative;
+      touch-action: none;
+      user-select: none;
+    }
+    .knob svg { display: block; width: 100%; height: 100%; }
+    .knob .arc-fg { transition: stroke-dashoffset 0.05s linear; }
+
+    .label {
+      font-size: 9.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .value {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+      min-height: 14px;
+    }
+    .cell:hover .label { color: var(--accent); }
+
+    .foot {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      padding: 0 4px;
+    }
+    .foot .vents {
+      display: flex; gap: 3px;
+    }
+    .foot .vents span {
+      width: 3px; height: 12px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #0a0f16, #05080d);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="rack">
+    <span class="screw tl"></span>
+    <span class="screw tr"></span>
+    <span class="screw bl"></span>
+    <span class="screw br"></span>
+
+    <div class="faceplate">
+      <header>
+        <div class="brand">
+          <div class="logo-mark">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M2 10 H6 L8 4 L12 16 L14 10 H18" stroke="#5ad1ff" stroke-width="1.6"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="titles">
+            <h1>Studio Delay</h1>
+            <div class="sub">Pristine Digital Echo · Stereo</div>
+          </div>
+        </div>
+        <div class="model-badge">DDL-Series</div>
+      </header>
+
+      <div class="display-wrap">
+        <div class="seg-block">
+          <div class="seg-host">
+            <span class="seg dim">8888</span>
+            <span class="seg" id="msReadout">0300</span>
+          </div>
+          <span class="seg-unit">ms</span>
+        </div>
+
+        <div class="taps" id="taps"></div>
+
+        <div class="status">
+          <div class="pwr"><span class="dot"></span> Online</div>
+          <div class="pwr" id="fbReadout" style="animation:none">FB 40%</div>
+        </div>
+      </div>
+
+      <div class="controls" id="controls"></div>
+
+      <div class="foot">
+        <span>24-bit · 96kHz · Linear Interp</span>
+        <span class="vents">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <span>Sync · Tap · Feedback Path</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ---- parameter map (indices MUST match assembly.ts) ----
+    var PARAMS = [
+      { name: "Time",       index: 0, min: 0, max: 1, def: 0.30 },
+      { name: "Feedback",   index: 1, min: 0, max: 1, def: 0.40 },
+      { name: "Modulation", index: 2, min: 0, max: 1, def: 0.20 },
+      { name: "Damping",    index: 3, min: 0, max: 1, def: 0.55 },
+      { name: "Width",      index: 4, min: 0, max: 1, def: 0.35 },
+      { name: "Mix",        index: 5, min: 0, max: 1, def: 0.35 }
+    ];
+
+    var state = {};   // index -> normalized 0..1 value
+
+    // ---- value formatting per param ----
+    function formatValue(p, v) {
+      if (p.name === "Time") {
+        var ms = 20 + v * v * 1480;
+        return Math.round(ms) + " ms";
+      }
+      if (p.name === "Damping") {
+        if (v < 0.48) return "Dark";
+        if (v > 0.52) return "Bright";
+        return "Flat";
+      }
+      return Math.round(v * 100) + " %";
+    }
+
+    function pushParam(p, v) {
+      if (window.vstai && window.vstai.setParam) {
+        window.vstai.setParam(p.index, v);
+      }
+    }
+
+    // ---- build segmented ms display digit ghosting ----
+    function updateReadouts() {
+      var time = state[0];
+      var fb = state[1];
+      var ms = Math.round(20 + time * time * 1480);
+      var str = ("0000" + ms).slice(-4);
+      document.getElementById("msReadout").textContent = str;
+      document.getElementById("fbReadout").textContent = "FB " + Math.round(fb * 100) + "%";
+    }
+
+    // ---- knob factory (SVG) ----
+    var ARC_START = 135;   // degrees
+    var ARC_SWEEP = 270;
+    var R = 30;
+    var CIRC = 2 * Math.PI * R;
+
+    function makeKnob(p) {
+      var cell = document.createElement("div");
+      cell.className = "cell";
+
+      var knob = document.createElement("div");
+      knob.className = "knob";
+      knob.setAttribute("tabindex", "0");
+
+      knob.innerHTML =
+        '<svg viewBox="0 0 80 80">' +
+        '  <defs>' +
+        '    <radialGradient id="body' + p.index + '" cx="40%" cy="32%" r="75%">' +
+        '      <stop offset="0%" stop-color="#2c3849"/>' +
+        '      <stop offset="60%" stop-color="#1b2431"/>' +
+        '      <stop offset="100%" stop-color="#0d1219"/>' +
+        '    </radialGradient>' +
+        '  </defs>' +
+        '  <circle cx="40" cy="40" r="36" fill="none" stroke="#070b11" stroke-width="6"/>' +
+        '  <circle cx="40" cy="40" r="' + R + '" fill="none" stroke="#0c1620" stroke-width="6"' +
+        '    stroke-linecap="round" stroke-dasharray="' + (CIRC * ARC_SWEEP / 360) + ' ' + CIRC + '"' +
+        '    transform="rotate(' + ARC_START + ' 40 40)"/>' +
+        '  <circle class="arc-fg" cx="40" cy="40" r="' + R + '" fill="none" stroke="#5ad1ff" stroke-width="6"' +
+        '    stroke-linecap="round" stroke-dasharray="' + CIRC + '" stroke-dashoffset="' + CIRC + '"' +
+        '    transform="rotate(' + ARC_START + ' 40 40)"' +
+        '    style="filter:drop-shadow(0 0 4px rgba(90,209,255,0.8))"/>' +
+        '  <circle cx="40" cy="40" r="23" fill="url(#body' + p.index + ')"' +
+        '    stroke="#3a4658" stroke-width="1"/>' +
+        '  <line class="pointer" x1="40" y1="40" x2="40" y2="22" stroke="#9fe6ff" stroke-width="2.6"' +
+        '    stroke-linecap="round"/>' +
+        '</svg>';
+
+      var label = document.createElement("div");
+      label.className = "label";
+      label.textContent = p.name;
+
+      var value = document.createElement("div");
+      value.className = "value";
+
+      cell.appendChild(knob);
+      cell.appendChild(label);
+      cell.appendChild(value);
+
+      var arc = knob.querySelector(".arc-fg");
+      var pointer = knob.querySelector(".pointer");
+
+      function render(v) {
+        var sweepLen = CIRC * ARC_SWEEP / 360;
+        arc.setAttribute("stroke-dashoffset", String(CIRC - sweepLen * v));
+        var ang = ARC_START + v * ARC_SWEEP;
+        pointer.setAttribute("transform", "rotate(" + ang + " 40 40)");
+        value.textContent = formatValue(p, v);
+      }
+
+      function setValue(v, push) {
+        v = Math.max(0, Math.min(1, v));
+        state[p.index] = v;
+        render(v);
+        if (push !== false) pushParam(p, v);
+        updateReadouts();
+      }
+
+      // drag (vertical)
+      var dragging = false;
+      var startY = 0, startV = 0;
+
+      function onDown(e) {
+        dragging = true;
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        startV = state[p.index];
+        e.preventDefault();
+      }
+      function onMove(e) {
+        if (!dragging) return;
+        var y = (e.touches ? e.touches[0].clientY : e.clientY);
+        var dy = startY - y;
+        var fine = e.shiftKey ? 0.25 : 1;
+        setValue(startV + dy / 200 * fine);
+        e.preventDefault();
+      }
+      function onUp() { dragging = false; }
+
+      knob.addEventListener("mousedown", onDown);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      knob.addEventListener("touchstart", onDown, { passive: false });
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+
+      knob.addEventListener("wheel", function (e) {
+        var step = (e.shiftKey ? 0.005 : 0.02) * (e.deltaY < 0 ? 1 : -1);
+        setValue(state[p.index] + step);
+        e.preventDefault();
+      }, { passive: false });
+
+      knob.addEventListener("dblclick", function () {
+        setValue(p.def);
+      });
+
+      knob.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowUp" || e.key === "ArrowRight") { setValue(state[p.index] + 0.02); e.preventDefault(); }
+        if (e.key === "ArrowDown" || e.key === "ArrowLeft") { setValue(state[p.index] - 0.02); e.preventDefault(); }
+      });
+
+      p._setValue = setValue;
+      return cell;
+    }
+
+    // ---- build tap indicator lane (animated echo decay) ----
+    var TAP_COUNT = 14;
+    var tapFills = [];
+
+    function buildTaps() {
+      var lane = document.getElementById("taps");
+      for (var i = 0; i < TAP_COUNT; i++) {
+        var t = document.createElement("div");
+        t.className = "tap";
+        var f = document.createElement("div");
+        f.className = "fill";
+        t.appendChild(f);
+        lane.appendChild(t);
+        tapFills.push(f);
+      }
+    }
+
+    // animation: a pulse travels across the taps, decaying by feedback amount.
+    var animPos = 0;
+    var lastT = 0;
+    function animate(ts) {
+      if (document.hidden) { requestAnimationFrame(animate); lastT = ts; return; }
+      if (!lastT) lastT = ts;
+      var dt = (ts - lastT) / 1000;
+      lastT = ts;
+
+      var time = state[0] != null ? state[0] : 0.3;
+      var fb = state[1] != null ? state[1] : 0.4;
+      var mix = state[5] != null ? state[5] : 0.35;
+
+      // speed of the travelling pulse scales with delay time (longer = slower)
+      var ms = 20 + time * time * 1480;
+      var speed = 9.0 / (0.25 + ms / 400);   // taps per second
+      animPos += dt * speed;
+      if (animPos >= TAP_COUNT + 4) animPos = 0;
+
+      for (var i = 0; i < TAP_COUNT; i++) {
+        // each tap lights as the pulse passes, repeats fade by feedback
+        var d = i - animPos;
+        var amp = 0;
+        // primary pass
+        var head = Math.exp(-Math.abs(d) * 1.6);
+        amp = head;
+        // echo trail behind, attenuated by feedback
+        if (d < 0) {
+          amp = head * (0.4 + fb * 0.6);
+        }
+        var decay = Math.pow(0.55 + fb * 0.4, i * 0.5);
+        var h = Math.max(0, Math.min(1, amp * decay)) * (0.3 + mix * 0.7);
+        tapFills[i].style.height = (h * 100) + "%";
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // ---- init ----
+    function start() {
+      var host = document.getElementById("controls");
+      for (var i = 0; i < PARAMS.length; i++) {
+        var p = PARAMS[i];
+        host.appendChild(makeKnob(p));
+      }
+      buildTaps();
+      // initialise every param to its default and push once
+      for (var j = 0; j < PARAMS.length; j++) {
+        PARAMS[j]._setValue(PARAMS[j].def, true);
+      }
+      updateReadouts();
+      requestAnimationFrame(animate);
+    }
+
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(start);
+    } else {
+      start();
+    }
+  </script>
+</body>
+</html>

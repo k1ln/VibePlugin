@@ -1,0 +1,16 @@
+{
+  "name": "Freq Shifter",
+  "isInstrument": false,
+  "explanation": "A Bode-style single-sideband frequency shifter. It splits the input into a 90-degree quadrature pair with a Hilbert-transform allpass network, modulates by a quadrature carrier, and keeps only one sideband — shifting every frequency by a fixed number of Hertz rather than by a ratio. A harmonic input becomes inharmonic and metallic. Controls: Shift (-500..500 Hz), Sideband (down/up), Feedback for shimmering inharmonic cascades, and dry/wet Mix.",
+  "assembly": "factory/plugins/freq-shifter/assembly.ts",
+  "out": "factory/plugins/freq-shifter/x.vstai",
+  "publishedAt": 1751000059000,
+  "theme": { "accent": "#ff7ad1", "accent2": "#9a8cff" },
+  "guiFile": "factory/plugins/freq-shifter/gui.html",
+  "params": [
+    { "name": "Shift",    "index": 0, "min": -500, "max": 500, "default": 100 },
+    { "name": "Sideband", "index": 1, "min": 0, "max": 1, "default": 1, "step": 1 },
+    { "name": "Feedback", "index": 2, "min": 0, "max": 1, "default": 0 },
+    { "name": "Mix",      "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

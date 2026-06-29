@@ -6,6 +6,7 @@
   "out": "factory/plugins/crunch-distortion/x.vstai",
   "publishedAt": 1751000009000,
   "theme": { "accent": "#ff9e2c", "accent2": "#ffd166" },
+  "guiFile": "factory/plugins/crunch-distortion/gui.html",
   "params": [
     { "name": "Dist",  "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Tone",  "index": 1, "min": 0, "max": 1, "default": 0.5 },

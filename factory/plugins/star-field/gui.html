@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Field</title>
+<style>
+  :root {
+    --accent: #7a8cff;
+    --accent2: #54d1ff;
+    --vector: #54f1a8;      /* retro sci-fi vector green */
+    --vector-dim: #1d6b4c;
+    --bg0: #04060f;
+    --bg1: #0a1020;
+    --panel: #0c1226;
+    --line: rgba(122,140,255,0.14);
+    --ink: #cfd8ff;
+    --ink-dim: #6b76a8;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: radial-gradient(120% 90% at 50% -10%, #0d1530 0%, var(--bg0) 70%);
+    color: var(--ink);
+    min-height: 100%;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .station {
+    width: 100%;
+    max-width: 720px;
+    background:
+      linear-gradient(180deg, rgba(20,28,56,0.9), rgba(8,12,28,0.95));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(160,180,255,0.08);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ---------- header ---------- */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(122,140,255,0.07), transparent);
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  .sigil {
+    width: 34px; height: 34px;
+    position: relative;
+    flex: none;
+  }
+  .sigil svg { display: block; }
+  .sigil .core { transform-origin: 17px 17px; animation: spin 14s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    font-size: 9.5px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-top: 2px;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--vector);
+    font-variant-numeric: tabular-nums;
+  }
+  .status .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--vector);
+    box-shadow: 0 0 8px var(--vector);
+    animation: blink 2.2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* ---------- radar / starfield viewport ---------- */
+  .scope {
+    position: relative;
+    margin: 16px;
+    height: 240px;
+    border: 1px solid rgba(84,241,168,0.18);
+    border-radius: 12px;
+    background:
+      radial-gradient(120% 140% at 50% 120%, rgba(84,241,168,0.05), transparent 60%),
+      linear-gradient(180deg, #030810, #02060c);
+    overflow: hidden;
+    cursor: crosshair;
+  }
+  .scope canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .scope .scan {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent, rgba(84,241,168,0.06) 50%, transparent);
+    height: 40%;
+    animation: scan 5.5s linear infinite;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  @keyframes scan {
+    0% { transform: translateY(-120%); }
+    100% { transform: translateY(360%); }
+  }
+
+  .readout {
+    position: absolute;
+    left: 12px; bottom: 10px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--vector);
+    text-shadow: 0 0 6px rgba(84,241,168,0.5);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+    line-height: 1.6;
+  }
+  .readout span { color: #aef7d4; }
+
+  .vlabel {
+    position: absolute;
+    right: 12px; top: 10px;
+    font-size: 8.5px;
+    letter-spacing: 0.3em;
+    color: var(--vector-dim);
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  /* ---------- controls ---------- */
+  .deck {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    padding: 6px 16px 22px;
+  }
+  @media (max-width: 560px) {
+    .deck { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(122,140,255,0.04), rgba(0,0,0,0.18));
+  }
+
+  .knob {
+    position: relative;
+    width: 84px; height: 84px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob svg { display: block; overflow: visible; }
+
+  .knob .face {
+    fill: url(#knobGrad);
+    stroke: rgba(160,180,255,0.18);
+    stroke-width: 1;
+  }
+  .knob .pointer {
+    stroke: var(--accent2);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 4px var(--accent2));
+  }
+  .knob .arc-bg { stroke: rgba(122,140,255,0.16); }
+  .knob .arc {
+    stroke: url(#arcGrad);
+    filter: drop-shadow(0 0 5px rgba(84,209,255,0.55));
+    transition: stroke-dashoffset 0.04s linear;
+  }
+  .knob:hover .arc { filter: drop-shadow(0 0 9px rgba(84,209,255,0.9)); }
+
+  .name {
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .val {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent2);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 8px rgba(84,209,255,0.35);
+  }
+
+  .foot {
+    border-top: 1px solid var(--line);
+    padding: 8px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+</style>
+</head>
+<body>
+  <div class="station">
+    <div class="head">
+      <div class="brand">
+        <div class="sigil">
+          <svg width="34" height="34" viewBox="0 0 34 34">
+            <circle cx="17" cy="17" r="15.5" fill="none" stroke="rgba(122,140,255,0.35)" stroke-width="1"/>
+            <g class="core">
+              <circle cx="17" cy="17" r="3.4" fill="#54d1ff"/>
+              <circle cx="17" cy="4" r="1.6" fill="#7a8cff"/>
+              <circle cx="29" cy="20" r="1.3" fill="#54f1a8"/>
+              <circle cx="6" cy="22" r="1.2" fill="#7a8cff"/>
+              <line x1="17" y1="17" x2="17" y2="4" stroke="rgba(84,209,255,0.4)" stroke-width="0.7"/>
+              <line x1="17" y1="17" x2="29" y2="20" stroke="rgba(84,209,255,0.3)" stroke-width="0.7"/>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <div class="title">Star Field</div>
+          <div class="subtitle">Multitap Space Station</div>
+        </div>
+      </div>
+      <div class="status"><span class="dot"></span> Online</div>
+    </div>
+
+    <div class="scope" id="scope">
+      <canvas id="cv"></canvas>
+      <div class="scan"></div>
+      <div class="vlabel">SECTOR // RVB-01</div>
+      <div class="readout">
+        FIELD DEPTH <span id="roSize">0.00</span> &nbsp; SPREAD <span id="roSpread">0.00</span><br>
+        DECAY <span id="roDecay">0.00</span> &nbsp; DRIFT <span id="roMod">0.00</span> &nbsp; MIX <span id="roMix">0.00</span>
+      </div>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="foot">
+      <span>Drag &middot; Wheel fine &middot; Dbl-click reset</span>
+      <span>Vector Reverb Array</span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var PARAMS = [
+    { name: "Size",   index: 0, min: 0, max: 1, def: 0.55 },
+    { name: "Spread", index: 1, min: 0, max: 1, def: 0.70 },
+    { name: "Decay",  index: 2, min: 0, max: 1, def: 0.55 },
+    { name: "Drift",  index: 3, min: 0, max: 1, def: 0.35 },
+    { name: "Mix",    index: 4, min: 0, max: 1, def: 0.35 }
+  ];
+
+  var state = PARAMS.map(function (p) { return p.def; });
+
+  // ----- host bridge ------------------------------------------------
+  function push(idx, val) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(idx, val);
+    }
+  }
+
+  // ----- shared SVG defs (knob gradients) ---------------------------
+  var SVG_DEFS =
+    '<defs>' +
+    '<radialGradient id="knobGrad" cx="38%" cy="32%" r="75%">' +
+      '<stop offset="0%" stop-color="#2a3566"/>' +
+      '<stop offset="55%" stop-color="#141b38"/>' +
+      '<stop offset="100%" stop-color="#070b1c"/>' +
+    '</radialGradient>' +
+    '<linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#7a8cff"/>' +
+      '<stop offset="100%" stop-color="#54d1ff"/>' +
+    '</linearGradient>' +
+    '</defs>';
+
+  // arc geometry
+  var R = 33, CX = 42, CY = 42;
+  var A0 = 135, A1 = 405; // sweep degrees (270deg gap at bottom)
+  var ARC_LEN = 2 * Math.PI * R * ((A1 - A0) / 360);
+
+  function polar(deg) {
+    var a = deg * Math.PI / 180;
+    return { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a) };
+  }
+
+  function arcPath() {
+    var s = polar(A0), e = polar(A1);
+    var large = (A1 - A0) > 180 ? 1 : 0;
+    return "M " + s.x.toFixed(2) + " " + s.y.toFixed(2) +
+           " A " + R + " " + R + " 0 " + large + " 1 " + e.x.toFixed(2) + " " + e.y.toFixed(2);
+  }
+
+  var deck = document.getElementById("deck");
+  var knobs = [];
+
+  PARAMS.forEach(function (p, i) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    var path = arcPath();
+    knob.innerHTML =
+      '<svg width="84" height="84" viewBox="0 0 84 84">' +
+        SVG_DEFS +
+        '<path class="arc-bg" d="' + path + '" fill="none" stroke-width="4" stroke-linecap="round"/>' +
+        '<path class="arc" d="' + path + '" fill="none" stroke-width="4" stroke-linecap="round" ' +
+          'stroke-dasharray="' + ARC_LEN.toFixed(2) + '" stroke-dashoffset="' + ARC_LEN.toFixed(2) + '"/>' +
+        '<circle class="face" cx="42" cy="42" r="26"/>' +
+        '<line class="pointer" x1="42" y1="42" x2="42" y2="22" transform="rotate(0 42 42)"/>' +
+        '<circle cx="42" cy="42" r="3" fill="#54d1ff"/>' +
+      '</svg>';
+
+    var nm = document.createElement("div");
+    nm.className = "name";
+    nm.textContent = p.name;
+
+    var vv = document.createElement("div");
+    vv.className = "val";
+    vv.textContent = p.def.toFixed(2);
+
+    cell.appendChild(knob);
+    cell.appendChild(nm);
+    cell.appendChild(vv);
+    deck.appendChild(cell);
+
+    var arc = knob.querySelector(".arc");
+    var ptr = knob.querySelector(".pointer");
+
+    function render() {
+      var v = state[i];
+      var frac = (v - p.min) / (p.max - p.min);
+      arc.setAttribute("stroke-dashoffset", (ARC_LEN * (1 - frac)).toFixed(2));
+      var deg = A0 + (A1 - A0) * frac;
+      // pointer points outward along the arc angle
+      ptr.setAttribute("transform", "rotate(" + (deg + 90).toFixed(1) + " 42 42)");
+      vv.textContent = v.toFixed(2);
+    }
+
+    function setVal(v) {
+      if (v < p.min) v = p.min;
+      if (v > p.max) v = p.max;
+      state[i] = v;
+      push(p.index, v);
+      render();
+    }
+
+    // drag (vertical)
+    var dragging = false, lastY = 0;
+    knob.addEventListener("pointerdown", function (e) {
+      dragging = true; lastY = e.clientY;
+      knob.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    knob.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dy = lastY - e.clientY;
+      lastY = e.clientY;
+      var span = p.max - p.min;
+      setVal(state[i] + dy / 180 * span);
+    });
+    knob.addEventListener("pointerup", function (e) {
+      dragging = false;
+      try { knob.releasePointerCapture(e.pointerId); } catch (err) {}
+    });
+    knob.addEventListener("dblclick", function () { setVal(p.def); });
+    knob.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var span = p.max - p.min;
+      setVal(state[i] - Math.sign(e.deltaY) * span * 0.01);
+    }, { passive: false });
+
+    knobs.push({ p: p, render: render, setVal: setVal });
+    render();
+  });
+
+  // ----- starfield / multitap radar canvas --------------------------
+  var cv = document.getElementById("cv");
+  var ctx = cv.getContext("2d");
+  var W = 0, H = 0, DPR = 1;
+
+  function resize() {
+    DPR = window.devicePixelRatio || 1;
+    var r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width = Math.max(1, Math.round(W * DPR));
+    cv.height = Math.max(1, Math.round(H * DPR));
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+
+  // background stars
+  var stars = [];
+  for (var s = 0; s < 90; s++) {
+    stars.push({
+      x: Math.random(), y: Math.random(),
+      z: 0.3 + Math.random() * 0.7,
+      tw: Math.random() * 6.28
+    });
+  }
+
+  // pings: discrete echoes that expand outward from the centre
+  var pings = [];
+  var pingTimer = 0;
+
+  function spawnPing(t) {
+    var size = state[0], spread = state[1], mix = state[4];
+    var n = Math.round(3 + spread * 9); // density of taps
+    for (var k = 0; k < n; k++) {
+      var ang = (k / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+      // spread widens the horizontal fan
+      var wob = 0.5 + spread * 1.2;
+      pings.push({
+        born: t,
+        ang: ang,
+        wob: wob,
+        speed: 0.18 + size * 0.5,
+        life: 1.6 + state[2] * 3.2,    // decay -> longer-lived
+        amp: (0.5 + mix * 0.5) * (1 - k / (n + 4))
+      });
+    }
+  }
+
+  var ro = {
+    Size: document.getElementById("roSize"),
+    Spread: document.getElementById("roSpread"),
+    Decay: document.getElementById("roDecay"),
+    Mod: document.getElementById("roMod"),
+    Mix: document.getElementById("roMix")
+  };
+
+  var running = true;
+  var startT = performance.now();
+
+  function frame(now) {
+    if (!running) return;
+    var t = (now - startT) / 1000;
+
+    if (W === 0) resize();
+    ctx.clearRect(0, 0, W, H);
+
+    var size = state[0], spread = state[1], decay = state[2], mod = state[3], mix = state[4];
+
+    // horizon grid (perspective floor)
+    var hy = H * 0.62;
+    ctx.strokeStyle = "rgba(84,241,168,0.12)";
+    ctx.lineWidth = 1;
+    var rows = 7;
+    for (var g = 0; g <= rows; g++) {
+      var f = g / rows;
+      var y = hy + (H - hy) * f * f;
+      ctx.globalAlpha = 0.4 * (1 - f) + 0.1;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    var cols = 12;
+    for (var c2 = 0; c2 <= cols; c2++) {
+      var fx = c2 / cols - 0.5;
+      ctx.globalAlpha = 0.16;
+      ctx.beginPath();
+      ctx.moveTo(W / 2 + fx * W * 0.18, hy);
+      ctx.lineTo(W / 2 + fx * W * 1.6, H);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // twinkling stars, drifting with Drift/mod
+    var drift = t * (0.005 + mod * 0.05);
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i];
+      var sx = ((st.x + drift * st.z) % 1) * W;
+      var sy = st.y * hy;
+      var tw = 0.5 + 0.5 * Math.sin(t * (1 + st.z) + st.tw);
+      var rad = st.z * 1.4;
+      ctx.fillStyle = "rgba(180,200,255," + (0.25 + 0.55 * tw * st.z) + ")";
+      ctx.beginPath(); ctx.arc(sx, sy, rad, 0, 6.28); ctx.fill();
+    }
+
+    // central station core glow
+    var cx = W / 2, cy = hy;
+    var pulse = 0.5 + 0.5 * Math.sin(t * 2.2);
+    var grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 26 + pulse * 8);
+    grd.addColorStop(0, "rgba(84,209,255,0.55)");
+    grd.addColorStop(1, "rgba(84,209,255,0)");
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(cx, cy, 30, 0, 6.28); ctx.fill();
+    ctx.fillStyle = "#7a8cff";
+    ctx.beginPath(); ctx.arc(cx, cy, 3.2, 0, 6.28); ctx.fill();
+
+    // spawn pings at a rate tied to size (bigger space = slower revolutions)
+    pingTimer += 0.016;
+    var interval = 0.55 + size * 0.7;
+    if (pingTimer >= interval) {
+      pingTimer = 0;
+      spawnPing(t);
+    }
+
+    // draw + advance pings (the multitap echoes)
+    var maxR = Math.min(W, H) * 0.7;
+    for (var pidx = pings.length - 1; pidx >= 0; pidx--) {
+      var pg = pings[pidx];
+      var age = t - pg.born;
+      if (age > pg.life) { pings.splice(pidx, 1); continue; }
+      var prog = age / pg.life;
+      var rr = age * pg.speed * maxR;
+      var px = cx + Math.cos(pg.ang) * rr * pg.wob;
+      var py = cy + Math.sin(pg.ang) * rr * 0.55; // flatten vertically toward horizon
+      var a = pg.amp * (1 - prog);
+      // tap dot
+      ctx.fillStyle = "rgba(84,241,168," + a + ")";
+      ctx.shadowColor = "rgba(84,241,168,0.9)";
+      ctx.shadowBlur = 8 * a;
+      ctx.beginPath(); ctx.arc(px, py, 2 + a * 2.5, 0, 6.28); ctx.fill();
+      // faint trail back toward core
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = "rgba(122,140,255," + (a * 0.35) + ")";
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+
+    // readout
+    ro.Size.textContent = size.toFixed(2);
+    ro.Spread.textContent = spread.toFixed(2);
+    ro.Decay.textContent = decay.toFixed(2);
+    ro.Mod.textContent = mod.toFixed(2);
+    ro.Mix.textContent = mix.toFixed(2);
+
+    requestAnimationFrame(frame);
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      running = false;
+    } else if (!running) {
+      running = true;
+      startT = performance.now() - 0;
+      requestAnimationFrame(frame);
+    }
+  });
+
+  // ----- init: push defaults to engine ------------------------------
+  function boot() {
+    resize();
+    for (var i = 0; i < PARAMS.length; i++) {
+      push(PARAMS[i].index, state[i]);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

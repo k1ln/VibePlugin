@@ -1,0 +1,16 @@
+{
+  "name": "Dimensional",
+  "isInstrument": false,
+  "explanation": "A dimensional BBD-style stereo chorus. Two gently pitch-modulated short delay lines per channel are cross-fed left-to-right to bloom a mono source into a wide, animated stereo image with very little obvious wobble. Mode picks four intensity presets; Depth, Width and Mix shape the spread.",
+  "assembly": "factory/plugins/dimensional/assembly.ts",
+  "out": "factory/plugins/dimensional/x.vstai",
+  "publishedAt": 1751000043000,
+  "theme": { "accent": "#8fb6ff", "accent2": "#b0e0ff" },
+  "guiFile": "factory/plugins/dimensional/gui.html",
+  "params": [
+    { "name": "Mode",  "index": 0, "min": 0, "max": 3, "default": 0, "step": 1 },
+    { "name": "Depth", "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Width", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",   "index": 3, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

@@ -3,6 +3,7 @@
   "isInstrument": false,
   "explanation": "An amp-style amplitude tremolo: a low-frequency oscillator pulses the signal level for that vintage combo-amp throb. Shape morphs the modulation from a glassy sine sweep into a hard, choppy bias chop, Stereo spreads the L/R phase for a wider image, and Output trims the level. Controls: Rate, Depth, Shape, Stereo and Output.",
   "assembly": "factory/plugins/bias-tremolo/assembly.ts",
+  "guiFile": "factory/plugins/bias-tremolo/gui.html",
   "out": "factory/plugins/bias-tremolo/x.vstai",
   "publishedAt": 1751000035000,
   "theme": { "accent": "#5ad19b", "accent2": "#8ae0b0" },

@@ -6,6 +6,7 @@
   "out": "factory/plugins/grit-sampler/x.vstai",
   "publishedAt": 1751000029000,
   "theme": { "accent": "#ff9e54", "accent2": "#ffc080" },
+  "guiFile": "factory/plugins/grit-sampler/gui.html",
   "params": [
     { "name": "Pitch", "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Grit",  "index": 1, "min": 0, "max": 1, "default": 0.55 },

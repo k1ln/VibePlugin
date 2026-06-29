@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vox Strings</title>
+<style>
+  :root {
+    --accent: #d8b0e0;
+    --accent2: #a0c0ff;
+    --cream: #efe6d2;
+    --cream-2: #e2d4b6;
+    --wood: #3a2c22;
+    --panel: #2a2230;
+    --panel-2: #1c1722;
+    --ink: #efe7df;
+    --ink-dim: #b6a9c4;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(120% 90% at 50% -10%, #322a3a 0%, #1a1520 60%, #120e18 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 18px 16px 26px;
+  }
+
+  /* ---- the cabinet: a soft vintage tilt panel ---- */
+  .cabinet {
+    position: relative;
+    border-radius: 18px;
+    padding: 16px 18px 20px;
+    background:
+      linear-gradient(180deg, #36293f 0%, #2a2030 48%, #221a28 100%);
+    border: 1px solid rgba(216,176,224,0.18);
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      inset 0 -2px 14px rgba(0,0,0,0.5);
+    transform: perspective(1400px) rotateX(2.2deg);
+  }
+
+  /* warm ensemble glow that breathes behind everything */
+  .glow {
+    position: absolute;
+    inset: -2px;
+    border-radius: 18px;
+    pointer-events: none;
+    background: radial-gradient(60% 50% at 50% 30%,
+      rgba(216,176,224,0.20), rgba(160,192,255,0.10) 45%, transparent 70%);
+    filter: blur(8px);
+    opacity: 0.5;
+    animation: breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.35; transform: scale(1.0); }
+    50%      { opacity: 0.62; transform: scale(1.03); }
+  }
+
+  /* ---- header / brand ---- */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
+  }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .brand .kicker {
+    font-size: 10px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    opacity: 0.85;
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    background: linear-gradient(180deg, #fff, var(--accent) 70%, #c79ad2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+  }
+  .badge {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid rgba(216,176,224,0.25);
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: rgba(0,0,0,0.2);
+  }
+
+  /* ---- the choir scene above the strings ---- */
+  .scene {
+    position: relative;
+    z-index: 2;
+    height: 132px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background:
+      linear-gradient(180deg, #241b2c 0%, #1a1422 55%, #15101c 100%);
+    border: 1px solid rgba(0,0,0,0.4);
+    box-shadow: inset 0 2px 18px rgba(0,0,0,0.6);
+  }
+  .scene svg { display: block; width: 100%; height: 100%; }
+
+  /* ---- control bays ---- */
+  .bays {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 660px) {
+    .bays { grid-template-columns: repeat(4, 1fr); }
+  }
+  .bay {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18));
+    border: 1px solid rgba(216,176,224,0.10);
+    border-radius: 12px;
+    padding: 12px 6px 9px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+  }
+  .knob-wrap { position: relative; width: 72px; height: 72px; cursor: ns-resize; }
+  .knob-wrap svg { width: 72px; height: 72px; display: block; }
+  .klabel {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .kval {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  /* ---- cream tabs row ---- */
+  .tabs {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+    margin: 14px 0 12px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 7px 13px;
+    border-radius: 7px 7px 3px 3px;
+    color: #4a3a2c;
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream-2) 100%);
+    border: 1px solid rgba(0,0,0,0.25);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.6);
+    cursor: pointer;
+    user-select: none;
+    font-weight: 700;
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .tab:hover { filter: brightness(1.05); }
+  .tab.on {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.3),
+      inset 0 2px 5px rgba(0,0,0,0.35),
+      0 0 14px var(--accent);
+    background: linear-gradient(180deg, #f6ecd6, #ead9b4);
+  }
+
+  /* ---- keyboard ---- */
+  .kbd {
+    position: relative;
+    z-index: 2;
+    margin-top: 8px;
+    height: 110px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #100c16, #1a1420);
+    padding: 8px 8px 0;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .keys { position: relative; height: 100%; display: flex; }
+  .wkey {
+    position: relative;
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #f3ece0 0%, #d9cfbe 100%);
+    box-shadow: inset 0 -6px 8px rgba(0,0,0,0.12), 0 2px 3px rgba(0,0,0,0.4);
+    cursor: pointer;
+    transition: background .06s ease, box-shadow .06s ease;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent) 0%, #b890c6 100%);
+    box-shadow: inset 0 -3px 10px rgba(0,0,0,0.3), 0 0 16px var(--accent);
+  }
+  .bkeys {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 62%;
+    display: flex;
+    pointer-events: none;
+  }
+  .bkey {
+    position: absolute;
+    width: 5%;
+    height: 100%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a2230, #0d0a12);
+    box-shadow: 0 3px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent2), #5e76b0);
+    box-shadow: 0 0 16px var(--accent2);
+  }
+
+  .foot {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="cabinet">
+    <div class="glow"></div>
+
+    <div class="header">
+      <div class="brand">
+        <div class="kicker">Ensemble Instrument</div>
+        <h1>Vox Strings</h1>
+      </div>
+      <div class="badge">Strings &middot; Voice</div>
+    </div>
+
+    <!-- choir mouths above a bowed string section -->
+    <div class="scene">
+      <svg viewBox="0 0 800 132" preserveAspectRatio="none">
+        <defs>
+          <radialGradient id="head" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#3a3048"/>
+            <stop offset="100%" stop-color="#241c2e"/>
+          </radialGradient>
+          <linearGradient id="str" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d8b0e0"/>
+            <stop offset="100%" stop-color="#a0c0ff"/>
+          </linearGradient>
+        </defs>
+
+        <!-- four choir singers with animated "aah" mouths -->
+        <g id="choir"></g>
+
+        <!-- bowed string section: vibrating strings -->
+        <g id="strings"></g>
+      </svg>
+    </div>
+
+    <div class="bays" id="bays"></div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div class="kbd">
+      <div class="keys" id="whiteKeys"></div>
+      <div class="bkeys" id="blackKeys"></div>
+    </div>
+
+    <div class="foot">Drag knobs vertically &middot; double-click to reset &middot; play the keys</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Strings",  idx: 0, def: 0.70, fmt: pct },
+    { name: "Voice",    idx: 1, def: 0.55, fmt: pct },
+    { name: "Ensemble", idx: 2, def: 0.60, fmt: pct },
+    { name: "Attack",   idx: 3, def: 0.35, fmt: secAtk },
+    { name: "Release",  idx: 4, def: 0.45, fmt: secRel },
+    { name: "Tone",     idx: 5, def: 0.60, fmt: pct },
+    { name: "Level",    idx: 6, def: 0.70, fmt: pct }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function secAtk(v) { return (0.005 + v * 2.0).toFixed(2) + "s"; }
+  function secRel(v) { return (0.02 + v * 2.5).toFixed(2) + "s"; }
+
+  // ---- host bridge ----
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].idx, values[i]);
+    }
+  }
+  function pushAll() { for (var i = 0; i < PARAMS.length; i++) pushParam(i); }
+
+  // ============================================================
+  //  KNOBS — hand-drawn SVG, drag vertical, dbl-click reset, wheel
+  // ============================================================
+  var bays = document.getElementById("bays");
+  var knobEls = [];
+
+  function makeKnob(i) {
+    var p = PARAMS[i];
+
+    var bay = document.createElement("div");
+    bay.className = "bay";
+
+    var wrap = document.createElement("div");
+    wrap.className = "knob-wrap";
+
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    // outer dish
+    var dish = document.createElementNS(NS, "circle");
+    dish.setAttribute("cx", "50"); dish.setAttribute("cy", "50"); dish.setAttribute("r", "44");
+    dish.setAttribute("fill", "#1a1420");
+    dish.setAttribute("stroke", "rgba(216,176,224,0.18)");
+    dish.setAttribute("stroke-width", "1.5");
+    svg.appendChild(dish);
+
+    // track arc (background)
+    var track = document.createElementNS(NS, "path");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(255,255,255,0.10)");
+    track.setAttribute("stroke-width", "5");
+    track.setAttribute("stroke-linecap", "round");
+    track.setAttribute("d", arcPath(0));
+    svg.appendChild(track);
+
+    // value arc (accent)
+    var arc = document.createElementNS(NS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#kgrad)");
+    arc.setAttribute("stroke-width", "5");
+    arc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(arc);
+
+    // gradient for arc
+    var defs = document.createElementNS(NS, "defs");
+    var grad = document.createElementNS(NS, "linearGradient");
+    grad.setAttribute("id", "kgrad" + i);
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
+    var s1 = document.createElementNS(NS, "stop");
+    s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", "#d8b0e0");
+    var s2 = document.createElementNS(NS, "stop");
+    s2.setAttribute("offset", "100%"); s2.setAttribute("stop-color", "#a0c0ff");
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+    arc.setAttribute("stroke", "url(#kgrad" + i + ")");
+
+    // cap
+    var cap = document.createElementNS(NS, "circle");
+    cap.setAttribute("cx", "50"); cap.setAttribute("cy", "50"); cap.setAttribute("r", "30");
+    cap.setAttribute("fill", "#2c2336");
+    cap.setAttribute("stroke", "rgba(0,0,0,0.5)");
+    cap.setAttribute("stroke-width", "1");
+    svg.appendChild(cap);
+
+    // pointer notch
+    var notch = document.createElementNS(NS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "24");
+    notch.setAttribute("stroke", "#f0e7df");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    wrap.appendChild(svg);
+
+    var label = document.createElement("div");
+    label.className = "klabel";
+    label.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "kval";
+
+    bay.appendChild(wrap);
+    bay.appendChild(label);
+    bay.appendChild(val);
+    bays.appendChild(bay);
+
+    var ref = { arc: arc, notch: notch, val: val };
+    knobEls.push(ref);
+
+    function arcPath(frac) {
+      // 270-degree sweep from -225deg to +45deg
+      var a0 = (-225) * Math.PI / 180;
+      var a1 = (-225 + 270 * frac) * Math.PI / 180;
+      var r = 40;
+      var x0 = 50 + r * Math.cos(a0), y0 = 50 + r * Math.sin(a0);
+      var x1 = 50 + r * Math.cos(a1), y1 = 50 + r * Math.sin(a1);
+      var large = (270 * frac) > 180 ? 1 : 0;
+      return "M " + x0.toFixed(2) + " " + y0.toFixed(2) +
+             " A " + r + " " + r + " 0 " + large + " 1 " +
+             x1.toFixed(2) + " " + y1.toFixed(2);
+    }
+    track.setAttribute("d", arcPath(1));
+
+    function render() {
+      var v = values[i];
+      arc.setAttribute("d", arcPath(v <= 0 ? 0.001 : v));
+      var ang = -225 + 270 * v;
+      notch.setAttribute("transform", "rotate(" + ang + " 50 50)");
+      val.textContent = p.fmt(v);
+    }
+    ref.render = render;
+    render();
+
+    // ---- interaction ----
+    var dragging = false, lastY = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      wrap.style.filter = "drop-shadow(0 0 8px var(--accent))";
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      values[i] = clamp01(values[i] + dy / 180);
+      render();
+      pushParam(i);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      wrap.style.filter = "";
+    }
+    wrap.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    wrap.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    wrap.addEventListener("dblclick", function () {
+      values[i] = p.def; render(); pushParam(i);
+    });
+    wrap.addEventListener("wheel", function (e) {
+      values[i] = clamp01(values[i] - e.deltaY / 1500);
+      render(); pushParam(i);
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+  for (var i = 0; i < PARAMS.length; i++) makeKnob(i);
+
+  // ============================================================
+  //  CREAM TABS — quick voicing presets (purely client-side macros)
+  // ============================================================
+  var TABS = [
+    { name: "Strings", set: { 0: 0.85, 1: 0.20, 2: 0.55, 5: 0.55 } },
+    { name: "Choir",   set: { 0: 0.20, 1: 0.85, 2: 0.65, 5: 0.62 } },
+    { name: "Ensemble", set: { 0: 0.70, 1: 0.60, 2: 0.92, 5: 0.6 } },
+    { name: "Pad",     set: { 0: 0.65, 1: 0.55, 2: 0.7, 3: 0.7, 4: 0.75, 5: 0.5 } }
+  ];
+  var tabsEl = document.getElementById("tabs");
+  var tabEls = [];
+  TABS.forEach(function (t, ti) {
+    var el = document.createElement("div");
+    el.className = "tab";
+    el.textContent = t.name;
+    el.addEventListener("click", function () {
+      Object.keys(t.set).forEach(function (k) {
+        var idx = +k;
+        values[idx] = clamp01(t.set[k]);
+        knobEls[idx].render();
+        pushParam(idx);
+      });
+      tabEls.forEach(function (e) { e.classList.remove("on"); });
+      el.classList.add("on");
+    });
+    tabsEl.appendChild(el);
+    tabEls.push(el);
+  });
+
+  // ============================================================
+  //  KEYBOARD
+  // ============================================================
+  var WHITE = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83]; // 2 octaves C4..
+  var BLACK = [ // { note, leftFraction }
+    { n: 61, after: 0 }, { n: 63, after: 1 },
+    { n: 66, after: 3 }, { n: 68, after: 4 }, { n: 70, after: 5 },
+    { n: 73, after: 7 }, { n: 75, after: 8 },
+    { n: 78, after: 10 }, { n: 80, after: 11 }, { n: 82, after: 12 }
+  ];
+
+  var whiteRow = document.getElementById("whiteKeys");
+  var blackRow = document.getElementById("blackKeys");
+  var keyEls = {};
+  var heldCount = 0;
+
+  WHITE.forEach(function (note) {
+    var k = document.createElement("div");
+    k.className = "wkey";
+    bindKey(k, note);
+    whiteRow.appendChild(k);
+    keyEls[note] = k;
+  });
+
+  var whiteW = 100 / WHITE.length;
+  BLACK.forEach(function (b) {
+    var k = document.createElement("div");
+    k.className = "bkey";
+    k.style.left = ((b.after + 1) * whiteW - 2.5) + "%";
+    bindKey(k, b.n);
+    blackRow.appendChild(k);
+    keyEls[b.n] = k;
+  });
+
+  function noteOn(note) {
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(note, 0.9);
+    if (keyEls[note]) keyEls[note].classList.add("down");
+    heldCount++;
+    setSinging(true);
+  }
+  function noteOff(note) {
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(note);
+    if (keyEls[note]) keyEls[note].classList.remove("down");
+    heldCount = Math.max(0, heldCount - 1);
+    if (heldCount === 0) setSinging(false);
+  }
+
+  function bindKey(el, note) {
+    var active = false;
+    function down(e) { if (!active) { active = true; noteOn(note); } e.preventDefault(); }
+    function up(e) { if (active) { active = false; noteOff(note); } if (e) e.preventDefault(); }
+    el.addEventListener("mousedown", down);
+    el.addEventListener("mouseup", up);
+    el.addEventListener("mouseleave", up);
+    el.addEventListener("touchstart", down, { passive: false });
+    el.addEventListener("touchend", up, { passive: false });
+  }
+
+  // computer keyboard mapping (one octave)
+  var KEYMAP = { a:60, w:61, s:62, e:63, d:64, f:65, t:66, g:67,
+                 y:68, h:69, u:70, j:71, k:72, o:73, l:74 };
+  var keyDownMap = {};
+  window.addEventListener("keydown", function (e) {
+    var n = KEYMAP[e.key];
+    if (n != null && !keyDownMap[n]) { keyDownMap[n] = true; noteOn(n); }
+  });
+  window.addEventListener("keyup", function (e) {
+    var n = KEYMAP[e.key];
+    if (n != null && keyDownMap[n]) { keyDownMap[n] = false; noteOff(n); }
+  });
+
+  // ============================================================
+  //  SCENE — choir mouths + bowed strings, requestAnimationFrame
+  // ============================================================
+  var NS = "http://www.w3.org/2000/svg";
+  var choir = document.getElementById("choir");
+  var strings = document.getElementById("strings");
+  var mouths = [];
+  var stringPaths = [];
+
+  // four singers
+  var headX = [150, 330, 470, 650];
+  headX.forEach(function (cx, k) {
+    var g = document.createElementNS(NS, "g");
+
+    var head = document.createElementNS(NS, "ellipse");
+    head.setAttribute("cx", cx); head.setAttribute("cy", "34");
+    head.setAttribute("rx", "26"); head.setAttribute("ry", "30");
+    head.setAttribute("fill", "url(#head)");
+    head.setAttribute("stroke", "rgba(216,176,224,0.3)");
+    head.setAttribute("stroke-width", "1");
+    g.appendChild(head);
+
+    // eyes
+    [-9, 9].forEach(function (dx) {
+      var eye = document.createElementNS(NS, "circle");
+      eye.setAttribute("cx", cx + dx); eye.setAttribute("cy", "28");
+      eye.setAttribute("r", "2.4");
+      eye.setAttribute("fill", "rgba(160,192,255,0.85)");
+      g.appendChild(eye);
+    });
+
+    // open "aah" mouth (ellipse that grows when singing)
+    var mouth = document.createElementNS(NS, "ellipse");
+    mouth.setAttribute("cx", cx); mouth.setAttribute("cy", "46");
+    mouth.setAttribute("rx", "7"); mouth.setAttribute("ry", "3");
+    mouth.setAttribute("fill", "#160f1c");
+    mouth.setAttribute("stroke", "rgba(216,176,224,0.5)");
+    mouth.setAttribute("stroke-width", "1");
+    g.appendChild(mouth);
+    mouths.push({ el: mouth, cy: 46, phase: k * 0.8 });
+
+    choir.appendChild(g);
+  });
+
+  // bowed string section — 7 strings across the lower band
+  for (var s = 0; s < 7; s++) {
+    var y = 78 + s * 7.2;
+    var path = document.createElementNS(NS, "path");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "url(#str)");
+    path.setAttribute("stroke-width", (1.6 - s * 0.06).toFixed(2));
+    path.setAttribute("opacity", (0.85 - s * 0.06).toFixed(2));
+    strings.appendChild(path);
+    stringPaths.push({ el: path, y: y, phase: s * 0.9, amp: 0 });
+  }
+
+  var singing = false;
+  var singAmt = 0; // eased 0..1
+  function setSinging(on) { singing = on; }
+
+  var t0 = performance.now();
+  function frame(now) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var t = (now - t0) / 1000;
+
+    // ease the "singing" intensity
+    var target = singing ? 1 : 0;
+    singAmt += (target - singAmt) * 0.08;
+
+    // animate choir mouths (vowel shaping)
+    for (var m = 0; m < mouths.length; m++) {
+      var mo = mouths[m];
+      var wob = 0.5 + 0.5 * Math.sin(t * 2.2 + mo.phase);
+      var ry = 3 + singAmt * (5 + 7 * wob);
+      var rx = 7 + singAmt * 3 * (1 - wob * 0.4);
+      mo.el.setAttribute("ry", ry.toFixed(2));
+      mo.el.setAttribute("rx", rx.toFixed(2));
+      mo.el.setAttribute("fill", singAmt > 0.05
+        ? "rgba(40,24,52," + (0.6 + 0.4 * singAmt) + ")" : "#160f1c");
+    }
+
+    // animate vibrating strings (ensemble shimmer)
+    var ens = (values[2] || 0);
+    for (var i2 = 0; i2 < stringPaths.length; i2++) {
+      var sp = stringPaths[i2];
+      var amp = (1.5 + ens * 5) * (0.3 + singAmt);
+      var freqMod = 1 + ens * 0.6;
+      var d = "M 40 " + sp.y;
+      var steps = 16;
+      for (var x = 1; x <= steps; x++) {
+        var px = 40 + (720 * x / steps);
+        var ph = (x / steps) * Math.PI * (3 + i2 * 0.4);
+        var py = sp.y + Math.sin(t * (5 + i2) * freqMod + sp.phase + ph) * amp
+                  * Math.sin(Math.PI * x / steps);
+        d += " L " + px.toFixed(1) + " " + py.toFixed(2);
+      }
+      sp.el.setAttribute("d", d);
+    }
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ============================================================
+  //  INIT — push all defaults once the host is ready
+  // ============================================================
+  function start() {
+    pushAll();
+    for (var i = 0; i < knobEls.length; i++) knobEls[i].render();
+  }
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

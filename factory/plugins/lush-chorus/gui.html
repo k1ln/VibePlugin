@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lush Chorus</title>
+<style>
+/* ============================================================
+   LUSH CHORUS — a liquid bucket-brigade ensemble.
+   Animated water surface, doubled "voice" droplets, gentle
+   Juno pastel shimmer. Bespoke vertical-fluid faders + a
+   central tide pool. Every control is hand-built SVG/CSS.
+   ============================================================ */
+:root{
+  --ac:#6ad0ff;          /* aqua */
+  --ac2:#7a8cff;         /* periwinkle */
+  --foam:#d8f4ff;
+  --ink:#dff0fb;
+  --deep:#06121f;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px/1.4 "Avenir Next",ui-rounded,"Segoe UI",system-ui,-apple-system,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(120% 90% at 50% -10%, #16344d 0%, #0b2237 42%, #06121f 78%, #030a12 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;overflow:hidden;
+  -webkit-user-select:none;user-select:none;
+}
+
+/* ---- panel ------------------------------------------------ */
+.tank{
+  position:relative;width:100%;max-width:620px;border-radius:26px;
+  padding:0 0 18px;overflow:hidden;
+  background:linear-gradient(168deg,rgba(20,52,76,.92),rgba(7,20,33,.96));
+  border:1px solid rgba(150,220,255,.16);
+  box-shadow:
+    0 40px 90px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(190,235,255,.18),
+    inset 0 0 0 1px rgba(0,0,0,.35),
+    inset 0 -60px 90px rgba(7,18,30,.55);
+}
+/* slow caustic light slick over everything */
+.tank::before{
+  content:"";position:absolute;inset:-30%;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(closest-side at 28% 30%, color-mix(in srgb,var(--ac) 26%,transparent), transparent 70%),
+    radial-gradient(closest-side at 74% 64%, color-mix(in srgb,var(--ac2) 24%,transparent), transparent 70%);
+  filter:blur(34px);
+  animation:slick 17s ease-in-out infinite alternate;
+}
+@keyframes slick{
+  0%{transform:translate(-6%,-4%) scale(1) rotate(0deg)}
+  100%{transform:translate(8%,6%) scale(1.14) rotate(8deg)}
+}
+
+/* ---- header ----------------------------------------------- */
+.cap{
+  position:relative;z-index:2;display:flex;align-items:center;gap:13px;
+  padding:17px 22px 14px;
+  border-bottom:1px solid rgba(150,220,255,.12);
+  background:linear-gradient(180deg,rgba(160,225,255,.07),rgba(160,225,255,0));
+}
+.drop{position:relative;width:26px;height:26px;flex:none}
+.drop svg{width:100%;height:100%;overflow:visible}
+.ttl{flex:1;min-width:0}
+.ttl h1{
+  margin:0;font-size:19px;font-weight:800;letter-spacing:.12em;
+  background:linear-gradient(96deg,var(--foam),var(--ac) 45%,var(--ac2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 22px rgba(106,208,255,.25);
+}
+.ttl p{margin:2px 0 0;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#74a6c4}
+.tag{
+  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#9fd6f0;
+  border:1px solid rgba(150,220,255,.28);border-radius:999px;padding:4px 11px;
+  background:rgba(106,208,255,.06);white-space:nowrap;
+}
+
+/* ---- body layout ------------------------------------------ */
+.body{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 188px 1fr;gap:14px;
+  padding:18px 20px 6px;align-items:stretch;
+}
+@media(max-width:560px){
+  .body{grid-template-columns:1fr 1fr}
+  .pool{grid-column:1 / -1;order:-1}
+}
+
+/* ---- fluid faders (Rate / Depth | Mix / Width) ------------ */
+.bank{display:flex;flex-direction:column;gap:14px}
+.fader{
+  position:relative;display:flex;gap:13px;align-items:stretch;
+  padding:11px 12px;border-radius:18px;
+  background:linear-gradient(160deg,rgba(140,205,240,.05),rgba(8,22,36,.35));
+  border:1px solid rgba(150,220,255,.1);
+  box-shadow:inset 0 1px 0 rgba(190,235,255,.08),0 8px 20px rgba(0,0,0,.28);
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+  animation:rise .6s both;
+}
+.fader:hover{border-color:rgba(150,220,255,.32);transform:translateY(-2px)}
+.fader.live{border-color:var(--ac);box-shadow:inset 0 1px 0 rgba(190,235,255,.1),0 0 26px rgba(106,208,255,.28)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* the glass tube + liquid */
+.tube{
+  position:relative;width:34px;flex:none;border-radius:16px;overflow:hidden;cursor:ns-resize;
+  touch-action:none;
+  background:linear-gradient(90deg,rgba(0,0,0,.4),rgba(40,70,95,.25) 40%,rgba(0,0,0,.4));
+  border:1px solid rgba(150,220,255,.2);
+  box-shadow:inset 0 2px 9px rgba(0,0,0,.6),inset -2px 0 4px rgba(190,235,255,.06);
+}
+.liquid{
+  position:absolute;left:0;right:0;bottom:0;height:50%;
+  background:linear-gradient(180deg,
+     color-mix(in srgb,var(--ac) 78%,#fff 0%),
+     color-mix(in srgb,var(--ac) 60%,var(--ac2)) 55%,
+     color-mix(in srgb,var(--ac2) 70%,#06121f) 100%);
+  box-shadow:0 -6px 18px color-mix(in srgb,var(--ac) 55%,transparent);
+  transition:height .12s cubic-bezier(.2,.8,.25,1);
+}
+/* animated wavy meniscus drawn with two offset svg waves */
+.surf{position:absolute;left:-25%;right:-25%;top:-9px;height:14px;pointer-events:none}
+.surf svg{width:100%;height:100%;display:block}
+.surf .w1{fill:color-mix(in srgb,var(--ac) 82%,#fff 18%);opacity:.95;
+  animation:swim 3.6s linear infinite}
+.surf .w2{fill:color-mix(in srgb,var(--ac) 55%,#fff);opacity:.5;
+  animation:swim 5.4s linear infinite reverse}
+@keyframes swim{from{transform:translateX(0)}to{transform:translateX(-25%)}}
+/* glass highlight */
+.tube::after{
+  content:"";position:absolute;top:4px;left:5px;width:6px;bottom:4px;border-radius:6px;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0));
+  opacity:.5;pointer-events:none;
+}
+/* rising bubbles inside the liquid */
+.tube .bub{position:absolute;bottom:6%;width:5px;height:5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,color-mix(in srgb,var(--ac) 70%,transparent));
+  opacity:0;pointer-events:none}
+.fader.live .bub{animation:fizz 2.2s ease-in infinite}
+.tube .b1{left:22%;animation-delay:.1s}
+.tube .b2{left:54%;animation-delay:.8s}
+.tube .b3{left:38%;animation-delay:1.5s}
+@keyframes fizz{
+  0%{opacity:0;transform:translateY(0) scale(.6)}
+  18%{opacity:.9}
+  100%{opacity:0;transform:translateY(-46px) scale(1)}
+}
+
+.flabel{flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+.flabel .nm{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#a9d6ef;font-weight:700}
+.flabel .desc{font-size:10px;color:#6e9ab6;line-height:1.35;margin-top:3px}
+.flabel .val{
+  font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.01em;
+  color:#eaf8ff;text-shadow:0 0 16px rgba(106,208,255,.4);margin-top:auto;
+}
+.flabel .val small{font-size:11px;font-weight:600;color:#7fb4d2;letter-spacing:.05em;margin-left:3px}
+
+/* ---- central TIDE POOL = Intensity (radial drag) ---------- */
+.pool{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:14px 10px 12px;border-radius:22px;
+  background:radial-gradient(120% 120% at 50% 26%,rgba(120,200,240,.1),rgba(6,18,30,.5));
+  border:1px solid rgba(150,220,255,.16);
+  box-shadow:inset 0 2px 18px rgba(0,0,0,.5),0 10px 26px rgba(0,0,0,.3);
+  animation:rise .6s both;animation-delay:.12s;
+}
+.pool .nm{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#a9d6ef;font-weight:700}
+.disc{
+  position:relative;width:154px;height:154px;border-radius:50%;cursor:grab;touch-action:none;
+  background:radial-gradient(circle at 50% 38%,#14384f,#061523 72%);
+  border:1px solid rgba(150,220,255,.2);
+  box-shadow:inset 0 6px 26px rgba(0,0,0,.66),inset 0 -3px 10px rgba(150,220,255,.06),0 0 0 6px rgba(106,208,255,.05);
+  overflow:hidden;
+}
+.disc.drag{cursor:grabbing}
+.disc svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* expanding ripple rings — frequency tied to intensity via animation-duration */
+.ring{
+  fill:none;stroke:var(--ac);stroke-width:1.4;transform-origin:50% 50%;
+  animation:ripple var(--rp,3.4s) ease-out infinite;
+}
+.ring.r2{stroke:var(--ac2);animation-delay:calc(var(--rp,3.4s) * .33)}
+.ring.r3{stroke:var(--foam);animation-delay:calc(var(--rp,3.4s) * .66);opacity:.7}
+@keyframes ripple{
+  0%{r:8px;opacity:.9;stroke-width:2.4}
+  100%{r:74px;opacity:0;stroke-width:.3}
+}
+/* doubled voice droplets orbiting — the "ensemble" */
+.voices{position:absolute;inset:0;animation:orbit var(--sp,9s) linear infinite}
+.voices.b{animation-direction:reverse;animation-duration:calc(var(--sp,9s) * 1.35)}
+@keyframes orbit{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.voice{position:absolute;top:8px;left:50%;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,var(--ac));
+  box-shadow:0 0 12px var(--ac);}
+.voices.b .voice{background:radial-gradient(circle at 35% 30%,#fff,var(--ac2));box-shadow:0 0 12px var(--ac2)}
+/* core readout */
+.core{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;pointer-events:none;
+}
+.core b{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;color:#f1fbff;
+  text-shadow:0 0 20px rgba(106,208,255,.55)}
+.core span{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:#7fb4d2;margin-top:1px}
+.poolhint{font-size:10px;color:#6e9ab6;text-align:center;line-height:1.4;max-width:170px}
+
+/* ---- footer ----------------------------------------------- */
+.ft{
+  position:relative;z-index:2;margin:14px 22px 0;padding-top:12px;
+  border-top:1px solid rgba(150,220,255,.1);
+  font-size:11px;line-height:1.55;color:#6e9ab6;
+}
+.ft b{color:#a9d6ef;font-weight:700}
+</style>
+</head>
+<body>
+<div class="tank">
+
+  <div class="cap">
+    <div class="drop">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+          <radialGradient id="dg" cx="38%" cy="30%">
+            <stop offset="0" stop-color="#eafaff"/>
+            <stop offset="55%" stop-color="var(--ac)"/>
+            <stop offset="100%" stop-color="var(--ac2)"/>
+          </radialGradient>
+        </defs>
+        <path d="M12 1 C12 1 4 11 4 16 a8 8 0 0 0 16 0 C20 11 12 1 12 1Z" fill="url(#dg)">
+          <animateTransform attributeName="transform" type="scale" values="1;1.06;1" dur="3.2s" repeatCount="indefinite" additive="sum"/>
+        </path>
+        <ellipse cx="9.4" cy="13" rx="2" ry="3" fill="#fff" opacity=".55"/>
+      </svg>
+    </div>
+    <div class="ttl">
+      <h1>LUSH&nbsp;CHORUS</h1>
+      <p>liquid bucket-brigade ensemble</p>
+    </div>
+    <span class="tag">5 voices</span>
+  </div>
+
+  <div class="body">
+
+    <!-- LEFT BANK: Rate, Depth -->
+    <div class="bank" id="bankL"></div>
+
+    <!-- CENTER: Intensity tide pool -->
+    <div class="pool">
+      <div class="nm">Intensity</div>
+      <div class="disc" id="disc"
+           data-i="2" data-min="0" data-max="1" data-def="0.4">
+        <svg viewBox="0 0 154 154" preserveAspectRatio="none">
+          <g style="transform:translate(77px,77px)">
+            <circle class="ring r1" cx="0" cy="0"/>
+            <circle class="ring r2" cx="0" cy="0"/>
+            <circle class="ring r3" cx="0" cy="0"/>
+          </g>
+        </svg>
+        <div class="voices a"><i class="voice"></i></div>
+        <div class="voices b"><i class="voice"></i></div>
+        <div class="core"><b id="iVal">40</b><span>shimmer</span></div>
+      </div>
+      <div class="poolhint">drag out for a deep fast ensemble — in for a subtle shimmer</div>
+    </div>
+
+    <!-- RIGHT BANK: Mix, Width -->
+    <div class="bank" id="bankR"></div>
+
+  </div>
+
+  <div class="ft" id="ft"></div>
+</div>
+
+<!-- a reusable fader template -->
+<template id="faderTpl">
+  <div class="fader" data-i="" data-min="" data-max="" data-def="">
+    <div class="tube">
+      <div class="liquid"></div>
+      <div class="surf">
+        <svg viewBox="0 0 100 14" preserveAspectRatio="none">
+          <path class="w1" d="M0 6 Q12 0 25 6 T50 6 T75 6 T100 6 V14 H0 Z"/>
+          <path class="w2" d="M0 7 Q12 13 25 7 T50 7 T75 7 T100 7 V14 H0 Z"/>
+        </svg>
+      </div>
+      <i class="bub b1"></i><i class="bub b2"></i><i class="bub b3"></i>
+    </div>
+    <div class="flabel">
+      <div>
+        <div class="nm"></div>
+        <div class="desc"></div>
+      </div>
+      <div class="val"><span class="num">0</span><small></small></div>
+    </div>
+  </div>
+</template>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- per-param presentation (units / blurbs) ----
+  var META = {
+    0:{unit:"Hz",  desc:"sweep speed of the modulated delay lines", map:function(n){return (0.05+n*5.95);}},
+    1:{unit:"%",   desc:"modulation depth of the bucket-brigade",   map:function(n){return n*100;}},
+    2:{unit:"%",   desc:"",                                          map:function(n){return n*100;}},
+    3:{unit:"%",   desc:"dry / wet balance of the ensemble",        map:function(n){return n*100;}},
+    4:{unit:"%",   desc:"stereo spread of the quadrature voices",   map:function(n){return n*100;}}
+  };
+
+  function setParam(i,v){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i,v); }
+  function clamp(n){ return n<0?0:(n>1?1:n); }
+  function fmtDisp(i,n){
+    var m=META[i]; var raw=m.map(n);
+    var d = (m.unit==="Hz") ? (raw<1?2:1) : 0;
+    return { num: raw.toFixed(d), unit: m.unit };
+  }
+
+  // ================= FADERS =================
+  function buildFader(p){
+    var tpl=document.getElementById('faderTpl').content.cloneNode(true);
+    var el=tpl.querySelector('.fader');
+    el.dataset.i=p.i; el.dataset.min=p.min; el.dataset.max=p.max; el.dataset.def=p.def;
+    el.querySelector('.nm').textContent=p.name;
+    el.querySelector('.desc').textContent=META[p.i].desc;
+    return el;
+  }
+
+  function wireFader(el){
+    var i=+el.dataset.i, mn=+el.dataset.min, mx=+el.dataset.max, def=+el.dataset.def;
+    var tube=el.querySelector('.tube'),
+        liquid=el.querySelector('.liquid'),
+        num=el.querySelector('.num'),
+        small=el.querySelector('small'),
+        surf=el.querySelector('.surf'),
+        w1=el.querySelector('.w1'), w2=el.querySelector('.w2');
+    var val=def, drag=false, startY=0, startN=0;
+
+    function norm(){ return (val-mn)/((mx-mn)||1); }
+    function paint(){
+      var n=norm();
+      liquid.style.height=(6+n*94)+'%';
+      surf.style.bottom='calc('+(6+n*94)+'% - 7px)';
+      // faster waves as Rate/Depth rise
+      var sp=(4.4 - n*2.6);
+      w1.style.animationDuration=sp+'s';
+      w2.style.animationDuration=(sp*1.5)+'s';
+      var disp=fmtDisp(i,n);
+      num.textContent=disp.num; small.textContent=disp.unit;
+      setParam(i,val);
+    }
+    function setN(n){ val=mn+(mx-mn)*clamp(n); paint(); }
+
+    surf.style.position='absolute';
+    surf.style.left='-25%'; surf.style.right='-25%';
+
+    tube.addEventListener('pointerdown',function(e){
+      drag=true; startY=e.clientY; startN=norm();
+      el.classList.add('live'); tube.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    tube.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      setN(startN + (startY-e.clientY)/170);
+    });
+    function end(){ drag=false; el.classList.remove('live'); }
+    tube.addEventListener('pointerup',end);
+    tube.addEventListener('pointercancel',end);
+    tube.addEventListener('dblclick',function(){ val=def; paint(); });
+    tube.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
+
+    paint();
+  }
+
+  // ================= TIDE POOL (Intensity) =================
+  function wirePool(){
+    var disc=document.getElementById('disc');
+    var i=+disc.dataset.i, mn=+disc.dataset.min, mx=+disc.dataset.max, def=+disc.dataset.def;
+    var iVal=document.getElementById('iVal');
+    var rings=disc.querySelectorAll('.ring');
+    var voicesA=disc.querySelector('.voices.a'), voicesB=disc.querySelector('.voices.b');
+    var val=def, drag=false;
+
+    function norm(){ return (val-mn)/((mx-mn)||1); }
+    function paint(){
+      var n=norm();
+      iVal.textContent=Math.round(n*100);
+      // ripple cadence: subtle/slow shimmer -> fast deep ensemble
+      var rp=(4.4 - n*3.2)+'s';
+      for(var k=0;k<rings.length;k++) rings[k].style.setProperty('--rp',rp);
+      // orbit speed of doubled voices speeds up with intensity
+      var sp=(11 - n*8.4)+'s';
+      voicesA.style.setProperty('--sp',sp);
+      voicesB.style.setProperty('--sp',sp);
+      // disc glow swells
+      disc.style.boxShadow='inset 0 6px 26px rgba(0,0,0,.66),inset 0 -3px 10px rgba(150,220,255,.06),0 0 '+(4+n*34)+'px rgba(106,208,255,'+(0.12+n*0.4)+')';
+      setParam(i,val);
+    }
+    function setN(n){ val=mn+(mx-mn)*clamp(n); paint(); }
+
+    function fromEvent(e){
+      var r=disc.getBoundingClientRect();
+      var cx=r.left+r.width/2, cy=r.top+r.height/2;
+      var dx=e.clientX-cx, dy=e.clientY-cy;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      // radial: centre=0, edge=1
+      setN(dist/(r.width/2));
+    }
+    disc.addEventListener('pointerdown',function(e){
+      drag=true; disc.classList.add('drag'); disc.setPointerCapture(e.pointerId);
+      fromEvent(e); e.preventDefault();
+    });
+    disc.addEventListener('pointermove',function(e){ if(drag) fromEvent(e); });
+    function end(){ drag=false; disc.classList.remove('drag'); }
+    disc.addEventListener('pointerup',end);
+    disc.addEventListener('pointercancel',end);
+    disc.addEventListener('dblclick',function(){ val=def; paint(); });
+    disc.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
+
+    paint();
+  }
+
+  // ================= READY =================
+  function ready(){
+    // bind by real spec index — Rate0 Depth1 Intensity2 Mix3 Width4
+    var FADERS=[
+      {i:0,name:"Rate",  min:0,max:1,def:0.35},
+      {i:1,name:"Depth", min:0,max:1,def:0.5 },
+      {i:3,name:"Mix",   min:0,max:1,def:0.5 },
+      {i:4,name:"Width", min:0,max:1,def:0.8 }
+    ];
+    var bankL=document.getElementById('bankL'), bankR=document.getElementById('bankR');
+    // left = Rate, Depth   right = Mix, Width
+    [FADERS[0],FADERS[1]].forEach(function(p,idx){ var f=buildFader(p); f.style.animationDelay=(0.1+idx*0.08)+'s'; bankL.appendChild(f); });
+    [FADERS[2],FADERS[3]].forEach(function(p,idx){ var f=buildFader(p); f.style.animationDelay=(0.18+idx*0.08)+'s'; bankR.appendChild(f); });
+
+    document.querySelectorAll('.fader').forEach(wireFader);
+    wirePool();
+
+    document.getElementById('ft').innerHTML =
+      '<b>Lush Chorus</b> — twin quadrature LFOs read interpolated delay lines into a wide, doubled image; a dark wet-path low-pass lends the soft analogue tone of a bucket-brigade.';
+  }
+
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
+  else ready();
+})();
+</script>
+</body>
+</html>

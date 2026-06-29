@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Magnetic Echo</title>
+  <style>
+    :root {
+      --accent: #e0a85a;
+      --accent2: #ffd089;
+      --bg0: #1a140d;
+      --bg1: #241a10;
+      --panel: #2c2014;
+      --panel-hi: #3a2a18;
+      --brass: #c9933f;
+      --ink: #f3e4cb;
+      --ink-dim: #b59a6f;
+      --line: #4a3621;
+      --shadow: rgba(0,0,0,0.55);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background:
+        radial-gradient(120% 90% at 50% -10%, #3a2a18 0%, var(--bg1) 45%, var(--bg0) 100%);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+      min-height: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      padding: 18px 12px 28px;
+    }
+
+    .unit {
+      width: 100%;
+      max-width: 640px;
+      background:
+        linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 14%, var(--bg1) 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow:
+        0 1px 0 rgba(255,220,170,0.10) inset,
+        0 24px 60px -20px var(--shadow),
+        0 2px 0 rgba(0,0,0,0.4);
+      padding: 20px 22px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* faint brushed-metal texture */
+    .unit::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(90deg,
+          rgba(255,255,255,0.012) 0 2px,
+          rgba(0,0,0,0.012) 2px 4px);
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+
+    /* ---- header ---- */
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 2;
+    }
+    .brand { display: flex; flex-direction: column; gap: 3px; }
+    .brand .name {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+    }
+    .brand .sub {
+      font-size: 9.5px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .badge {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--bg0);
+      background: linear-gradient(180deg, var(--accent2), var(--brass));
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.3);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset;
+      font-weight: 700;
+    }
+
+    /* ---- drum stage ---- */
+    .stage {
+      display: flex;
+      justify-content: center;
+      padding: 6px 0 14px;
+      position: relative;
+      z-index: 2;
+    }
+    .drum-wrap {
+      position: relative;
+      width: 230px;
+      height: 230px;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,0.5));
+    }
+    svg { display: block; width: 100%; height: 100%; }
+
+    .spin { transform-origin: 115px 115px; animation: spin 5.2s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* the rotating tape sheen pulse */
+    .sheen { animation: sheenpulse 5.2s linear infinite; }
+    @keyframes sheenpulse {
+      0%, 100% { opacity: 0.18; }
+      50% { opacity: 0.42; }
+    }
+
+    .head-dot { transition: filter 0.25s, opacity 0.25s; }
+    .head-on  { filter: drop-shadow(0 0 6px var(--accent2)); }
+
+    .pulse-ring {
+      transform-origin: 115px 115px;
+      animation: echoPulse 2.6s ease-out infinite;
+      opacity: 0;
+    }
+    @keyframes echoPulse {
+      0% { transform: scale(0.34); opacity: 0.5; }
+      80% { opacity: 0; }
+      100% { transform: scale(1.0); opacity: 0; }
+    }
+
+    /* ---- controls ---- */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px 10px;
+      position: relative;
+      z-index: 2;
+    }
+    @media (max-width: 520px) {
+      .controls { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .knob-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 6px 12px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.18));
+      border: 1px solid var(--line);
+      box-shadow: 0 1px 0 rgba(255,220,170,0.06) inset;
+    }
+    .knob {
+      width: 78px;
+      height: 78px;
+      cursor: ns-resize;
+      touch-action: none;
+      user-select: none;
+    }
+    .label {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      font-weight: 600;
+    }
+    .value {
+      font-size: 12px;
+      color: var(--accent2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      min-height: 14px;
+    }
+
+    /* heads selector */
+    .heads-cell {
+      grid-column: span 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.2));
+      border: 1px solid var(--line);
+    }
+    @media (max-width: 520px) {
+      .heads-cell { grid-column: span 2; }
+    }
+    .heads-left { display: flex; flex-direction: column; gap: 3px; }
+    .heads-left .vlab { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); font-weight: 600; }
+    .heads-left .vname { font-size: 13px; color: var(--accent2); font-weight: 600; letter-spacing: 0.05em; }
+    .heads-btns { display: flex; gap: 8px; }
+    .hbtn {
+      min-width: 54px;
+      padding: 9px 8px 8px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+      color: var(--ink-dim);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 2px 4px rgba(0,0,0,0.3);
+      text-align: center;
+      line-height: 1.5;
+    }
+    .hbtn small { display: block; font-size: 8px; letter-spacing: 0.05em; opacity: 0.7; font-weight: 500; }
+    .hbtn:hover { color: var(--ink); border-color: var(--brass); }
+    .hbtn.active {
+      color: var(--bg0);
+      background: linear-gradient(180deg, var(--accent2), var(--accent));
+      border-color: var(--accent2);
+      box-shadow: 0 0 12px -1px var(--accent), 0 1px 0 rgba(255,255,255,0.4) inset;
+    }
+
+    .foot {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      opacity: 0.7;
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="unit">
+    <div class="head">
+      <div class="brand">
+        <div class="name">Magnetic Echo</div>
+        <div class="sub">Multi-Head Drum Delay</div>
+      </div>
+      <div class="badge">Vintage</div>
+    </div>
+
+    <div class="stage">
+      <div class="drum-wrap">
+        <svg viewBox="0 0 230 230" aria-hidden="true">
+          <defs>
+            <radialGradient id="drumBody" cx="42%" cy="36%" r="75%">
+              <stop offset="0%" stop-color="#6b5230"/>
+              <stop offset="45%" stop-color="#4a3720"/>
+              <stop offset="100%" stop-color="#1c140b"/>
+            </radialGradient>
+            <radialGradient id="hub" cx="40%" cy="38%" r="70%">
+              <stop offset="0%" stop-color="#ffe6b8"/>
+              <stop offset="40%" stop-color="#c9933f"/>
+              <stop offset="100%" stop-color="#6b4d22"/>
+            </radialGradient>
+            <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#7a5e34"/>
+              <stop offset="50%" stop-color="#3a2c19"/>
+              <stop offset="100%" stop-color="#5a4426"/>
+            </linearGradient>
+            <radialGradient id="sheenGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="60%" stop-color="rgba(255,224,170,0)"/>
+              <stop offset="100%" stop-color="rgba(255,224,170,0.5)"/>
+            </radialGradient>
+          </defs>
+
+          <!-- outer casing ring -->
+          <circle cx="115" cy="115" r="112" fill="url(#ring)" stroke="#1a120a" stroke-width="2"/>
+          <circle cx="115" cy="115" r="104" fill="#160f08"/>
+
+          <!-- echo pulse rings rippling out from the drum -->
+          <circle class="pulse-ring" cx="115" cy="115" r="92" fill="none" stroke="var(--accent)" stroke-width="2"/>
+          <circle class="pulse-ring" cx="115" cy="115" r="92" fill="none" stroke="var(--accent2)" stroke-width="1.5" style="animation-delay:1.3s"/>
+
+          <!-- the spinning magnetic drum -->
+          <g class="spin">
+            <circle cx="115" cy="115" r="92" fill="url(#drumBody)" stroke="#2a1d10" stroke-width="2"/>
+            <!-- magnetic tape grooves -->
+            <circle cx="115" cy="115" r="80" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
+            <circle cx="115" cy="115" r="68" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"/>
+            <circle cx="115" cy="115" r="56" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1"/>
+            <circle cx="115" cy="115" r="44" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+            <!-- rotation index marks so the spin reads clearly -->
+            <rect x="113.5" y="26" width="3" height="22" rx="1.5" fill="var(--accent2)" opacity="0.85"/>
+            <rect x="113.5" y="182" width="3" height="22" rx="1.5" fill="rgba(255,224,170,0.25)"/>
+            <!-- moving sheen highlight -->
+            <circle class="sheen" cx="115" cy="115" r="92" fill="url(#sheenGrad)"/>
+            <!-- brass hub -->
+            <circle cx="115" cy="115" r="26" fill="url(#hub)" stroke="#3a2912" stroke-width="2"/>
+            <circle cx="115" cy="115" r="7" fill="#2a1d0e"/>
+            <circle cx="108" cy="108" r="3" fill="rgba(255,255,255,0.5)"/>
+          </g>
+
+          <!-- four fixed playback heads around the drum (static, not spinning) -->
+          <!-- top (head 4) -->
+          <g id="hd4" class="head-dot">
+            <rect x="108" y="6" width="14" height="20" rx="3" fill="#2a1d10" stroke="#5a4426" stroke-width="1"/>
+            <circle cx="115" cy="24" r="4.5" fill="var(--accent)"/>
+          </g>
+          <!-- right (head 1) -->
+          <g id="hd1" class="head-dot">
+            <rect x="204" y="108" width="20" height="14" rx="3" fill="#2a1d10" stroke="#5a4426" stroke-width="1"/>
+            <circle cx="206" cy="115" r="4.5" fill="var(--accent)"/>
+          </g>
+          <!-- bottom (head 3) -->
+          <g id="hd3" class="head-dot">
+            <rect x="108" y="204" width="14" height="20" rx="3" fill="#2a1d10" stroke="#5a4426" stroke-width="1"/>
+            <circle cx="115" cy="206" r="4.5" fill="var(--accent)"/>
+          </g>
+          <!-- left (head 2) -->
+          <g id="hd2" class="head-dot">
+            <rect x="6" y="108" width="20" height="14" rx="3" fill="#2a1d10" stroke="#5a4426" stroke-width="1"/>
+            <circle cx="24" cy="115" r="4.5" fill="var(--accent)"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="knob-cell">
+        <canvas class="knob" id="k_time" width="156" height="156"></canvas>
+        <div class="label">Time</div>
+        <div class="value" id="v_time">—</div>
+      </div>
+      <div class="knob-cell">
+        <canvas class="knob" id="k_swell" width="156" height="156"></canvas>
+        <div class="label">Swell</div>
+        <div class="value" id="v_swell">—</div>
+      </div>
+      <div class="knob-cell">
+        <canvas class="knob" id="k_tone" width="156" height="156"></canvas>
+        <div class="label">Tone</div>
+        <div class="value" id="v_tone">—</div>
+      </div>
+      <div class="knob-cell">
+        <canvas class="knob" id="k_mix" width="156" height="156"></canvas>
+        <div class="label">Mix</div>
+        <div class="value" id="v_mix">—</div>
+      </div>
+
+      <div class="heads-cell">
+        <div class="heads-left">
+          <div class="vlab">Head Mode</div>
+          <div class="vname" id="v_heads">—</div>
+        </div>
+        <div class="heads-btns" id="headsBtns">
+          <button class="hbtn" data-mode="0">I<small>Slap</small></button>
+          <button class="hbtn" data-mode="1">II<small>Eighths</small></button>
+          <button class="hbtn" data-mode="2">III<small>Gallop</small></button>
+          <button class="hbtn" data-mode="3">IV<small>Swell</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">Original model · No trademark affiliation</div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ---- parameter map (must match spec.json indices) ----
+    var P_TIME = 0, P_SWELL = 1, P_HEADS = 2, P_TONE = 3, P_MIX = 4;
+
+    var defaults = {};
+    defaults[P_TIME] = 0.4;
+    defaults[P_SWELL] = 0.45;
+    defaults[P_HEADS] = 1;
+    defaults[P_TONE] = 0.55;
+    defaults[P_MIX] = 0.45;
+
+    var values = {};
+
+    function pushParam(index, value) {
+      values[index] = value;
+      if (window.vstai && window.vstai.setParam) {
+        window.vstai.setParam(index, value);
+      }
+    }
+
+    // ---- knob factory ----
+    function makeKnob(canvasId, valId, index, opts) {
+      var canvas = document.getElementById(canvasId);
+      var valEl = document.getElementById(valId);
+      var ctx = canvas.getContext("2d");
+      var min = opts.min, max = opts.max, fmt = opts.fmt;
+      var def = defaults[index];
+
+      function norm() { return (values[index] - min) / (max - min); }
+
+      function draw() {
+        var w = canvas.width, h = canvas.height, cx = w / 2, cy = h / 2;
+        var r = w * 0.36;
+        ctx.clearRect(0, 0, w, h);
+        var a0 = Math.PI * 0.75, a1 = Math.PI * 2.25;
+        var t = Math.max(0, Math.min(1, norm()));
+        var ang = a0 + (a1 - a0) * t;
+
+        // outer inset well
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 16, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fill();
+
+        // track
+        ctx.beginPath();
+        ctx.lineWidth = 8;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.arc(cx, cy, r + 9, a0, a1);
+        ctx.stroke();
+
+        // value arc (accent gradient)
+        var grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, "#e0a85a");
+        grad.addColorStop(1, "#ffd089");
+        ctx.beginPath();
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = grad;
+        ctx.shadowColor = "rgba(224,168,90,0.7)";
+        ctx.shadowBlur = 10;
+        ctx.arc(cx, cy, r + 9, a0, ang);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // knob body
+        var bg = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.2, cx, cy, r);
+        bg.addColorStop(0, "#4a3a24");
+        bg.addColorStop(0.6, "#33271a");
+        bg.addColorStop(1, "#1d150d");
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = bg;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(255,220,170,0.15)";
+        ctx.stroke();
+
+        // top highlight
+        ctx.beginPath();
+        ctx.arc(cx, cy - r * 0.15, r * 0.7, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.strokeStyle = "rgba(255,255,255,0.07)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // pointer
+        var px = cx + Math.cos(ang) * (r - 8);
+        var py = cy + Math.sin(ang) * (r - 8);
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(ang) * (r * 0.32), cy + Math.sin(ang) * (r * 0.32));
+        ctx.lineTo(px, py);
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#ffe6b8";
+        ctx.shadowColor = "rgba(255,224,170,0.9)";
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // center cap
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * 0.22, 0, Math.PI * 2);
+        var cap = ctx.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, r * 0.22);
+        cap.addColorStop(0, "#c9933f");
+        cap.addColorStop(1, "#5a4022");
+        ctx.fillStyle = cap;
+        ctx.fill();
+      }
+
+      function update(v, silent) {
+        v = Math.max(min, Math.min(max, v));
+        values[index] = v;
+        valEl.textContent = fmt(v);
+        if (!silent) pushParam(index, v);
+        draw();
+      }
+
+      // drag handling
+      var dragging = false, lastY = 0;
+      function onDown(e) {
+        dragging = true;
+        lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+        e.preventDefault();
+      }
+      function onMove(e) {
+        if (!dragging) return;
+        var y = (e.touches ? e.touches[0].clientY : e.clientY);
+        var dy = lastY - y;
+        lastY = y;
+        var range = max - min;
+        update(values[index] + dy * range / 180);
+        e.preventDefault();
+      }
+      function onUp() { dragging = false; }
+
+      canvas.addEventListener("mousedown", onDown);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      canvas.addEventListener("touchstart", onDown, { passive: false });
+      canvas.addEventListener("touchmove", onMove, { passive: false });
+      canvas.addEventListener("touchend", onUp);
+      canvas.addEventListener("dblclick", function () { update(def); });
+      canvas.addEventListener("wheel", function (e) {
+        var range = max - min;
+        update(values[index] - Math.sign(e.deltaY) * range * 0.03);
+        e.preventDefault();
+      }, { passive: false });
+
+      return { update: update, draw: draw };
+    }
+
+    function pct(v) { return Math.round(v * 100) + "%"; }
+    function timeFmt(v) { return Math.round((0.09 + v * 0.66) * 1000) + " ms"; }
+
+    var knobTime, knobSwell, knobTone, knobMix;
+
+    // ---- heads selector ----
+    var headIds = { 1: "hd1", 2: "hd2", 3: "hd3", 4: "hd4" };
+    var modeHeads = {
+      0: [4],
+      1: [2, 4],
+      2: [1, 3, 4],
+      3: [1, 2, 3, 4]
+    };
+    var modeNames = { 0: "I · Single Head", 1: "II · Even Eighths", 2: "III · Triplet Gallop", 3: "IV · Full Swell" };
+
+    function setHeads(mode, silent) {
+      mode = Math.max(0, Math.min(3, Math.round(mode)));
+      values[P_HEADS] = mode;
+      document.getElementById("v_heads").textContent = modeNames[mode];
+      // buttons
+      var btns = document.querySelectorAll("#headsBtns .hbtn");
+      btns.forEach(function (b) {
+        b.classList.toggle("active", parseInt(b.getAttribute("data-mode"), 10) === mode);
+      });
+      // light the active heads on the drum
+      var active = modeHeads[mode];
+      for (var k in headIds) {
+        var g = document.getElementById(headIds[k]);
+        var on = active.indexOf(parseInt(k, 10)) >= 0;
+        g.classList.toggle("head-on", on);
+        g.style.opacity = on ? "1" : "0.32";
+      }
+      if (!silent) pushParam(P_HEADS, mode);
+    }
+
+    function wireHeads() {
+      var btns = document.querySelectorAll("#headsBtns .hbtn");
+      btns.forEach(function (b) {
+        b.addEventListener("click", function () {
+          setHeads(parseInt(b.getAttribute("data-mode"), 10));
+        });
+        b.addEventListener("dblclick", function () { setHeads(defaults[P_HEADS]); });
+      });
+    }
+
+    // ---- init ----
+    function start() {
+      knobTime = makeKnob("k_time", "v_time", P_TIME, { min: 0, max: 1, fmt: timeFmt });
+      knobSwell = makeKnob("k_swell", "v_swell", P_SWELL, { min: 0, max: 1, fmt: pct });
+      knobTone = makeKnob("k_tone", "v_tone", P_TONE, { min: 0, max: 1, fmt: pct });
+      knobMix = makeKnob("k_mix", "v_mix", P_MIX, { min: 0, max: 1, fmt: pct });
+      wireHeads();
+
+      // initialise everything to defaults and push once
+      knobTime.update(defaults[P_TIME]);
+      knobSwell.update(defaults[P_SWELL]);
+      knobTone.update(defaults[P_TONE]);
+      knobMix.update(defaults[P_MIX]);
+      setHeads(defaults[P_HEADS]);
+    }
+
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(start);
+    } else {
+      start();
+    }
+  </script>
+</body>
+</html>

@@ -6,6 +6,7 @@
   "out": "factory/plugins/opto-glow/x.vstai",
   "publishedAt": 1751000005000,
   "theme": { "accent": "#ffd166", "accent2": "#ffb454" },
+  "guiFile": "factory/plugins/opto-glow/gui.html",
   "params": [
     { "name": "Peak Reduction", "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Gain",           "index": 1, "min": 0, "max": 1, "default": 0.35 },

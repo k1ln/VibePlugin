@@ -5,6 +5,7 @@
   "assembly": "factory/plugins/ping-delay/assembly.ts",
   "out": "factory/plugins/ping-delay/x.vstai",
   "publishedAt": 1751000033000,
+  "guiFile": "factory/plugins/ping-delay/gui.html",
   "theme": { "accent": "#5ad1ff", "accent2": "#8ae0ff" },
   "params": [
     { "name": "Time",     "index": 0, "min": 0, "max": 1, "default": 0.33 },

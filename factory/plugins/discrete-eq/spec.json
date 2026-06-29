@@ -1,0 +1,19 @@
+{
+  "name": "Discrete EQ",
+  "isInstrument": false,
+  "explanation": "A punchy, forward discrete-electronics console equaliser. Three cascaded bands modelled on a vintage 500-series discrete-op-amp EQ: a low band that switches between musical shelf and bell, a sweepable mid bell with reciprocal proportional-Q (the bell sits wide at small boosts and narrows as you push it hard), and a high band that switches between shelf and bell. The whole strip is followed by a touch of discrete-stage drive for that forward console weight. Controls: Low Gain, Low Shape (shelf/bell), Mid Freq, Mid Gain, High Gain, High Shape (shelf/bell) and Drive.",
+  "assembly": "factory/plugins/discrete-eq/assembly.ts",
+  "out": "factory/plugins/discrete-eq/x.vstai",
+  "publishedAt": 1751000074000,
+  "theme": { "accent": "#ff5c5c", "accent2": "#ffb05c" },
+  "guiFile": "factory/plugins/discrete-eq/gui.html",
+  "params": [
+    { "name": "Low Gain",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Low Shape",  "index": 1, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Mid Freq",   "index": 2, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mid Gain",   "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "High Gain",  "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "High Shape", "index": 5, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Drive",      "index": 6, "min": 0, "max": 1, "default": 0.25 }
+  ]
+}

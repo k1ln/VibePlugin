@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crossover</title>
+<style>
+  :root {
+    --accent:  #8fb6ff;
+    --accent2: #b0e0ff;
+    --low:     #6e8cff;
+    --mid:     #62d0c8;
+    --high:    #f0b65e;
+    --bg0:     #0a0d16;
+    --bg1:     #11162400;
+    --panel:   #131a2b;
+    --panel2:  #0d1320;
+    --line:    #243149;
+    --txt:     #d7e2f5;
+    --txt-dim: #7c8aa6;
+    --shadow:  rgba(0,0,0,0.55);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #18223a 0%, var(--bg0) 60%),
+      var(--bg0);
+    color: var(--txt);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  body {
+    padding: 18px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 760px;
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow:
+      0 30px 70px var(--shadow),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px 14px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(143,182,255,0.07), transparent);
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  .logo {
+    width: 34px; height: 34px;
+    position: relative;
+    filter: drop-shadow(0 0 6px rgba(143,182,255,0.5));
+  }
+  .logo span {
+    position: absolute; left: 50%; top: 0;
+    width: 4px; height: 100%;
+    border-radius: 4px;
+    transform-origin: bottom center;
+  }
+  .logo .l1 { background: var(--low);  transform: translateX(-9px) scaleY(.55); }
+  .logo .l2 { background: var(--mid);  transform: translateX(-1px) scaleY(.9); }
+  .logo .l3 { background: var(--high); transform: translateX(7px)  scaleY(.4); }
+  .logo .l1, .logo .l2, .logo .l3 { animation: logoPulse 2.6s ease-in-out infinite; }
+  .logo .l2 { animation-delay: .25s; }
+  .logo .l3 { animation-delay: .5s; }
+
+  @keyframes logoPulse {
+    0%,100% { opacity:.55; }
+    50%     { opacity:1; }
+  }
+
+  .title { line-height: 1.1; }
+  .title h1 {
+    font-size: 17px; letter-spacing: 3px; font-weight: 700; text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .title .sub {
+    font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--txt-dim); margin-top: 3px;
+  }
+
+  .badge {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--line);
+    padding: 5px 9px; border-radius: 20px;
+    background: rgba(143,182,255,0.06);
+  }
+
+  /* ---------- spectrum / lanes ---------- */
+  .scope {
+    position: relative;
+    height: 180px;
+    margin: 16px 16px 0;
+    border-radius: 12px;
+    background:
+      linear-gradient(180deg, #0c1322, #070b14);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 2px 14px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  .scope svg { display: block; width: 100%; height: 100%; }
+
+  .grid line { stroke: rgba(255,255,255,0.045); stroke-width: 1; }
+
+  .lane-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    fill: var(--txt-dim);
+  }
+
+  .xover-handle {
+    cursor: ew-resize;
+  }
+  .xover-line {
+    stroke-dasharray: 4 4;
+    stroke-width: 1.5;
+  }
+
+  /* moving energy particles */
+  .flow {
+    animation: flow 1.9s linear infinite;
+  }
+  @keyframes flow {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -28; }
+  }
+
+  /* ---------- band strips ---------- */
+  .bands {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .band {
+    position: relative;
+    border-radius: 12px;
+    padding: 14px 14px 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.18));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 18px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  .band::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--c);
+    box-shadow: 0 0 14px var(--c);
+  }
+  .band.low  { --c: var(--low); }
+  .band.mid  { --c: var(--mid); }
+  .band.high { --c: var(--high); }
+
+  .band h3 {
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--txt-dim); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .band h3 .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--c); box-shadow: 0 0 8px var(--c);
+  }
+
+  .band-body { display: flex; gap: 14px; align-items: center; }
+
+  /* per-band meter */
+  .meter {
+    width: 10px; height: 110px;
+    border-radius: 6px;
+    background: #070b14;
+    border: 1px solid var(--line);
+    position: relative; overflow: hidden;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+    flex: none;
+  }
+  .meter .fill {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 0%;
+    background: linear-gradient(180deg, #fff6, var(--c));
+    box-shadow: 0 0 12px var(--c);
+    transition: height .08s linear;
+  }
+
+  .knob-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+
+  .knob {
+    width: 84px; height: 84px; position: relative;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { width: 100%; height: 100%; overflow: visible; }
+  .knob .track { stroke: #1d2740; stroke-width: 7; fill: none; }
+  .knob .arc   { stroke: var(--c); stroke-width: 7; fill: none;
+                 stroke-linecap: round; filter: drop-shadow(0 0 5px var(--c)); }
+  .knob .face  { fill: url(#knobGrad); stroke: #2a3established; }
+  .knob .pointer { stroke: var(--c); stroke-width: 3; stroke-linecap: round;
+                   filter: drop-shadow(0 0 4px var(--c)); }
+  .knob.dragging .arc { stroke-width: 8.5; }
+
+  .readout { text-align: center; }
+  .readout .val {
+    font-size: 15px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--txt);
+  }
+  .readout .unit {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--txt-dim);
+  }
+
+  /* ---------- crossover frequency row ---------- */
+  .freqs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    padding: 0 16px 18px;
+  }
+  .freq {
+    border-radius: 12px;
+    padding: 13px 16px;
+    background: linear-gradient(180deg, rgba(143,182,255,0.05), rgba(0,0,0,0.15));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .freq .flabel {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 9px;
+  }
+  .freq .flabel .name {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--txt-dim);
+  }
+  .freq .flabel .fval {
+    font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent2);
+  }
+  .fader {
+    position: relative; height: 26px; border-radius: 8px;
+    background: #070b14; border: 1px solid var(--line);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+    cursor: ew-resize; touch-action: none; overflow: hidden;
+  }
+  .fader .ffill {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 50%;
+    background: linear-gradient(90deg, rgba(143,182,255,0.15), rgba(176,224,255,0.4));
+  }
+  .fader .fcap {
+    position: absolute; top: 50%; left: 50%;
+    width: 6px; height: 70%;
+    transform: translate(-50%, -50%);
+    border-radius: 3px;
+    background: linear-gradient(180deg, #fff, var(--accent));
+    box-shadow: 0 0 10px var(--accent), 0 2px 4px rgba(0,0,0,0.6);
+  }
+
+  footer {
+    padding: 11px 22px 16px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt-dim);
+  }
+  footer .hint { color: #5a677f; text-transform: none; letter-spacing: .3px; font-size: 10px; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo"><span class="l1"></span><span class="l2"></span><span class="l3"></span></div>
+        <div class="title">
+          <h1>Crossover</h1>
+          <div class="sub">Linkwitz · Riley &nbsp;3-Band Splitter</div>
+        </div>
+      </div>
+      <div class="badge">Phase Coherent</div>
+    </header>
+
+    <!-- spectrum scope with coloured lanes + draggable crossover handles -->
+    <div class="scope">
+      <svg id="scope" viewBox="0 0 700 180" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="lowFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--low)" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="var(--low)" stop-opacity="0.04"/>
+          </linearGradient>
+          <linearGradient id="midFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--mid)" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="var(--mid)" stop-opacity="0.04"/>
+          </linearGradient>
+          <linearGradient id="highFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--high)" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="var(--high)" stop-opacity="0.04"/>
+          </linearGradient>
+        </defs>
+
+        <g class="grid" id="grid"></g>
+
+        <!-- filled band areas -->
+        <path id="lowArea"  fill="url(#lowFill)"  d=""/>
+        <path id="midArea"  fill="url(#midFill)"  d=""/>
+        <path id="highArea" fill="url(#highFill)" d=""/>
+
+        <!-- band response outlines -->
+        <path id="lowCurve"  fill="none" stroke="var(--low)"  stroke-width="2" class="flow" stroke-dasharray="3 25"/>
+        <path id="midCurve"  fill="none" stroke="var(--mid)"  stroke-width="2" class="flow" stroke-dasharray="3 25"/>
+        <path id="highCurve" fill="none" stroke="var(--high)" stroke-width="2" class="flow" stroke-dasharray="3 25"/>
+
+        <!-- crossover handles -->
+        <g id="xoverLo" class="xover-handle">
+          <line class="xover-line" x1="0" y1="0" x2="0" y2="180" stroke="var(--accent)"/>
+          <rect x="-8" y="74" width="16" height="32" rx="4" fill="var(--panel)" stroke="var(--accent)"/>
+          <line x1="-3" y1="82" x2="-3" y2="98" stroke="var(--accent)" stroke-width="1"/>
+          <line x1="3"  y1="82" x2="3"  y2="98" stroke="var(--accent)" stroke-width="1"/>
+        </g>
+        <g id="xoverHi" class="xover-handle">
+          <line class="xover-line" x1="0" y1="0" x2="0" y2="180" stroke="var(--accent2)"/>
+          <rect x="-8" y="74" width="16" height="32" rx="4" fill="var(--panel)" stroke="var(--accent2)"/>
+          <line x1="-3" y1="82" x2="-3" y2="98" stroke="var(--accent2)" stroke-width="1"/>
+          <line x1="3"  y1="82" x2="3"  y2="98" stroke="var(--accent2)" stroke-width="1"/>
+        </g>
+
+        <text class="lane-label" id="lblLow"  x="0" y="166">Low</text>
+        <text class="lane-label" id="lblMid"  x="0" y="166" text-anchor="middle">Mid</text>
+        <text class="lane-label" id="lblHigh" x="0" y="166" text-anchor="end">High</text>
+      </svg>
+    </div>
+
+    <!-- per-band gain strips -->
+    <div class="bands">
+      <div class="band low">
+        <h3><span class="dot"></span>Low Gain</h3>
+        <div class="band-body">
+          <div class="meter"><div class="fill" id="mLow"></div></div>
+          <div class="knob-wrap">
+            <div class="knob" id="kLow" data-idx="2"></div>
+            <div class="readout"><div class="val" id="vLow">0.0</div><div class="unit">dB</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band mid">
+        <h3><span class="dot"></span>Mid Gain</h3>
+        <div class="band-body">
+          <div class="meter"><div class="fill" id="mMid"></div></div>
+          <div class="knob-wrap">
+            <div class="knob" id="kMid" data-idx="3"></div>
+            <div class="readout"><div class="val" id="vMid">0.0</div><div class="unit">dB</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="band high">
+        <h3><span class="dot"></span>High Gain</h3>
+        <div class="band-body">
+          <div class="meter"><div class="fill" id="mHigh"></div></div>
+          <div class="knob-wrap">
+            <div class="knob" id="kHigh" data-idx="4"></div>
+            <div class="readout"><div class="val" id="vHigh">0.0</div><div class="unit">dB</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- crossover frequency faders -->
+    <div class="freqs">
+      <div class="freq">
+        <div class="flabel"><span class="name">Low / Mid Split</span><span class="fval" id="fvLo">200 Hz</span></div>
+        <div class="fader" id="fLo" data-idx="0"><div class="ffill" id="ffLo"></div><div class="fcap" id="fcLo"></div></div>
+      </div>
+      <div class="freq">
+        <div class="flabel"><span class="name">Mid / High Split</span><span class="fval" id="fvHi">2.0 kHz</span></div>
+        <div class="fader" id="fHi" data-idx="1"><div class="ffill" id="ffHi"></div><div class="fcap" id="fcHi"></div></div>
+      </div>
+    </div>
+
+    <footer>
+      <span>Crossover · LR4</span>
+      <span class="hint">Drag controls · double-click to reset</span>
+    </footer>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices match spec.json) ----------------------
+  var PARAMS = {
+    lowFreq:  { idx: 0, min: 40,  max: 500,   def: 200,  log: true  },
+    highFreq: { idx: 1, min: 800, max: 12000, def: 2000, log: true  },
+    lowGain:  { idx: 2, min: 0,   max: 2,     def: 1,    log: false },
+    midGain:  { idx: 3, min: 0,   max: 2,     def: 1,    log: false },
+    highGain: { idx: 4, min: 0,   max: 2,     def: 1,    log: false }
+  };
+
+  var state = {
+    lowFreq: 200, highFreq: 2000,
+    lowGain: 1, midGain: 1, highGain: 1
+  };
+
+  // ---- host bridge ----------------------------------------------------
+  function push(idx, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(idx, value);
+    }
+  }
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+  // map a 0..1 position to a value (linear or log)
+  function fromNorm(p, t) {
+    t = clamp(t, 0, 1);
+    if (p.log) {
+      var lo = Math.log(p.min), hi = Math.log(p.max);
+      return Math.exp(lo + (hi - lo) * t);
+    }
+    return p.min + (p.max - p.min) * t;
+  }
+  function toNorm(p, v) {
+    if (p.log) {
+      var lo = Math.log(p.min), hi = Math.log(p.max);
+      return (Math.log(clamp(v, p.min, p.max)) - lo) / (hi - lo);
+    }
+    return (clamp(v, p.min, p.max) - p.min) / (p.max - p.min);
+  }
+
+  function gainToDb(g) {
+    if (g <= 0.0001) return -60;
+    return 20 * Math.log10(g);
+  }
+  function fmtDb(g) {
+    var d = gainToDb(g);
+    if (d <= -59.5) return "-inf";
+    return (d >= 0 ? "+" : "") + d.toFixed(1);
+  }
+  function fmtHz(hz) {
+    if (hz >= 1000) return (hz / 1000).toFixed(hz >= 9950 ? 0 : 1) + " kHz";
+    return Math.round(hz) + " Hz";
+  }
+
+  // ====================================================================
+  //  KNOBS (band gains)
+  // ====================================================================
+  var KNOB_R = 33, KNOB_CX = 42, KNOB_CY = 42;
+  var A0 = 135, A1 = 405; // sweep from 135deg to 405deg (270 total), clockwise
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var s = polar(cx, cy, r, a0), e = polar(cx, cy, r, a1);
+    var large = (a1 - a0) % 360 > 180 ? 1 : 0;
+    return "M " + s[0] + " " + s[1] + " A " + r + " " + r + " 0 " + large + " 1 " + e[0] + " " + e[1];
+  }
+
+  function buildKnob(el, key) {
+    var p = PARAMS[key];
+    el.innerHTML =
+      '<svg viewBox="0 0 84 84">' +
+        '<defs>' +
+          '<radialGradient id="kg_' + key + '" cx="38%" cy="32%" r="75%">' +
+            '<stop offset="0" stop-color="#1c2740"/>' +
+            '<stop offset="1" stop-color="#0a0f1c"/>' +
+          '</radialGradient>' +
+        '</defs>' +
+        '<path class="track" d="' + arcPath(KNOB_CX, KNOB_CY, KNOB_R, A0, A1) + '"/>' +
+        '<path class="arc"   d=""/>' +
+        '<circle class="face" cx="42" cy="42" r="25" fill="url(#kg_' + key + ')" stroke="#2a3a58"/>' +
+        '<line class="pointer" x1="42" y1="42" x2="42" y2="22"/>' +
+      '</svg>';
+    var arc = el.querySelector(".arc");
+    var ptr = el.querySelector(".pointer");
+
+    function render() {
+      var t = toNorm(p, state[key]);
+      var ang = A0 + (A1 - A0) * t;
+      if (t > 0.001) arc.setAttribute("d", arcPath(KNOB_CX, KNOB_CY, KNOB_R, A0, ang));
+      else arc.setAttribute("d", "");
+      var pp = polar(KNOB_CX, KNOB_CY, 20, ang);
+      ptr.setAttribute("x2", pp[0]); ptr.setAttribute("y2", pp[1]);
+    }
+
+    var dragging = false, lastY = 0;
+    function setFromDelta(dy) {
+      var t = toNorm(p, state[key]);
+      t = clamp(t - dy / 180, 0, 1);
+      state[key] = fromNorm(p, t);
+      push(p.idx, state[key]);
+      render();
+      refreshReadouts();
+      drawScope();
+    }
+    el.addEventListener("pointerdown", function (e) {
+      dragging = true; lastY = e.clientY; el.classList.add("dragging");
+      el.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dy = e.clientY - lastY; lastY = e.clientY;
+      setFromDelta(dy);
+    });
+    function end() { dragging = false; el.classList.remove("dragging"); }
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("dblclick", function () {
+      state[key] = p.def; push(p.idx, state[key]); render(); refreshReadouts(); drawScope();
+    });
+    el.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var t = toNorm(p, state[key]);
+      t = clamp(t - (e.deltaY > 0 ? 0.02 : -0.02), 0, 1);
+      state[key] = fromNorm(p, t);
+      push(p.idx, state[key]); render(); refreshReadouts(); drawScope();
+    }, { passive: false });
+
+    return { render: render };
+  }
+
+  // ====================================================================
+  //  FADERS (crossover frequencies)
+  // ====================================================================
+  function buildFader(el, key, fillEl, capEl) {
+    var p = PARAMS[key];
+    function render() {
+      var t = toNorm(p, state[key]);
+      fillEl.style.width = (t * 100) + "%";
+      capEl.style.left = (t * 100) + "%";
+    }
+    var dragging = false;
+    function setFromEvent(e) {
+      var r = el.getBoundingClientRect();
+      var t = clamp((e.clientX - r.left) / r.width, 0, 1);
+      state[key] = fromNorm(p, t);
+      push(p.idx, state[key]);
+      render(); refreshReadouts(); drawScope();
+    }
+    el.addEventListener("pointerdown", function (e) {
+      dragging = true; el.setPointerCapture(e.pointerId); setFromEvent(e); e.preventDefault();
+    });
+    el.addEventListener("pointermove", function (e) { if (dragging) setFromEvent(e); });
+    function end() { dragging = false; }
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("dblclick", function () {
+      state[key] = p.def; push(p.idx, state[key]); render(); refreshReadouts(); drawScope();
+    });
+    return { render: render };
+  }
+
+  // ====================================================================
+  //  READOUTS
+  // ====================================================================
+  var vLow = document.getElementById("vLow");
+  var vMid = document.getElementById("vMid");
+  var vHigh = document.getElementById("vHigh");
+  var fvLo = document.getElementById("fvLo");
+  var fvHi = document.getElementById("fvHi");
+
+  function refreshReadouts() {
+    vLow.textContent  = fmtDb(state.lowGain);
+    vMid.textContent  = fmtDb(state.midGain);
+    vHigh.textContent = fmtDb(state.highGain);
+    fvLo.textContent  = fmtHz(state.lowFreq);
+    fvHi.textContent  = fmtHz(state.highFreq);
+  }
+
+  // ====================================================================
+  //  SCOPE — three coloured band response curves + crossover handles
+  // ====================================================================
+  var SCW = 700, SCH = 180;
+  var FMIN = 20, FMAX = 20000;
+  var lnFmin = Math.log(FMIN), lnFmax = Math.log(FMAX);
+
+  function hzToX(hz) {
+    return ((Math.log(clamp(hz, FMIN, FMAX)) - lnFmin) / (lnFmax - lnFmin)) * SCW;
+  }
+
+  // build log-frequency grid lines once
+  (function buildGrid() {
+    var g = document.getElementById("grid");
+    var marks = [50, 100, 200, 500, 1000, 2000, 5000, 10000];
+    var html = "";
+    for (var i = 0; i < marks.length; i++) {
+      var x = hzToX(marks[i]);
+      html += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="180"/>';
+    }
+    for (var y = 30; y < 180; y += 36) {
+      html += '<line x1="0" y1="' + y + '" x2="700" y2="' + y + '"/>';
+    }
+    g.innerHTML = html;
+  })();
+
+  // LR4 magnitude approximations (in dB-ish shape) for the curve drawing.
+  // We don't need exact filter math for the visual — a smooth 24 dB/oct
+  // roll model around each crossover is faithful enough.
+  function lpMag(hz, fc) {
+    var r = hz / fc;
+    return 1 / Math.sqrt(1 + Math.pow(r, 8)); // ~4th order
+  }
+  function hpMag(hz, fc) {
+    var r = fc / hz;
+    return 1 / Math.sqrt(1 + Math.pow(r, 8));
+  }
+
+  var elLowCurve  = document.getElementById("lowCurve");
+  var elMidCurve  = document.getElementById("midCurve");
+  var elHighCurve = document.getElementById("highCurve");
+  var elLowArea   = document.getElementById("lowArea");
+  var elMidArea   = document.getElementById("midArea");
+  var elHighArea  = document.getElementById("highArea");
+  var xLoG = document.getElementById("xoverLo");
+  var xHiG = document.getElementById("xoverHi");
+
+  function buildBand(magFn) {
+    var N = 90;
+    var line = "", area = "M 0 180";
+    for (var i = 0; i <= N; i++) {
+      var t = i / N;
+      var hz = Math.exp(lnFmin + (lnFmax - lnFmin) * t);
+      var m = magFn(hz);
+      var y = 170 - clamp(m, 0, 1.4) * 120; // 0 at bottom, gain scales up
+      var x = t * SCW;
+      line += (i === 0 ? "M " : "L ") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+      area += " L " + x.toFixed(1) + " " + y.toFixed(1);
+    }
+    area += " L 700 180 Z";
+    return { line: line, area: area };
+  }
+
+  function drawScope() {
+    var lo = state.lowFreq, hi = state.highFreq;
+    var gL = state.lowGain, gM = state.midGain, gH = state.highGain;
+
+    var low  = buildBand(function (hz) { return lpMag(hz, lo) * gL; });
+    var mid  = buildBand(function (hz) { return hpMag(hz, lo) * lpMag(hz, hi) * gM; });
+    var high = buildBand(function (hz) { return hpMag(hz, hi) * gH; });
+
+    elLowCurve.setAttribute("d", low.line);
+    elMidCurve.setAttribute("d", mid.line);
+    elHighCurve.setAttribute("d", high.line);
+    elLowArea.setAttribute("d", low.area);
+    elMidArea.setAttribute("d", mid.area);
+    elHighArea.setAttribute("d", high.area);
+
+    var xLo = hzToX(lo), xHi = hzToX(hi);
+    xLoG.setAttribute("transform", "translate(" + xLo + ",0)");
+    xHiG.setAttribute("transform", "translate(" + xHi + ",0)");
+
+    // position lane labels in the middle of each band
+    document.getElementById("lblLow").setAttribute("x", Math.max(8, xLo * 0.5));
+    document.getElementById("lblMid").setAttribute("x", (xLo + xHi) / 2);
+    document.getElementById("lblHigh").setAttribute("x", Math.min(692, (xHi + SCW) / 2 + 60));
+  }
+
+  // dragging the crossover handles on the scope
+  function makeXoverDrag(g, key) {
+    var p = PARAMS[key];
+    var dragging = false;
+    function setFromEvent(e) {
+      var svg = document.getElementById("scope");
+      var r = svg.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width * SCW;
+      var hz = Math.exp(lnFmin + (lnFmax - lnFmin) * clamp(px / SCW, 0, 1));
+      state[key] = clamp(hz, p.min, p.max);
+      push(p.idx, state[key]);
+      drawScope(); refreshReadouts();
+      faders[key === "lowFreq" ? "lo" : "hi"].render();
+    }
+    g.addEventListener("pointerdown", function (e) {
+      dragging = true; g.setPointerCapture(e.pointerId); setFromEvent(e); e.preventDefault();
+    });
+    g.addEventListener("pointermove", function (e) { if (dragging) setFromEvent(e); });
+    function end() { dragging = false; }
+    g.addEventListener("pointerup", end);
+    g.addEventListener("pointercancel", end);
+    g.addEventListener("dblclick", function () {
+      state[key] = p.def; push(p.idx, state[key]); drawScope(); refreshReadouts();
+      faders[key === "lowFreq" ? "lo" : "hi"].render();
+    });
+  }
+
+  // ====================================================================
+  //  ANIMATED METERS — band level driven by gain + a gentle living wobble
+  // ====================================================================
+  var mLow = document.getElementById("mLow");
+  var mMid = document.getElementById("mMid");
+  var mHigh = document.getElementById("mHigh");
+  var phase = 0;
+  var lvl = { low: 0, mid: 0, high: 0 };
+
+  function tick() {
+    if (!document.hidden) {
+      phase += 0.06;
+      // pseudo band energy: a wobble modulated by that band's gain
+      var bL = (0.55 + 0.4 * Math.sin(phase * 1.3)) * state.lowGain;
+      var bM = (0.5 + 0.45 * Math.sin(phase * 1.9 + 1.1)) * state.midGain;
+      var bH = (0.45 + 0.5 * Math.sin(phase * 2.6 + 2.3)) * state.highGain;
+      lvl.low  += (clamp(bL, 0, 1.4) - lvl.low)  * 0.2;
+      lvl.mid  += (clamp(bM, 0, 1.4) - lvl.mid)  * 0.2;
+      lvl.high += (clamp(bH, 0, 1.4) - lvl.high) * 0.2;
+      mLow.style.height  = clamp(lvl.low  / 1.4 * 100, 0, 100) + "%";
+      mMid.style.height  = clamp(lvl.mid  / 1.4 * 100, 0, 100) + "%";
+      mHigh.style.height = clamp(lvl.high / 1.4 * 100, 0, 100) + "%";
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ====================================================================
+  //  BOOT
+  // ====================================================================
+  var knobs = {};
+  var faders = {};
+
+  function init() {
+    knobs.low  = buildKnob(document.getElementById("kLow"),  "lowGain");
+    knobs.mid  = buildKnob(document.getElementById("kMid"),  "midGain");
+    knobs.high = buildKnob(document.getElementById("kHigh"), "highGain");
+
+    faders.lo = buildFader(document.getElementById("fLo"), "lowFreq",
+                           document.getElementById("ffLo"), document.getElementById("fcLo"));
+    faders.hi = buildFader(document.getElementById("fHi"), "highFreq",
+                           document.getElementById("ffHi"), document.getElementById("fcHi"));
+
+    makeXoverDrag(xLoG, "lowFreq");
+    makeXoverDrag(xHiG, "highFreq");
+
+    // render everything + push defaults to the engine
+    knobs.low.render(); knobs.mid.render(); knobs.high.render();
+    faders.lo.render(); faders.hi.render();
+    refreshReadouts();
+    drawScope();
+
+    push(PARAMS.lowFreq.idx,  state.lowFreq);
+    push(PARAMS.highFreq.idx, state.highFreq);
+    push(PARAMS.lowGain.idx,  state.lowGain);
+    push(PARAMS.midGain.idx,  state.midGain);
+    push(PARAMS.highGain.idx, state.highGain);
+
+    requestAnimationFrame(tick);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

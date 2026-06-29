@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discrete EQ</title>
+<style>
+  :root{
+    --accent:#ff5c5c;
+    --accent2:#ffb05c;
+    --panel:#1a1416;
+    --panel2:#120d0f;
+    --metal:#2a2024;
+    --metal-hi:#3a2e30;
+    --ink:#f3e7e2;
+    --ink-dim:#b09a93;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a1d1f 0%, #100b0c 60%, #080506 100%);
+    color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    min-height:100%; padding:22px; overflow:hidden;
+    -webkit-user-select:none; user-select:none;
+  }
+
+  /* ===== chassis ===== */
+  .unit{
+    width:660px;
+    border-radius:14px;
+    background:
+      linear-gradient(180deg,#221819 0%, #170f11 100%);
+    border:1px solid #3a2c2e;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,255,255,.06),
+      inset 0 -2px 6px rgba(0,0,0,.6);
+    position:relative;
+    overflow:hidden;
+  }
+  /* brushed-metal faceplate sheen */
+  .unit::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 2px, transparent 2px 4px);
+    mix-blend-mode:overlay; opacity:.5;
+  }
+
+  /* ===== header / brand strip ===== */
+  .brand{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px;
+    background:linear-gradient(180deg,#2c2022,#1d1416);
+    border-bottom:1px solid #000;
+    box-shadow:inset 0 -1px 0 rgba(255,255,255,.04);
+  }
+  .logo{display:flex; align-items:center; gap:12px}
+  .led{
+    width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffd0a0, var(--accent2) 55%, #7a2c14 100%);
+    box-shadow:0 0 10px var(--accent2), 0 0 20px rgba(255,176,92,.5);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.55;box-shadow:0 0 6px var(--accent2)}50%{opacity:1;box-shadow:0 0 14px var(--accent2),0 0 26px rgba(255,176,92,.6)}}
+  .title{font-weight:800;letter-spacing:.16em;font-size:15px;text-transform:uppercase}
+  .title b{color:var(--accent)}
+  .model{font-size:10px;letter-spacing:.32em;color:var(--ink-dim);text-transform:uppercase}
+  .screws{display:flex;gap:8px}
+  .screw{width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#5a4a4c,#221a1c 70%);
+    box-shadow:inset 0 1px 1px rgba(255,255,255,.2),0 1px 2px #000;position:relative}
+  .screw::after{content:"";position:absolute;inset:0;margin:auto;width:9px;height:2px;background:#0a0708;border-radius:1px;transform:rotate(40deg)}
+
+  /* ===== response graph ===== */
+  .graph-wrap{padding:16px 20px 6px}
+  .graph{
+    position:relative;width:100%;height:150px;border-radius:8px;
+    background:linear-gradient(180deg,#0c0809,#140d0f);
+    border:1px solid #000;
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.8), 0 0 0 1px rgba(255,92,92,.08);
+    overflow:hidden;
+  }
+  .graph svg{position:absolute;inset:0;width:100%;height:100%}
+  .scan{
+    position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,transparent 0%,rgba(255,92,92,.05) 50%,transparent 100%);
+    height:200%;animation:scan 5.5s linear infinite;
+  }
+  @keyframes scan{0%{transform:translateY(-50%)}100%{transform:translateY(0%)}}
+
+  /* ===== knob deck ===== */
+  .deck{
+    display:flex; justify-content:space-between; gap:8px;
+    padding:18px 20px 24px;
+    background:linear-gradient(180deg,#160f10,#0f0a0b);
+    border-top:1px solid #000;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .cell{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1}
+  .cell .lab{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);font-weight:700}
+  .cell .val{font-size:11px;font-variant-numeric:tabular-nums;color:var(--accent2);min-height:14px;font-weight:700;letter-spacing:.04em}
+
+  /* ===== chunky stepped concentric knob ===== */
+  .knob{
+    width:78px;height:78px;border-radius:50%;cursor:grab;position:relative;
+    touch-action:none;
+  }
+  .knob:active{cursor:grabbing}
+  .knob svg{display:block;overflow:visible}
+  .knob .skirt{filter:drop-shadow(0 5px 6px rgba(0,0,0,.65))}
+  .knob:hover .glow{opacity:1}
+  .glow{transition:opacity .25s; opacity:0}
+
+  /* ===== segmented shape switch ===== */
+  .switch{
+    width:78px;height:78px;border-radius:50%;position:relative;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    background:radial-gradient(circle at 50% 35%,#2c2123,#161011 72%);
+    border:1px solid #000;
+    box-shadow:0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .seg{display:flex;gap:5px}
+  .pip{
+    font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;
+    padding:3px 7px;border-radius:5px;color:var(--ink-dim);
+    background:#0c0809;border:1px solid #000;transition:all .18s;
+  }
+  .pip.on{
+    color:#1a0d0a;background:linear-gradient(180deg,var(--accent2),var(--accent));
+    box-shadow:0 0 10px rgba(255,92,92,.7),inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .switch .ring{position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(255,92,92,.12);pointer-events:none}
+
+  .foot{padding:9px 20px;display:flex;justify-content:space-between;align-items:center;
+    background:#0c0809;border-top:1px solid #000;font-size:9px;letter-spacing:.22em;color:#6e5a58;text-transform:uppercase}
+  .foot .vu{display:flex;gap:3px;align-items:flex-end;height:14px}
+  .foot .vu i{width:3px;background:var(--accent);border-radius:1px;opacity:.3;animation:vu 1.3s ease-in-out infinite}
+  .foot .vu i:nth-child(2){animation-delay:.15s}
+  .foot .vu i:nth-child(3){animation-delay:.3s}
+  .foot .vu i:nth-child(4){animation-delay:.45s}
+  .foot .vu i:nth-child(5){animation-delay:.6s}
+  @keyframes vu{0%,100%{height:4px;opacity:.3}50%{height:14px;opacity:.9}}
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="brand">
+      <div class="logo">
+        <span class="led"></span>
+        <div>
+          <div class="title"><b>DISCRETE</b> EQ</div>
+          <div class="model">3-band · proportional-q · discrete drive</div>
+        </div>
+      </div>
+      <div class="screws"><span class="screw"></span><span class="screw"></span></div>
+    </div>
+
+    <div class="graph-wrap">
+      <div class="graph">
+        <div class="scan"></div>
+        <svg viewBox="0 0 600 150" preserveAspectRatio="none">
+          <!-- grid -->
+          <g stroke="#2a1c1e" stroke-width="1">
+            <line x1="0" y1="37.5" x2="600" y2="37.5"/>
+            <line x1="0" y1="75"   x2="600" y2="75"/>
+            <line x1="0" y1="112.5" x2="600" y2="112.5"/>
+          </g>
+          <g stroke="#1f1517" stroke-width="1">
+            <line x1="120" y1="0" x2="120" y2="150"/>
+            <line x1="240" y1="0" x2="240" y2="150"/>
+            <line x1="360" y1="0" x2="360" y2="150"/>
+            <line x1="480" y1="0" x2="480" y2="150"/>
+          </g>
+          <line x1="0" y1="75" x2="600" y2="75" stroke="#4a3032" stroke-width="1" stroke-dasharray="3 4"/>
+          <!-- filled response -->
+          <path id="fill" fill="url(#grad)" opacity="0.28" d=""/>
+          <path id="curve" fill="none" stroke="url(#stroke)" stroke-width="2.4" d=""/>
+          <circle id="midDot" r="4.5" fill="#1a0d0a" stroke="var(--accent)" stroke-width="2"/>
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ff5c5c"/>
+              <stop offset="1" stop-color="#ffb05c" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="stroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#ffb05c"/>
+              <stop offset="0.5" stop-color="#ff5c5c"/>
+              <stop offset="1" stop-color="#ffb05c"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="foot">
+      <span>discrete · class-a path</span>
+      <div class="vu"><i></i><i></i><i></i><i></i><i></i></div>
+      <span>+24 dBu</span>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- host bridge -------------------------------------------------
+  var host = (window.vstai && typeof window.vstai.setParam === "function") ? window.vstai : null;
+  function send(i,v){ try{ if(host) host.setParam(i, v); }catch(e){} }
+
+  // ---- param model (mirrors spec.json) -----------------------------
+  // type: "knob" continuous, "switch" two-state discrete
+  var PARAMS = [
+    {i:0, name:"Low Gain",   type:"knob",   def:0.5,  fmt:dbFmt(24)},
+    {i:1, name:"Low Shape",  type:"switch", def:0,    opts:["Shelf","Bell"]},
+    {i:2, name:"Mid Freq",   type:"knob",   def:0.45, fmt:freqFmt},
+    {i:3, name:"Mid Gain",   type:"knob",   def:0.5,  fmt:dbFmt(30)},
+    {i:4, name:"High Gain",  type:"knob",   def:0.5,  fmt:dbFmt(27)},
+    {i:5, name:"High Shape", type:"switch", def:0,    opts:["Shelf","Bell"]},
+    {i:6, name:"Drive",      type:"knob",   def:0.25, fmt:pctFmt}
+  ];
+  var state = {}; // index -> 0..1 value
+
+  function dbFmt(span){ return function(v){ var d=(v-0.5)*span; return (d>=0?"+":"")+d.toFixed(1)+" dB"; }; }
+  function pctFmt(v){ return Math.round(v*100)+" %"; }
+  function freqFmt(v){
+    // 200 * (7000/200)^v
+    var hz = 200*Math.pow(35, v);
+    return hz>=1000 ? (hz/1000).toFixed(2)+" kHz" : Math.round(hz)+" Hz";
+  }
+
+  var deck = document.getElementById("deck");
+
+  // ---- build a chunky stepped concentric knob ----------------------
+  function makeKnob(p){
+    var cell = document.createElement("div"); cell.className="cell";
+    var lab = document.createElement("div"); lab.className="lab"; lab.textContent=p.name;
+    var holder = document.createElement("div"); holder.className="knob"; holder.tabIndex=0;
+    var val = document.createElement("div"); val.className="val";
+
+    var NS="http://www.w3.org/2000/svg";
+    var svg=document.createElementNS(NS,"svg");
+    svg.setAttribute("viewBox","0 0 100 100"); svg.setAttribute("width","78"); svg.setAttribute("height","78");
+
+    // outer stepped skirt with ridges (concentric ring)
+    var skirt=document.createElementNS(NS,"g"); skirt.setAttribute("class","skirt");
+    var ridges=14;
+    for(var k=0;k<ridges;k++){
+      var a=(k/ridges)*Math.PI*2;
+      var x1=50+Math.cos(a)*47, y1=50+Math.sin(a)*47;
+      var x2=50+Math.cos(a)*41, y2=50+Math.sin(a)*41;
+      var ln=document.createElementNS(NS,"line");
+      ln.setAttribute("x1",x1);ln.setAttribute("y1",y1);ln.setAttribute("x2",x2);ln.setAttribute("y2",y2);
+      ln.setAttribute("stroke","#0c0708");ln.setAttribute("stroke-width","3");
+      skirt.appendChild(ln);
+    }
+    var base=document.createElementNS(NS,"circle");
+    base.setAttribute("cx","50");base.setAttribute("cy","50");base.setAttribute("r","44");
+    base.setAttribute("fill","#1c1416");base.setAttribute("stroke","#000");base.setAttribute("stroke-width","1.5");
+    skirt.appendChild(base);
+    svg.appendChild(skirt);
+
+    // glow ring (hover)
+    var glow=document.createElementNS(NS,"circle");
+    glow.setAttribute("class","glow");
+    glow.setAttribute("cx","50");glow.setAttribute("cy","50");glow.setAttribute("r","45");
+    glow.setAttribute("fill","none");glow.setAttribute("stroke","var(--accent)");glow.setAttribute("stroke-width","1.5");
+    glow.setAttribute("filter","drop-shadow(0 0 5px var(--accent))");
+    svg.appendChild(glow);
+
+    // value arc track
+    var R=37, CX=50, CY=50, A0=135, A1=405; // degrees (270 sweep)
+    var track=document.createElementNS(NS,"path");
+    track.setAttribute("d", arc(CX,CY,R,A0,A1));
+    track.setAttribute("fill","none");track.setAttribute("stroke","#2c1f21");track.setAttribute("stroke-width","4");
+    track.setAttribute("stroke-linecap","round");
+    svg.appendChild(track);
+
+    var fill=document.createElementNS(NS,"path");
+    fill.setAttribute("fill","none");fill.setAttribute("stroke","url(#stroke)");fill.setAttribute("stroke-width","4");
+    fill.setAttribute("stroke-linecap","round");
+    svg.appendChild(fill);
+
+    // inner cap (concentric, red)
+    var cap=document.createElementNS(NS,"circle");
+    cap.setAttribute("cx","50");cap.setAttribute("cy","50");cap.setAttribute("r","26");
+    cap.setAttribute("fill","#241719");
+    cap.setAttribute("stroke","#3a2a2c");cap.setAttribute("stroke-width","1");
+    svg.appendChild(cap);
+    var capRing=document.createElementNS(NS,"circle");
+    capRing.setAttribute("cx","50");capRing.setAttribute("cy","50");capRing.setAttribute("r","20");
+    capRing.setAttribute("fill","none");capRing.setAttribute("stroke","rgba(255,92,92,.25)");capRing.setAttribute("stroke-width","1");
+    svg.appendChild(capRing);
+
+    // pointer
+    var ptr=document.createElementNS(NS,"line");
+    ptr.setAttribute("x1","50");ptr.setAttribute("y1","50");
+    ptr.setAttribute("stroke","var(--accent2)");ptr.setAttribute("stroke-width","3.2");ptr.setAttribute("stroke-linecap","round");
+    ptr.setAttribute("filter","drop-shadow(0 0 3px var(--accent))");
+    svg.appendChild(ptr);
+
+    holder.appendChild(svg);
+    cell.appendChild(lab); cell.appendChild(holder); cell.appendChild(val);
+    deck.appendChild(cell);
+
+    function render(){
+      var v=state[p.i];
+      var ang=A0+(A1-A0)*v;
+      var rad=(ang-90)*Math.PI/180;
+      ptr.setAttribute("x2", 50+Math.cos(rad)*30);
+      ptr.setAttribute("y2", 50+Math.sin(rad)*30);
+      fill.setAttribute("d", arc(CX,CY,R,A0,ang));
+      val.textContent = p.fmt ? p.fmt(v) : Math.round(v*100)+"%";
+    }
+
+    // ---- drag ----
+    var dragging=false, startY=0, startV=0;
+    function down(e){ dragging=true; startY=clientY(e); startV=state[p.i]; holder.focus(); e.preventDefault(); }
+    function move(e){
+      if(!dragging) return;
+      var dy=startY-clientY(e);
+      var nv=clamp(startV + dy/200, 0, 1);
+      setVal(nv);
+      e.preventDefault();
+    }
+    function up(){ dragging=false; }
+    holder.addEventListener("mousedown",down);
+    window.addEventListener("mousemove",move);
+    window.addEventListener("mouseup",up);
+    holder.addEventListener("touchstart",down,{passive:false});
+    window.addEventListener("touchmove",move,{passive:false});
+    window.addEventListener("touchend",up);
+    holder.addEventListener("dblclick",function(){ setVal(p.def); });
+    holder.addEventListener("wheel",function(e){ setVal(clamp(state[p.i]-Math.sign(e.deltaY)*0.03,0,1)); e.preventDefault(); },{passive:false});
+
+    function setVal(v){ state[p.i]=v; render(); send(p.i, v); drawCurve(); }
+    p._set=setVal; p._render=render;
+    state[p.i]=p.def; render();
+  }
+
+  // ---- segmented shelf/bell switch (discrete) ----------------------
+  function makeSwitch(p){
+    var cell=document.createElement("div"); cell.className="cell";
+    var lab=document.createElement("div"); lab.className="lab"; lab.textContent=p.name;
+    var sw=document.createElement("div"); sw.className="switch"; sw.tabIndex=0;
+    var ring=document.createElement("div"); ring.className="ring"; sw.appendChild(ring);
+    var seg=document.createElement("div"); seg.className="seg";
+    var pips=[];
+    p.opts.forEach(function(o,idx){
+      var pip=document.createElement("span"); pip.className="pip"; pip.textContent=o;
+      pip.addEventListener("click",function(ev){ ev.stopPropagation(); setVal(idx); });
+      seg.appendChild(pip); pips.push(pip);
+    });
+    sw.appendChild(seg);
+    var val=document.createElement("div"); val.className="val";
+    cell.appendChild(lab); cell.appendChild(sw); cell.appendChild(val);
+    deck.appendChild(cell);
+
+    function render(){
+      var v=Math.round(state[p.i]);
+      pips.forEach(function(pp,idx){ pp.classList.toggle("on", idx===v); });
+      val.textContent=p.opts[v];
+    }
+    function setVal(v){ state[p.i]=v; render(); send(p.i, v); drawCurve(); }
+    sw.addEventListener("click",function(){ setVal(Math.round(state[p.i])?0:1); });
+    sw.addEventListener("dblclick",function(){ setVal(p.def); });
+    p._set=setVal; p._render=render;
+    state[p.i]=p.def; render();
+  }
+
+  // ---- helpers -----------------------------------------------------
+  function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+  function clientY(e){ return e.touches?e.touches[0].clientY:e.clientY; }
+  function polar(cx,cy,r,deg){ var a=(deg-90)*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; }
+  function arc(cx,cy,r,d0,d1){
+    var s=polar(cx,cy,r,d1), e=polar(cx,cy,r,d0);
+    var large=(d1-d0)<=180?0:1;
+    return "M "+s[0]+" "+s[1]+" A "+r+" "+r+" 0 "+large+" 0 "+e[0]+" "+e[1];
+  }
+
+  // ---- build deck --------------------------------------------------
+  PARAMS.forEach(function(p){ if(p.type==="switch") makeSwitch(p); else makeKnob(p); });
+
+  // ---- live response curve (the animated proportional-Q bell) ------
+  var curve=document.getElementById("curve");
+  var fillP=document.getElementById("fill");
+  var midDot=document.getElementById("midDot");
+  var W=600,H=150,MID=75;
+
+  // map x (0..W) to log freq 20..20000
+  function xToHz(x){ return 20*Math.pow(1000, x/W); }
+  function db2y(db){ return MID - db*4.0; } // ~4px per dB, ±18dB fits
+
+  function bellGain(hz, fc, gainDb, Q){
+    // peaking biquad magnitude (RBJ) in dB at frequency hz
+    var A=Math.pow(10, gainDb/40);
+    var w=2*Math.PI*hz/48000, w0=2*Math.PI*fc/48000;
+    var cw=Math.cos(w0), sw=Math.sin(w0), alpha=sw/(2*Q);
+    var b0=1+alpha*A, b1=-2*cw, b2=1-alpha*A;
+    var a0=1+alpha/A, a1=-2*cw, a2=1-alpha/A;
+    return biquadDb(b0,b1,b2,a0,a1,a2,w);
+  }
+  function lowShelfGain(hz,fc,gainDb){
+    var A=Math.pow(10,gainDb/40), S=0.85;
+    var w=2*Math.PI*hz/48000, w0=2*Math.PI*fc/48000, cw=Math.cos(w0), sw=Math.sin(w0);
+    var alpha=sw/2*Math.sqrt((A+1/A)*(1/S-1)+2), tsa=2*Math.sqrt(A)*alpha;
+    var b0=A*((A+1)-(A-1)*cw+tsa), b1=2*A*((A-1)-(A+1)*cw), b2=A*((A+1)-(A-1)*cw-tsa);
+    var a0=(A+1)+(A-1)*cw+tsa, a1=-2*((A-1)+(A+1)*cw), a2=(A+1)+(A-1)*cw-tsa;
+    return biquadDb(b0,b1,b2,a0,a1,a2,w);
+  }
+  function highShelfGain(hz,fc,gainDb){
+    var A=Math.pow(10,gainDb/40), S=0.9;
+    var w=2*Math.PI*hz/48000, w0=2*Math.PI*fc/48000, cw=Math.cos(w0), sw=Math.sin(w0);
+    var alpha=sw/2*Math.sqrt((A+1/A)*(1/S-1)+2), tsa=2*Math.sqrt(A)*alpha;
+    var b0=A*((A+1)+(A-1)*cw+tsa), b1=-2*A*((A-1)+(A+1)*cw), b2=A*((A+1)+(A-1)*cw-tsa);
+    var a0=(A+1)-(A-1)*cw+tsa, a1=2*((A-1)-(A+1)*cw), a2=(A+1)-(A-1)*cw-tsa;
+    return biquadDb(b0,b1,b2,a0,a1,a2,w);
+  }
+  function biquadDb(b0,b1,b2,a0,a1,a2,w){
+    var cw=Math.cos(w), c2w=Math.cos(2*w), sw=Math.sin(w), s2w=Math.sin(2*w);
+    var nr=b0+b1*cw+b2*c2w, ni=-(b1*sw+b2*s2w);
+    var dr=a0+a1*cw+a2*c2w, di=-(a1*sw+a2*s2w);
+    var num=Math.sqrt(nr*nr+ni*ni), den=Math.sqrt(dr*dr+di*di);
+    return 20*Math.log10((num/den)||1e-9);
+  }
+
+  function drawCurve(){
+    var lowDb=(state[0]-0.5)*24;
+    var lowBell=Math.round(state[1])>=1;
+    var midN=state[2];
+    var midDb=(state[3]-0.5)*30;
+    var highDb=(state[4]-0.5)*27;
+    var hiBell=Math.round(state[5])>=1;
+
+    var midHz=Math.min(200*Math.exp(midN*3.555), 20000);
+    var adb=Math.abs(midDb);
+    var midQ=clamp(0.5+adb*0.18, 0.5, 4.0); // proportional-Q: widens at low boost
+
+    var d="", df="M 0 "+H+" ";
+    for(var x=0;x<=W;x+=4){
+      var hz=xToHz(x);
+      var g=0;
+      if(lowBell) g+=bellGain(hz, 80*1.6, lowDb, 0.7); else g+=lowShelfGain(hz, 80, lowDb);
+      g+=bellGain(hz, midHz, midDb, midQ);
+      if(hiBell) g+=bellGain(hz, 12000*0.55, highDb, 0.7); else g+=highShelfGain(hz, 12000, highDb);
+      var y=clamp(db2y(g), 2, H-2);
+      d += (x===0?"M ":"L ")+x+" "+y+" ";
+      df+= "L "+x+" "+y+" ";
+    }
+    df+="L "+W+" "+H+" Z";
+    curve.setAttribute("d", d);
+    fillP.setAttribute("d", df);
+    // mid marker dot on the curve
+    var mx=W*Math.log(midHz/20)/Math.log(1000);
+    var mg=bellGain(midHz,midHz,midDb,midQ)
+         + (lowBell?bellGain(midHz,128,lowDb,0.7):lowShelfGain(midHz,80,lowDb))
+         + (hiBell?bellGain(midHz,6600,highDb,0.7):highShelfGain(midHz,12000,highDb));
+    midDot.setAttribute("cx", clamp(mx,4,W-4));
+    midDot.setAttribute("cy", clamp(db2y(mg),4,H-4));
+  }
+
+  // ---- init / host ready -------------------------------------------
+  function boot(){
+    PARAMS.forEach(function(p){ send(p.i, state[p.i]); });
+    drawCurve();
+  }
+  if(host && typeof host.onReady==="function"){ host.onReady(boot); } else { boot(); }
+})();
+</script>
+</body>
+</html>

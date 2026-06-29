@@ -1,0 +1,16 @@
+{
+  "name": "Pitch Shifter",
+  "isInstrument": false,
+  "explanation": "A delay-line pitch shifter and harmonizer. A circular delay line is read by two crossfaded pointers that drift at a rate set by the pitch ratio, producing a click-free shifted voice that is regenerated through a feedback path and blended with the dry signal. Controls: Shift (semitones), Fine (cents), Feedback and dry/wet Mix.",
+  "assembly": "factory/plugins/pitch-shifter/assembly.ts",
+  "out": "factory/plugins/pitch-shifter/x.vstai",
+  "publishedAt": 1751000056000,
+  "theme": { "accent": "#7ad0ff", "accent2": "#b0a0ff" },
+  "guiFile": "factory/plugins/pitch-shifter/gui.html",
+  "params": [
+    { "name": "Shift",    "index": 0, "min": -12, "max": 12, "default": 7, "step": 1 },
+    { "name": "Fine",     "index": 1, "min": -100, "max": 100, "default": 0 },
+    { "name": "Feedback", "index": 2, "min": 0, "max": 1, "default": 0 },
+    { "name": "Mix",      "index": 3, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

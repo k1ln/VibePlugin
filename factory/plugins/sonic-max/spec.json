@@ -1,0 +1,16 @@
+{
+  "name": "Sonic Max",
+  "isInstrument": false,
+  "explanation": "A psychoacoustic clarity and phase enhancer. The signal is split into low, mid and high bands; the lows are delayed a touch to re-align their timing against the highs, restoring transient punch. Process lifts high-frequency presence for air and definition, while Lo Contour blooms the low end for weight and body. The bands recombine through a soft output trim and dry/wet Mix, so the effect stays subtle and bounded. Controls: Process, Lo Contour, Output and Mix.",
+  "assembly": "factory/plugins/sonic-max/assembly.ts",
+  "out": "factory/plugins/sonic-max/x.vstai",
+  "publishedAt": 1751000067000,
+  "theme": { "accent": "#5ad1ff", "accent2": "#b0e0ff" },
+  "guiFile": "factory/plugins/sonic-max/gui.html",
+  "params": [
+    { "name": "Process",    "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Lo Contour",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output",      "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Mix",         "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

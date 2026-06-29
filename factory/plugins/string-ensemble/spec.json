@@ -1,0 +1,17 @@
+{
+  "name": "String Ensemble",
+  "isInstrument": true,
+  "explanation": "A paraphonic 70s-style string machine. Every held note drives two band-limited sawtooth oscillators (the note plus its octave) summed into one bus, swelled by a shared slow Attack/Release envelope so chords bloom like a bowed string section. The bus runs through a triple-tap BBD-style ensemble chorus — three slow LFO-modulated delay lines — for the signature lush shimmering movement. Controls: Attack, Release, Ensemble, Tone and Level.",
+  "assembly": "factory/plugins/string-ensemble/assembly.ts",
+  "out": "factory/plugins/string-ensemble/x.vstai",
+  "publishedAt": 1751000060000,
+  "theme": { "accent": "#e8d6a0", "accent2": "#c0a86a" },
+  "guiFile": "factory/plugins/string-ensemble/gui.html",
+  "params": [
+    { "name": "Attack",   "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Release",  "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Ensemble", "index": 2, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Tone",     "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level",    "index": 4, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

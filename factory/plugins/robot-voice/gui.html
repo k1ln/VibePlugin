@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot Voice</title>
+<style>
+  :root {
+    --accent:  #54ff9a;
+    --accent2: #54d1ff;
+    --bg0: #03100a;
+    --bg1: #06190f;
+    --panel: #07140d;
+    --line: rgba(84,255,154,0.16);
+    --dim: rgba(84,255,154,0.45);
+    --text: #baffda;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg0);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 18px;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(84,209,255,0.10), transparent 60%),
+      radial-gradient(140% 120% at 50% 120%, rgba(84,255,154,0.10), transparent 55%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 720px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 18px 20px 22px;
+    background:
+      linear-gradient(180deg, rgba(84,255,154,0.05), rgba(0,0,0,0)) ,
+      linear-gradient(180deg, #08160e, #050f09);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.6),
+      0 28px 70px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(84,255,154,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* faint moving scanlines for the CRT feel */
+  .shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.16) 3px,
+      rgba(0,0,0,0) 4px);
+    mix-blend-mode: multiply;
+    animation: scan 8s linear infinite;
+    opacity: 0.5;
+  }
+  @keyframes scan {
+    from { background-position: 0 0; }
+    to   { background-position: 0 80px; }
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand { display: flex; align-items: center; gap: 12px; }
+
+  .glyph {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 50% 35%, rgba(84,255,154,0.22), transparent 70%);
+    box-shadow: inset 0 0 12px rgba(84,255,154,0.25);
+  }
+  .glyph svg { display: block; }
+
+  .titles h1 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #eafff2;
+    text-shadow: 0 0 10px rgba(84,255,154,0.55);
+  }
+  .titles p {
+    margin: 2px 0 0;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .power {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid rgba(84,209,255,0.35);
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: rgba(84,209,255,0.07);
+    text-shadow: 0 0 8px rgba(84,209,255,0.5);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+
+  /* ---- the mouth / band meter display ---- */
+  .scope {
+    position: relative;
+    z-index: 2;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(120% 140% at 50% 0%, rgba(84,209,255,0.08), transparent 55%),
+      linear-gradient(180deg, #02110a, #010a06);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(0,0,0,0.5);
+    padding: 14px 14px 8px;
+    overflow: hidden;
+  }
+
+  .mouth {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    height: 122px;
+  }
+
+  .bar {
+    flex: 1 1 0;
+    max-width: 26px;
+    min-width: 5px;
+    height: 100%;
+    border-radius: 4px 4px 2px 2px;
+    background: linear-gradient(180deg, rgba(84,255,154,0.06), rgba(84,255,154,0.02));
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(84,255,154,0.10);
+  }
+  .bar > i {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    bottom: 0;
+    height: 4%;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent) 55%, #1f9c5d);
+    box-shadow: 0 0 12px rgba(84,255,154,0.7);
+    transition: height 0.06s linear;
+  }
+  /* lit grid texture on each bar (LED segments) */
+  .bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, rgba(0,0,0,0.55) 0px, rgba(0,0,0,0.55) 2px, transparent 2px, transparent 7px);
+    pointer-events: none;
+  }
+
+  .wave {
+    margin-top: 8px;
+    height: 46px;
+    width: 100%;
+    display: block;
+  }
+
+  .readout {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .readout b { color: var(--accent); text-shadow: 0 0 8px rgba(84,255,154,0.6); }
+
+  /* ---- controls ---- */
+  .controls {
+    position: relative;
+    z-index: 2;
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 560px) {
+    .controls { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .cell {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 10px 10px;
+    background: linear-gradient(180deg, rgba(84,255,154,0.04), rgba(0,0,0,0));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .cell .lab {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .cell .val {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 8px rgba(84,255,154,0.5);
+  }
+
+  .knob {
+    width: 64px;
+    height: 64px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob:focus { outline: none; }
+  .knob:hover .kglow { opacity: 1; }
+
+  /* segmented selector for Bands */
+  .seg {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+  }
+  .seg button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    background: rgba(84,255,154,0.04);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 9px 0;
+    cursor: pointer;
+    transition: all 0.14s ease;
+  }
+  .seg button:hover { color: var(--text); border-color: var(--dim); }
+  .seg button.on {
+    color: #04140b;
+    background: linear-gradient(180deg, var(--accent), #2bbd6e);
+    border-color: var(--accent);
+    box-shadow: 0 0 14px rgba(84,255,154,0.55);
+    text-shadow: none;
+  }
+  .seg-wrap { width: 100%; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .seg-icon { width: 64px; height: 64px; display: grid; place-items: center; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="glyph">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="4" y="3" width="14" height="12" rx="3" stroke="#54ff9a" stroke-width="1.4"/>
+            <circle cx="8" cy="8" r="1.5" fill="#54d1ff"/>
+            <circle cx="14" cy="8" r="1.5" fill="#54d1ff"/>
+            <rect x="7" y="11" width="8" height="1.6" rx="0.8" fill="#54ff9a"/>
+            <path d="M11 15v3M8 18h6" stroke="#54ff9a" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="titles">
+          <h1>Robot Voice</h1>
+          <p>Channel Vocoder</p>
+        </div>
+      </div>
+      <div class="power">● Online</div>
+    </header>
+
+    <div class="scope">
+      <div class="mouth" id="mouth"></div>
+      <svg class="wave" id="wave" viewBox="0 0 600 46" preserveAspectRatio="none">
+        <polyline id="waveLine" fill="none" stroke="#54d1ff" stroke-width="1.4"
+                  stroke-linejoin="round" points=""/>
+      </svg>
+    </div>
+
+    <div class="readout">
+      <span>SPECTRUM ENVELOPE</span>
+      <span><b id="bandCount">12</b> BANDS</span>
+    </div>
+
+    <div class="controls" id="controls"></div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices MUST match assembly.ts) -------------
+  var PARAMS = [
+    { name: "Bands",     index: 0, min: 0, max: 2, def: 1, type: "seg",
+      labels: ["8", "12", "16"] },
+    { name: "Carrier",   index: 1, min: 0, max: 1, def: 0.15, type: "knob",
+      fmt: function (v) { return v < 0.5
+        ? "SAW " + Math.round((1 - v * 2) * 100) + "%"
+        : "NOISE " + Math.round((v - 0.5) * 200) + "%"; } },
+    { name: "Formant",   index: 2, min: 0, max: 1, def: 0.5, type: "knob",
+      fmt: function (v) {
+        var semis = Math.round((v - 0.5) * 24);
+        return (semis > 0 ? "+" : "") + semis + " st"; } },
+    { name: "Resonance", index: 3, min: 0, max: 1, def: 0.6, type: "knob",
+      fmt: function (v) { return Math.round(v * 100) + "%"; } },
+    { name: "Mix",       index: 4, min: 0, max: 1, def: 1, type: "knob",
+      fmt: function (v) { return Math.round(v * 100) + "%"; } }
+  ];
+
+  var values = {};      // index -> current real value
+  var pending = [];     // [index,value] queued until vstai ready
+  var ready = false;
+
+  function push(index, value) {
+    values[index] = value;
+    if (ready && window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(index, value);
+    } else {
+      pending.push([index, value]);
+    }
+  }
+
+  function flush() {
+    ready = true;
+    if (!window.vstai || !window.vstai.setParam) return;
+    for (var i = 0; i < pending.length; i++) {
+      window.vstai.setParam(pending[i][0], pending[i][1]);
+    }
+    pending.length = 0;
+  }
+
+  // ---- knob control --------------------------------------------------
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("class", "knob");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("tabindex", "0");
+
+    var glow = document.createElementNS(svgNS, "circle");
+    glow.setAttribute("class", "kglow");
+    glow.setAttribute("cx", "50"); glow.setAttribute("cy", "50"); glow.setAttribute("r", "44");
+    glow.setAttribute("fill", "none");
+    glow.setAttribute("stroke", "var(--accent)");
+    glow.setAttribute("stroke-width", "2");
+    glow.setAttribute("opacity", "0");
+    glow.style.transition = "opacity 0.2s";
+    glow.style.filter = "drop-shadow(0 0 6px var(--accent))";
+    svg.appendChild(glow);
+
+    var track = document.createElementNS(svgNS, "circle");
+    track.setAttribute("cx", "50"); track.setAttribute("cy", "50"); track.setAttribute("r", "38");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(84,255,154,0.14)");
+    track.setAttribute("stroke-width", "7");
+    track.setAttribute("stroke-dasharray", "179 240");
+    track.setAttribute("stroke-linecap", "round");
+    track.setAttribute("transform", "rotate(135 50 50)");
+    svg.appendChild(track);
+
+    var arc = document.createElementNS(svgNS, "circle");
+    arc.setAttribute("cx", "50"); arc.setAttribute("cy", "50"); arc.setAttribute("r", "38");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "var(--accent)");
+    arc.setAttribute("stroke-width", "7");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("transform", "rotate(135 50 50)");
+    arc.style.filter = "drop-shadow(0 0 5px rgba(84,255,154,0.7))";
+    svg.appendChild(arc);
+
+    var body = document.createElementNS(svgNS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "27");
+    body.setAttribute("fill", "url(#kbody)");
+    body.setAttribute("stroke", "rgba(0,0,0,0.6)");
+    body.setAttribute("stroke-width", "1");
+    svg.appendChild(body);
+
+    var notch = document.createElementNS(svgNS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "29");
+    notch.setAttribute("stroke", "var(--accent)");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    // shared gradient def
+    if (!document.getElementById("kbody")) {
+      var defs = document.createElementNS(svgNS, "defs");
+      var grad = document.createElementNS(svgNS, "radialGradient");
+      grad.setAttribute("id", "kbody");
+      grad.setAttribute("cx", "0.5"); grad.setAttribute("cy", "0.32");
+      var s1 = document.createElementNS(svgNS, "stop");
+      s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", "#123421");
+      var s2 = document.createElementNS(svgNS, "stop");
+      s2.setAttribute("offset", "100%"); s2.setAttribute("stop-color", "#04120a");
+      grad.appendChild(s1); grad.appendChild(s2);
+      defs.appendChild(grad);
+      svg.appendChild(defs);
+    }
+
+    var lab = document.createElement("div");
+    lab.className = "lab"; lab.textContent = p.name;
+    var val = document.createElement("div");
+    val.className = "val";
+
+    cell.appendChild(svg);
+    cell.appendChild(lab);
+    cell.appendChild(val);
+
+    var ARC_LEN = 179;       // dash length for 270deg sweep
+    var FULL = 238.76;       // circumference 2*pi*38
+
+    function render(v) {
+      var t = (v - p.min) / (p.max - p.min);
+      var ang = 135 + t * 270;
+      notch.setAttribute("transform", "rotate(" + ang + " 50 50)");
+      arc.setAttribute("stroke-dasharray", (ARC_LEN * t) + " " + FULL);
+      val.textContent = p.fmt ? p.fmt(v) : v.toFixed(2);
+    }
+
+    function set(v) {
+      v = Math.max(p.min, Math.min(p.max, v));
+      render(v);
+      push(p.index, v);
+    }
+
+    // drag vertical
+    var dragging = false, lastY = 0, startV = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = values[p.index];
+      svg.focus();
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var span = p.max - p.min;
+      set(values[p.index] + dy / 160 * span);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    svg.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    svg.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    svg.addEventListener("dblclick", function () { set(p.def); });
+    svg.addEventListener("wheel", function (e) {
+      var span = p.max - p.min;
+      set(values[p.index] - Math.sign(e.deltaY) * span * 0.02);
+      e.preventDefault();
+    }, { passive: false });
+    svg.addEventListener("keydown", function (e) {
+      var span = p.max - p.min;
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") { set(values[p.index] + span * 0.02); e.preventDefault(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowLeft") { set(values[p.index] - span * 0.02); e.preventDefault(); }
+    });
+
+    values[p.index] = p.def;
+    render(p.def);
+    push(p.index, p.def);
+    return cell;
+  }
+
+  // ---- segmented selector (Bands) -----------------------------------
+  var bandCountEl = document.getElementById("bandCount");
+  function makeSeg(p) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var icon = document.createElement("div");
+    icon.className = "seg-icon";
+    icon.innerHTML =
+      '<svg width="58" height="58" viewBox="0 0 58 58">' +
+      '<g stroke="#54d1ff" stroke-width="3" stroke-linecap="round">' +
+      '<line x1="14" y1="40" x2="14" y2="24"/>' +
+      '<line x1="22" y1="40" x2="22" y2="14"/>' +
+      '<line x1="30" y1="40" x2="30" y2="28"/>' +
+      '<line x1="38" y1="40" x2="38" y2="18"/>' +
+      '<line x1="46" y1="40" x2="46" y2="32"/>' +
+      '</g></svg>';
+
+    var wrap = document.createElement("div");
+    wrap.className = "seg-wrap";
+
+    var seg = document.createElement("div");
+    seg.className = "seg";
+
+    var lab = document.createElement("div");
+    lab.className = "lab"; lab.textContent = p.name;
+    var val = document.createElement("div");
+    val.className = "val";
+
+    var btns = [];
+    function select(i) {
+      for (var j = 0; j < btns.length; j++) btns[j].classList.toggle("on", j === i);
+      val.textContent = p.labels[i] + " BANDS";
+      bandCountEl.textContent = p.labels[i];
+      push(p.index, i);
+    }
+
+    for (var i = 0; i < p.labels.length; i++) {
+      (function (i) {
+        var b = document.createElement("button");
+        b.textContent = p.labels[i];
+        b.addEventListener("click", function () { select(i); });
+        seg.appendChild(b);
+        btns.push(b);
+      })(i);
+    }
+
+    wrap.appendChild(seg);
+    cell.appendChild(icon);
+    cell.appendChild(wrap);
+    cell.appendChild(lab);
+    cell.appendChild(val);
+
+    values[p.index] = p.def;
+    select(p.def | 0);
+    return cell;
+  }
+
+  // ---- build controls ------------------------------------------------
+  var host = document.getElementById("controls");
+  for (var i = 0; i < PARAMS.length; i++) {
+    var p = PARAMS[i];
+    host.appendChild(p.type === "seg" ? makeSeg(p) : makeKnob(p));
+  }
+
+  // ---- the animated robot mouth (band meters) -----------------------
+  var mouth = document.getElementById("mouth");
+  var NBARS = 16;
+  var bars = [];
+  for (var i = 0; i < NBARS; i++) {
+    var bar = document.createElement("div");
+    bar.className = "bar";
+    var fill = document.createElement("i");
+    bar.appendChild(fill);
+    mouth.appendChild(bar);
+    bars.push(fill);
+  }
+
+  var waveLine = document.getElementById("waveLine");
+  var levels = new Float32Array(NBARS);
+  var phase = 0;
+
+  function activeBands() {
+    var b = values[0] | 0;
+    return b === 0 ? 8 : (b === 1 ? 12 : 16);
+  }
+
+  function frame(t) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    phase += 0.045;
+
+    var nb = activeBands();
+    var carrier = values[1] || 0;
+    var reso = values[3] || 0;
+    var mix = values[4] || 0;
+    var formant = values[2] || 0.5;
+
+    // synthesize a lively "talking" envelope across the active bands
+    for (var i = 0; i < NBARS; i++) {
+      var on = i < nb;
+      var fi = i / Math.max(1, nb - 1);
+      // a roaming vowel-like formant hump that drifts over time
+      var hump = Math.exp(-Math.pow((fi - (0.4 + 0.3 * Math.sin(phase * 0.7))) * 3.2, 2));
+      var hump2 = 0.6 * Math.exp(-Math.pow((fi - (0.15 + 0.1 * Math.sin(phase * 1.1 + 1))) * 4.5, 2));
+      var syll = 0.5 + 0.5 * Math.sin(phase * 2.3 + i * 0.4); // syllable gate
+      var grain = carrier * (Math.random() * 0.5);            // noise carrier sparkle
+      var target = on ? ((hump + hump2) * syll * (0.55 + reso * 0.5) + grain) * mix : 0;
+      target = Math.max(0, Math.min(1, target));
+      levels[i] += (target - levels[i]) * 0.35;
+      var h = 4 + levels[i] * 94;
+      bars[i].style.height = h + "%";
+      bars[i].style.opacity = on ? "1" : "0.12";
+      // tint shift toward cyan with formant
+      bars[i].style.background =
+        "linear-gradient(180deg, " +
+        (formant > 0.55 ? "var(--accent2)" : "var(--accent)") + ", var(--accent) 55%, #1f9c5d)";
+    }
+
+    // speech-style waveform: sum of band activity modulating a fast carrier
+    var pts = "";
+    var act = 0;
+    for (var k = 0; k < nb; k++) act += levels[k];
+    act = act / nb;
+    for (var x = 0; x <= 120; x++) {
+      var px = x / 120 * 600;
+      var car = Math.sin(x * 0.5 + phase * 6) + 0.5 * Math.sin(x * 1.3 - phase * 4);
+      var amp = (0.25 + act * (0.9 + carrier)) * mix;
+      var py = 23 - car * amp * 20;
+      pts += px.toFixed(1) + "," + py.toFixed(1) + " ";
+    }
+    waveLine.setAttribute("points", pts.trim());
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- host handshake ------------------------------------------------
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(flush);
+  } else {
+    flush();
+  }
+})();
+</script>
+</body>
+</html>

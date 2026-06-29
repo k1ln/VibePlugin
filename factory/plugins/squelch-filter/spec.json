@@ -1,0 +1,17 @@
+{
+  "name": "Squelch Filter",
+  "isInstrument": false,
+  "explanation": "An acid envelope filter: a resonant 4-pole transistor-ladder low-pass whose cutoff is opened by an envelope follower tracking the input dynamics, summed with a manual base cutoff. High resonance gives the signature squelch and can near self-oscillation while a saturated feedback path keeps it stable. On transients the filter snaps open and quacks shut. Controls: Cutoff, Resonance, Env Amount, Decay and dry/wet Mix.",
+  "assembly": "factory/plugins/squelch-filter/assembly.ts",
+  "out": "factory/plugins/squelch-filter/x.vstai",
+  "publishedAt": 1751000062000,
+  "theme": { "accent": "#c6ff3d", "accent2": "#54d18f" },
+  "guiFile": "factory/plugins/squelch-filter/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Decay",      "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Mix",        "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

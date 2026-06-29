@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitch Shifter</title>
+<style>
+  :root {
+    --accent: #7ad0ff;
+    --accent2: #b0a0ff;
+    --bg0: #0b0f15;
+    --bg1: #131a24;
+    --panel: #1a2230;
+    --panel-hi: #243042;
+    --steel: #2c3a4e;
+    --ink: #cdd9e8;
+    --ink-dim: #6f7e93;
+    --lcd: #7dffb0;
+    --lcd-dim: #1d3a2a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: radial-gradient(120% 140% at 50% -10%, #182230 0%, #0b0f15 60%, #06080c 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  .unit {
+    max-width: 760px;
+    margin: 18px auto;
+    padding: 18px;
+    border-radius: 16px;
+    background:
+      linear-gradient(180deg, #1c2533 0%, #141b27 100%);
+    border: 1px solid #2a3950;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.05) inset,
+      0 -2px 0 rgba(0,0,0,0.5) inset,
+      0 24px 60px rgba(0,0,0,0.55);
+    position: relative;
+  }
+
+  /* rack ears + screws */
+  .unit::before, .unit::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 22px;
+    background: linear-gradient(90deg, #20293a, #161d29);
+    border-radius: 16px 0 0 16px;
+  }
+  .unit::after { right: 0; left: auto; border-radius: 0 16px 16px 0; transform: scaleX(-1); }
+
+  .inner { position: relative; padding: 0 14px; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #26344a;
+  }
+
+  .brand { display: flex; flex-direction: column; gap: 3px; }
+  .brand .name {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand .sub {
+    font-size: 9.5px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .power-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent), 0 0 3px #fff inset;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.55; box-shadow: 0 0 6px var(--accent); }
+    50%      { opacity: 1;    box-shadow: 0 0 16px var(--accent); }
+  }
+
+  /* ---- LCD readout ---- */
+  .lcd {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(180deg, #07140d, #0a1c12);
+    border: 1px solid #0e2a1b;
+    border-radius: 8px;
+    padding: 9px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6) inset, 0 0 0 1px rgba(125,255,176,0.05);
+    color: var(--lcd);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 8px rgba(125,255,176,0.55);
+  }
+  .lcd .big {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    min-width: 78px;
+  }
+  .lcd .meta { display: flex; flex-direction: column; gap: 2px; font-size: 10px; letter-spacing: 0.16em; }
+  .lcd .meta .lbl { color: #3f8a64; }
+  .lcd .meta .val { color: var(--lcd); }
+
+  /* ---- main stage ---- */
+  .stage {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 560px) { .stage { grid-template-columns: 1fr; } }
+
+  .ladder {
+    position: relative;
+    height: 240px;
+    border-radius: 12px;
+    background:
+      linear-gradient(180deg, #0c1420 0%, #0a0f18 100%);
+    border: 1px solid #233247;
+    overflow: hidden;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.5) inset;
+  }
+  .ladder .center-line {
+    position: absolute; left: 0; right: 0; top: 50%;
+    height: 1px; background: rgba(122,208,255,0.25);
+  }
+  .rung {
+    position: absolute; left: 12px; right: 12px;
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    font-size: 9px;
+    color: var(--ink-dim);
+  }
+  .rung span {
+    position: absolute; right: 4px; top: -7px;
+    letter-spacing: 0.1em;
+  }
+
+  /* moving voice bars */
+  .voice {
+    position: absolute;
+    left: 22%;
+    width: 30%;
+    height: 14px;
+    border-radius: 4px;
+    transform: translateY(-50%);
+    transition: top 0.18s cubic-bezier(.22,.9,.3,1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #07121b; font-weight: 700;
+  }
+  .voice.dry {
+    left: 16%;
+    background: linear-gradient(90deg, #2c3a4e, #44597a);
+    color: var(--ink);
+    top: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .voice.wet {
+    left: 52%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 18px rgba(122,208,255,0.55), 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .voice .glow {
+    position: absolute; inset: 0; border-radius: 4px;
+    box-shadow: 0 0 22px rgba(176,160,255,0.6);
+    opacity: 0.6;
+    animation: breathe 1.8s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100%{opacity:.35;} 50%{opacity:.85;} }
+
+  /* the interval ribbon connecting dry->wet */
+  .ribbon { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  /* scanning shimmer */
+  .scan {
+    position: absolute; top: 0; bottom: 0; width: 80px;
+    background: linear-gradient(90deg, transparent, rgba(122,208,255,0.10), transparent);
+    animation: sweep 3.4s linear infinite;
+  }
+  @keyframes sweep { 0%{left:-80px;} 100%{left:100%;} }
+
+  /* ---- knob column ---- */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 10px;
+    align-content: start;
+  }
+  .knob-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    background: linear-gradient(180deg, #18212f, #121925);
+    border: 1px solid #26344a;
+    border-radius: 10px;
+    padding: 10px 6px 8px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 14px rgba(0,0,0,0.35);
+  }
+  .knob-cell .label {
+    font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim);
+  }
+  .knob-cell .readout {
+    font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .knob {
+    width: 64px; height: 64px; cursor: ns-resize; touch-action: none;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+  }
+  .knob:hover .knob-arc { stroke-width: 6; }
+
+  .foot {
+    margin-top: 4px;
+    font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-dim); text-align: center;
+  }
+  .hint { color: #3c4c66; }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="inner">
+      <header>
+        <div class="brand">
+          <span class="name">Pitch Shifter</span>
+          <span class="sub">Harmonic Interval Processor</span>
+        </div>
+        <div class="lcd">
+          <div class="big" id="lcdInterval">+7</div>
+          <div class="meta">
+            <div><span class="lbl">SEMI</span> <span class="val" id="lcdSemi">+7</span></div>
+            <div><span class="lbl">CENT</span> <span class="val" id="lcdCent">+0</span></div>
+            <div><span class="lbl">RATIO</span> <span class="val" id="lcdRatio">1.498</span></div>
+          </div>
+        </div>
+        <div class="power-dot"></div>
+      </header>
+
+      <div class="stage">
+        <div class="ladder" id="ladder">
+          <div class="scan"></div>
+          <div class="center-line"></div>
+          <svg class="ribbon" id="ribbon" preserveAspectRatio="none"></svg>
+          <div class="voice dry" id="voiceDry">DRY</div>
+          <div class="voice wet" id="voiceWet"><span class="glow"></span>SHIFT</div>
+        </div>
+
+        <div class="controls" id="controls"></div>
+      </div>
+
+      <div class="foot">
+        Drag knob vertically &middot; double-click to reset &middot;
+        <span class="hint">two crossfaded read taps</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices match assembly.ts) ----
+  var PARAMS = [
+    { name: "Shift",    index: 0, min: -12, max: 12, def: 7, step: 1,
+      fmt: function (v) { return (v >= 0 ? "+" : "") + Math.round(v) + " st"; } },
+    { name: "Fine",     index: 1, min: -100, max: 100, def: 0, step: 0,
+      fmt: function (v) { return (v >= 0 ? "+" : "") + Math.round(v) + " c"; } },
+    { name: "Feedback", index: 2, min: 0, max: 1, def: 0, step: 0,
+      fmt: function (v) { return Math.round(v * 100) + " %"; } },
+    { name: "Mix",      index: 3, min: 0, max: 1, def: 0.5, step: 0,
+      fmt: function (v) { return Math.round(v * 100) + " %"; } }
+  ];
+
+  var values = {};
+
+  // ---- host bridge ----
+  function pushParam(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  // ---- knob factory ----
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "knob-cell";
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("class", "knob");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    // outer ring
+    var ring = document.createElementNS(svgNS, "circle");
+    ring.setAttribute("cx", "50"); ring.setAttribute("cy", "50"); ring.setAttribute("r", "42");
+    ring.setAttribute("fill", "none");
+    ring.setAttribute("stroke", "#0c1420");
+    ring.setAttribute("stroke-width", "5");
+    svg.appendChild(ring);
+
+    // value arc (track)
+    var track = document.createElementNS(svgNS, "circle");
+    track.setAttribute("cx", "50"); track.setAttribute("cy", "50"); track.setAttribute("r", "42");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "#23324a");
+    track.setAttribute("stroke-width", "5");
+    track.setAttribute("stroke-linecap", "round");
+    // arc spans 270deg, gap at the bottom
+    var CIRC = 2 * Math.PI * 42;
+    var ARC = 0.75; // 270deg
+    track.setAttribute("stroke-dasharray", (CIRC * ARC) + " " + CIRC);
+    track.setAttribute("transform", "rotate(135 50 50)");
+    svg.appendChild(track);
+
+    var arc = document.createElementNS(svgNS, "circle");
+    arc.setAttribute("class", "knob-arc");
+    arc.setAttribute("cx", "50"); arc.setAttribute("cy", "50"); arc.setAttribute("r", "42");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#grad" + p.index + ")");
+    arc.setAttribute("stroke-width", "5");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("transform", "rotate(135 50 50)");
+    svg.appendChild(arc);
+
+    // gradient def
+    var defs = document.createElementNS(svgNS, "defs");
+    var grad = document.createElementNS(svgNS, "linearGradient");
+    grad.setAttribute("id", "grad" + p.index);
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
+    var s1 = document.createElementNS(svgNS, "stop");
+    s1.setAttribute("offset", "0%"); s1.setAttribute("stop-color", "#7ad0ff");
+    var s2 = document.createElementNS(svgNS, "stop");
+    s2.setAttribute("offset", "100%"); s2.setAttribute("stop-color", "#b0a0ff");
+    grad.appendChild(s1); grad.appendChild(s2);
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // body
+    var body = document.createElementNS(svgNS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "30");
+    body.setAttribute("fill", "#1a2330");
+    body.setAttribute("stroke", "#33455e");
+    body.setAttribute("stroke-width", "1");
+    svg.appendChild(body);
+
+    // pointer notch
+    var notch = document.createElementNS(svgNS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "26");
+    notch.setAttribute("stroke", "#9fb6d4");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    var readout = document.createElement("div");
+    readout.className = "readout";
+
+    cell.appendChild(label);
+    cell.appendChild(svg);
+    cell.appendChild(readout);
+
+    var CIRC2 = CIRC;
+    function norm(v) { return (v - p.min) / (p.max - p.min); }
+
+    function render() {
+      var v = values[p.index];
+      var t = norm(v);
+      // arc length
+      arc.setAttribute("stroke-dasharray", (CIRC2 * ARC * t) + " " + CIRC2);
+      // pointer angle: 135 -> 405 (i.e. -135..+135 from top)
+      var deg = -135 + t * 270;
+      notch.setAttribute("transform", "rotate(" + deg + " 50 50)");
+      readout.textContent = p.fmt(v);
+    }
+
+    function setValue(v, push) {
+      v = Math.max(p.min, Math.min(p.max, v));
+      if (p.step) v = Math.round(v / p.step) * p.step;
+      values[p.index] = v;
+      render();
+      if (push) pushParam(p.index, v);
+    }
+
+    // ---- drag interaction ----
+    var dragging = false, startY = 0, startV = 0;
+    function onDown(e) {
+      dragging = true;
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = values[p.index];
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = startY - y;
+      var range = p.max - p.min;
+      // fine drag with shift held
+      var speed = (e.shiftKey ? 0.0008 : 0.005);
+      setValue(startV + dy * range * speed, true);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    svg.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    svg.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    svg.addEventListener("wheel", function (e) {
+      var range = p.max - p.min;
+      var delta = (e.deltaY < 0 ? 1 : -1) * range * (e.shiftKey ? 0.005 : 0.02);
+      setValue(values[p.index] + delta, true);
+      e.preventDefault();
+    }, { passive: false });
+
+    svg.addEventListener("dblclick", function () { setValue(p.def, true); });
+
+    setValue(p.def, false);
+    return { cell: cell, render: render };
+  }
+
+  // ---- build controls ----
+  var controlsEl = document.getElementById("controls");
+  var knobs = [];
+  PARAMS.forEach(function (p) {
+    var k = makeKnob(p);
+    controlsEl.appendChild(k.cell);
+    knobs.push(k);
+  });
+
+  // ---- visual stage refs ----
+  var voiceWet = document.getElementById("voiceWet");
+  var voiceDry = document.getElementById("voiceDry");
+  var ribbon = document.getElementById("ribbon");
+  var ladder = document.getElementById("ladder");
+  var lcdInterval = document.getElementById("lcdInterval");
+  var lcdSemi = document.getElementById("lcdSemi");
+  var lcdCent = document.getElementById("lcdCent");
+  var lcdRatio = document.getElementById("lcdRatio");
+
+  // build interval rungs (-12..+12 by 3)
+  for (var st = -12; st <= 12; st += 3) {
+    var rung = document.createElement("div");
+    rung.className = "rung";
+    var t = (st + 12) / 24; // 0..1 bottom->top
+    rung.style.top = (100 - t * 100) + "%";
+    var s = document.createElement("span");
+    s.textContent = (st > 0 ? "+" : "") + st;
+    rung.appendChild(s);
+    ladder.appendChild(rung);
+  }
+
+  function semisTotal() {
+    return values[0] + values[1] * 0.01;
+  }
+
+  function updateStage() {
+    var shift = values[0];
+    var fine = values[1];
+    var total = semisTotal();
+    // map -12..+12 -> 88%..12% (top = up)
+    var t = (total + 12) / 24;
+    t = Math.max(0, Math.min(1, t));
+    var topPct = 88 - t * 76;
+    voiceWet.style.top = topPct + "%";
+
+    // wet bar opacity follows Mix
+    voiceWet.style.opacity = (0.35 + 0.65 * values[3]).toFixed(3);
+    voiceDry.style.opacity = (0.4 + 0.6 * (1 - values[3])).toFixed(3);
+
+    // ribbon line from dry (center 50%) to wet
+    var dryY = 50, wetY = topPct;
+    ribbon.innerHTML =
+      '<defs><linearGradient id="rb" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0%" stop-color="#44597a"/>' +
+      '<stop offset="100%" stop-color="#b0a0ff"/></linearGradient></defs>' +
+      '<path d="M 30 ' + dryY + ' C 50 ' + dryY + ', 50 ' + wetY + ', 72 ' + wetY + '" ' +
+      'vector-effect="non-scaling-stroke" fill="none" stroke="url(#rb)" ' +
+      'stroke-width="2" opacity="0.7"/>';
+    // viewBox in percent-ish coords
+    ribbon.setAttribute("viewBox", "0 0 100 100");
+
+    // LCD
+    var semi = Math.round(shift);
+    var cent = Math.round(fine);
+    lcdInterval.textContent = (total >= 0 ? "+" : "") + (Math.round(total * 10) / 10);
+    lcdSemi.textContent = (semi >= 0 ? "+" : "") + semi;
+    lcdCent.textContent = (cent >= 0 ? "+" : "") + cent;
+    var ratio = Math.pow(2, total / 12);
+    lcdRatio.textContent = ratio.toFixed(3);
+  }
+
+  // re-render stage whenever a knob changes: wrap each knob's render
+  knobs.forEach(function (k) {
+    var orig = k.render;
+    k.render = function () { orig(); updateStage(); };
+  });
+
+  // monkey-patch is fragile across closures; instead just poll on a RAF loop
+  // for stage updates (cheap, keeps everything in sync with drags/wheel).
+  var lastSig = "";
+  function loop() {
+    if (!document.hidden) {
+      var sig = values[0] + "|" + values[1] + "|" + values[3];
+      if (sig !== lastSig) { updateStage(); lastSig = sig; }
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // ---- init: push defaults to engine, draw stage ----
+  function start() {
+    PARAMS.forEach(function (p) { pushParam(p.index, values[p.index]); });
+    updateStage();
+    requestAnimationFrame(loop);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

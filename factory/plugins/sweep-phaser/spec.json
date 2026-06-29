@@ -4,6 +4,7 @@
   "explanation": "A 4-stage analog-style phaser: four cascaded all-pass sections are swept by a sine LFO to create two moving notches, with a feedback path for sharper, more resonant sweeps. Controls: Rate, Depth, Feedback and dry/wet Mix.",
   "assembly": "factory/plugins/sweep-phaser/assembly.ts",
   "out": "factory/plugins/sweep-phaser/x.vstai",
+  "guiFile": "factory/plugins/sweep-phaser/gui.html",
   "publishedAt": 1751000021000,
   "theme": { "accent": "#c08cff", "accent2": "#e0a0ff" },
   "params": [

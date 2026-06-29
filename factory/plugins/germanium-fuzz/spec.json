@@ -6,6 +6,7 @@
   "out": "factory/plugins/germanium-fuzz/x.vstai",
   "publishedAt": 1751000023000,
   "theme": { "accent": "#d98b4a", "accent2": "#e8a860" },
+  "guiFile": "factory/plugins/germanium-fuzz/gui.html",
   "params": [
     { "name": "Fuzz",   "index": 0, "min": 0, "max": 1, "default": 0.75 },
     { "name": "Bias",   "index": 1, "min": 0, "max": 1, "default": 0.65 },

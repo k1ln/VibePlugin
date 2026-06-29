@@ -6,6 +6,7 @@
   "out": "factory/plugins/bit-crusher/x.vstai",
   "publishedAt": 1751000024000,
   "theme": { "accent": "#7cff6b", "accent2": "#b0ff9a" },
+  "guiFile": "factory/plugins/bit-crusher/gui.html",
   "params": [
     { "name": "Bits",       "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Downsample", "index": 1, "min": 0, "max": 1, "default": 0.3 },

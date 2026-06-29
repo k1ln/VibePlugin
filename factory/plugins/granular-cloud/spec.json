@@ -1,0 +1,18 @@
+{
+  "name": "Granular Cloud",
+  "isInstrument": false,
+  "explanation": "A granular delay / cloud processor. Incoming audio is captured into a ring buffer and resprayed as a swarm of overlapping Hann-windowed grains, each read from a delayed, spray-randomised position at a chosen pitch. Controls: Size, Density, Pitch, Spray, Feedback and Mix.",
+  "assembly": "factory/plugins/granular-cloud/assembly.ts",
+  "out": "factory/plugins/granular-cloud/x.vstai",
+  "publishedAt": 1751000055000,
+  "theme": { "accent": "#a0b0ff", "accent2": "#d0c0ff" },
+  "guiFile": "factory/plugins/granular-cloud/gui.html",
+  "params": [
+    { "name": "Size",     "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Density",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Pitch",    "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Spray",    "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Feedback", "index": 4, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",      "index": 5, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

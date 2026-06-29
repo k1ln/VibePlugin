@@ -1,0 +1,239 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+/* ===== Bias Tremolo — tweed amp panel, pulsing waveform, vintage pilot lamp ===== */
+:root{
+  --ac:#5ad19b; --ac2:#8ae0b0;
+  --tweed1:#c7a567; --tweed2:#9a7a3f; --tweed3:#6e5526;
+  --cream:#efe4c4; --gold:#d9b25a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#efe7d2;
+  background:#1a140c;
+  display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden}
+
+/* ---- the amp cabinet ---- */
+.amp{
+  position:relative;width:100%;max-width:640px;border-radius:20px;
+  padding:16px;
+  /* tweed fabric: diagonal woven threads */
+  background:
+    repeating-linear-gradient(48deg, rgba(60,42,18,.45) 0 2px, rgba(60,42,18,0) 2px 5px),
+    repeating-linear-gradient(-42deg, rgba(255,240,200,.10) 0 2px, rgba(255,240,200,0) 2px 5px),
+    repeating-linear-gradient(48deg, var(--tweed3) 0 3px, var(--tweed2) 3px 6px, var(--tweed1) 6px 9px, var(--tweed2) 9px 12px),
+    linear-gradient(160deg,#b59458,#7c5f2e);
+  box-shadow:
+    0 34px 70px rgba(0,0,0,.62),
+    inset 0 2px 0 rgba(255,255,255,.18),
+    inset 0 -3px 8px rgba(0,0,0,.5);
+  border:3px solid #4a3818}
+/* leather corner protectors */
+.amp::before,.amp::after{content:"";position:absolute;width:34px;height:34px;
+  background:radial-gradient(circle at 35% 35%,#2a2018,#0b0805);border-radius:7px;
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.18),0 2px 4px rgba(0,0,0,.5);z-index:5}
+.amp::before{top:-3px;left:-3px;border-radius:18px 4px 14px 4px}
+.amp::after{top:-3px;right:-3px;border-radius:4px 18px 4px 14px}
+
+/* ---- the brushed-gold control plate ---- */
+.plate{
+  position:relative;z-index:2;border-radius:12px;padding:14px 18px 16px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.05) 1px 2px),
+    linear-gradient(180deg,#2a2c30,#15171a 60%,#0d0e10);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 10px rgba(0,0,0,.6),0 6px 18px rgba(0,0,0,.5)}
+/* plate mounting screws */
+.scr{position:absolute;width:10px;height:10px;border-radius:50%;z-index:3;
+  background:radial-gradient(circle at 35% 30%,#cfd3d8,#5a5e64 60%,#26282b);
+  box-shadow:0 1px 2px rgba(0,0,0,.6)}
+.scr::after{content:"";position:absolute;inset:2px;border-top:1.5px solid rgba(0,0,0,.5);transform:rotate(35deg)}
+.scr.tl{top:7px;left:7px}.scr.tr{top:7px;right:7px}.scr.bl{bottom:7px;left:7px}.scr.br{bottom:7px;right:7px}
+
+/* ---- header: badge + pilot lamp ---- */
+.head{display:flex;align-items:center;gap:14px;margin:2px 6px 12px}
+.brand{flex:1}
+.brand h1{margin:0;font-size:20px;letter-spacing:.16em;font-weight:900;font-style:italic;
+  color:var(--gold);text-shadow:0 1px 0 #000,0 0 12px rgba(217,178,90,.35);font-family:"Times New Roman",Georgia,serif}
+.brand .sub{font-size:9px;letter-spacing:.34em;text-transform:uppercase;color:#8a8478;margin-top:3px}
+
+/* vintage jewel pilot lamp — blinks with the tremolo */
+.lamp{position:relative;width:42px;height:42px;flex:none}
+.lamp .bezel{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#777,#2c2c2c 62%,#0a0a0a);
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.3),inset 0 -3px 6px rgba(0,0,0,.7),0 2px 5px rgba(0,0,0,.6)}
+.lamp .jewel{position:absolute;inset:8px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#ffe6a0,#ff3b2e 55%,#7a1008 100%);
+  box-shadow:inset 0 0 6px rgba(255,255,255,.55),0 0 0 1px rgba(0,0,0,.4)}
+.lamp .glow{position:absolute;inset:-10px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,80,40,.85),transparent 65%);
+  opacity:.25;animation:lampBlink calc(2.2s / var(--rate,1)) ease-in-out infinite}
+.lamp .jewel{animation:lampJewel calc(2.2s / var(--rate,1)) ease-in-out infinite}
+@keyframes lampBlink{0%,100%{opacity:calc(.12 + var(--depth,.5)*.05)}50%{opacity:calc(.45 + var(--depth,.5)*.55)}}
+@keyframes lampJewel{0%,100%{filter:brightness(calc(.55 + (1 - var(--depth,.5))*.45))}
+  50%{filter:brightness(calc(1.05 + var(--depth,.5)*.9)) saturate(1.2)}}
+
+/* ---- the speaker-grille scope window ---- */
+.scope{position:relative;height:86px;margin:0 0 14px;border-radius:9px;overflow:hidden;
+  background:linear-gradient(180deg,#070a07,#0c130c);
+  border:1px solid rgba(0,0,0,.7);
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.85),inset 0 0 0 1px rgba(255,255,255,.04),0 1px 0 rgba(255,255,255,.08)}
+/* grille cloth weave overlaid faintly */
+.scope::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.18;
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.5) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.4) 0 1px,transparent 1px 4px)}
+.scope svg{position:absolute;inset:0;width:100%;height:100%}
+.tracer{fill:none;stroke:var(--ac);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 5px var(--ac))}
+.tracerFill{fill:var(--ac);opacity:.10}
+.midline{stroke:rgba(255,255,255,.10);stroke-width:1;stroke-dasharray:3 4}
+
+/* ---- knob row ---- */
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 2px 4px;
+  animation:rise .5s both;animation-delay:var(--d)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* chickenhead-style amp knob */
+.knob{position:relative;width:76px;height:76px;cursor:ns-resize;user-select:none;touch-action:none}
+.knob .num{position:absolute;inset:-3px;border-radius:50%;
+  /* tick numerals ring as conic dashes */
+  background:repeating-conic-gradient(from 215deg, rgba(255,255,255,.5) 0 1.2deg, transparent 1.2deg 27deg);
+  -webkit-mask:radial-gradient(circle,transparent 36px,#000 37px,#000 39px,transparent 40px);
+          mask:radial-gradient(circle,transparent 36px,#000 37px,#000 39px,transparent 40px)}
+.knob .arc{position:absolute;inset:1px;border-radius:50%;
+  background:conic-gradient(from 215deg,
+    var(--ac) calc(var(--n,0)*290deg), rgba(255,255,255,.07) calc(var(--n,0)*290deg) 290deg, transparent 290deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n,0)*8px) color-mix(in srgb,var(--ac) 65%,transparent))}
+.knob .body{position:absolute;inset:9px;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 24%, #4a4035 0%, #221d16 58%, #0c0a07 100%);
+  box-shadow:inset 0 2px 5px rgba(255,235,190,.18),inset 0 -4px 9px rgba(0,0,0,.75),0 3px 6px rgba(0,0,0,.55);
+  transition:transform .12s}
+/* the bakelite pointer wing */
+.knob .wing{position:absolute;top:8px;left:50%;width:7px;height:30px;margin-left:-3.5px;border-radius:4px 4px 2px 2px;
+  background:linear-gradient(180deg,#1a140d,#000);transform-origin:50% 30px;
+  transform:rotate(calc((var(--n,0) - 0.5) * 290deg));transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.knob .wing::after{content:"";position:absolute;top:2px;left:50%;width:2px;height:11px;margin-left:-1px;border-radius:2px;
+  background:var(--ac2);box-shadow:0 0 6px var(--ac)}
+.knob.act .body{transform:scale(.97)}
+
+.nm{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#cdb87f;font-weight:700;
+  font-family:"Times New Roman",Georgia,serif}
+.val{font-size:13px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em;
+  background:rgba(0,0,0,.4);padding:1px 8px;border-radius:5px;min-width:42px;text-align:center;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+</style></head><body>
+<div class="amp">
+  <div class="plate">
+    <span class="scr tl"></span><span class="scr tr"></span><span class="scr bl"></span><span class="scr br"></span>
+    <div class="head">
+      <div class="lamp"><span class="glow"></span><span class="bezel"></span><span class="jewel"></span></div>
+      <div class="brand">
+        <h1>Bias&nbsp;Tremolo</h1>
+        <div class="sub">Vintage Combo · Amplitude Throb</div>
+      </div>
+    </div>
+    <div class="scope">
+      <svg viewBox="0 0 600 86" preserveAspectRatio="none">
+        <line class="midline" x1="0" y1="43" x2="600" y2="43"></line>
+        <path class="tracerFill" id="fill"></path>
+        <path class="tracer" id="wave"></path>
+      </svg>
+    </div>
+    <div class="row" id="row"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Rate",  index:0, min:0, max:1, def:0.42},
+    {name:"Depth", index:1, min:0, max:1, def:0.7},
+    {name:"Shape", index:2, min:0, max:1, def:0.3},
+    {name:"Stereo",index:3, min:0, max:1, def:0},
+    {name:"Output",index:4, min:0, max:1, def:0.7}
+  ];
+  var state={};
+  var root=document.documentElement;
+
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+
+  function buildKnob(p,d){
+    var ctl=document.createElement('div'); ctl.className='ctl'; ctl.style.setProperty('--d',d+'ms');
+    ctl.innerHTML=
+      '<div class="knob"><i class="num"></i><i class="arc"></i><i class="body"></i><i class="wing"></i></div>'+
+      '<div class="nm">'+p.name+'</div><div class="val"></div>';
+    var knob=ctl.querySelector('.knob'),
+        arc=ctl.querySelector('.arc'),
+        wing=ctl.querySelector('.wing'),
+        out=ctl.querySelector('.val');
+    var val=p.def;
+    function norm(){return (val-p.min)/((p.max-p.min)||1);}
+    function paint(){
+      var n=norm();
+      arc.style.setProperty('--n',n); wing.style.setProperty('--n',n);
+      out.textContent=Math.round(n*100)+(p.name==='Rate'?'':'%');
+      // Rate shows percent too but feed a label; keep simple: percent for all 0..1
+      out.textContent=Math.round(n*100);
+      state[p.name]=val; send(p.index,val); reflect();
+    }
+    function setN(n){ n=n<0?0:(n>1?1:n); val=p.min+(p.max-p.min)*n; paint(); }
+    knob.addEventListener('pointerdown',function(e){
+      knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');
+      knob.setPointerCapture(e.pointerId);e.preventDefault();});
+    knob.addEventListener('pointermove',function(e){ if(!knob._d)return; setN(knob._n+(knob._y-e.clientY)/180); });
+    function end(){knob._d=0;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end); knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){val=p.def;paint();});
+    knob.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?0.02:-0.02));},{passive:false});
+    document.getElementById('row').appendChild(ctl);
+    paint();
+  }
+
+  // ---- live waveform + lamp reaction ----
+  function reflect(){
+    var rate=state.Rate||0, depth=state.Depth||0;
+    root.style.setProperty('--rate',(0.35+rate*2.6).toFixed(3));
+    root.style.setProperty('--depth',(depth).toFixed(3));
+  }
+
+  var wave=document.getElementById('wave'), fill=document.getElementById('fill');
+  var t0=performance.now();
+  function shapeFn(ph,shape){
+    // morph: sine (glassy) -> hard chop (bias) as shape rises
+    var s=Math.sin(ph);            // -1..1
+    var sq=s>=0?1:-1;              // hard square
+    // soft-clip blend for the "choppy bias chop"
+    var k=1+shape*22;
+    var hard=Math.tanh(s*k)/Math.tanh(k);
+    return s*(1-shape)+hard*shape;
+  }
+  function tick(now){
+    var rate=state.Rate||0, depth=state.Depth||0, shape=state.Shape||0,
+        stereo=state.Stereo||0, out=state.Output!=null?state.Output:0.7;
+    var hz=0.4+rate*7.5;                 // visual LFO speed
+    var t=(now-t0)/1000;
+    var N=120, dL='', dR='', H=86, mid=43, amp=30*(0.25+out*0.85);
+    var lagR=stereo*Math.PI;             // stereo phase spread
+    for(var i=0;i<=N;i++){
+      var x=i/N*600;
+      var ph=2*Math.PI*hz*t - i/N*6.0;   // travelling wave
+      var modL=1-depth*(0.5-0.5*shapeFn(ph,shape));        // 0..1 amplitude env
+      var carrier=Math.sin(i/N*Math.PI*9 + t*6);           // carrier tone
+      var yL=mid - carrier*amp*modL;
+      dL+=(i?'L':'M')+x.toFixed(1)+' '+yL.toFixed(1)+' ';
+    }
+    wave.setAttribute('d',dL);
+    fill.setAttribute('d',dL+'L600 '+H+' L0 '+H+' Z');
+    requestAnimationFrame(tick);
+  }
+
+  function ready(){
+    PARAMS.forEach(function(p,idx){ buildKnob(p,idx*60); });
+    reflect();
+    requestAnimationFrame(tick);
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

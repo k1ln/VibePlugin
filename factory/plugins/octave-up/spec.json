@@ -1,0 +1,16 @@
+{
+  "name": "Octave Up",
+  "isInstrument": false,
+  "explanation": "An octave-up fuzz: a silicon fuzz stage feeds a full-wave rectifier so the signal's negative half folds upward, ringing out a strong upper octave on top of the fuzz. The doubling is strongest on clean single notes. Controls: Fuzz, Octave, Tone and Volume.",
+  "assembly": "factory/plugins/octave-up/assembly.ts",
+  "out": "factory/plugins/octave-up/x.vstai",
+  "publishedAt": 1751000044000,
+  "theme": { "accent": "#c08cff", "accent2": "#ff8cf0" },
+  "guiFile": "factory/plugins/octave-up/gui.html",
+  "params": [
+    { "name": "Fuzz",   "index": 0, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Octave", "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Tone",   "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Volume", "index": 3, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

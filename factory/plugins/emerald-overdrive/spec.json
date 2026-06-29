@@ -6,6 +6,7 @@
   "out": "factory/plugins/emerald-overdrive/x.vstai",
   "publishedAt": 1751000003000,
   "theme": { "accent": "#3fd07a", "accent2": "#9ae66e" },
+  "guiFile": "factory/plugins/emerald-overdrive/gui.html",
   "params": [
     { "name": "Drive", "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Tone",  "index": 1, "min": 0, "max": 1, "default": 0.5 },

@@ -1,0 +1,380 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ============================================================
+   VIBE PHASER — a photocell Uni-Vibe.
+   Throbbing lamp + light-dependent resistor behind a frosted
+   dome, watery purple swirl, walnut + cream 1960s organ chassis.
+   ============================================================ */
+@property --lamp{syntax:'<number>';inherits:true;initial-value:0}
+
+:root{
+  --ac:#9b8cff;            /* photocell glow */
+  --ac2:#c0a0ff;           /* lamp hot core */
+  --cream:#e9e2d0;
+  --walnut1:#3a2a22;
+  --walnut2:#241712;
+  --plate:#cfc6b2;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,Georgia,system-ui,-apple-system,serif;
+  color:#2a211b;
+  background:
+    radial-gradient(120% 90% at 50% -10%,#241a14 0%,#160d09 60%,#0a0604 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:18px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- the chassis: a walnut organ-effect box ---------- */
+.chassis{
+  position:relative;
+  width:100%;max-width:600px;
+  border-radius:14px;
+  padding:0;
+  overflow:hidden;
+  background:
+    repeating-linear-gradient(96deg,rgba(0,0,0,.16) 0 2px,transparent 2px 7px),
+    linear-gradient(150deg,#4a352a 0%,var(--walnut1) 40%,var(--walnut2) 100%);
+  border:1px solid #1a100a;
+  box-shadow:
+    0 36px 80px rgba(0,0,0,.7),
+    inset 0 2px 0 rgba(255,225,190,.14),
+    inset 0 -3px 14px rgba(0,0,0,.6);
+}
+/* brushed metal faceplate */
+.face{
+  position:relative;
+  margin:13px;
+  border-radius:8px;
+  padding:18px 20px 22px;
+  background:
+    linear-gradient(180deg,#d9d0bc,#bcb19a 55%,#a89c83 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.6),
+    inset 0 -2px 6px rgba(0,0,0,.32),
+    0 3px 10px rgba(0,0,0,.45);
+}
+.face::after{ /* fine engraving grain */
+  content:"";position:absolute;inset:0;border-radius:8px;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;opacity:.5;
+}
+
+/* ---------- header / nameplate ---------- */
+.head{position:relative;z-index:3;display:flex;align-items:center;gap:13px;margin-bottom:14px}
+.screw{width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#9a8f78 60%,#5d5340);
+  box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(255,255,255,.4)}
+.screw::before{content:"";position:absolute;width:11px;height:2px;background:rgba(0,0,0,.45);
+  transform:rotate(40deg) translateY(4.5px);border-radius:2px}
+.title{flex:1}
+.title h1{
+  margin:0;font-family:Georgia,"Times New Roman",serif;font-weight:800;
+  font-size:23px;letter-spacing:.02em;color:#2b1d15;line-height:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.45);
+}
+.title .sub{margin-top:3px;font-size:9.5px;letter-spacing:.42em;text-transform:uppercase;color:#6a5a44}
+.plate-stamp{
+  font-family:Georgia,serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:#5a4c39;border:1px solid #8d7f64;border-radius:3px;padding:4px 8px;background:rgba(0,0,0,.06);
+}
+
+/* ---------- main stage: lamp on left, controls on right ---------- */
+.stage{position:relative;z-index:2;display:grid;grid-template-columns:166px 1fr;gap:18px;align-items:center}
+
+/* ====== THE THROBBING LAMP + PHOTOCELL DOME ====== */
+.lampwell{
+  --lamp:0;
+  position:relative;width:166px;height:198px;border-radius:12px;
+  background:
+    radial-gradient(circle at 50% 38%,#1c1320 0%,#0d0712 60%,#070409 100%);
+  border:2px solid #15100c;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.9),inset 0 2px 0 rgba(255,255,255,.06),0 2px 6px rgba(0,0,0,.5);
+  overflow:hidden;
+  cursor:ns-resize;touch-action:none;user-select:none;
+}
+/* watery purple swirl — two slow counter-rotating conic washes */
+.swirl,.swirl2{position:absolute;inset:-30%;border-radius:50%;mix-blend-mode:screen;
+  opacity:calc(.25 + var(--lamp)*.6)}
+.swirl{
+  background:conic-gradient(from 0deg,
+    transparent 0deg,color-mix(in srgb,var(--ac) 70%,transparent) 60deg,
+    transparent 130deg,color-mix(in srgb,var(--ac2) 60%,transparent) 220deg,transparent 300deg);
+  filter:blur(14px);
+  animation:swirlA calc(9s / (.5 + var(--lamp))) linear infinite;
+}
+.swirl2{
+  background:conic-gradient(from 180deg,
+    transparent 0deg,color-mix(in srgb,var(--ac2) 55%,transparent) 80deg,
+    transparent 160deg,color-mix(in srgb,var(--ac) 65%,transparent) 250deg,transparent 330deg);
+  filter:blur(20px);
+  animation:swirlB calc(13s / (.5 + var(--lamp))) linear infinite reverse;
+}
+@keyframes swirlA{to{transform:rotate(360deg)}}
+@keyframes swirlB{to{transform:rotate(360deg)}}
+
+/* the lamp glass dome */
+.dome{position:absolute;left:50%;top:50%;width:96px;height:96px;transform:translate(-50%,-54%);
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 38%,
+      color-mix(in srgb,#fff calc(var(--lamp)*70%),var(--ac2)) 0%,
+      color-mix(in srgb,var(--ac2) calc(40% + var(--lamp)*55%),#1a1024) 22%,
+      color-mix(in srgb,var(--ac) calc(20% + var(--lamp)*40%),#120a1c) 48%,
+      rgba(20,12,30,.2) 74%, transparent 80%);
+  box-shadow:
+    0 0 calc(14px + var(--lamp)*60px) calc(2px + var(--lamp)*22px) color-mix(in srgb,var(--ac) 80%,transparent),
+    inset 0 -6px 16px rgba(0,0,0,.5);
+  /* the optical "warm-up fast, cool-down slow" throb baked as fallback;
+     JS overrides --lamp live from Rate/Depth, but standalone it still breathes */
+  animation:throb 3.6s cubic-bezier(.12,.85,.2,1) infinite;
+}
+@keyframes throb{
+  0%{--lamp:.05}
+  14%{--lamp:1}      /* fast warm-up */
+  100%{--lamp:.05}   /* slow cool-down */
+}
+/* filament cross seen inside the bulb */
+.dome::before{content:"";position:absolute;left:50%;top:36%;width:30px;height:30px;
+  transform:translate(-50%,-50%);
+  background:
+    linear-gradient(transparent 46%,color-mix(in srgb,#fff calc(var(--lamp)*100%),var(--ac2)) 46% 54%,transparent 54%),
+    linear-gradient(90deg,transparent 46%,color-mix(in srgb,#fff calc(var(--lamp)*100%),var(--ac2)) 46% 54%,transparent 54%);
+  opacity:calc(.4 + var(--lamp)*.6);filter:blur(.4px)}
+/* frosted glass highlight */
+.dome::after{content:"";position:absolute;left:24%;top:18%;width:34px;height:22px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.6),transparent 70%);filter:blur(2px);opacity:.7}
+
+/* the photocell (LDR) — a little squiggle-eyed sensor staring at the lamp */
+.ldr{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+  width:46px;height:22px;border-radius:11px;
+  background:linear-gradient(#3a3128,#1c1610);
+  border:1px solid #0c0805;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 1px 3px rgba(0,0,0,.6)}
+.ldr::before{content:"";position:absolute;inset:4px;border-radius:7px;
+  background:
+    repeating-linear-gradient(60deg,#d9b14a 0 2px,#1c1610 2px 4px);
+  opacity:calc(.35 + var(--lamp)*.65);
+  box-shadow:0 0 calc(2px + var(--lamp)*10px) color-mix(in srgb,var(--ac2) 70%,transparent)}
+
+/* lamp label */
+.lamp-lbl{position:absolute;left:0;right:0;top:9px;text-align:center;z-index:4;
+  font-size:8.5px;letter-spacing:.36em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--ac2) calc(40% + var(--lamp)*60%),#5a4c66);
+  text-shadow:0 0 calc(var(--lamp)*10px) var(--ac)}
+.lamp-rate{position:absolute;left:0;right:0;bottom:42px;text-align:center;z-index:4;
+  font:700 12px ui-monospace,Menlo,monospace;color:#e9e2d0;
+  text-shadow:0 0 8px color-mix(in srgb,var(--ac) calc(var(--lamp)*100%),transparent)}
+
+/* ---------- controls column ---------- */
+.controls{display:flex;flex-direction:column;gap:14px}
+.knobrow{display:flex;gap:10px;justify-content:space-between}
+
+/* a cream chickenhead-style organ knob */
+.ctl{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.knob{position:relative;width:70px;height:70px;cursor:ns-resize;touch-action:none;user-select:none}
+.skirt{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 32%,#fbf6ea,#cdc3ab 62%,#9b9079 100%);
+  box-shadow:0 3px 6px rgba(0,0,0,.4),inset 0 -3px 6px rgba(0,0,0,.22),inset 0 2px 2px rgba(255,255,255,.7)}
+/* ring of value glow under the cap */
+.glowring{position:absolute;inset:-4px;border-radius:50%;
+  background:conic-gradient(from 225deg,
+    color-mix(in srgb,var(--ac) 90%,transparent) calc(var(--n,0)*270deg),
+    rgba(0,0,0,.18) calc(var(--n,0)*270deg) 270deg, transparent 270deg);
+  filter:drop-shadow(0 0 calc(3px + var(--n,0)*8px) color-mix(in srgb,var(--ac) 70%,transparent));
+  -webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);
+  mask:radial-gradient(circle,transparent 33px,#000 34px);
+  transition:--n .12s ease}
+/* the chickenhead pointer */
+.beak{position:absolute;left:50%;top:50%;width:30px;height:11px;margin:-5.5px 0 0 -3px;
+  transform-origin:3px 50%;
+  transform:rotate(calc((var(--n,0) - .5) * 270deg - 90deg));
+  transition:transform .12s cubic-bezier(.2,.75,.25,1)}
+.beak::before{content:"";position:absolute;inset:0;border-radius:3px 8px 8px 3px;
+  background:linear-gradient(#403228,#1d150f);
+  box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18);
+  clip-path:polygon(0 18%,62% 0,100% 50%,62% 100%,0 82%)}
+.hub{position:absolute;left:50%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#5a4738,#180f0a);box-shadow:inset 0 0 2px rgba(0,0,0,.7)}
+.bub{position:absolute;top:-12px;left:50%;transform:translate(-50%,4px) scale(.7);opacity:0;pointer-events:none;
+  font:700 11px ui-monospace,Menlo,monospace;color:#160d09;background:var(--ac2);padding:2px 7px;border-radius:5px;
+  box-shadow:0 4px 10px rgba(0,0,0,.4);transition:.14s;white-space:nowrap;z-index:5}
+.knob.act .bub,.ctl:hover .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+
+.nm{font:700 9.5px ui-sans-serif,system-ui;letter-spacing:.2em;text-transform:uppercase;color:#4a3c2c;text-align:center}
+.val{font:700 12px ui-monospace,Menlo,monospace;color:#2b1d15}
+
+/* ---------- the MODE rocker (Chorus / Vibrato) ---------- */
+.rocker{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.toggle{position:relative;width:150px;height:42px;border-radius:9px;cursor:pointer;user-select:none;
+  background:linear-gradient(#1c130d,#0c0805);
+  border:1px solid #0a0604;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.8),inset 0 -1px 0 rgba(255,255,255,.06)}
+.tlabels{position:absolute;inset:0;display:flex;z-index:1;pointer-events:none}
+.tlabels span{flex:1;display:flex;align-items:center;justify-content:center;
+  font:700 10px ui-sans-serif,system-ui;letter-spacing:.14em;text-transform:uppercase;color:#7d6f57;transition:.18s}
+.toggle[data-on="0"] .tlabels span:first-child,
+.toggle[data-on="1"] .tlabels span:last-child{color:#fdf6e6;text-shadow:0 0 8px var(--ac2)}
+.slug{position:absolute;top:3px;left:3px;width:72px;height:36px;border-radius:7px;z-index:0;
+  background:linear-gradient(180deg,#e9e2d0,#bdb29a);
+  box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.8),inset 0 -2px 4px rgba(0,0,0,.18),
+    0 0 14px color-mix(in srgb,var(--ac) 45%,transparent);
+  transition:transform .26s cubic-bezier(.5,1.6,.4,1)}
+.toggle[data-on="1"] .slug{transform:translateX(72px)}
+
+.footnote{position:relative;z-index:2;margin-top:16px;padding-top:11px;border-top:1px solid rgba(0,0,0,.2);
+  font:11px Georgia,serif;font-style:italic;line-height:1.5;color:#5b4c39}
+</style>
+</head>
+<body>
+<div class="chassis">
+  <div class="face">
+    <div class="head">
+      <span class="screw"></span>
+      <div class="title">
+        <h1>Vibe Phaser</h1>
+        <div class="sub">Photocell Vibe &middot; Phaser</div>
+      </div>
+      <span class="plate-stamp">Optical&nbsp;LFO</span>
+      <span class="screw"></span>
+    </div>
+
+    <div class="stage">
+      <!-- THE LAMP : drag it to set Rate; its throb shows the optical LFO -->
+      <div class="lampwell" id="lampwell" data-i="0" data-min="0" data-max="1" data-def="0.32" data-step="0.001">
+        <div class="swirl"></div>
+        <div class="swirl2"></div>
+        <div class="lamp-lbl">Optical LFO</div>
+        <div class="dome" id="dome"></div>
+        <div class="ldr"></div>
+        <div class="lamp-rate" id="lamprate">0.32</div>
+      </div>
+
+      <div class="controls">
+        <div class="knobrow">
+          <div class="ctl" data-i="1" data-min="0" data-max="1" data-def="0.7" data-step="0.001">
+            <div class="knob">
+              <i class="skirt"></i><i class="glowring"></i><i class="beak"></i><i class="hub"></i>
+              <span class="bub"></span>
+            </div>
+            <div class="nm">Depth</div><div class="val"></div>
+          </div>
+          <div class="ctl" data-i="3" data-min="0" data-max="1" data-def="0.6" data-step="0.001">
+            <div class="knob">
+              <i class="skirt"></i><i class="glowring"></i><i class="beak"></i><i class="hub"></i>
+              <span class="bub"></span>
+            </div>
+            <div class="nm">Intensity</div><div class="val"></div>
+          </div>
+          <div class="ctl" data-i="4" data-min="0" data-max="1" data-def="0.5" data-step="0.001">
+            <div class="knob">
+              <i class="skirt"></i><i class="glowring"></i><i class="beak"></i><i class="hub"></i>
+              <span class="bub"></span>
+            </div>
+            <div class="nm">Mix</div><div class="val"></div>
+          </div>
+        </div>
+
+        <div class="rocker">
+          <div class="toggle" id="mode" data-on="0" data-i="2" data-min="0" data-max="1" data-def="0" data-step="1">
+            <div class="slug"></div>
+            <div class="tlabels"><span>Chorus</span><span>Vibrato</span></div>
+          </div>
+          <div class="nm">Mode</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footnote">A lamp seen through a photocell &mdash; fast warm-up, slow cool-down &mdash; sweeps a four-stage all-pass network for watery, throbbing movement.</div>
+  </div>
+</div>
+
+<script>
+function boot(){
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function fmt(v,step){ var d = step>=1?0:(step>=0.1?1:(step>=0.01?2:3)); return (+v).toFixed(d); }
+
+  // live "optical lamp" state, driven by Rate + Depth, animated on rAF.
+  var rate=0.32, depth=0.7, lampPhase=0, lastT=0;
+  var dome=document.getElementById('dome');
+  var lampwell=document.getElementById('lampwell');
+  var lamprate=document.getElementById('lamprate');
+
+  function lampLoop(t){
+    if(!lastT) lastT=t;
+    var dt=Math.min(0.05,(t-lastT)/1000); lastT=t;
+    // Rate maps to ~0.15..6 Hz of the optical LFO
+    var hz = 0.15 + rate*rate*5.85;
+    lampPhase += dt*hz;
+    if(lampPhase>1) lampPhase-=Math.floor(lampPhase);
+    // asymmetric optical response: fast warm-up, slow cool-down (skewed triangle)
+    var up=0.18, p=lampPhase, tri = p<up ? p/up : 1-(p-up)/(1-up);
+    var lamp = Math.pow(Math.max(0,tri),0.7) * (0.18 + depth*0.82);
+    // disable the CSS fallback throb once JS is driving it
+    dome.style.animation='none';
+    lampwell.style.setProperty('--lamp', lamp.toFixed(3));
+    requestAnimationFrame(lampLoop);
+  }
+  requestAnimationFrame(lampLoop);
+
+  // ---- the lamp doubles as the RATE control (vertical drag) ----
+  (function(){
+    var c=lampwell, i=+c.dataset.i, mn=+c.dataset.min, mx=+c.dataset.max, def=+c.dataset.def, step=+c.dataset.step||0.001;
+    var val=def;
+    function norm(){ return (val-mn)/(mx-mn||1); }
+    function paint(){ rate=norm(); lamprate.textContent=fmt(val,step); send(i,val); }
+    function setN(n){ n=n<0?0:(n>1?1:n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
+    c.addEventListener('pointerdown',function(e){ c._d=1;c._y=e.clientY;c._n=norm(); c.setPointerCapture(e.pointerId); e.preventDefault(); });
+    c.addEventListener('pointermove',function(e){ if(!c._d)return; setN(c._n+(c._y-e.clientY)/220); });
+    c.addEventListener('pointerup',function(){ c._d=0; });
+    c.addEventListener('pointercancel',function(){ c._d=0; });
+    c.addEventListener('dblclick',function(){ val=def; paint(); });
+    c.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
+    paint();
+  })();
+
+  // ---- the three chickenhead knobs ----
+  function wireKnob(c){
+    var i=+c.dataset.i, mn=+c.dataset.min, mx=+c.dataset.max, def=+c.dataset.def, step=+c.dataset.step||0.001;
+    var val=def, knob=c.querySelector('.knob'), ring=c.querySelector('.glowring'),
+        beak=c.querySelector('.beak'), out=c.querySelector('.val'), bub=c.querySelector('.bub');
+    var isDepth = (i===1);
+    function norm(){ return (val-mn)/(mx-mn||1); }
+    function paint(){
+      var n=norm();
+      ring.style.setProperty('--n',n); beak.style.setProperty('--n',n);
+      var t=fmt(val,step); out.textContent=t; bub.textContent=t;
+      if(isDepth) depth=n;
+      send(i,val);
+    }
+    function setN(n){ n=n<0?0:(n>1?1:n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
+    knob.addEventListener('pointerdown',function(e){ knob._d=1;knob._y=e.clientY;knob._n=norm(); knob.classList.add('act'); knob.setPointerCapture(e.pointerId); e.preventDefault(); });
+    knob.addEventListener('pointermove',function(e){ if(!knob._d)return; setN(knob._n+(knob._y-e.clientY)/200); });
+    knob.addEventListener('pointerup',function(){ knob._d=0; knob.classList.remove('act'); });
+    knob.addEventListener('pointercancel',function(){ knob._d=0; knob.classList.remove('act'); });
+    knob.addEventListener('dblclick',function(){ val=def; paint(); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
+    paint();
+  }
+  var ctls=document.querySelectorAll('.ctl');
+  for(var j=0;j<ctls.length;j++) wireKnob(ctls[j]);
+
+  // ---- the MODE rocker (Chorus 0 / Vibrato 1) ----
+  (function(){
+    var t=document.getElementById('mode'), i=+t.dataset.i, def=+t.dataset.def;
+    function set(v){ v=v?1:0; t.dataset.on=v; send(i,v); }
+    t.addEventListener('click',function(){ set(t.dataset.on==="1"?0:1); });
+    t.addEventListener('dblclick',function(e){ e.stopPropagation(); set(def); });
+    set(def);
+  })();
+}
+if(window.vstai&&window.vstai.onReady) window.vstai.onReady(boot); else boot();
+</script>
+</body>
+</html>

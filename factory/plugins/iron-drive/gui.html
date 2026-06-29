@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iron Drive</title>
+<style>
+  :root {
+    --accent: #cf7a3a;
+    --accent2: #e0a860;
+    --iron0: #1b1714;
+    --iron1: #261f19;
+    --iron2: #322820;
+    --copper: #b9763f;
+    --ink: #f3e4cf;
+    --ink-dim: #b39a7e;
+    --line: rgba(224,168,96,0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: #0d0a08;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .unit {
+    width: 100%;
+    max-width: 560px;
+    border-radius: 16px;
+    padding: 20px 22px 24px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(207,122,58,0.18), transparent 55%),
+      linear-gradient(160deg, var(--iron2), var(--iron1) 45%, var(--iron0));
+    border: 1px solid rgba(224,168,96,0.18);
+    box-shadow:
+      0 20px 50px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,220,180,0.08),
+      inset 0 -2px 8px rgba(0,0,0,0.5);
+  }
+
+  /* faint brushed-iron texture */
+  .unit::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+
+  .brand h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 800;
+    background: linear-gradient(180deg, #f6e2c6, var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+
+  .brand .sub {
+    font-size: 9px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .badge {
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid var(--line);
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.25);
+  }
+
+  /* ---- transformer core visual ---- */
+  .core {
+    position: relative;
+    margin: 16px auto 8px;
+    width: 100%;
+    height: 150px;
+    border-radius: 12px;
+    background:
+      radial-gradient(80% 120% at 50% 50%, rgba(40,30,22,0.9), rgba(12,9,7,0.95));
+    border: 1px solid rgba(224,168,96,0.12);
+    box-shadow: inset 0 2px 14px rgba(0,0,0,0.7);
+    overflow: hidden;
+  }
+
+  .core svg { display: block; width: 100%; height: 100%; }
+
+  /* warm low-end bloom that pulses with Low */
+  .bloom {
+    position: absolute;
+    left: 50%;
+    bottom: -40%;
+    width: 70%;
+    height: 90%;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(207,122,58,0.5), transparent 70%);
+    filter: blur(14px);
+    opacity: 0.5;
+    animation: bloomPulse 3.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes bloomPulse {
+    0%, 100% { opacity: 0.35; transform: translateX(-50%) scale(0.95); }
+    50%      { opacity: 0.7;  transform: translateX(-50%) scale(1.08); }
+  }
+
+  @keyframes fluxFlow {
+    to { stroke-dashoffset: -240; }
+  }
+
+  @keyframes spark {
+    0%, 100% { opacity: 0.25; }
+    50%      { opacity: 1; }
+  }
+
+  .flux {
+    stroke-dasharray: 8 14;
+    animation: fluxFlow 2.6s linear infinite;
+  }
+
+  .coilWire { filter: drop-shadow(0 0 4px rgba(207,122,58,0.5)); }
+
+  /* ---- controls ---- */
+  .rack {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  @media (max-width: 460px) {
+    .rack { grid-template-columns: repeat(3, 1fr); row-gap: 16px; }
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px 8px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0.18));
+    border: 1px solid rgba(224,168,96,0.08);
+  }
+
+  .cell .label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .knob {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .knob svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  .knob:hover .ring { filter: drop-shadow(0 0 6px rgba(224,168,96,0.55)); }
+
+  .val {
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    min-height: 14px;
+  }
+
+  footer {
+    position: relative;
+    z-index: 2;
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .led {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: spark 1.8s ease-in-out infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header>
+      <div class="brand">
+        <h1>Iron Drive</h1>
+        <span class="sub">Transformer Saturator</span>
+      </div>
+      <div class="badge">Iron&nbsp;Core</div>
+    </header>
+
+    <div class="core">
+      <div class="bloom" id="bloom"></div>
+      <svg viewBox="0 0 520 150" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="coreGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4a3a2c"/>
+            <stop offset="0.5" stop-color="#2a211a"/>
+            <stop offset="1" stop-color="#14100c"/>
+          </linearGradient>
+          <linearGradient id="copperGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e0a860"/>
+            <stop offset="0.5" stop-color="#b9763f"/>
+            <stop offset="1" stop-color="#7d4a26"/>
+          </linearGradient>
+        </defs>
+
+        <!-- iron core E-block -->
+        <rect x="190" y="28" width="140" height="94" rx="6" fill="url(#coreGrad)"
+              stroke="rgba(224,168,96,0.25)" stroke-width="1"/>
+        <rect x="214" y="46" width="92" height="24" rx="3" fill="#0e0b08"/>
+        <rect x="214" y="80" width="92" height="24" rx="3" fill="#0e0b08"/>
+
+        <!-- copper coil windings (left + right limbs) -->
+        <g class="coilWire" stroke="url(#copperGrad)" stroke-width="5" fill="none" stroke-linecap="round">
+          <path d="M150 34 q24 0 24 14 q0 14 -24 14 q24 0 24 14 q0 14 -24 14 q24 0 24 14 q0 14 -24 14"/>
+          <path d="M370 34 q-24 0 -24 14 q0 14 24 14 q-24 0 -24 14 q0 14 24 14 q-24 0 -24 14 q0 14 24 14"/>
+        </g>
+
+        <!-- animated magnetic flux lines looping through the core -->
+        <g class="flux" stroke="var(--accent2)" stroke-width="2" fill="none" opacity="0.85" id="fluxGroup">
+          <path d="M260 122 C 120 122 120 28 260 28 C 400 28 400 122 260 122 Z"/>
+          <path d="M260 110 C 150 110 150 40 260 40 C 370 40 370 110 260 110 Z" opacity="0.55"/>
+          <path d="M260 98 C 180 98 180 52 260 52 C 340 52 340 98 260 98 Z" opacity="0.35"/>
+        </g>
+
+        <!-- flux entry/exit sparks -->
+        <circle cx="260" cy="28" r="3.5" fill="var(--accent2)" style="animation:spark 1.4s ease-in-out infinite"/>
+        <circle cx="260" cy="122" r="3.5" fill="var(--accent)" style="animation:spark 1.4s ease-in-out infinite 0.7s"/>
+      </svg>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <footer>
+      <span><span class="led"></span>Magnetised</span>
+      <span>Even + Odd Harmonics</span>
+    </footer>
+  </div>
+
+<script>
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Drive",  index: 0, min: 0, max: 1, def: 0.45, fmt: pct },
+    { name: "Low",    index: 1, min: 0, max: 1, def: 0.5,  fmt: pct },
+    { name: "Tone",   index: 2, min: 0, max: 1, def: 0.5,  fmt: pct },
+    { name: "Mix",    index: 3, min: 0, max: 1, def: 1.0,  fmt: pct },
+    { name: "Output", index: 4, min: 0, max: 1, def: 0.55, fmt: db }
+  ];
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function db(v) {
+    // map 0..1 output trim (0..1.4x) to a dB-ish readout
+    var g = v * 1.4;
+    if (g <= 0.0001) return "-∞ dB";
+    var d = 20 * Math.log10(g);
+    return (d >= 0 ? "+" : "") + d.toFixed(1) + " dB";
+  }
+
+  // ---- host bridge (guard against missing vstai) ----
+  function setParam(i, v) {
+    if (window.vstai && window.vstai.setParam) {
+      try { window.vstai.setParam(i, v); } catch (e) {}
+    }
+  }
+
+  var state = {}; // index -> normalized 0..1
+  var bloomEl = document.getElementById("bloom");
+  var fluxGroup = document.getElementById("fluxGroup");
+
+  function reflectVisual() {
+    var drive = state[0] != null ? state[0] : 0.45;
+    var low   = state[1] != null ? state[1] : 0.5;
+    // low-end bloom intensity tracks Low + Drive
+    var glow = 0.3 + 0.7 * (0.5 * low + 0.5 * drive);
+    if (bloomEl) bloomEl.style.opacity = glow.toFixed(3);
+    // flux speed tracks Drive (more drive = faster magnetisation)
+    if (fluxGroup) {
+      var dur = (3.2 - drive * 2.2).toFixed(2);
+      fluxGroup.style.animationDuration = dur + "s";
+    }
+  }
+
+  // ---- build a knob ----
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.setAttribute("role", "slider");
+    knob.setAttribute("aria-label", p.name);
+
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    // outer body
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "30");
+    body.setAttribute("fill", "url(#kbody)");
+    // track arc background
+    var track = document.createElementNS(NS, "path");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(0,0,0,0.45)");
+    track.setAttribute("stroke-width", "5");
+    track.setAttribute("stroke-linecap", "round");
+    track.setAttribute("d", arcPath(0));
+    track.setAttribute("class", "trackBg");
+    track.setAttribute("d", arcPath(1));
+    // value arc
+    var arc = document.createElementNS(NS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#kArc)");
+    arc.setAttribute("stroke-width", "5");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("class", "ring");
+    // pointer
+    var ptr = document.createElementNS(NS, "line");
+    ptr.setAttribute("stroke", "#f6e2c6");
+    ptr.setAttribute("stroke-width", "3");
+    ptr.setAttribute("stroke-linecap", "round");
+
+    // gradients (define once, attach per-knob via defs)
+    var defs = document.createElementNS(NS, "defs");
+    defs.innerHTML =
+      '<radialGradient id="kbody" cx="0.4" cy="0.3" r="0.8">' +
+      '<stop offset="0" stop-color="#3a3027"/>' +
+      '<stop offset="0.7" stop-color="#211a14"/>' +
+      '<stop offset="1" stop-color="#0e0b08"/></radialGradient>' +
+      '<linearGradient id="kArc" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#cf7a3a"/>' +
+      '<stop offset="1" stop-color="#e0a860"/></linearGradient>';
+
+    svg.appendChild(defs);
+    svg.appendChild(track);
+    svg.appendChild(body);
+    svg.appendChild(arc);
+    svg.appendChild(ptr);
+    knob.appendChild(svg);
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    cell.appendChild(label);
+    cell.appendChild(knob);
+    cell.appendChild(val);
+
+    // arc geometry: 270-degree sweep from 225 (lower-left) clockwise
+    var START = 135;   // degrees, measured from +x, going clockwise in screen space
+    var SWEEP = 270;
+
+    function polar(deg) {
+      var r = 30;
+      var rad = (deg) * Math.PI / 180;
+      return [50 + r * Math.cos(rad), 50 + r * Math.sin(rad)];
+    }
+
+    function arcPath(frac) {
+      var a0 = START;
+      var a1 = START + SWEEP * frac;
+      var p0 = polar(a0);
+      var p1 = polar(a1);
+      var large = (SWEEP * frac) > 180 ? 1 : 0;
+      if (frac <= 0.0001) {
+        return "M " + p0[0] + " " + p0[1];
+      }
+      return "M " + p0[0] + " " + p0[1] + " A 30 30 0 " + large + " 1 " + p1[0] + " " + p1[1];
+    }
+
+    function redraw(v) {
+      arc.setAttribute("d", arcPath(v));
+      var a = START + SWEEP * v;
+      var rad = a * Math.PI / 180;
+      ptr.setAttribute("x1", (50 + 10 * Math.cos(rad)).toFixed(2));
+      ptr.setAttribute("y1", (50 + 10 * Math.sin(rad)).toFixed(2));
+      ptr.setAttribute("x2", (50 + 24 * Math.cos(rad)).toFixed(2));
+      ptr.setAttribute("y2", (50 + 24 * Math.sin(rad)).toFixed(2));
+      val.textContent = p.fmt(v);
+    }
+
+    function apply(v, push) {
+      v = Math.max(0, Math.min(1, v));
+      state[p.index] = v;
+      redraw(v);
+      if (push) setParam(p.index, p.min + v * (p.max - p.min));
+      reflectVisual();
+    }
+
+    // ---- drag interaction (vertical) ----
+    var dragging = false, lastY = 0;
+
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      knob.setPointerCapture && e.pointerId != null && knob.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var speed = e.shiftKey ? 0.0012 : 0.005; // shift = fine
+      apply((state[p.index] || 0) + dy * speed, true);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    knob.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    // touch fallback
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    // wheel fine-tune
+    knob.addEventListener("wheel", function (e) {
+      var step = (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 0.005 : 0.02);
+      apply((state[p.index] || 0) + step, true);
+      e.preventDefault();
+    }, { passive: false });
+
+    // double-click reset to default
+    knob.addEventListener("dblclick", function () {
+      var dv = (p.def - p.min) / (p.max - p.min);
+      apply(dv, true);
+    });
+
+    // initialise to default
+    apply((p.def - p.min) / (p.max - p.min), true);
+
+    return cell;
+  }
+
+  function build() {
+    var rack = document.getElementById("rack");
+    PARAMS.forEach(function (p) { rack.appendChild(makeKnob(p)); });
+    reflectVisual();
+  }
+
+  // pause animations when hidden to stay cheap
+  document.addEventListener("visibilitychange", function () {
+    document.querySelectorAll(".bloom, .flux, .led").forEach(function (el) {
+      el.style.animationPlayState = document.hidden ? "paused" : "running";
+    });
+  });
+
+  function boot() {
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(build);
+    } else {
+      build();
+    }
+  }
+
+  boot();
+</script>
+</body>
+</html>

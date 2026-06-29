@@ -1,0 +1,17 @@
+{
+  "name": "Vocal Wah",
+  "isInstrument": false,
+  "explanation": "A resonant band-pass wah whose peak is swept either by a manual Pedal treadle or by an envelope follower in Auto mode. Q sharpens the vowel-like peak and Range sets how far the sweep travels, with a dry/wet Mix.",
+  "assembly": "factory/plugins/vocal-wah/assembly.ts",
+  "out": "factory/plugins/vocal-wah/x.vstai",
+  "publishedAt": 1751000046000,
+  "theme": { "accent": "#ffd23f", "accent2": "#ff9e2c" },
+  "guiFile": "factory/plugins/vocal-wah/gui.html",
+  "params": [
+    { "name": "Pedal", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Q",     "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Range", "index": 2, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Mode",  "index": 3, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Mix",   "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

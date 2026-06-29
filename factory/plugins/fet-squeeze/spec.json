@@ -6,6 +6,7 @@
   "out": "factory/plugins/fet-squeeze/x.vstai",
   "publishedAt": 1751000004000,
   "theme": { "accent": "#ff5a6e", "accent2": "#ff9a6a" },
+  "guiFile": "factory/plugins/fet-squeeze/gui.html",
   "params": [
     { "name": "Input",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Attack",  "index": 1, "min": 0, "max": 1, "default": 0.7 },

@@ -1,0 +1,17 @@
+{
+  "name": "Star Field",
+  "isInstrument": false,
+  "explanation": "A multitap space reverb. A network of discrete, scattered early-reflection taps pings outward across the stereo field and then blossoms into a diffuse, gently modulated ambient tail — a constellation of reflections decaying into deep space rather than a smooth hall. Controls: Size, Taps/Spread, Decay, Modulation and dry/wet Mix.",
+  "assembly": "factory/plugins/star-field/assembly.ts",
+  "out": "factory/plugins/star-field/x.vstai",
+  "publishedAt": 1751000078000,
+  "theme": { "accent": "#7a8cff", "accent2": "#54d1ff" },
+  "guiFile": "factory/plugins/star-field/gui.html",
+  "params": [
+    { "name": "Size",        "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Taps/Spread", "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Decay",       "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Modulation",  "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",         "index": 4, "min": 0, "max": 1, "default": 0.35 }
+  ]
+}

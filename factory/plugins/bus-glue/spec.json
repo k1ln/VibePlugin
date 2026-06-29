@@ -1,0 +1,17 @@
+{
+  "name": "Bus Glue",
+  "isInstrument": false,
+  "explanation": "A VCA-style stereo bus compressor for the classic mix-glue character. A stereo-linked RMS detector feeds a dB-domain gain computer with a gentle soft knee and three switchable ratios (2:1 / 4:1 / 10:1). Stepped Attack and Release times — with a program-dependent auto-release at the top of the Release range — shape a smooth gain-reduction envelope, and a Makeup gain restores level. Loud, dense material is gently pulled together more than quiet passages, gluing a mix into a cohesive whole. Controls: Threshold, Ratio, Attack, Release and Makeup.",
+  "assembly": "factory/plugins/bus-glue/assembly.ts",
+  "out": "factory/plugins/bus-glue/x.vstai",
+  "publishedAt": 1751000070000,
+  "theme": { "accent": "#c0c8d0", "accent2": "#9aa6b4" },
+  "guiFile": "factory/plugins/bus-glue/gui.html",
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Ratio",     "index": 1, "min": 0, "max": 2, "default": 1, "step": 1 },
+    { "name": "Attack",    "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Release",   "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Makeup",    "index": 4, "min": 0, "max": 1, "default": 0.3 }
+  ]
+}

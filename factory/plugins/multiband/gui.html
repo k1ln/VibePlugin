@@ -1,0 +1,442 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  --ac:#ff8a5a;        /* warm coral accent */
+  --ac2:#ffd166;       /* amber highlight  */
+  --bg0:#0c0d12;
+  --bg1:#14161f;
+  --panel:#191c27;
+  --panel2:#1f2230;
+  --line:rgba(255,255,255,.07);
+  --ink:#eef1f7;
+  --dim:#8b91a6;
+  --low:#ff7a59;
+  --mid:#ffb24d;
+  --high:#ffd166;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(130% 80% at 50% -10%,#1b1d28 0%,#0d0e14 55%,#070809 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;min-height:100%;
+}
+
+.unit{
+  position:relative;
+  width:min(560px,96vw);
+  border-radius:18px;
+  padding:18px 20px 20px;
+  background:
+    linear-gradient(180deg,#20232f 0%,var(--panel) 18%,var(--bg1) 100%);
+  box-shadow:
+    0 30px 70px -22px rgba(0,0,0,.8),
+    0 1px 0 rgba(255,255,255,.06) inset,
+    0 0 0 1px rgba(0,0,0,.5),
+    0 0 0 1px var(--line) inset;
+  animation:rise .6s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+
+/* faint top rack-rail texture */
+.unit::before{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:
+    repeating-linear-gradient(180deg,rgba(255,255,255,.018) 0 1px,transparent 1px 4px);
+  opacity:.5;mix-blend-mode:screen;
+}
+
+/* ===== header ===== */
+.head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.brand{font-size:8.5px;letter-spacing:.4em;color:var(--dim);text-transform:uppercase}
+h1{
+  margin:2px 0 0;font-size:23px;font-weight:800;letter-spacing:.04em;line-height:1;
+  background:linear-gradient(90deg,var(--ac) 0%,var(--ac2) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.sub{font-size:8px;letter-spacing:.28em;color:var(--dim);text-transform:uppercase;margin-top:5px}
+.pwr{display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#fff,var(--ac2) 45%,#a8521f 90%);
+  box-shadow:0 0 12px var(--ac2),0 0 3px #fff inset;
+  animation:beat 2.4s ease-in-out infinite}
+@keyframes beat{0%,100%{box-shadow:0 0 7px var(--ac2),0 0 3px #fff inset}50%{box-shadow:0 0 16px var(--ac2),0 0 5px #fff inset}}
+.pwr span{font-size:8px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase}
+
+/* ===== band lanes ===== */
+.lanes{display:flex;flex-direction:column;gap:10px}
+.lane{
+  position:relative;
+  display:grid;
+  grid-template-columns:74px 1fr 96px;
+  gap:14px;align-items:center;
+  padding:12px 14px;border-radius:13px;
+  background:linear-gradient(180deg,var(--panel2),#171a24);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 0 0 1px rgba(0,0,0,.45),0 8px 18px -12px rgba(0,0,0,.7);
+  animation:pop .5s both;animation-delay:var(--d);
+}
+@keyframes pop{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.lane::before{ /* left accent strip = band colour */
+  content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;
+  background:var(--bc);box-shadow:0 0 10px var(--bc);}
+
+/* band identity */
+.bid{display:flex;flex-direction:column;gap:3px}
+.bname{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--bc);text-transform:uppercase}
+.brange{font-size:8px;letter-spacing:.1em;color:var(--dim);font-variant-numeric:tabular-nums}
+
+/* ===== gain-reduction meter (the centrepiece, pumps independently) ===== */
+.meter{
+  position:relative;height:46px;border-radius:9px;overflow:hidden;
+  background:radial-gradient(120% 160% at 50% 130%,#0b0d13,#05060a 75%);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.85),inset 0 0 0 1px rgba(255,255,255,.03);
+}
+/* scale ticks (dB-ish) */
+.meter .scale{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 10%);}
+/* spectrum bars across the lane, animated */
+.bars{position:absolute;inset:6px 8px;display:flex;align-items:flex-end;gap:2px}
+.bars i{flex:1;border-radius:2px 2px 0 0;transform-origin:bottom;
+  background:linear-gradient(180deg,var(--bc),rgba(255,255,255,.05));
+  opacity:.55;}
+/* gain-reduction fill: grows DOWN from the top in the band colour */
+.gr{position:absolute;top:0;left:0;right:0;height:0%;
+  background:linear-gradient(180deg,var(--bc),transparent);
+  box-shadow:0 0 14px var(--bc);opacity:.85;
+  transition:height .05s linear;}
+.gr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:var(--ac2);box-shadow:0 0 8px var(--ac2);}
+.thrline{position:absolute;left:0;right:0;height:1px;background:rgba(255,255,255,.35);
+  box-shadow:0 0 5px rgba(255,255,255,.4);transition:top .12s ease;}
+.grtxt{position:absolute;right:6px;top:5px;font-size:9px;font-weight:700;letter-spacing:.06em;
+  color:#fff;font-variant-numeric:tabular-nums;opacity:.85;text-shadow:0 1px 3px #000}
+
+/* ===== per-lane threshold knob ===== */
+.knobwrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+.knob{position:relative;width:54px;height:54px;cursor:ns-resize;touch-action:none;user-select:none}
+.arc{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 215deg,var(--bc) calc(var(--n)*270deg),rgba(255,255,255,.05) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(1px + var(--n)*6px) var(--bc));
+  transition:filter .12s ease;}
+.cap{position:absolute;top:8px;left:8px;width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,#3a3e4d 0%,#191c26 62%,#0e1016 100%);
+  box-shadow:inset 0 2px 5px rgba(255,255,255,.12),inset 0 -5px 10px rgba(0,0,0,.8),0 3px 7px rgba(0,0,0,.5);}
+.ptr{position:absolute;top:5px;left:50%;width:3px;height:15px;margin-left:-1.5px;border-radius:3px;
+  background:linear-gradient(var(--ac2),var(--bc));box-shadow:0 0 6px var(--bc),0 0 2px #fff;
+  transform-origin:50% 22px;transform:rotate(calc((var(--n) - .5) * 270deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.klabel{font-size:8px;font-weight:700;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.kval{font-size:10px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.knob.act .cap{box-shadow:inset 0 2px 5px rgba(255,255,255,.14),inset 0 -5px 10px rgba(0,0,0,.8),0 3px 11px var(--bc)}
+
+/* ===== bottom master row ===== */
+.master{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:14px;padding:14px 16px;border-radius:13px;
+  background:linear-gradient(180deg,#1d2030,#13151e);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 0 0 1px rgba(0,0,0,.45)}
+.mctl{display:flex;align-items:center;gap:12px}
+.bigknob{position:relative;width:64px;height:64px;cursor:ns-resize;touch-action:none;user-select:none}
+.bigknob .arc{background:conic-gradient(from 215deg,var(--ac) calc(var(--n)*270deg),rgba(255,255,255,.05) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n)*8px) var(--ac));}
+.bigknob .cap{top:9px;left:9px;width:46px;height:46px}
+.bigknob .ptr{top:6px;height:18px;transform-origin:50% 26px;background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 7px var(--ac),0 0 2px #fff}
+.mmeta{display:flex;flex-direction:column;gap:2px}
+.mmeta .t{font-size:9px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+.mmeta .v{font-size:16px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.mmeta .v small{font-size:9px;color:var(--dim);font-weight:600;margin-left:2px}
+
+@media (max-width:460px){
+  .lane{grid-template-columns:60px 1fr 76px;gap:9px;padding:10px}
+  .master{flex-direction:column;align-items:stretch;gap:14px}
+}
+</style>
+</head>
+<body>
+<div class="unit">
+
+  <div class="head">
+    <div>
+      <div class="brand">Mastering Series</div>
+      <h1>Multiband</h1>
+      <div class="sub">3-Band Dynamics</div>
+    </div>
+    <div class="pwr"><span>Active</span><span class="dot"></span></div>
+  </div>
+
+  <div class="lanes" id="lanes"></div>
+
+  <div class="master">
+    <div class="mctl">
+      <div class="bigknob" id="ratioKnob" tabindex="0">
+        <i class="arc"></i><i class="cap"></i><i class="ptr"></i>
+      </div>
+      <div class="mmeta">
+        <div class="t">Ratio</div>
+        <div class="v" id="ratioVal">1.0<small>:1</small></div>
+      </div>
+    </div>
+    <div class="mctl">
+      <div class="mmeta" style="text-align:right;align-items:flex-end">
+        <div class="t">Output</div>
+        <div class="v" id="outVal">0.0<small>dB</small></div>
+      </div>
+      <div class="bigknob" id="outKnob" tabindex="0">
+        <i class="arc"></i><i class="cap"></i><i class="ptr"></i>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  var P = {
+    LOW:0, MID:1, HIGH:2, RATIO:3, OUT:4
+  };
+
+  var BANDS = [
+    { key:"LOW",  index:P.LOW,  name:"Low",  range:"&lt; 220 Hz",      colour:"var(--low)",  def:0.5 },
+    { key:"MID",  index:P.MID,  name:"Mid",  range:"220 Hz – 2.5 kHz", colour:"var(--mid)",  def:0.5 },
+    { key:"HIGH", index:P.HIGH, name:"High", range:"&gt; 2.5 kHz",     colour:"var(--high)", def:0.5 }
+  ];
+
+  var state = {};          // index -> raw 0..1 value
+  var lanesEl = document.getElementById('lanes');
+
+  function pushParam(index, value){
+    state[index] = value;
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(index, value);
+  }
+
+  // ---------------------------------------------------------------
+  //  Build the three band lanes
+  // ---------------------------------------------------------------
+  var laneRefs = [];   // { gr, bars[], grtxt, thr, arc, ptr, kval, threshold }
+
+  BANDS.forEach(function(b, i){
+    var lane = document.createElement('div');
+    lane.className = 'lane';
+    lane.style.setProperty('--bc', b.colour);
+    lane.style.setProperty('--d', (i*80)+'ms');
+
+    var barsHtml = '';
+    var NB = 14;
+    for (var k=0;k<NB;k++) barsHtml += '<i></i>';
+
+    lane.innerHTML =
+      '<div class="bid">'+
+        '<div class="bname">'+b.name+'</div>'+
+        '<div class="brange">'+b.range+'</div>'+
+      '</div>'+
+      '<div class="meter">'+
+        '<div class="scale"></div>'+
+        '<div class="bars">'+barsHtml+'</div>'+
+        '<div class="thrline"></div>'+
+        '<div class="gr"></div>'+
+        '<div class="grtxt">0.0 dB</div>'+
+      '</div>'+
+      '<div class="knobwrap">'+
+        '<div class="knob" tabindex="0"><i class="arc"></i><i class="cap"></i><i class="ptr"></i></div>'+
+        '<div class="klabel">Thresh</div>'+
+        '<div class="kval"></div>'+
+      '</div>';
+
+    lanesEl.appendChild(lane);
+
+    var ref = {
+      gr:    lane.querySelector('.gr'),
+      bars:  Array.prototype.slice.call(lane.querySelectorAll('.bars i')),
+      grtxt: lane.querySelector('.grtxt'),
+      thr:   lane.querySelector('.thrline'),
+      arc:   lane.querySelector('.knob .arc'),
+      ptr:   lane.querySelector('.knob .ptr'),
+      kval:  lane.querySelector('.kval'),
+      knob:  lane.querySelector('.knob'),
+      env:   0,     // simulated band detector
+      grSmooth:0,   // smoothed gain reduction in dB (positive number)
+      phase: Math.random()*6.28,
+      colour:b.colour
+    };
+    laneRefs.push(ref);
+
+    var v = b.def;
+    function paintKnob(){
+      ref.arc.style.setProperty('--n', v);
+      ref.ptr.style.setProperty('--n', v);
+      // show as a threshold in dB: 0 -> -40 dB (aggressive), 1 -> -1 dB (open)
+      var thrDb = -40 + v*39;
+      ref.kval.textContent = thrDb.toFixed(0)+' dB';
+      // threshold guide line on the meter (top = 0 GR, lower = deeper)
+      ref.thr.style.top = ((1 - v) * 70 + 6) + '%';
+      pushParam(b.index, v);
+    }
+    function setNorm(n){ v = n<0?0:n>1?1:n; paintKnob(); }
+
+    var drag=false, startY=0, startN=0;
+    ref.knob.addEventListener('pointerdown', function(e){
+      drag=true; startY=e.clientY; startN=v;
+      ref.knob.classList.add('act'); ref.knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    ref.knob.addEventListener('pointermove', function(e){
+      if(!drag) return;
+      var speed = e.shiftKey?700:200;
+      setNorm(startN + (startY-e.clientY)/speed);
+    });
+    function end(){ drag=false; ref.knob.classList.remove('act'); }
+    ref.knob.addEventListener('pointerup', end);
+    ref.knob.addEventListener('pointercancel', end);
+    ref.knob.addEventListener('dblclick', function(){ setNorm(b.def); });
+    ref.knob.addEventListener('wheel', function(e){
+      e.preventDefault(); setNorm(v + (e.deltaY<0?0.03:-0.03));
+    }, {passive:false});
+    ref.knob.addEventListener('keydown', function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){ setNorm(v+0.02); e.preventDefault(); }
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){ setNorm(v-0.02); e.preventDefault(); }
+    });
+
+    ref.getThresh = function(){ return v; };
+    paintKnob();
+  });
+
+  // ---------------------------------------------------------------
+  //  Master knobs (Ratio, Output)
+  // ---------------------------------------------------------------
+  function makeBigKnob(elId, index, def, onPaint){
+    var knob = document.getElementById(elId);
+    var arc = knob.querySelector('.arc');
+    var ptr = knob.querySelector('.ptr');
+    var v = def;
+    function paint(){
+      arc.style.setProperty('--n', v);
+      ptr.style.setProperty('--n', v);
+      pushParam(index, v);
+      onPaint(v);
+    }
+    function setNorm(n){ v = n<0?0:n>1?1:n; paint(); }
+    var drag=false, startY=0, startN=0;
+    knob.addEventListener('pointerdown', function(e){
+      drag=true; startY=e.clientY; startN=v;
+      knob.classList.add('act'); knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove', function(e){
+      if(!drag) return;
+      var speed = e.shiftKey?700:200;
+      setNorm(startN + (startY-e.clientY)/speed);
+    });
+    function end(){ drag=false; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup', end);
+    knob.addEventListener('pointercancel', end);
+    knob.addEventListener('dblclick', function(){ setNorm(def); });
+    knob.addEventListener('wheel', function(e){
+      e.preventDefault(); setNorm(v + (e.deltaY<0?0.03:-0.03));
+    }, {passive:false});
+    knob.addEventListener('keydown', function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){ setNorm(v+0.02); e.preventDefault(); }
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){ setNorm(v-0.02); e.preventDefault(); }
+    });
+    paint();
+    return { get:function(){ return v; } };
+  }
+
+  var ratioVal = document.getElementById('ratioVal');
+  var outVal = document.getElementById('outVal');
+
+  var ratioCtl = makeBigKnob('ratioKnob', P.RATIO, 0.5, function(v){
+    var r = 1 + v*11;
+    ratioVal.innerHTML = r.toFixed(1)+'<small>:1</small>';
+  });
+  var outCtl = makeBigKnob('outKnob', P.OUT, 0.6, function(v){
+    // 0..1 -> 0..1.6 linear -> dB
+    var lin = v*1.6;
+    var db = lin>0.0001 ? 20*Math.log10(lin) : -60;
+    outVal.innerHTML = (db>=0?'+':'')+db.toFixed(1)+'<small>dB</small>';
+  });
+
+  // ---------------------------------------------------------------
+  //  Animated visualiser — each band runs its OWN simulated detector
+  //  and compressor so the three GR meters pump independently. The low
+  //  band uses a slow release (big pumping swells); highs are snappy.
+  // ---------------------------------------------------------------
+  var BAND_RATE = [0.9, 1.7, 3.1];     // pseudo-modulation rates per band (Hz-ish)
+  var REL = [0.018, 0.045, 0.09];      // per-frame release toward target (low = slow)
+  var last = performance.now();
+
+  function frame(now){
+    var dt = Math.min(0.05, (now-last)/1000); last = now;
+    var ratioN = ratioCtl.get();
+    var ratio = 1 + ratioN*11;
+    var slope = 1 - 1/ratio;
+
+    for (var i=0;i<laneRefs.length;i++){
+      var L = laneRefs[i];
+      L.phase += dt * BAND_RATE[i] * 6.283;
+
+      // synthetic band energy: a couple of beating sines -> lively level 0..1
+      var drive = 0.55 + 0.40*Math.sin(L.phase) * Math.sin(L.phase*0.37+i);
+      drive = drive<0?0:drive>1?1:drive;
+      // peak detector follow (fast attack, slow-ish release per band)
+      if (drive > L.env) L.env += (drive - L.env) * 0.6;
+      else               L.env += (drive - L.env) * (REL[i]*4);
+
+      // static compression curve mirrors the DSP: thr knob sets threshold
+      var thrN = L.getThresh();
+      var thr = 0.02 + thrN*0.88;
+      var grDb = 0;
+      if (L.env > thr){
+        var over = L.env/thr;
+        var gain = Math.pow(over, -slope);          // linear gain <1
+        grDb = -20*Math.log10(Math.max(gain,0.02)); // positive dB of reduction
+      }
+      // smooth the displayed GR with band-dependent release
+      var k = grDb > L.grSmooth ? 0.55 : REL[i];
+      L.grSmooth += (grDb - L.grSmooth) * k;
+
+      // paint GR fill (0 dB -> 0 height, ~24 dB -> full)
+      var h = Math.min(100, (L.grSmooth/24)*100);
+      L.gr.style.height = h.toFixed(1)+'%';
+      L.grtxt.textContent = '-'+L.grSmooth.toFixed(1)+' dB';
+
+      // animate spectrum bars (driven by env + a little per-bar wobble)
+      var bars = L.bars, NB = bars.length;
+      for (var k2=0;k2<NB;k2++){
+        var w = 0.5 + 0.5*Math.sin(L.phase*1.3 + k2*0.7 + i);
+        var hgt = (0.25 + 0.75*L.env*w) * 100;
+        var b = bars[k2];
+        b.style.height = hgt.toFixed(0)+'%';
+        // dim a bar more when this band is being reduced (visual "duck")
+        b.style.opacity = (0.35 + 0.45*(1 - L.grSmooth/24)).toFixed(2);
+      }
+    }
+
+    if (!document.hidden) rafId = requestAnimationFrame(frame);
+    else rafId = 0;
+  }
+
+  var rafId = requestAnimationFrame(frame);
+  document.addEventListener('visibilitychange', function(){
+    if (!document.hidden && !rafId){ last = performance.now(); rafId = requestAnimationFrame(frame); }
+  });
+
+  // ---------------------------------------------------------------
+  function ready(){
+    // re-push every default so the engine matches the GUI on load
+    BANDS.forEach(function(b){ pushParam(b.index, state[b.index]); });
+    pushParam(P.RATIO, ratioCtl.get());
+    pushParam(P.OUT, outCtl.get());
+  }
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Robot Voice",
+  "isInstrument": false,
+  "explanation": "A channel vocoder in the classic analog-bank style. Your input is the modulator: it is split into 8, 12 or 16 band-pass bands, each tracked by an envelope follower. An internal carrier — a buzzy sawtooth blended toward white noise — is filtered into the same bands and multiplied by those envelopes, so the carrier is forced to wear the spectral shape of your input. The result is the unmistakable talking, robotic timbre. Controls: Bands, Carrier (saw to noise), Formant band shift, Resonance and dry/wet Mix.",
+  "assembly": "factory/plugins/robot-voice/assembly.ts",
+  "out": "factory/plugins/robot-voice/x.vstai",
+  "publishedAt": 1751000066000,
+  "theme": { "accent": "#54ff9a", "accent2": "#54d1ff" },
+  "guiFile": "factory/plugins/robot-voice/gui.html",
+  "params": [
+    { "name": "Bands",     "index": 0, "min": 0, "max": 2, "default": 1, "step": 1 },
+    { "name": "Carrier",   "index": 1, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Formant",   "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance", "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",       "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

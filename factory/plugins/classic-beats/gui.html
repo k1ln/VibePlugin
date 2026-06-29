@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Classic Beats</title>
+<style>
+  @property --p{syntax:'<number>';inherits:false;initial-value:0}
+
+  :root{
+    --ac:#54b0ff; --ac2:#80c8ff;
+    --beige:#e8ddc4; --beige2:#d8c9a8; --beige-d:#bfae87;
+    --case:#cdbf9c; --slate:#3a3630; --ink:#3b332a;
+    --red:#e7503a; --amber:#f2a93b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font:13px ui-sans-serif,system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%,#23262b,#0c0d10 70%);
+    display:flex;align-items:center;justify-content:center;padding:18px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== The drum-computer case ===== */
+  .box{
+    position:relative;width:100%;max-width:640px;border-radius:18px;
+    padding:16px 18px 20px;
+    background:
+      linear-gradient(180deg,#f1e8d2 0%,var(--beige) 14%,var(--beige2) 100%);
+    box-shadow:
+      0 28px 60px rgba(0,0,0,.6),
+      inset 0 2px 0 rgba(255,255,255,.7),
+      inset 0 -3px 8px rgba(120,100,60,.35),
+      inset 0 0 0 2px rgba(255,255,255,.25);
+    border:1px solid #9c8c63;
+    animation:boot .6s ease both;
+  }
+  @keyframes boot{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+  /* fine moulded texture */
+  .box::after{
+    content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  /* corner screws */
+  .screw{position:absolute;width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff,#b6a677 60%,#7d6e49);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 1px 1px rgba(255,255,255,.5)}
+  .screw::before{content:"";position:absolute;inset:3px;border-top:2px solid rgba(60,50,30,.6);transform:rotate(35deg)}
+  .screw.tl{top:8px;left:8px}.screw.tr{top:8px;right:8px}
+  .screw.bl{bottom:8px;left:8px}.screw.br{bottom:8px;right:8px}
+
+  /* ===== Brand header ===== */
+  .brand{display:flex;align-items:center;gap:12px;padding:2px 6px 12px;position:relative;z-index:2}
+  .logo{display:flex;flex-direction:column;line-height:1}
+  .logo .big{font-weight:900;font-size:22px;letter-spacing:.02em;color:var(--slate);
+    text-shadow:0 1px 0 rgba(255,255,255,.6);font-family:"Helvetica Neue",Arial,sans-serif}
+  .logo .big i{font-style:normal;color:var(--red)}
+  .logo .sub{font-size:9px;letter-spacing:.42em;color:#8a7c58;text-transform:uppercase;margin-top:4px;font-weight:700}
+  .powled{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.18em;
+    color:#7d6e49;text-transform:uppercase;font-weight:700}
+  .powled .b{width:10px;height:10px;border-radius:50%;background:#f24;
+    box-shadow:0 0 8px #f53,0 0 14px rgba(255,70,40,.6),inset 0 -1px 2px rgba(120,0,0,.6);
+    animation:pwr 2.6s ease-in-out infinite}
+  @keyframes pwr{0%,100%{opacity:.7}50%{opacity:1}}
+
+  /* ===== Step sequencer LED strip ===== */
+  .seqwrap{position:relative;z-index:2;border-radius:11px;padding:11px 13px 12px;margin-bottom:14px;
+    background:linear-gradient(180deg,#2b2722,#15120e);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.4);
+    border:1px solid #0a0805}
+  .seqlbl{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+  .seqlbl span{font-size:8.5px;letter-spacing:.28em;color:#b9a36f;text-transform:uppercase;font-weight:700}
+  .seqlbl .tempo{color:#e9d49a;font-variant-numeric:tabular-nums;letter-spacing:.1em;cursor:ns-resize;
+    user-select:none;touch-action:none;padding:1px 6px;border-radius:5px;border:1px solid #4a3f2c}
+  .seqlbl .tempo:hover{background:rgba(255,220,150,.08)}
+  .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:5px}
+  .step{position:relative;aspect-ratio:1/1.15;border-radius:3px;cursor:pointer;
+    background:linear-gradient(180deg,#241f18,#0e0b07);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.8);border:1px solid #0a0805;overflow:hidden}
+  .step::before{content:"";position:absolute;left:50%;top:30%;transform:translateX(-50%);
+    width:62%;height:34%;border-radius:2px;background:#5a2418;opacity:.35;transition:.12s}
+  .step.on::before{background:var(--red);opacity:1;
+    box-shadow:0 0 7px var(--red),0 0 14px rgba(231,80,58,.6)}
+  /* the chasing playhead lights the active column */
+  .step.cur{box-shadow:inset 0 1px 2px rgba(0,0,0,.8),0 0 0 1px var(--ac)}
+  .step.cur::after{content:"";position:absolute;inset:0;background:var(--ac);opacity:.16}
+  .step .beat{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+    width:3px;height:3px;border-radius:50%;background:#3a3026}
+  .step.accent .beat{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+
+  /* ===== Main deck: voice pads + shaping knobs ===== */
+  .deck{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;position:relative;z-index:2}
+  .panel-l,.panel-r{border-radius:12px;padding:13px 12px 12px;
+    background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(160,140,95,.12));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 5px rgba(120,100,60,.25),0 1px 2px rgba(0,0,0,.15);
+    border:1px solid rgba(120,100,60,.4)}
+  .ptitle{font-size:8.5px;letter-spacing:.26em;color:#7d6e49;text-transform:uppercase;font-weight:800;
+    margin:0 2px 11px;display:flex;justify-content:space-between}
+
+  /* ---- Voice pads (Kick/Snare/Hat/Clap) ---- */
+  .pads{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .pad{position:relative;border-radius:11px;padding:10px 9px 9px;cursor:pointer;
+    background:linear-gradient(180deg,#4a453d,#26221c);
+    box-shadow:0 3px 0 #15120d,0 5px 9px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12);
+    border:1px solid #100d09;user-select:none;touch-action:none;
+    transition:transform .07s ease,box-shadow .07s ease}
+  .pad:active,.pad.hit{transform:translateY(3px);box-shadow:0 0 0 #15120d,0 2px 5px rgba(0,0,0,.5),inset 0 1px 4px rgba(0,0,0,.5)}
+  .pad .vled{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;
+    background:#2a2a30;box-shadow:inset 0 0 2px #000}
+  .pad.hit .vled,.pad.lit .vled{background:var(--ac);box-shadow:0 0 7px var(--ac),0 0 12px rgba(84,176,255,.6)}
+  .pad .vname{font-size:12px;font-weight:800;letter-spacing:.05em;color:#f3ead3;
+    text-shadow:0 1px 1px rgba(0,0,0,.6);margin-bottom:9px}
+  /* level slider built into each pad — drag the fader vertically */
+  .fader{position:relative;height:46px;border-radius:6px;
+    background:linear-gradient(180deg,#161310,#211d18);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.8);border:1px solid #0c0a07;overflow:hidden}
+  .fader .fill{position:absolute;left:0;right:0;bottom:0;height:calc(var(--p,0)*100%);
+    background:linear-gradient(180deg,var(--ac2),var(--ac));
+    box-shadow:0 0 10px rgba(84,176,255,.55);transition:height .12s cubic-bezier(.2,.8,.25,1)}
+  .fader .grid{position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 7px,rgba(0,0,0,.3) 7px 8px)}
+  .fader .cap{position:absolute;left:-1px;right:-1px;height:7px;border-radius:3px;
+    bottom:calc(var(--p,0)*100% - 3px);
+    background:linear-gradient(180deg,#fbfbfb,#aeb6c0);
+    box-shadow:0 1px 3px rgba(0,0,0,.6),inset 0 1px 0 #fff;
+    transition:bottom .12s cubic-bezier(.2,.8,.25,1)}
+  .pad .vval{margin-top:7px;font-size:11px;font-weight:800;color:var(--ac2);
+    font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.05em}
+
+  /* ---- Master level fader (wide horizontal slot) ---- */
+  .master{grid-column:1/-1;margin-top:11px;border-radius:9px;padding:9px 11px;
+    background:linear-gradient(180deg,#3a352e,#221e18);border:1px solid #100d09;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 0 #15120d}
+  .master .mrow{display:flex;align-items:center;gap:11px}
+  .master .ml{font-size:10px;font-weight:800;letter-spacing:.12em;color:#f3ead3;width:48px;text-transform:uppercase}
+  .slot{position:relative;flex:1;height:18px;border-radius:9px;cursor:ew-resize;
+    background:linear-gradient(180deg,#141110,#211d18);
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.8);border:1px solid #0a0805;user-select:none;touch-action:none}
+  .slot .track{position:absolute;left:3px;top:50%;transform:translateY(-50%);height:4px;border-radius:3px;
+    width:calc(var(--p,0)*100% - 6px);background:linear-gradient(90deg,var(--ac),var(--ac2));
+    box-shadow:0 0 8px rgba(84,176,255,.6)}
+  .slot .knob{position:absolute;top:50%;left:calc(var(--p,0)*100%);transform:translate(-50%,-50%);
+    width:22px;height:22px;border-radius:6px;
+    background:linear-gradient(180deg,#f2f4f7,#aab2bd);
+    box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 #fff,inset 0 -2px 3px rgba(120,130,150,.5)}
+  .slot .knob::before{content:"";position:absolute;left:50%;top:4px;bottom:4px;width:2px;margin-left:-1px;
+    background:#7d8794;border-radius:1px}
+  .master .mval{width:42px;text-align:right;font-size:11px;font-weight:800;color:var(--ac2);
+    font-variant-numeric:tabular-nums}
+
+  /* ---- Shaping rotaries (Tone / Decay / Drive) ---- */
+  .knobs{display:flex;justify-content:space-around;gap:6px}
+  .kc{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+  .dial{position:relative;width:74px;height:74px;cursor:ns-resize;user-select:none;touch-action:none}
+  .dial .ring{position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 225deg,var(--ac) calc(var(--p,0)*270deg),rgba(60,50,35,.35) calc(var(--p,0)*270deg) 270deg,transparent 270deg);
+    filter:drop-shadow(0 0 calc(2px + var(--p,0)*8px) rgba(84,176,255,.6));
+    -webkit-mask:radial-gradient(circle,transparent 30px,#000 31px);
+    mask:radial-gradient(circle,transparent 30px,#000 31px)}
+  .dial .ticks{position:absolute;inset:-4px;border-radius:50%;
+    background:repeating-conic-gradient(from 222deg,rgba(60,50,35,.6) 0 1.4deg,transparent 1.4deg 26deg);
+    -webkit-mask:radial-gradient(circle,transparent 38px,#000 39px,#000 41px,transparent 42px);
+    mask:radial-gradient(circle,transparent 38px,#000 39px,#000 41px,transparent 42px)}
+  .dial .cap{position:absolute;inset:9px;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 28%,#5c564c,#2c2820 72%);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.08),0 2px 4px rgba(0,0,0,.4)}
+  .dial .cap::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.06) 0 4deg,transparent 4deg 9deg)}
+  .dial .ptr{position:absolute;top:7px;left:50%;width:3px;height:21px;margin-left:-1.5px;border-radius:2px;
+    background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 6px var(--ac);
+    transform-origin:50% 30px;transform:rotate(calc((var(--p,0) - .5)*270deg));
+    transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+  .kc .kname{font-size:9px;letter-spacing:.16em;color:#7d6e49;text-transform:uppercase;font-weight:800}
+  .kc .kval{font-size:11px;font-weight:800;color:var(--ac);font-variant-numeric:tabular-nums}
+
+  .hint{position:relative;z-index:2;text-align:center;font-size:9px;letter-spacing:.1em;color:#9c8c63;
+    margin-top:13px;text-transform:uppercase;font-weight:700}
+</style>
+</head>
+<body>
+  <div class="box">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="brand">
+      <div class="logo">
+        <div class="big">CLASSIC<i>·</i>BEATS</div>
+        <div class="sub">Rhythm Composer</div>
+      </div>
+      <div class="powled"><span class="b"></span>Power</div>
+    </div>
+
+    <!-- Step sequencer LED strip (decorative chase + togglable pattern) -->
+    <div class="seqwrap">
+      <div class="seqlbl">
+        <span>Step&nbsp;Sequencer&nbsp;— 16</span>
+        <span class="tempo" id="tempo" title="drag to change tempo">120 BPM</span>
+      </div>
+      <div class="steps" id="steps"></div>
+    </div>
+
+    <div class="deck">
+      <!-- Left: four voice pads + master -->
+      <div class="panel-l">
+        <div class="ptitle"><span>Voices</span><span>tap · drag fader</span></div>
+        <div class="pads" id="pads"></div>
+        <div class="master" id="master">
+          <div class="mrow">
+            <span class="ml">Level</span>
+            <div class="slot" id="slot"><div class="track"></div><div class="knob"></div></div>
+            <span class="mval" id="mval">0.80</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: tone-shaping rotaries -->
+      <div class="panel-r">
+        <div class="ptitle"><span>Sound</span><span>shape</span></div>
+        <div class="knobs" id="knobs"></div>
+      </div>
+    </div>
+
+    <div class="hint">double-click any control to reset · tap pads to audition the chase</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- exact params from spec.json ----
+  var VOICES = [
+    {name:"Kick",  index:1, min:0, max:1, def:0.9},
+    {name:"Snare", index:2, min:0, max:1, def:0.8},
+    {name:"Hat",   index:3, min:0, max:1, def:0.6},
+    {name:"Clap",  index:4, min:0, max:1, def:0.7}
+  ];
+  var MASTER = {name:"Level", index:0, min:0, max:1, def:0.8};
+  var KNOBS = [
+    {name:"Tone",  index:5, min:0, max:1, def:0.4},
+    {name:"Decay", index:6, min:0, max:1, def:0.7},
+    {name:"Drive", index:7, min:0, max:1, def:0.2}
+  ];
+
+  function send(i,v){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v); }
+  function fmt(v){ return (+v).toFixed(2); }
+  function clamp01(n){ return n<0?0:(n>1?1:n); }
+
+  // ====================================================================
+  //  Generic draggable param helper
+  //  axis: 'v' (up=+) , 'h' (right=+)
+  //  paint(norm,value) updates DOM; reset on dblclick
+  // ====================================================================
+  function bindDrag(el, p, axis, paint, span){
+    var norm = (p.def - p.min) / (p.max - p.min || 1);
+    var startN=0, startPos=0, dragging=false, range = span || 180;
+    function apply(){
+      var v = p.min + (p.max - p.min) * norm;
+      paint(norm, v);
+      send(p.index, v);
+    }
+    el.addEventListener('pointerdown', function(e){
+      dragging = true; startN = norm;
+      startPos = (axis==='h') ? e.clientX : e.clientY;
+      el.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    el.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      var d = (axis==='h') ? (e.clientX - startPos) : (startPos - e.clientY);
+      norm = clamp01(startN + d / range); apply();
+    });
+    function end(){ dragging = false; }
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('dblclick', function(){
+      norm = (p.def - p.min) / (p.max - p.min || 1); apply();
+    });
+    el.addEventListener('wheel', function(e){
+      e.preventDefault();
+      norm = clamp01(norm + (e.deltaY<0 ? 0.03 : -0.03)); apply();
+    }, {passive:false});
+    apply();
+  }
+
+  function build(){
+  // ---- Build voice pads (each pad = level fader + audition flash) ----
+  var padsEl = document.getElementById('pads');
+  VOICES.forEach(function(p){
+    var pad = document.createElement('div'); pad.className='pad';
+    pad.innerHTML =
+      '<span class="vled"></span>'+
+      '<div class="vname">'+p.name+'</div>'+
+      '<div class="fader"><div class="grid"></div><div class="fill"></div><div class="cap"></div></div>'+
+      '<div class="vval"></div>';
+    padsEl.appendChild(pad);
+    var fader = pad.querySelector('.fader');
+    var val = pad.querySelector('.vval');
+    bindDrag(fader, p, 'v', function(n,v){
+      pad.style.setProperty('--p', n);
+      val.textContent = fmt(v);
+    }, 60);
+    // tapping the pad name area flashes it (audition feel)
+    pad.addEventListener('pointerdown', function(e){
+      if(e.target.closest('.fader')) return; // dragging the fader instead
+      pad.classList.add('hit');
+      setTimeout(function(){ pad.classList.remove('hit'); }, 130);
+    });
+  });
+
+  // ---- Master Level slot (horizontal) ----
+  var slot = document.getElementById('slot');
+  var mval = document.getElementById('mval');
+  bindDrag(slot, MASTER, 'h', function(n,v){
+    document.getElementById('master').style.setProperty('--p', n);
+    mval.textContent = fmt(v);
+  }, 200);
+
+  // ---- Shaping rotaries ----
+  var knobsEl = document.getElementById('knobs');
+  KNOBS.forEach(function(p){
+    var kc = document.createElement('div'); kc.className='kc';
+    kc.innerHTML =
+      '<div class="dial"><i class="ticks"></i><i class="ring"></i><i class="cap"></i><i class="ptr"></i></div>'+
+      '<div class="kname">'+p.name+'</div><div class="kval"></div>';
+    knobsEl.appendChild(kc);
+    var dial = kc.querySelector('.dial');
+    var kval = kc.querySelector('.kval');
+    bindDrag(dial, p, 'v', function(n,v){
+      dial.style.setProperty('--p', n);
+      kval.textContent = fmt(v);
+    }, 180);
+  });
+
+  // ====================================================================
+  //  Step sequencer LED strip — a chasing playhead + a default pattern.
+  //  Purely visual (no extra params), but it's the soul of the motif.
+  // ====================================================================
+  var stepsEl = document.getElementById('steps');
+  var N = 16;
+  var stepEls = [];
+  // a classic four-on-the-floor-ish default pattern
+  var pattern = [1,0,0,0, 1,0,1,0, 1,0,0,1, 1,0,1,0];
+  for(var i=0;i<N;i++){
+    var s = document.createElement('div'); s.className='step';
+    if(i%4===0) s.classList.add('accent');
+    if(pattern[i]) s.classList.add('on');
+    s.innerHTML = '<span class="beat"></span>';
+    (function(idx,node){
+      node.addEventListener('click', function(){
+        pattern[idx] = pattern[idx] ? 0 : 1;
+        node.classList.toggle('on', !!pattern[idx]);
+      });
+    })(i, s);
+    stepsEl.appendChild(s); stepEls.push(s);
+  }
+
+  // chase animation driven by rAF + tempo; flashes voice LEDs on accents
+  var bpm = 120, cur = -1, acc = 0, lastT = 0;
+  var tempoEl = document.getElementById('tempo');
+  var voicePads = padsEl.querySelectorAll('.pad');
+  function stepMs(){ return 60000 / bpm / 4; } // 16th notes
+  function advance(){
+    if(cur>=0) stepEls[cur].classList.remove('cur');
+    cur = (cur+1) % N;
+    stepEls[cur].classList.add('cur');
+    if(pattern[cur]){
+      // light a rotating voice LED so the box feels alive
+      var p = voicePads[(cur>>2) % voicePads.length];
+      p.classList.add('lit');
+      setTimeout(function(){ p.classList.remove('lit'); }, stepMs()*0.8);
+    }
+  }
+  function loop(t){
+    if(!lastT) lastT = t;
+    acc += t - lastT; lastT = t;
+    var sm = stepMs();
+    if(acc >= sm){ acc -= sm; if(acc>sm) acc=0; advance(); }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // tempo readout is drag-adjustable (visual only — no param)
+  (function(){
+    var dragging=false, startY=0, startBpm=120;
+    function show(){ tempoEl.textContent = Math.round(bpm) + ' BPM'; }
+    tempoEl.addEventListener('pointerdown', function(e){
+      dragging=true; startY=e.clientY; startBpm=bpm;
+      tempoEl.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    tempoEl.addEventListener('pointermove', function(e){
+      if(!dragging) return;
+      bpm = Math.max(40, Math.min(220, startBpm + (startY - e.clientY)*0.6)); show();
+    });
+    tempoEl.addEventListener('pointerup', function(){ dragging=false; });
+    tempoEl.addEventListener('dblclick', function(){ bpm=120; show(); });
+    show();
+  })();
+
+  } // end build()
+
+  // ---- host wiring: build everything once the host is ready ----
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(build);
+  else build();
+})();
+</script>
+</body>
+</html>

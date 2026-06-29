@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wave Folder</title>
+<style>
+  :root {
+    --accent:   #c08cff;
+    --accent2:  #ff8cf0;
+    --panel:    #1a1622;
+    --panel-2:  #221b2e;
+    --metal:    #2a2336;
+    --ink:      #efe7ff;
+    --ink-dim:  #9a8fb5;
+    --jack:     #d9b85a;
+    --jack-rim: #6f5a1f;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0c0a12;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 18px 16px 26px;
+  }
+
+  /* ---- the modular panel ---- */
+  .panel {
+    position: relative;
+    border-radius: 16px;
+    padding: 18px 18px 22px;
+    background:
+      radial-gradient(120% 90% at 12% -10%, rgba(192,140,255,0.16), transparent 60%),
+      radial-gradient(120% 90% at 95% 0%, rgba(255,140,240,0.12), transparent 55%),
+      linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid rgba(192,140,255,0.22);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      inset 0 -2px 14px rgba(0,0,0,0.5);
+  }
+
+  /* mounting screws at the corners (modular vibe) */
+  .screw {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #4a4256, #1a1622 70%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.18), inset 0 -1px 2px #000;
+  }
+  .screw::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 1.5px;
+    background: #0d0a13;
+    transform: translate(-50%,-50%) rotate(35deg);
+    border-radius: 1px;
+  }
+  .screw.tl { top: 8px;  left: 8px; }
+  .screw.tr { top: 8px;  right: 8px; }
+  .screw.bl { bottom: 8px; left: 8px; }
+  .screw.br { bottom: 8px; right: 8px; }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 2px 6px 12px;
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .brand .kind {
+    font-size: 10px;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .modnum {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  /* ---- the folding scope ---- */
+  .scope-wrap {
+    position: relative;
+    border-radius: 12px;
+    padding: 10px;
+    background: linear-gradient(180deg, #0a0810, #120e1a);
+    border: 1px solid rgba(192,140,255,0.18);
+    box-shadow: inset 0 2px 18px rgba(0,0,0,0.8), inset 0 0 40px rgba(192,140,255,0.05);
+    margin: 0 6px 18px;
+  }
+  .scope-wrap svg { display: block; width: 100%; height: 132px; }
+  .grid line { stroke: rgba(192,140,255,0.10); stroke-width: 1; }
+  .axis { stroke: rgba(192,140,255,0.22); stroke-width: 1; }
+
+  /* ---- control rack ---- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    padding: 4px 6px 0;
+  }
+  @media (max-width: 560px) {
+    .rack { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .mod {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 6px 14px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--metal), #1c1726);
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 6px 14px rgba(0,0,0,0.4);
+  }
+  .mod .label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .mod .value {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: rgba(0,0,0,0.4);
+    padding: 2px 8px;
+    border-radius: 6px;
+    min-width: 52px;
+    text-align: center;
+    border: 1px solid rgba(192,140,255,0.16);
+  }
+
+  .knob {
+    width: 72px; height: 72px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob:hover .arc-live { stroke: var(--accent2); }
+
+  /* banana jacks */
+  .jacks {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    padding: 12px 0 0;
+    margin-top: 4px;
+  }
+  .jack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .jack .hole {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, var(--jack), #8a6f23 70%, #3a2e0e);
+    border: 2px solid var(--jack-rim);
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.6), 0 0 0 3px rgba(217,184,90,0.08);
+    position: relative;
+  }
+  .jack .hole::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #0c0a12, #2a2210);
+  }
+  .jack.in .hole { background: radial-gradient(circle at 40% 35%, var(--accent), #6a4aa0 70%, #2a1e44); border-color:#3a2a5e; }
+  .jack.out .hole { background: radial-gradient(circle at 40% 35%, var(--accent2), #a04a90 70%, #44183c); border-color:#5e2a52; }
+  .jack span {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 8px 0;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="panel">
+    <div class="screw tl"></div><div class="screw tr"></div>
+    <div class="screw bl"></div><div class="screw br"></div>
+
+    <header>
+      <div class="brand">
+        <div class="kind">West-Coast Wavefolder</div>
+        <h1>Wave Folder</h1>
+      </div>
+      <div class="modnum">MOD&nbsp;281<br>FOLD&nbsp;ENGINE</div>
+    </header>
+
+    <div class="scope-wrap">
+      <svg viewBox="0 0 600 132" preserveAspectRatio="none" aria-hidden="true">
+        <g class="grid">
+          <line x1="0" y1="33" x2="600" y2="33"/>
+          <line x1="0" y1="99" x2="600" y2="99"/>
+          <line x1="150" y1="0" x2="150" y2="132"/>
+          <line x1="300" y1="0" x2="300" y2="132"/>
+          <line x1="450" y1="0" x2="450" y2="132"/>
+        </g>
+        <line class="axis" x1="0" y1="66" x2="600" y2="66"/>
+        <defs>
+          <linearGradient id="wgrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#c08cff"/>
+            <stop offset="1" stop-color="#ff8cf0"/>
+          </linearGradient>
+          <filter id="glow" x="-20%" y="-60%" width="140%" height="220%">
+            <feGaussianBlur stdDeviation="2.4" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path id="ghost" fill="none" stroke="rgba(192,140,255,0.18)" stroke-width="1.5"/>
+        <path id="wave" fill="none" stroke="url(#wgrad)" stroke-width="2.4"
+              stroke-linejoin="round" filter="url(#glow)"/>
+      </svg>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <div class="jacks">
+      <div class="jack in"><div class="hole"></div><span>In</span></div>
+      <div class="jack"><div class="hole"></div><span>Fold CV</span></div>
+      <div class="jack"><div class="hole"></div><span>Sym CV</span></div>
+      <div class="jack out"><div class="hole"></div><span>Out</span></div>
+    </div>
+
+    <div class="footer">
+      <div class="kind" style="font-size:10px;letter-spacing:0.3em;color:var(--ink-dim);text-transform:uppercase;">Drag&nbsp;·&nbsp;Wheel&nbsp;·&nbsp;Dbl-click&nbsp;resets</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts / spec.json) ----
+  var PARAMS = [
+    { name: "Fold",     index: 0, min: 0, max: 1, def: 0.45, fmt: pct },
+    { name: "Symmetry", index: 1, min: 0, max: 1, def: 0.50, fmt: sym },
+    { name: "Tone",     index: 2, min: 0, max: 1, def: 0.55, fmt: pct },
+    { name: "Output",   index: 3, min: 0, max: 1, def: 0.70, fmt: db  },
+    { name: "Mix",      index: 4, min: 0, max: 1, def: 1.00, fmt: pct }
+  ];
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function sym(v) {
+    var c = (v - 0.5) * 2;
+    if (Math.abs(c) < 0.01) return "Center";
+    return (c > 0 ? "+" : "") + Math.round(c * 100) + "%";
+  }
+  function db(v) {
+    var g = v * 1.2;
+    if (g <= 0.0001) return "-inf";
+    var d = 20 * Math.log10(g);
+    return (d >= 0 ? "+" : "") + d.toFixed(1) + " dB";
+  }
+
+  var state = {}; // index -> current normalized value
+
+  // ---- host bridge ----
+  function pushParam(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  // ---- knob builder ----
+  function buildKnob(p) {
+    var ns = "http://www.w3.org/2000/svg";
+    var size = 72, cx = size / 2, cy = size / 2, r = 27;
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("class", "knob");
+    svg.setAttribute("viewBox", "0 0 " + size + " " + size);
+
+    // body
+    var grad = document.createElementNS(ns, "defs");
+    grad.innerHTML =
+      '<radialGradient id="kb' + p.index + '" cx="50%" cy="38%" r="65%">' +
+        '<stop offset="0" stop-color="#3a3248"/>' +
+        '<stop offset="0.7" stop-color="#241d31"/>' +
+        '<stop offset="1" stop-color="#141019"/>' +
+      '</radialGradient>';
+    svg.appendChild(grad);
+
+    var track = document.createElementNS(ns, "circle");
+    track.setAttribute("cx", cx); track.setAttribute("cy", cy);
+    track.setAttribute("r", r);
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(255,255,255,0.06)");
+    track.setAttribute("stroke-width", "5");
+    svg.appendChild(track);
+
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("class", "arc-live");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "var(--accent)");
+    arc.setAttribute("stroke-width", "5");
+    arc.setAttribute("stroke-linecap", "round");
+    arc.style.transition = "stroke 0.15s";
+    svg.appendChild(arc);
+
+    var body = document.createElementNS(ns, "circle");
+    body.setAttribute("cx", cx); body.setAttribute("cy", cy);
+    body.setAttribute("r", r - 5);
+    body.setAttribute("fill", "url(#kb" + p.index + ")");
+    body.setAttribute("stroke", "rgba(0,0,0,0.6)");
+    svg.appendChild(body);
+
+    var notch = document.createElementNS(ns, "line");
+    notch.setAttribute("stroke", "var(--accent2)");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    var ARC0 = -135, ARC1 = 135; // degrees, 0 at top
+    function deg2rad(d) { return (d - 90) * Math.PI / 180; }
+    function describeArc(toDeg) {
+      var a0 = deg2rad(ARC0), a1 = deg2rad(toDeg);
+      var x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+      var x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+      var large = (toDeg - ARC0) > 180 ? 1 : 0;
+      return "M " + x0 + " " + y0 + " A " + r + " " + r + " 0 " + large + " 1 " + x1 + " " + y1;
+    }
+
+    function render(v) {
+      var ang = ARC0 + (ARC1 - ARC0) * v;
+      arc.setAttribute("d", describeArc(ang));
+      var a = deg2rad(ang);
+      notch.setAttribute("x1", cx + (r - 16) * Math.cos(a));
+      notch.setAttribute("y1", cy + (r - 16) * Math.sin(a));
+      notch.setAttribute("x2", cx + (r - 7) * Math.cos(a));
+      notch.setAttribute("y2", cy + (r - 7) * Math.sin(a));
+    }
+
+    return { svg: svg, render: render };
+  }
+
+  // ---- control module (knob + label + value) ----
+  function buildModule(p) {
+    var mod = document.createElement("div");
+    mod.className = "mod";
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var k = buildKnob(p);
+
+    var val = document.createElement("div");
+    val.className = "value";
+
+    mod.appendChild(label);
+    mod.appendChild(k.svg);
+    mod.appendChild(val);
+
+    function setNorm(v, push) {
+      v = Math.max(0, Math.min(1, v));
+      state[p.index] = v;
+      var real = p.min + (p.max - p.min) * v;
+      k.render(v);
+      val.textContent = p.fmt(real);
+      if (push) pushParam(p.index, real);
+      redrawScope();
+    }
+
+    // --- drag (vertical) ---
+    var dragging = false, lastY = 0, startV = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = state[p.index];
+      k.svg.setPointerCapture && e.pointerId !== undefined && k.svg.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var fine = e.shiftKey ? 0.25 : 1;
+      setNorm(state[p.index] + dy / 180 * fine, true);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    k.svg.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+
+    k.svg.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var step = (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 0.005 : 0.02);
+      setNorm(state[p.index] + step, true);
+    }, { passive: false });
+
+    k.svg.addEventListener("dblclick", function () {
+      var dn = (p.def - p.min) / (p.max - p.min);
+      setNorm(dn, true);
+    });
+
+    p._setNorm = setNorm;
+    return mod;
+  }
+
+  // ---- the live folding scope ----
+  var wavePath, ghostPath, animPhase = 0;
+  function foldShaper(x, fold, sym, tone, output) {
+    // mirror of the DSP, simplified, for visualisation
+    var drive = 1 + fold * fold * 8;
+    var bias = (sym - 0.5) * 1.6;
+    var sineDepth = 0.35 + fold * 0.65;
+    var s = x * drive + bias;
+    // triangle fold
+    var p = (s + 1) * 0.25;
+    p = p - Math.floor(p);
+    s = Math.abs(p * 4 - 2) - 1;
+    s = Math.sin(s * Math.PI * sineDepth) * 0.9 + s * 0.1;
+    s = Math.max(-1, Math.min(1, s));
+    // crude tone tilt (darken toward 0)
+    s = s * (0.55 + 0.45 * tone);
+    return s * (0.4 + 0.6 * output);
+  }
+
+  function buildPath(scaleAmp, phase) {
+    var fold = state[0], sym = state[1], tone = state[2], out = state[3];
+    var N = 120, W = 600, MIDY = 66, AMP = 54 * scaleAmp;
+    var d = "";
+    for (var i = 0; i <= N; i++) {
+      var t = i / N;
+      var x = Math.sin(t * Math.PI * 2 + phase); // input sine
+      var y = foldShaper(x, fold, sym, tone, out);
+      var px = t * W;
+      var py = MIDY - y * AMP;
+      d += (i === 0 ? "M" : "L") + px.toFixed(1) + " " + py.toFixed(1) + " ";
+    }
+    return d;
+  }
+
+  var scopeDirty = true;
+  function redrawScope() { scopeDirty = true; }
+
+  function tick() {
+    if (!document.hidden) {
+      animPhase += 0.03;
+      if (wavePath) {
+        wavePath.setAttribute("d", buildPath(1, animPhase));
+        ghostPath.setAttribute("d", buildPath(1, animPhase - 0.45));
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---- init ----
+  function init() {
+    var rack = document.getElementById("rack");
+    PARAMS.forEach(function (p) { rack.appendChild(buildModule(p)); });
+
+    wavePath = document.getElementById("wave");
+    ghostPath = document.getElementById("ghost");
+
+    PARAMS.forEach(function (p) {
+      var dn = (p.def - p.min) / (p.max - p.min);
+      p._setNorm(dn, true); // initialise + push default
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+</script>
+</body>
+</html>

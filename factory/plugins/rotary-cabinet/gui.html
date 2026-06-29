@@ -1,0 +1,332 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@property --n{syntax:'<number>';inherits:true;initial-value:0}
+:root{
+  --ac:#8d7bff;--ac2:#b08cff;
+  --wood1:#5a3b22;--wood2:#3d2716;--wood3:#2a1a0e;
+  --grille:#171008;
+  --spd:0.85;          /* normalised speed drives rotor rpm */
+  --rpm:14s;           /* horn rotation period, JS-updated */
+  --drumrpm:20s;
+  --depth:0.7;
+  --width:0.7;
+  --mix:1;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#efe7da;
+  background:
+    radial-gradient(120% 80% at 50% -10%,#2a2236 0%,#140f1d 55%,#080610 100%);
+  display:flex;align-items:center;justify-content:center;padding:18px;overflow:hidden;user-select:none}
+
+/* ===== CABINET ===== */
+.cab{position:relative;width:100%;max-width:430px;border-radius:18px 18px 14px 14px;
+  padding:16px 16px 14px;
+  background:
+    /* corner blocks shading */
+    linear-gradient(160deg,rgba(255,220,170,.10),rgba(0,0,0,.34)),
+    /* vertical wood grain */
+    repeating-linear-gradient(91deg,var(--wood2) 0 6px,var(--wood1) 6px 11px,var(--wood3) 11px 13px),
+    linear-gradient(180deg,var(--wood1),var(--wood2) 60%,var(--wood3));
+  background-blend-mode:overlay,multiply,normal;
+  box-shadow:
+    0 38px 80px rgba(0,0,0,.7),
+    0 6px 0 #1a1009,            /* base plinth lip */
+    inset 0 2px 0 rgba(255,228,190,.22),
+    inset 0 -3px 8px rgba(0,0,0,.55),
+    inset 0 0 0 2px rgba(0,0,0,.45);
+  animation:cabIn .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes cabIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+/* subtle cabinet vibration that intensifies with speed */
+.cab.shaking{animation:cabIn .7s cubic-bezier(.2,.8,.2,1) both, shake .18s linear infinite}
+@keyframes shake{0%{margin-left:0}25%{margin-left:.6px}50%{margin-left:0}75%{margin-left:-.6px}100%{margin-left:0}}
+
+/* nameplate */
+.plate{display:flex;align-items:center;gap:9px;margin:0 2px 12px;
+  padding:8px 12px;border-radius:9px;
+  background:linear-gradient(180deg,#161019,#0c0810);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 6px rgba(0,0,0,.6),0 2px 3px rgba(0,0,0,.5);
+  border:1px solid rgba(0,0,0,.6)}
+.lamp{width:11px;height:11px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 35% 30%,#fff,var(--ac) 55%,#3a2d6e);
+  box-shadow:0 0 10px var(--ac),0 0 22px color-mix(in srgb,var(--ac) 60%,transparent);
+  animation:lamp calc(var(--rpm)/14*2.2s) ease-in-out infinite}
+@keyframes lamp{0%,100%{opacity:.6;transform:scale(.9)}50%{opacity:1;transform:scale(1.12)}}
+.plate h1{margin:0;font-size:15px;font-weight:800;letter-spacing:.18em;flex:1;
+  text-transform:uppercase;font-family:"Times New Roman",Georgia,serif;
+  background:linear-gradient(90deg,#d9cdb4,#fff 40%,var(--ac2) 75%,#d9cdb4);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.plate .mk{font-size:8.5px;letter-spacing:.22em;color:#8c7fae;text-transform:uppercase;
+  border:1px solid rgba(160,140,220,.35);border-radius:999px;padding:3px 8px}
+
+/* ===== SPEAKER WELL (grille + rotors) ===== */
+.well{position:relative;border-radius:11px;overflow:hidden;
+  height:268px;
+  background:radial-gradient(120% 100% at 50% 18%,#221a10,var(--grille) 70%,#0a0703);
+  box-shadow:inset 0 4px 14px rgba(0,0,0,.85),inset 0 0 0 3px #120c06,0 1px 0 rgba(255,228,190,.14);
+  border:1px solid #0a0703}
+/* horn chamber (top) and drum chamber (bottom) backlights */
+.glow{position:absolute;left:50%;transform:translateX(-50%);width:74%;border-radius:50%;
+  filter:blur(20px);pointer-events:none;opacity:calc(.30 + var(--depth)*.55);mix-blend-mode:screen}
+.glow.top{top:-8%;height:46%;background:radial-gradient(closest-side,var(--ac),transparent)}
+.glow.bot{bottom:-10%;height:50%;background:radial-gradient(closest-side,var(--ac2),transparent)}
+
+/* spinning rotors live BEHIND the grille slats */
+.rotorwrap{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:center}
+.rotorwrap.horn{top:6px;height:118px}
+.rotorwrap.drum{bottom:6px;height:118px}
+
+/* HORN: a two-throated rotor seen from the front, spins fast */
+.horn{position:relative;width:128px;height:104px;transform-style:preserve-3d;
+  animation:spin var(--rpm) linear infinite}
+.horn .hub{position:absolute;top:50%;left:50%;width:22px;height:22px;margin:-11px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#cfc4ff,#5a4ca8 60%,#241a4a);
+  box-shadow:0 0 10px var(--ac)}
+.horn .throat{position:absolute;top:50%;left:50%;width:60px;height:30px;margin:-15px 0 0 0;
+  transform-origin:0 50%}
+.horn .throat i{display:block;width:60px;height:30px;
+  /* a flared horn mouth, brighter at the bell */
+  background:linear-gradient(90deg,#2c2350 0%,#6c59c4 55%,var(--ac2) 100%);
+  clip-path:polygon(0 38%,40% 30%,100% 0,100% 100%,40% 70%);
+  box-shadow:0 0 14px color-mix(in srgb,var(--ac) 70%,transparent);border-radius:0 40% 40% 0/0 60% 60% 0}
+.horn .throat.b{transform:rotate(180deg)}
+.horn .throat.b i{filter:brightness(.62) saturate(.8)}  /* the receding (dummy) side dimmer */
+
+/* DRUM/BAFFLE: a scoop baffle that spins slower */
+.drum{position:relative;width:150px;height:96px;animation:spin var(--drumrpm) linear infinite}
+.drum .ring{position:absolute;inset:0;border-radius:50%/42%;
+  background:
+    conic-gradient(from 0deg,#1b1530,#3a2d66 18%,#1b1530 38%,#2a2150 60%,#140f24 80%,#1b1530);
+  box-shadow:inset 0 0 18px rgba(0,0,0,.8),0 0 16px color-mix(in srgb,var(--ac2) 40%,transparent)}
+.drum .scoop{position:absolute;top:50%;left:50%;width:84px;height:40px;margin:-20px 0 0 -42px;
+  border-radius:50% 50% 50% 50%/70% 70% 30% 30%;
+  background:linear-gradient(180deg,var(--ac2),#3a2d66 70%);
+  clip-path:polygon(0 100%,18% 0,82% 0,100% 100%);
+  box-shadow:0 0 16px color-mix(in srgb,var(--ac2) 60%,transparent)}
+.drum .mark{position:absolute;top:50%;left:50%;width:6px;height:46px;margin:-23px 0 0 -3px;border-radius:3px;
+  background:linear-gradient(var(--ac),transparent)}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* GRILLE — horizontal wooden slats over the whole well (the thing you see through) */
+.grille{position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(180deg,
+      rgba(0,0,0,0) 0 7px,
+      rgba(40,28,16,.0) 7px 9px,
+      #1c130a 9px 12px,
+      #2c1d10 12px 13px,
+      rgba(0,0,0,.55) 13px 16px);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.7)}
+.grille::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,rgba(255,235,200,.10) 0 18%,transparent 30%);mix-blend-mode:screen}
+/* vertical centre divider bar between horn and drum */
+.divider{position:absolute;left:8px;right:8px;top:50%;height:10px;transform:translateY(-50%);
+  background:linear-gradient(180deg,#3a260f,#160d05);border-radius:3px;
+  box-shadow:0 2px 4px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,228,190,.18);pointer-events:none}
+
+/* stereo mic field indicator — two probes that spread with Width */
+.mics{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:3}
+.mic{position:absolute;top:0;width:4px;height:4px;border-radius:50%;background:#fff;
+  box-shadow:0 0 8px var(--ac),0 0 16px var(--ac);
+  transform:translate(calc(var(--side) * (32px + var(--width)*120px)),-2px)}
+.mic.l{--side:-1}.mic.r{--side:1}
+
+/* speed badge that morphs CHORALE <-> TREMOLO */
+.speedtag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;
+  font-family:"Times New Roman",Georgia,serif;font-weight:700;letter-spacing:.3em;
+  font-size:11px;text-transform:uppercase;color:#efe7da;text-shadow:0 0 8px var(--ac),0 1px 2px #000;
+  padding:3px 10px;border-radius:6px;background:rgba(10,7,3,.5);
+  border:1px solid rgba(160,140,220,.3);opacity:.85;pointer-events:none}
+
+/* ===== CONTROL DECK ===== */
+.deck{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:13px 2px 0;
+  padding:11px 8px 9px;border-radius:11px;
+  background:linear-gradient(180deg,#0f0a14,#070409);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -3px 7px rgba(0,0,0,.6),0 2px 4px rgba(0,0,0,.5);
+  border:1px solid rgba(0,0,0,.6)}
+.cell{display:flex;flex-direction:column;align-items:center;gap:5px;
+  animation:cellIn .55s both;animation-delay:var(--d)}
+@keyframes cellIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+
+/* bakelite knob */
+.knob{position:relative;width:58px;height:58px;cursor:ns-resize;touch-action:none}
+.knob .ring{position:absolute;inset:-3px;border-radius:50%;
+  background:conic-gradient(from 225deg,var(--ac) calc(var(--n)*270deg),
+            rgba(255,255,255,.07) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(3px + var(--n)*7px) color-mix(in srgb,var(--ac) 65%,transparent));
+  transition:--n .12s cubic-bezier(.2,.8,.2,1)}
+.knob .ticks{position:absolute;inset:-7px;border-radius:50%;
+  background:repeating-conic-gradient(from 224deg,rgba(255,235,200,.30) 0 1deg,transparent 1deg 30deg);
+  -webkit-mask:radial-gradient(circle,transparent 31px,#000 32px,#000 34px,transparent 35px);
+  mask:radial-gradient(circle,transparent 31px,#000 32px,#000 34px,transparent 35px)}
+.knob .cap{position:absolute;inset:6px;border-radius:50%;
+  background:
+    radial-gradient(circle at 42% 30%,#4a4250,#241d2e 62%,#0c0810);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,255,255,.07),0 2px 3px rgba(0,0,0,.6)}
+.knob .ptr{position:absolute;left:50%;top:7px;width:3px;height:20px;margin-left:-1.5px;border-radius:2px;
+  background:linear-gradient(var(--ac),var(--ac2));box-shadow:0 0 7px var(--ac);
+  transform-origin:50% 22px;transform:rotate(calc((var(--n) - .5)*270deg));
+  transition:transform .12s cubic-bezier(.2,.8,.2,1)}
+.knob .bub{position:absolute;top:-15px;left:50%;transform:translate(-50%,4px) scale(.85);opacity:0;
+  font-size:10px;font-weight:800;color:#0c0810;background:var(--ac);padding:1px 6px;border-radius:5px;
+  font-variant-numeric:tabular-nums;box-shadow:0 4px 10px rgba(0,0,0,.5);transition:.14s;pointer-events:none;white-space:nowrap}
+.cell:hover .bub,.knob.act .bub{opacity:1;transform:translate(-50%,0) scale(1)}
+
+/* the SPEED control is special: a chunky two-position-ish lever look */
+.cell.speed .knob .cap{background:radial-gradient(circle at 42% 30%,#5a4ca8,#2a2150 60%,#120c24)}
+
+.nm{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#b6a9cf;font-weight:700}
+.val{font-size:11px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 6px color-mix(in srgb,var(--ac) 50%,transparent)}
+
+.foot{margin:10px 4px 0;font-size:10px;line-height:1.5;color:#8c7fae;text-align:center;
+  font-family:"Times New Roman",Georgia,serif;font-style:italic;letter-spacing:.02em}
+</style></head><body>
+  <div class="cab" id="cab">
+    <div class="plate">
+      <span class="lamp"></span>
+      <h1>Rotary Cabinet</h1>
+      <span class="mk">Twin&nbsp;Rotor</span>
+    </div>
+
+    <div class="well">
+      <div class="glow top"></div>
+      <div class="glow bot"></div>
+
+      <div class="rotorwrap horn">
+        <div class="horn">
+          <div class="throat a"><i></i></div>
+          <div class="throat b"><i></i></div>
+          <div class="hub"></div>
+        </div>
+      </div>
+
+      <div class="rotorwrap drum">
+        <div class="drum">
+          <div class="ring"></div>
+          <div class="scoop"></div>
+          <div class="mark"></div>
+        </div>
+      </div>
+
+      <div class="grille"></div>
+      <div class="divider"></div>
+
+      <div class="mics">
+        <div class="mic l"></div>
+        <div class="mic r"></div>
+      </div>
+      <div class="speedtag" id="speedtag">Tremolo</div>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="foot">Slow chorale &middot; fast tremolo &middot; ramped by inertia</div>
+  </div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Speed",  i:0,min:0,max:1,def:0.85},
+    {name:"Inertia",i:1,min:0,max:1,def:0.45},
+    {name:"Depth",  i:2,min:0,max:1,def:0.7},
+    {name:"Mix",    i:3,min:0,max:1,def:1},
+    {name:"Width",  i:4,min:0,max:1,def:0.7}
+  ];
+  var root=document.documentElement, cab=document.getElementById('cab'),
+      deck=document.getElementById('deck'), speedtag=document.getElementById('speedtag');
+  var state={0:0.85,1:0.45,2:0.7,3:1,4:0.7};
+
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function fmt(v){ return Math.round(v*100)+'%'; }
+
+  // ---- motion engine: Speed sets target rpm, Inertia ramps toward it ----
+  // visual "rpm" expressed as rotation PERIOD (seconds); smaller = faster.
+  var targetSpd=state[0], curSpd=state[0];
+  function hornPeriod(s){ return (14 - s*12.4).toFixed(2)+'s'; }   // ~14s slow -> ~1.6s fast
+  function drumPeriod(s){ return (20 - s*16).toFixed(2)+'s'; }     // drum lags the horn
+  function applyMotion(){
+    root.style.setProperty('--rpm', hornPeriod(curSpd));
+    root.style.setProperty('--drumrpm', drumPeriod(curSpd));
+    root.style.setProperty('--spd', curSpd.toFixed(3));
+    speedtag.textContent = curSpd<0.33?'Chorale':(curSpd<0.7?'Brake':'Tremolo');
+    cab.classList.toggle('shaking', curSpd>0.62);
+  }
+  function tick(){
+    // inertia (param 1): 0 = snappy, 1 = very gradual ramp
+    var ease = 0.10 + (1-state[1])*0.85;     // higher inertia -> smaller step
+    if(Math.abs(targetSpd-curSpd)>0.0005){
+      curSpd += (targetSpd-curSpd)*ease*0.16;
+      applyMotion();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function buildKnob(p,idx){
+    var cell=document.createElement('div');
+    cell.className='cell'+(p.name==='Speed'?' speed':'');
+    cell.style.setProperty('--d',(idx*60)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0">'+
+        '<i class="ticks"></i><i class="ring"></i><i class="cap"></i><i class="ptr"></i>'+
+        '<span class="bub"></span>'+
+      '</div>'+
+      '<div class="nm">'+p.name+'</div><div class="val"></div>';
+    var knob=cell.querySelector('.knob'),
+        ring=cell.querySelector('.ring'),
+        ptr=cell.querySelector('.ptr'),
+        out=cell.querySelector('.val'),
+        bub=cell.querySelector('.bub');
+    var val=p.def;
+    function norm(){ return (val-p.min)/(p.max-p.min||1); }
+    // paint(push): redraw the knob; only emit to the host when push===true,
+    // so the initial render doesn't spam default values before any interaction.
+    function paint(push){
+      var n=norm();
+      ring.style.setProperty('--n',n);
+      ptr.style.setProperty('--n',n);   /* ptr reads --n via inherit fallback */
+      knob.style.setProperty('--n',n);  /* drive both via the knob scope */
+      var t=fmt(val); out.textContent=t; bub.textContent=t;
+      state[p.i]=val; if(push) send(p.i,val);
+      reactGlobals();
+    }
+    function setN(n){ n=n<0?0:(n>1?1:n); val=p.min+(p.max-p.min)*n; paint(true); }
+    knob.addEventListener('pointerdown',function(e){
+      knob._d=1; knob._y=e.clientY; knob._n=norm(); knob.classList.add('act');
+      knob.setPointerCapture(e.pointerId); e.preventDefault(); });
+    knob.addEventListener('pointermove',function(e){
+      if(!knob._d)return; setN(knob._n+(knob._y-e.clientY)/180); });
+    function end(){ knob._d=0; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ val=p.def; paint(true); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault();
+      setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
+    paint(false);   /* initial render: do NOT push defaults to the host */
+    deck.appendChild(cell);
+  }
+
+  // knob --n needs to reach .ring and .ptr; set it on the knob and let CSS read it
+  // (ring/ptr use var(--n) which inherits from .knob)
+  function reactGlobals(){
+    // map params onto the cabinet visuals
+    root.style.setProperty('--depth', state[2].toFixed(3));
+    root.style.setProperty('--width', state[4].toFixed(3));
+    root.style.setProperty('--mix', state[3].toFixed(3));
+    // Mix fades the rotor visibility (dry = quieter swirl)
+    var well=document.querySelector('.well');
+    if(well) well.style.filter='saturate('+(0.35+state[3]*0.9).toFixed(2)+') brightness('+(0.75+state[3]*0.35).toFixed(2)+')';
+    targetSpd=state[0];
+  }
+
+  function ready(){
+    PARAMS.forEach(buildKnob);
+    applyMotion();
+    reactGlobals();
+    requestAnimationFrame(tick);
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

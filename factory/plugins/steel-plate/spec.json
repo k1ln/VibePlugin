@@ -6,6 +6,7 @@
   "out": "factory/plugins/steel-plate/x.vstai",
   "publishedAt": 1751000015000,
   "theme": { "accent": "#9fb3c8", "accent2": "#cfe0f0" },
+  "guiFile": "factory/plugins/steel-plate/gui.html",
   "params": [
     { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
     { "name": "Decay",     "index": 1, "min": 0, "max": 1, "default": 0.6 },

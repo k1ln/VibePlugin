@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Squelch Filter</title>
+<style>
+  :root {
+    --accent: #c6ff3d;
+    --accent2: #54d18f;
+    --bg0: #14160f;
+    --bg1: #1c2014;
+    --panel0: #d7dadf;
+    --panel1: #a9adb4;
+    --panel2: #797d85;
+    --ink: #e9efd8;
+    --ink-dim: #8d9682;
+    --screen: #0a1208;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #23270f 0%, var(--bg0) 60%),
+      var(--bg0);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .unit {
+    width: 100%;
+    max-width: 560px;
+    border-radius: 18px;
+    padding: 3px;
+    background:
+      linear-gradient(180deg, #f2f4f7 0%, #b7bcc3 8%, #8c9099 50%, #6c7077 92%, #4a4d53 100%);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.6),
+      0 2px 0 rgba(255,255,255,0.5) inset,
+      0 -2px 0 rgba(0,0,0,0.3) inset;
+  }
+
+  .face {
+    border-radius: 15px;
+    padding: 20px 22px 24px;
+    background:
+      linear-gradient(180deg, #c9ccd2 0%, #aeb2b9 40%, #9b9fa6 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* brushed-metal hairlines */
+  .face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 1px,
+      rgba(0,0,0,0.04) 2px,
+      rgba(0,0,0,0.04) 3px
+    );
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand { display: flex; align-items: center; gap: 11px; }
+
+  .logo-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--accent) 0%, var(--accent2) 55%, #1d4f2c 100%);
+    box-shadow:
+      0 0 14px rgba(198,255,61,0.7),
+      0 1px 2px rgba(0,0,0,0.4),
+      0 0 0 2px rgba(255,255,255,0.35) inset;
+    animation: corePulse 2.6s ease-in-out infinite;
+  }
+
+  @keyframes corePulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(198,255,61,0.45), 0 1px 2px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.35) inset; }
+    50%      { box-shadow: 0 0 20px rgba(198,255,61,0.95), 0 1px 2px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.45) inset; }
+  }
+
+  .title { line-height: 1; }
+  .title h1 {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #2c2f25;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .title span {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: #5c6052;
+    margin-top: 3px;
+    font-weight: 700;
+  }
+
+  .model {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #4c4f45;
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 5px;
+    padding: 4px 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(0,0,0,0.06));
+  }
+
+  /* ---- the screen / visualiser ---- */
+  .screen-wrap {
+    position: relative;
+    z-index: 2;
+    border-radius: 10px;
+    padding: 5px;
+    background: linear-gradient(180deg, #3a3d33, #15170f);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5) inset, 0 1px 0 rgba(255,255,255,0.25);
+    margin-bottom: 20px;
+  }
+  .screen {
+    position: relative;
+    border-radius: 7px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 140% at 50% 0%, #10240f 0%, var(--screen) 70%);
+    height: 132px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6) inset;
+  }
+  .screen svg { display: block; width: 100%; height: 100%; }
+
+  .scanline {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.16) 3px,
+      rgba(0,0,0,0.16) 4px
+    );
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  .screen-label {
+    position: absolute;
+    top: 7px; left: 10px;
+    font-size: 8.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(198,255,61,0.55);
+    pointer-events: none;
+  }
+  .screen-readout {
+    position: absolute;
+    top: 7px; right: 10px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(84,209,143,0.85);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  /* ---- knob row ---- */
+  .knobs {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .knob-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 4px 8px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.05));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 -1px 2px rgba(0,0,0,0.12);
+  }
+
+  .knob {
+    position: relative;
+    width: 62px;
+    height: 62px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  .klabel {
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #34372c;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  }
+  .kval {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1f2118;
+    font-variant-numeric: tabular-nums;
+    background: rgba(10,18,8,0.85);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 2px 7px;
+    min-width: 44px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4) inset;
+    transition: box-shadow 0.15s ease;
+  }
+  .knob-cell.active .kval {
+    box-shadow: 0 0 8px rgba(198,255,61,0.5), 0 1px 2px rgba(0,0,0,0.4) inset;
+  }
+
+  .footer {
+    position: relative;
+    z-index: 2;
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 8.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #54584c;
+  }
+  .vents { display: flex; gap: 4px; }
+  .vent {
+    width: 22px; height: 4px; border-radius: 2px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(255,255,255,0.2));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.3);
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="face">
+      <div class="header">
+        <div class="brand">
+          <div class="logo-dot"></div>
+          <div class="title">
+            <h1>SQUELCH FILTER</h1>
+            <span>Acid Envelope Filter</span>
+          </div>
+        </div>
+        <div class="model">SQ&middot;303</div>
+      </div>
+
+      <div class="screen-wrap">
+        <div class="screen">
+          <svg viewBox="0 0 400 132" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(198,255,61,0.40)"/>
+                <stop offset="100%" stop-color="rgba(84,209,143,0.02)"/>
+              </linearGradient>
+              <filter id="glow" x="-30%" y="-60%" width="160%" height="240%">
+                <feGaussianBlur stdDeviation="2.4" result="b"/>
+                <feMerge>
+                  <feMergeNode in="b"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <!-- frequency grid -->
+            <g stroke="rgba(120,200,120,0.10)" stroke-width="1">
+              <line x1="80"  y1="0" x2="80"  y2="132"/>
+              <line x1="160" y1="0" x2="160" y2="132"/>
+              <line x1="240" y1="0" x2="240" y2="132"/>
+              <line x1="320" y1="0" x2="320" y2="132"/>
+              <line x1="0" y1="44"  x2="400" y2="44"/>
+              <line x1="0" y1="88"  x2="400" y2="88"/>
+            </g>
+            <path id="curveFill" d="" fill="url(#fillGrad)" stroke="none"/>
+            <path id="curve" d="" fill="none" stroke="var(--accent)" stroke-width="2.4"
+                  stroke-linejoin="round" filter="url(#glow)"/>
+            <!-- resonant peak marker -->
+            <circle id="peakDot" cx="0" cy="0" r="3.2" fill="#fff"
+                    opacity="0.9" filter="url(#glow)"/>
+          </svg>
+          <div class="scanline"></div>
+          <div class="screen-label">CUTOFF &middot; RESPONSE</div>
+          <div class="screen-readout" id="readout">— Hz</div>
+        </div>
+      </div>
+
+      <div class="knobs" id="knobs"></div>
+
+      <div class="footer">
+        <span>ENVELOPE FILTER</span>
+        <div class="vents">
+          <div class="vent"></div><div class="vent"></div><div class="vent"></div>
+        </div>
+        <span>STEREO</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices match assembly.ts) ----
+  var PARAMS = [
+    { name: "Cutoff",  index: 0, min: 0, max: 1, def: 0.35 },
+    { name: "Reso",    index: 1, min: 0, max: 1, def: 0.70 },
+    { name: "Env Amt", index: 2, min: 0, max: 1, def: 0.65 },
+    { name: "Decay",   index: 3, min: 0, max: 1, def: 0.40 },
+    { name: "Mix",     index: 4, min: 0, max: 1, def: 1.00 }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // ---- host bridge ----
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].index, values[i]);
+    }
+  }
+
+  // ---- value formatting for display ----
+  function fmt(i) {
+    var v = values[i];
+    if (i === 0) {
+      var hz = 60 * Math.exp(v * 4.9);
+      return hz >= 1000 ? (hz / 1000).toFixed(2) + "k" : Math.round(hz) + "";
+    }
+    if (i === 3) {
+      var ms = 30 + v * 870;
+      return Math.round(ms) + "ms";
+    }
+    return Math.round(v * 100) + "%";
+  }
+
+  // ---- build knobs ----
+  var ARC0 = -135, ARC1 = 135; // degrees
+  var knobsEl = document.getElementById("knobs");
+  var cells = [];
+
+  function describeArc(cx, cy, r, a0, a1) {
+    function pt(a) {
+      var rad = (a - 90) * Math.PI / 180;
+      return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+    }
+    var s = pt(a0), e = pt(a1);
+    var large = (a1 - a0) <= 180 ? 0 : 1;
+    return "M " + s[0].toFixed(2) + " " + s[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " +
+           e[0].toFixed(2) + " " + e[1].toFixed(2);
+  }
+
+  PARAMS.forEach(function (p, i) {
+    var cell = document.createElement("div");
+    cell.className = "knob-cell";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.innerHTML =
+      '<svg viewBox="0 0 80 80">' +
+        '<defs>' +
+          '<radialGradient id="kbody' + i + '" cx="38%" cy="32%" r="70%">' +
+            '<stop offset="0%" stop-color="#42463a"/>' +
+            '<stop offset="55%" stop-color="#26291f"/>' +
+            '<stop offset="100%" stop-color="#0e0f0a"/>' +
+          '</radialGradient>' +
+        '</defs>' +
+        '<path d="' + describeArc(40, 40, 33, ARC0, ARC1) + '" fill="none" ' +
+              'stroke="rgba(0,0,0,0.35)" stroke-width="5" stroke-linecap="round"/>' +
+        '<path class="arc" d="' + describeArc(40, 40, 33, ARC0, ARC1) + '" fill="none" ' +
+              'stroke="var(--accent)" stroke-width="5" stroke-linecap="round" ' +
+              'stroke-dasharray="0 999"/>' +
+        '<circle cx="40" cy="40" r="26" fill="url(#kbody' + i + ')" ' +
+                'stroke="rgba(255,255,255,0.10)" stroke-width="1"/>' +
+        '<circle cx="40" cy="40" r="26" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1"/>' +
+        '<line class="ptr" x1="40" y1="40" x2="40" y2="19" ' +
+              'stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/>' +
+        '<circle cx="40" cy="40" r="2.4" fill="#cdd2c2"/>' +
+      '</svg>';
+
+    var label = document.createElement("div");
+    label.className = "klabel";
+    label.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "kval";
+
+    cell.appendChild(knob);
+    cell.appendChild(label);
+    cell.appendChild(val);
+    knobsEl.appendChild(cell);
+
+    var arc = knob.querySelector(".arc");
+    var ptr = knob.querySelector(".ptr");
+    var arcLen = Math.PI * 2 * 33 * ((ARC1 - ARC0) / 360);
+
+    cells.push({ cell: cell, knob: knob, arc: arc, ptr: ptr, val: val, arcLen: arcLen });
+
+    function render() {
+      var t = (values[i] - p.min) / (p.max - p.min);
+      var ang = ARC0 + t * (ARC1 - ARC0);
+      ptr.setAttribute("transform", "rotate(" + ang + " 40 40)");
+      arc.setAttribute("stroke-dasharray", (t * arcLen).toFixed(2) + " 999");
+      val.textContent = fmt(i);
+    }
+    cells[i].render = render;
+    render();
+
+    // ---- drag interaction ----
+    var dragging = false, startY = 0, startV = 0;
+
+    function onDown(e) {
+      dragging = true;
+      cell.classList.add("active");
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = values[i];
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = startY - y;
+      var span = p.max - p.min;
+      var nv = startV + (dy / 180) * span;
+      if (nv < p.min) nv = p.min;
+      if (nv > p.max) nv = p.max;
+      values[i] = nv;
+      render();
+      pushParam(i);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      cell.classList.remove("active");
+    }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    knob.addEventListener("wheel", function (e) {
+      var span = p.max - p.min;
+      var nv = values[i] - Math.sign(e.deltaY) * span * 0.02;
+      if (nv < p.min) nv = p.min;
+      if (nv > p.max) nv = p.max;
+      values[i] = nv;
+      render();
+      pushParam(i);
+      e.preventDefault();
+    }, { passive: false });
+
+    knob.addEventListener("dblclick", function () {
+      values[i] = p.def;
+      render();
+      pushParam(i);
+    });
+  });
+
+  // ---- response-curve visualiser ----
+  var curve = document.getElementById("curve");
+  var curveFill = document.getElementById("curveFill");
+  var peakDot = document.getElementById("peakDot");
+  var readout = document.getElementById("readout");
+  var W = 400, H = 132;
+
+  // animated envelope: decays toward base, "pumps" open periodically to
+  // mimic the input envelope snapping the filter open.
+  var envPos = 0;     // 0..1 simulated envelope follower
+  var pumpClock = 0;
+
+  function freqToX(hz) {
+    // log scale 30 Hz .. 16 kHz
+    var lo = Math.log(30), hi = Math.log(16000);
+    var t = (Math.log(hz) - lo) / (hi - lo);
+    return Math.max(0, Math.min(1, t)) * W;
+  }
+
+  function buildCurve(fcHz, resN) {
+    // 4-pole low-pass magnitude with a resonant bump near fc.
+    var pts = [];
+    var peakX = freqToX(fcHz);
+    var peakBoost = resN * 26; // px of peak height
+    var N = 64;
+    for (var k = 0; k <= N; k++) {
+      var t = k / N;
+      var lo = Math.log(30), hi = Math.log(16000);
+      var hz = Math.exp(lo + t * (hi - lo));
+      var r = hz / fcHz;
+      // 4-pole rolloff magnitude
+      var mag = 1 / Math.sqrt(1 + Math.pow(r, 8));
+      // resonant emphasis around fc
+      var bump = Math.exp(-Math.pow((Math.log(r)) / (0.28 + 0.0001), 2)) * resN * 0.9;
+      var lin = mag + bump;
+      var x = t * W;
+      var y = H - 12 - lin * (H - 30);
+      if (y < 4) y = 4;
+      pts.push([x, y]);
+    }
+    var d = "M " + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+    for (var j = 1; j < pts.length; j++) {
+      d += " L " + pts[j][0].toFixed(1) + " " + pts[j][1].toFixed(1);
+    }
+    var fill = d + " L " + W + " " + H + " L 0 " + H + " Z";
+    return { d: d, fill: fill, peakX: peakX, peakY: H - 12 - (1 + peakBoost / (H - 30)) * (H - 30) };
+  }
+
+  var running = true;
+
+  function frame(ts) {
+    if (!running) return;
+    pumpClock += 0.016;
+    // periodic transient "hits" that snap the env open, then it decays
+    var period = 0.42 + values[3] * 0.55; // decay knob lengthens the cycle feel
+    var phase = (pumpClock % period) / period;
+    var hit = Math.exp(-phase * (5.5 - values[3] * 3.2)); // fast attack, decay by knob
+    var targetEnv = hit * values[2]; // env amount scales how far it opens
+    envPos += (targetEnv - envPos) * 0.25;
+
+    var baseFc = 60 * Math.exp(values[0] * 4.9);
+    var fc = baseFc * Math.pow(2, envPos * 5.5 * 0.62);
+    if (fc < 30) fc = 30;
+    if (fc > 16000) fc = 16000;
+
+    var c = buildCurve(fc, values[1]);
+    curve.setAttribute("d", c.d);
+    curveFill.setAttribute("d", c.fill);
+
+    var px = freqToX(fc);
+    peakDot.setAttribute("cx", px.toFixed(1));
+    var peakY = Math.max(6, c.peakY);
+    peakDot.setAttribute("cy", peakY.toFixed(1));
+    var glow = 0.5 + envPos * 0.5;
+    peakDot.setAttribute("opacity", glow.toFixed(2));
+
+    readout.textContent = (fc >= 1000 ? (fc / 1000).toFixed(2) + "k" : Math.round(fc)) + " Hz";
+
+    requestAnimationFrame(frame);
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      running = false;
+    } else if (!running) {
+      running = true;
+      requestAnimationFrame(frame);
+    }
+  });
+
+  // ---- init: push defaults, start animation ----
+  function start() {
+    for (var i = 0; i < PARAMS.length; i++) {
+      pushParam(i);
+      cells[i].render();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

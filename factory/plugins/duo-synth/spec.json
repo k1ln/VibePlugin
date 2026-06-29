@@ -1,0 +1,20 @@
+{
+  "name": "Duo Synth",
+  "isInstrument": true,
+  "explanation": "A duophonic analog lead synthesizer. Two sawtooth oscillators independently track the two most recent held notes (lowest note -> OSC 1, newest -> OSC 2), so two keys sound as two distinct pitches; a single key locks both oscillators together. An optional hard-sync resets OSC 2 to OSC 1 for a buzzy, formant-rich tone, and the pair feeds a shared resonant 4-pole low-pass swept by one ADSR for a sharp, punchy character. Controls: Detune, Sync, Cutoff, Resonance, Env Amount, Attack, Release and Level.",
+  "assembly": "factory/plugins/duo-synth/assembly.ts",
+  "out": "factory/plugins/duo-synth/x.vstai",
+  "publishedAt": 1751000065000,
+  "theme": { "accent": "#d4b04a", "accent2": "#2a2a2a" },
+  "guiFile": "factory/plugins/duo-synth/gui.html",
+  "params": [
+    { "name": "Detune",     "index": 0, "min": 0, "max": 1, "default": 0.18 },
+    { "name": "Sync",       "index": 1, "min": 0, "max": 1, "default": 0,    "step": 1 },
+    { "name": "Cutoff",     "index": 2, "min": 0, "max": 1, "default": 0.42 },
+    { "name": "Resonance",  "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "EnvAmt",     "index": 4, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Attack",     "index": 5, "min": 0, "max": 1, "default": 0.05 },
+    { "name": "Release",    "index": 6, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Level",      "index": 7, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

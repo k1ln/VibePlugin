@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pearl Reverb</title>
+<style>
+  :root {
+    --accent: #bfe3ff;
+    --accent2: #e6c6ff;
+    --ink: #eaf3ff;
+    --dim: #8da3bd;
+    --panel: #0e1422;
+    --panel2: #131b2e;
+    --glass: rgba(191, 227, 255, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #060911;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  /* iridescent pearl background field */
+  .shell {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    border-radius: 22px;
+    padding: 22px 24px 26px;
+    background:
+      radial-gradient(120% 90% at 12% -10%, rgba(230, 198, 255, 0.16), transparent 55%),
+      radial-gradient(120% 90% at 92% 0%, rgba(191, 227, 255, 0.18), transparent 52%),
+      linear-gradient(160deg, #131c30 0%, #0b1120 55%, #090d18 100%);
+    box-shadow:
+      0 30px 70px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 0 0 1px rgba(191, 227, 255, 0.08);
+    overflow: hidden;
+  }
+
+  /* slow drifting pearl sheen */
+  .shell::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background:
+      conic-gradient(from 0deg,
+        rgba(191, 227, 255, 0.0) 0deg,
+        rgba(230, 198, 255, 0.10) 70deg,
+        rgba(191, 227, 255, 0.12) 140deg,
+        rgba(255, 255, 255, 0.06) 210deg,
+        rgba(230, 198, 255, 0.10) 290deg,
+        rgba(191, 227, 255, 0.0) 360deg);
+    filter: blur(40px);
+    opacity: 0.5;
+    animation: drift 26s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes drift {
+    from { transform: rotate(0deg) scale(1.05); }
+    to   { transform: rotate(360deg) scale(1.05); }
+  }
+
+  .header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* the pearl orb logo */
+  .pearl {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    position: relative;
+    background:
+      radial-gradient(60% 55% at 35% 30%, #ffffff 0%, #dfeaff 18%, #bfe3ff 42%, #e6c6ff 70%, #9bb6e6 100%);
+    box-shadow:
+      0 6px 16px rgba(120, 160, 255, 0.45),
+      inset 0 -6px 12px rgba(70, 90, 140, 0.5),
+      inset 0 4px 8px rgba(255, 255, 255, 0.85);
+    flex: 0 0 auto;
+  }
+
+  .pearl::after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 11px;
+    width: 12px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    filter: blur(1px);
+    animation: glint 5s ease-in-out infinite;
+  }
+
+  @keyframes glint {
+    0%, 100% { opacity: 0.85; transform: translate(0, 0) scale(1); }
+    50%      { opacity: 0.4;  transform: translate(2px, 2px) scale(0.85); }
+  }
+
+  .titles h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #ffffff, var(--accent) 45%, var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .titles .sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-top: 3px;
+  }
+
+  /* segmented digital readout */
+  .readout {
+    font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #04060c, #0a1120);
+    box-shadow:
+      inset 0 2px 6px rgba(0, 0, 0, 0.7),
+      inset 0 0 0 1px rgba(191, 227, 255, 0.12);
+    min-width: 132px;
+  }
+
+  .readout .big {
+    font-size: 20px;
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(191, 227, 255, 0.55);
+    letter-spacing: 1px;
+  }
+
+  .readout .small {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-top: 2px;
+  }
+
+  /* knob grid */
+  .grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .cell {
+    position: relative;
+    border-radius: 16px;
+    padding: 16px 10px 12px;
+    background: linear-gradient(180deg, var(--glass), rgba(0, 0, 0, 0.18));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 0 0 1px rgba(191, 227, 255, 0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .knob {
+    width: 96px;
+    height: 96px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .value {
+    font-family: ui-monospace, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--ink);
+    text-shadow: 0 0 8px rgba(191, 227, 255, 0.3);
+  }
+
+  /* program selector — glassy buttons spanning full width */
+  .program {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .program .pgrp {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+  }
+
+  .prog-label {
+    align-self: center;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding-right: 4px;
+  }
+
+  .pbtn {
+    flex: 1;
+    position: relative;
+    border: none;
+    border-radius: 12px;
+    padding: 13px 8px;
+    cursor: pointer;
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    background: linear-gradient(180deg, #182238, #0d1424);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 0 0 1px rgba(191, 227, 255, 0.06),
+      0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: color 0.18s, box-shadow 0.25s, transform 0.08s;
+    overflow: hidden;
+  }
+
+  .pbtn:hover { color: var(--ink); }
+  .pbtn:active { transform: translateY(1px); }
+
+  .pbtn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(191, 227, 255, 0.18), rgba(230, 198, 255, 0.10));
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+
+  .pbtn.active {
+    color: #061018;
+  }
+
+  .pbtn.active::after { opacity: 1; }
+
+  .pbtn.active {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 18px rgba(191, 227, 255, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .pbtn span { position: relative; z-index: 1; }
+
+  .footer {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .spark {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    margin-right: 6px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.35; transform: scale(0.6); }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <div class="brand">
+        <div class="pearl"></div>
+        <div class="titles">
+          <h1>Pearl Reverb</h1>
+          <div class="sub">Early-Digital Space Engine</div>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="big" id="ro-big">REVERB</div>
+        <div class="small" id="ro-small">Program</div>
+      </div>
+    </div>
+
+    <div class="grid" id="grid">
+      <!-- knobs injected by JS -->
+      <div class="program">
+        <div class="prog-label">Program</div>
+        <div class="pgrp" id="pgrp"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div><span class="spark"></span>Iridescent FDN reverberator</div>
+      <div>Drag to turn · double-click to reset</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices match spec.json) ----------------------
+  var PARAMS = [
+    { name: "Mix",       index: 0, min: 0, max: 1,    def: 0.3,   fmt: pct },
+    { name: "Decay",     index: 1, min: 0, max: 1,    def: 0.6,   fmt: pct },
+    { name: "Tone",      index: 2, min: 0, max: 1,    def: 0.65,  fmt: pct },
+    { name: "Pre-Delay", index: 3, min: 0, max: 0.15, def: 0.012, fmt: ms }
+  ];
+
+  var PROG_INDEX = 4;
+  var PROGRAMS = ["REVERB", "SPACE", "GATE"];
+  var progDefault = 0;
+  var progValue = progDefault;
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function ms(v)  { return (v * 1000).toFixed(0) + " ms"; }
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+  // ---- host bridge --------------------------------------------------
+  function setParam(idx, val) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(idx, val);
+    }
+  }
+
+  // ---- knob factory -------------------------------------------------
+  function makeKnob(spec) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("class", "knob");
+
+    // soft outer well
+    var well = document.createElementNS(NS, "circle");
+    well.setAttribute("cx", "50"); well.setAttribute("cy", "50"); well.setAttribute("r", "44");
+    well.setAttribute("fill", "rgba(0,0,0,0.35)");
+    well.setAttribute("stroke", "rgba(191,227,255,0.08)");
+    well.setAttribute("stroke-width", "1");
+    svg.appendChild(well);
+
+    // value arc background track
+    var trackR = 38;
+    var arcBg = document.createElementNS(NS, "path");
+    arcBg.setAttribute("fill", "none");
+    arcBg.setAttribute("stroke", "rgba(191,227,255,0.12)");
+    arcBg.setAttribute("stroke-width", "5");
+    arcBg.setAttribute("stroke-linecap", "round");
+    arcBg.setAttribute("d", arcPath(trackR, 0));
+    svg.appendChild(arcBg);
+
+    // value arc (gradient)
+    var gradId = "g" + spec.index;
+    var defs = document.createElementNS(NS, "defs");
+    var lg = document.createElementNS(NS, "linearGradient");
+    lg.setAttribute("id", gradId);
+    lg.setAttribute("x1", "0"); lg.setAttribute("y1", "1");
+    lg.setAttribute("x2", "1"); lg.setAttribute("y2", "0");
+    var s1 = document.createElementNS(NS, "stop");
+    s1.setAttribute("offset", "0"); s1.setAttribute("stop-color", "#bfe3ff");
+    var s2 = document.createElementNS(NS, "stop");
+    s2.setAttribute("offset", "1"); s2.setAttribute("stop-color", "#e6c6ff");
+    lg.appendChild(s1); lg.appendChild(s2);
+    defs.appendChild(lg);
+    svg.appendChild(defs);
+
+    var arc = document.createElementNS(NS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#" + gradId + ")");
+    arc.setAttribute("stroke-width", "5");
+    arc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(arc);
+
+    // knob body (pearl)
+    var body = document.createElementNS(NS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "27");
+    body.setAttribute("fill", "url(#pearlbody)");
+    svg.appendChild(body);
+
+    // pearl body gradient (shared, define once)
+    if (!document.getElementById("pearlbody")) {
+      var pdefs = document.createElementNS(NS, "defs");
+      var rg = document.createElementNS(NS, "radialGradient");
+      rg.setAttribute("id", "pearlbody");
+      rg.setAttribute("cx", "0.38"); rg.setAttribute("cy", "0.32"); rg.setAttribute("r", "0.75");
+      var p1 = document.createElementNS(NS, "stop");
+      p1.setAttribute("offset", "0"); p1.setAttribute("stop-color", "#ffffff");
+      var p2 = document.createElementNS(NS, "stop");
+      p2.setAttribute("offset", "0.45"); p2.setAttribute("stop-color", "#c9dcf2");
+      var p3 = document.createElementNS(NS, "stop");
+      p3.setAttribute("offset", "1"); p3.setAttribute("stop-color", "#23304a");
+      rg.appendChild(p1); rg.appendChild(p2); rg.appendChild(p3);
+      pdefs.appendChild(rg);
+      svg.appendChild(pdefs);
+    }
+
+    // pointer notch
+    var notch = document.createElementNS(NS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "28");
+    notch.setAttribute("stroke", "#06101c");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    cell.appendChild(svg);
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = spec.name;
+    cell.appendChild(label);
+
+    var value = document.createElement("div");
+    value.className = "value";
+    cell.appendChild(value);
+
+    var norm = (spec.def - spec.min) / (spec.max - spec.min);
+
+    function arcPath(r, frac) {
+      // 270deg sweep, from -225deg to +45deg (gap at bottom)
+      var a0 = (-225) * Math.PI / 180;
+      var a1 = a0 + frac * 270 * Math.PI / 180;
+      var x0 = 50 + r * Math.cos(a0), y0 = 50 + r * Math.sin(a0);
+      var x1 = 50 + r * Math.cos(a1), y1 = 50 + r * Math.sin(a1);
+      var large = (frac * 270) > 180 ? 1 : 0;
+      return "M " + x0.toFixed(2) + " " + y0.toFixed(2) +
+             " A " + r + " " + r + " 0 " + large + " 1 " +
+             x1.toFixed(2) + " " + y1.toFixed(2);
+    }
+
+    function redraw() {
+      var val = spec.min + norm * (spec.max - spec.min);
+      arc.setAttribute("d", arcPath(trackR, Math.max(0.0001, norm)));
+      var ang = -225 + norm * 270;
+      notch.setAttribute("transform", "rotate(" + ang + " 50 50)");
+      value.textContent = spec.fmt(val);
+    }
+
+    function commit() {
+      var val = spec.min + norm * (spec.max - spec.min);
+      setParam(spec.index, val);
+      redraw();
+    }
+
+    // ---- drag interaction ----
+    var dragging = false, startY = 0, startNorm = 0;
+
+    function onDown(e) {
+      dragging = true;
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startNorm = norm;
+      e.preventDefault();
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = startY - y;
+      var fine = e.shiftKey ? 0.25 : 1.0;
+      norm = clamp(startNorm + (dy / 200) * fine, 0, 1);
+      commit();
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    }
+
+    function onWheel(e) {
+      var step = e.shiftKey ? 0.005 : 0.02;
+      norm = clamp(norm - Math.sign(e.deltaY) * step, 0, 1);
+      commit();
+      e.preventDefault();
+    }
+
+    function onDbl() {
+      norm = (spec.def - spec.min) / (spec.max - spec.min);
+      commit();
+    }
+
+    svg.addEventListener("mousedown", onDown);
+    svg.addEventListener("touchstart", onDown, { passive: false });
+    svg.addEventListener("wheel", onWheel, { passive: false });
+    svg.addEventListener("dblclick", onDbl);
+
+    redraw();
+    return { cell: cell, commit: commit };
+  }
+
+  // ---- program selector ---------------------------------------------
+  function buildProgram() {
+    var grp = document.getElementById("pgrp");
+    var btns = [];
+
+    function select(i, push) {
+      progValue = i;
+      for (var b = 0; b < btns.length; b++) {
+        btns[b].classList.toggle("active", b === i);
+      }
+      document.getElementById("ro-big").textContent = PROGRAMS[i];
+      if (push) setParam(PROG_INDEX, i);
+    }
+
+    for (var i = 0; i < PROGRAMS.length; i++) {
+      (function (idx) {
+        var btn = document.createElement("button");
+        btn.className = "pbtn";
+        btn.type = "button";
+        var sp = document.createElement("span");
+        sp.textContent = PROGRAMS[idx];
+        btn.appendChild(sp);
+        btn.addEventListener("click", function () { select(idx, true); });
+        // double-click any button resets to default program
+        btn.addEventListener("dblclick", function () { select(progDefault, true); });
+        grp.appendChild(btn);
+        btns.push(btn);
+      })(i);
+    }
+
+    select(progDefault, false);
+    return { selectInit: function () { setParam(PROG_INDEX, progValue); } };
+  }
+
+  // ---- boot ---------------------------------------------------------
+  function boot() {
+    var grid = document.getElementById("grid");
+    var program = document.querySelector(".program");
+    var knobs = [];
+    for (var i = 0; i < PARAMS.length; i++) {
+      var k = makeKnob(PARAMS[i]);
+      grid.insertBefore(k.cell, program);
+      knobs.push(k);
+    }
+    var prog = buildProgram();
+
+    // push all defaults to the engine once on load
+    for (var j = 0; j < knobs.length; j++) knobs[j].commit();
+    prog.selectInit();
+  }
+
+  function start() {
+    if (window.vstai && typeof window.vstai.onReady === "function") {
+      window.vstai.onReady(boot);
+    } else {
+      boot();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

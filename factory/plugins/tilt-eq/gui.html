@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tilt EQ</title>
+  <style>
+    :root {
+      --accent: #9ad0e0;
+      --accent2: #c0e0f0;
+      --bg0: #0b1116;
+      --bg1: #121b22;
+      --panel: #18242c;
+      --panel2: #1f2e38;
+      --line: rgba(154, 208, 224, 0.14);
+      --ink: #dce9ef;
+      --ink-dim: #7d94a0;
+      --beam: #aebcc4;
+      --shadow: rgba(0, 0, 0, 0.55);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(120% 80% at 50% -10%, #16242d 0%, var(--bg0) 60%),
+        var(--bg0);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 18px;
+      overflow-y: auto;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 540px;
+      background:
+        linear-gradient(180deg, var(--panel2) 0%, var(--panel) 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 28px 60px -30px var(--shadow),
+        0 0 0 1px rgba(0, 0, 0, 0.4);
+      padding: 22px 24px 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.5;
+    }
+
+    /* ---------- header ---------- */
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .brand h1 {
+      font-size: 15px;
+      letter-spacing: 0.32em;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .brand .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      align-self: center;
+    }
+    .sub {
+      font-size: 9px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    /* ---------- see-saw stage ---------- */
+    .stage {
+      position: relative;
+      height: 180px;
+      border-radius: 14px;
+      background:
+        radial-gradient(120% 140% at 50% 120%, #1c2c36 0%, #101a20 70%);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px);
+      background-size: 100% 30px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* labels for the two ends */
+    .end-label {
+      position: absolute;
+      bottom: 12px;
+      font-size: 9px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      pointer-events: none;
+    }
+    .end-label.bass { left: 22px; }
+    .end-label.treble { right: 22px; }
+
+    svg.seesaw { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    .fulcrum-glow {
+      filter: drop-shadow(0 0 6px var(--accent));
+    }
+
+    /* pivot frequency readout, floats above the fulcrum */
+    .pivot-readout {
+      position: absolute;
+      left: 50%;
+      top: 14px;
+      transform: translateX(-50%);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--accent2);
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 8px rgba(154, 208, 224, 0.4);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* subtle breathing pulse on the fulcrum ring */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50%      { opacity: 0.9;  transform: scale(1.12); }
+    }
+    .pulse-ring { animation: pulse 3.4s ease-in-out infinite; transform-origin: center; }
+
+    /* ---------- tilt scrub strip ---------- */
+    .tilt-strip {
+      position: relative;
+      height: 34px;
+      margin: 6px 0 18px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #16222a, #1d2c35, #16222a);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.5);
+      cursor: ew-resize;
+      user-select: none;
+      overflow: hidden;
+    }
+    .tilt-strip .center-mark {
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: var(--line);
+    }
+    .tilt-fill {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 0;
+      background: linear-gradient(90deg, rgba(154,208,224,0.05), rgba(154,208,224,0.28));
+      transition: none;
+    }
+    .tilt-thumb {
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 22px;
+      border-radius: 5px;
+      background: linear-gradient(180deg, #e9f4f8, #9fc3d2);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(154,208,224,0.5);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .tilt-meta {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      pointer-events: none;
+    }
+    .tilt-meta.l { left: 10px; }
+    .tilt-meta.r { right: 10px; }
+    .tilt-value {
+      position: absolute;
+      left: 50%;
+      top: -16px;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.1em;
+      color: var(--accent2);
+    }
+
+    /* ---------- knob row ---------- */
+    .knobs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .knob-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 6px 10px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.18));
+      border: 1px solid var(--line);
+    }
+    .knob {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      cursor: ns-resize;
+      user-select: none;
+      touch-action: none;
+    }
+    .knob svg { width: 100%; height: 100%; display: block; }
+    .knob-name {
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .knob-val {
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+      color: var(--accent2);
+      min-height: 14px;
+    }
+    .knob:hover .arc-active { filter: drop-shadow(0 0 4px var(--accent)); }
+
+    footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <span class="dot"></span>
+        <h1>Tilt&nbsp;EQ</h1>
+      </div>
+      <div class="sub">Spectral&nbsp;Balance</div>
+    </header>
+
+    <!-- See-saw stage: the beam physically pivots with Tilt -->
+    <div class="stage">
+      <div class="grid-lines"></div>
+      <div class="end-label bass">Bass</div>
+      <div class="end-label treble">Treble</div>
+      <div class="pivot-readout" id="pivotReadout">630 Hz</div>
+      <svg class="seesaw" viewBox="0 0 540 180" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="beamFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e7f1f5"/>
+            <stop offset="1" stop-color="#8ca6b2"/>
+          </linearGradient>
+          <radialGradient id="ballBass" cx="0.35" cy="0.3" r="0.8">
+            <stop offset="0" stop-color="#cfeaf3"/>
+            <stop offset="1" stop-color="#5f93a6"/>
+          </radialGradient>
+          <radialGradient id="ballTreb" cx="0.35" cy="0.3" r="0.8">
+            <stop offset="0" stop-color="#eaf6fb"/>
+            <stop offset="1" stop-color="#7fb6cb"/>
+          </radialGradient>
+          <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.2"/>
+          </filter>
+        </defs>
+
+        <!-- base shadow under fulcrum -->
+        <ellipse cx="270" cy="150" rx="70" ry="9" fill="rgba(0,0,0,0.45)" filter="url(#soft)"/>
+
+        <!-- the rotating beam group, pivoting about (270,118) -->
+        <g id="beamGroup" transform="rotate(0 270 118)">
+          <!-- beam bar -->
+          <rect x="60" y="113" width="420" height="10" rx="5" fill="url(#beamFill)"
+                stroke="rgba(255,255,255,0.25)" stroke-width="0.6"/>
+          <!-- end weights -->
+          <circle id="ballBass"  cx="72"  cy="118" r="20" fill="url(#ballBass)"
+                  stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+          <circle id="ballTreb"  cx="468" cy="118" r="20" fill="url(#ballTreb)"
+                  stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+          <text x="72"  y="122" text-anchor="middle" font-size="11" fill="#0c1419"
+                font-family="ui-sans-serif" font-weight="700">L</text>
+          <text x="468" y="122" text-anchor="middle" font-size="11" fill="#0c1419"
+                font-family="ui-sans-serif" font-weight="700">H</text>
+        </g>
+
+        <!-- fulcrum (the pivot) -->
+        <g class="fulcrum-glow">
+          <circle class="pulse-ring" cx="270" cy="118" r="14" fill="none"
+                  stroke="var(--accent)" stroke-width="1" opacity="0.6"/>
+          <polygon points="270,108 286,150 254,150" fill="#24343d"
+                   stroke="var(--accent)" stroke-width="1.2"/>
+          <circle cx="270" cy="118" r="6" fill="var(--accent)"/>
+          <circle cx="270" cy="118" r="6" fill="none" stroke="#0b1116" stroke-width="1"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Tilt scrub strip -->
+    <div class="tilt-strip" id="tiltStrip" title="Drag to tilt — double-click to centre">
+      <div class="center-mark"></div>
+      <div class="tilt-fill" id="tiltFill"></div>
+      <div class="tilt-meta l">Low</div>
+      <div class="tilt-meta r">High</div>
+      <div class="tilt-thumb" id="tiltThumb"></div>
+      <div class="tilt-value" id="tiltValue">0.0 dB</div>
+    </div>
+
+    <!-- Knob row: Pivot, Bass, Treble, Output -->
+    <div class="knobs" id="knobRow"></div>
+
+    <footer>
+      <span>Mastering&nbsp;Tilt</span>
+      <span id="statusLed">●&nbsp;Ready</span>
+    </footer>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ---------------------------------------------------------------
+    //  Param map — MUST match spec.json / assembly.ts indices.
+    //  P_TILT=0, P_PIVOT=1, P_BASS=2, P_TREBLE=3, P_OUTPUT=4
+    // ---------------------------------------------------------------
+    var P = {
+      TILT:   { index: 0, min: 0, max: 1, def: 0.5 },
+      PIVOT:  { index: 1, min: 0, max: 1, def: 0.5 },
+      BASS:   { index: 2, min: 0, max: 1, def: 0.5 },
+      TREBLE: { index: 3, min: 0, max: 1, def: 0.5 },
+      OUTPUT: { index: 4, min: 0, max: 1, def: 0.5 }
+    };
+
+    var values = {}; // index -> normalised 0..1
+
+    function pushParam(index, norm) {
+      values[index] = norm;
+      if (window.vstai && window.vstai.setParam) {
+        // params are normalised 0..1 in this plugin (min=0,max=1)
+        window.vstai.setParam(index, norm);
+      }
+    }
+
+    // ---- value formatting helpers (display only) ----
+    function fmtTiltDb(norm) {
+      // -1..+1 -> ±~8.4 dB of effective rebalance (tilt*0.7 -> ~±3 dB linear/octave feel)
+      var t = norm * 2 - 1;
+      var db = t * 8.4;
+      var s = (db >= 0 ? "+" : "") + db.toFixed(1) + " dB";
+      return s;
+    }
+    function pivotHz(norm) {
+      // 200..2000 Hz log (matches assembly: 200 * 10^norm)
+      return Math.round(200 * Math.pow(10, norm));
+    }
+    function shelfDb(norm) {
+      var db = (norm * 2 - 1) * 12;
+      return (db >= 0 ? "+" : "") + db.toFixed(1) + " dB";
+    }
+    function outDb(norm) {
+      var lin = norm * 2; // 0..2x
+      if (lin <= 0.0001) return "-inf";
+      var db = 20 * Math.log10(lin);
+      return (db >= 0 ? "+" : "") + db.toFixed(1) + " dB";
+    }
+
+    // ===============================================================
+    //  See-saw beam — rotates with Tilt, scales the weights too
+    // ===============================================================
+    var beamGroup = document.getElementById("beamGroup");
+    var ballBass = document.getElementById("ballBass");
+    var ballTreb = document.getElementById("ballTreb");
+    var pivotReadout = document.getElementById("pivotReadout");
+
+    function renderBeam() {
+      var t = values[P.TILT.index] * 2 - 1; // -1..+1
+      // positive tilt = brighter -> treble side DOWN (heavier high), bass side UP.
+      var angle = t * 9; // max ±9 degrees, tasteful
+      beamGroup.setAttribute("transform", "rotate(" + angle.toFixed(2) + " 270 118)");
+      // weight sizes respond: heavier side grows slightly
+      var rBass = 20 - t * 5;   // tilt up -> bass shrinks
+      var rTreb = 20 + t * 5;   // tilt up -> treble grows
+      ballBass.setAttribute("r", rBass.toFixed(2));
+      ballTreb.setAttribute("r", rTreb.toFixed(2));
+    }
+
+    function renderPivot() {
+      pivotReadout.textContent = pivotHz(values[P.PIVOT.index]) + " Hz";
+      // shift the readout horizontally a touch with pivot for spatial cue
+      var n = values[P.PIVOT.index];
+      pivotReadout.style.left = (38 + n * 24) + "%";
+    }
+
+    // ===============================================================
+    //  Tilt scrub strip (horizontal drag, bipolar)
+    // ===============================================================
+    var tiltStrip = document.getElementById("tiltStrip");
+    var tiltFill = document.getElementById("tiltFill");
+    var tiltThumb = document.getElementById("tiltThumb");
+    var tiltValue = document.getElementById("tiltValue");
+
+    function renderTilt() {
+      var n = values[P.TILT.index]; // 0..1
+      var pct = n * 100;
+      tiltThumb.style.left = pct + "%";
+      tiltValue.textContent = fmtTiltDb(n);
+      // fill spreads from centre toward the thumb
+      if (n >= 0.5) {
+        tiltFill.style.left = "50%";
+        tiltFill.style.width = ((n - 0.5) * 100) + "%";
+      } else {
+        tiltFill.style.left = (n * 100) + "%";
+        tiltFill.style.width = ((0.5 - n) * 100) + "%";
+      }
+      renderBeam();
+    }
+
+    function tiltFromClientX(clientX) {
+      var r = tiltStrip.getBoundingClientRect();
+      var n = (clientX - r.left) / r.width;
+      return Math.max(0, Math.min(1, n));
+    }
+
+    (function wireTilt() {
+      var dragging = false;
+      function down(e) {
+        dragging = true;
+        var x = e.touches ? e.touches[0].clientX : e.clientX;
+        pushParam(P.TILT.index, tiltFromClientX(x));
+        renderTilt();
+        e.preventDefault();
+      }
+      function move(e) {
+        if (!dragging) return;
+        var x = e.touches ? e.touches[0].clientX : e.clientX;
+        pushParam(P.TILT.index, tiltFromClientX(x));
+        renderTilt();
+        e.preventDefault();
+      }
+      function up() { dragging = false; }
+      tiltStrip.addEventListener("mousedown", down);
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+      tiltStrip.addEventListener("touchstart", down, { passive: false });
+      window.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("touchend", up);
+      tiltStrip.addEventListener("dblclick", function () {
+        pushParam(P.TILT.index, P.TILT.def);
+        renderTilt();
+      });
+      tiltStrip.addEventListener("wheel", function (e) {
+        var n = values[P.TILT.index] - Math.sign(e.deltaY) * 0.01;
+        pushParam(P.TILT.index, Math.max(0, Math.min(1, n)));
+        renderTilt();
+        e.preventDefault();
+      }, { passive: false });
+    })();
+
+    // ===============================================================
+    //  Knobs (SVG, vertical drag) for Pivot, Bass, Treble, Output
+    // ===============================================================
+    var knobDefs = [
+      { key: "PIVOT",  label: "Pivot",  fmt: function (n) { return pivotHz(n) + " Hz"; } },
+      { key: "BASS",   label: "Bass",   fmt: shelfDb,  bipolar: true },
+      { key: "TREBLE", label: "Treble", fmt: shelfDb,  bipolar: true },
+      { key: "OUTPUT", label: "Output", fmt: outDb }
+    ];
+
+    var knobRow = document.getElementById("knobRow");
+
+    function makeArcPath(cx, cy, r, a0, a1) {
+      var x0 = cx + r * Math.cos(a0);
+      var y0 = cy + r * Math.sin(a0);
+      var x1 = cx + r * Math.cos(a1);
+      var y1 = cy + r * Math.sin(a1);
+      var large = (a1 - a0) > Math.PI ? 1 : 0;
+      return "M " + x0.toFixed(2) + " " + y0.toFixed(2) +
+             " A " + r + " " + r + " 0 " + large + " 1 " +
+             x1.toFixed(2) + " " + y1.toFixed(2);
+    }
+
+    function buildKnob(def) {
+      var meta = P[def.key];
+      var cell = document.createElement("div");
+      cell.className = "knob-cell";
+
+      var nameEl = document.createElement("div");
+      nameEl.className = "knob-name";
+      nameEl.textContent = def.label;
+
+      var knob = document.createElement("div");
+      knob.className = "knob";
+
+      var START = Math.PI * 0.75;   // 135deg
+      var SWEEP = Math.PI * 1.5;    // 270deg
+      var cx = 32, cy = 32, r = 24;
+
+      knob.innerHTML =
+        '<svg viewBox="0 0 64 64">' +
+          '<defs>' +
+            '<radialGradient id="kbody_' + def.key + '" cx="0.4" cy="0.32" r="0.85">' +
+              '<stop offset="0" stop-color="#2a3a44"/>' +
+              '<stop offset="1" stop-color="#141e25"/>' +
+            '</radialGradient>' +
+          '</defs>' +
+          '<circle cx="32" cy="32" r="29" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="2"/>' +
+          '<path class="arc-track" d="' + makeArcPath(cx, cy, r, START, START + SWEEP) + '" ' +
+                'fill="none" stroke="rgba(154,208,224,0.14)" stroke-width="3" stroke-linecap="round"/>' +
+          '<path class="arc-active" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>' +
+          '<circle cx="32" cy="32" r="20" fill="url(#kbody_' + def.key + ')" ' +
+                  'stroke="rgba(255,255,255,0.08)" stroke-width="1"/>' +
+          '<circle cx="32" cy="32" r="20" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="0.6" ' +
+                  'transform="translate(0,1)"/>' +
+          '<line class="pointer" x1="32" y1="32" x2="32" y2="16" ' +
+                'stroke="var(--accent2)" stroke-width="2.4" stroke-linecap="round"/>' +
+        '</svg>';
+
+      var valEl = document.createElement("div");
+      valEl.className = "knob-val";
+
+      cell.appendChild(nameEl);
+      cell.appendChild(knob);
+      cell.appendChild(valEl);
+
+      var arcActive = knob.querySelector(".arc-active");
+      var pointer = knob.querySelector(".pointer");
+
+      function render() {
+        var n = values[meta.index];
+        // active arc: bipolar knobs fill from centre, unipolar from start
+        if (def.bipolar) {
+          var mid = START + SWEEP * 0.5;
+          var a = START + SWEEP * n;
+          if (n >= 0.5) arcActive.setAttribute("d", makeArcPath(cx, cy, r, mid, a));
+          else          arcActive.setAttribute("d", makeArcPath(cx, cy, r, a, mid));
+        } else {
+          arcActive.setAttribute("d", makeArcPath(cx, cy, r, START, START + SWEEP * n));
+        }
+        var ang = START + SWEEP * n;
+        var px = cx + 16 * Math.cos(ang);
+        var py = cy + 16 * Math.sin(ang);
+        pointer.setAttribute("x2", px.toFixed(2));
+        pointer.setAttribute("y2", py.toFixed(2));
+        valEl.textContent = def.fmt(n);
+        if (def.key === "PIVOT") renderPivot();
+      }
+
+      // vertical drag
+      var dragging = false, lastY = 0;
+      function down(e) {
+        dragging = true;
+        lastY = e.touches ? e.touches[0].clientY : e.clientY;
+        e.preventDefault();
+      }
+      function move(e) {
+        if (!dragging) return;
+        var y = e.touches ? e.touches[0].clientY : e.clientY;
+        var dy = lastY - y;
+        lastY = y;
+        var n = Math.max(0, Math.min(1, values[meta.index] + dy * 0.005));
+        pushParam(meta.index, n);
+        render();
+        e.preventDefault();
+      }
+      function up() { dragging = false; }
+
+      knob.addEventListener("mousedown", down);
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+      knob.addEventListener("touchstart", down, { passive: false });
+      window.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("touchend", up);
+      knob.addEventListener("dblclick", function () {
+        pushParam(meta.index, meta.def);
+        render();
+      });
+      knob.addEventListener("wheel", function (e) {
+        var n = Math.max(0, Math.min(1, values[meta.index] - Math.sign(e.deltaY) * 0.01));
+        pushParam(meta.index, n);
+        render();
+        e.preventDefault();
+      }, { passive: false });
+
+      knobRow.appendChild(cell);
+      return render;
+    }
+
+    // ===============================================================
+    //  Init
+    // ===============================================================
+    var knobRenderers = [];
+
+    function init() {
+      // seed all defaults
+      Object.keys(P).forEach(function (k) {
+        var p = P[k];
+        values[p.index] = p.def;
+      });
+      // push to engine
+      Object.keys(P).forEach(function (k) {
+        var p = P[k];
+        pushParam(p.index, p.def);
+      });
+      // build controls
+      renderTilt();
+      knobDefs.forEach(function (d) { knobRenderers.push(buildKnob(d)); });
+      knobRenderers.forEach(function (r) { r(); });
+      renderPivot();
+
+      var led = document.getElementById("statusLed");
+      led.textContent = "● Live";
+      led.style.color = "var(--accent)";
+    }
+
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

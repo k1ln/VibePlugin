@@ -6,6 +6,7 @@
   "out": "factory/plugins/reel-saturator/x.vstai",
   "publishedAt": 1751000025000,
   "theme": { "accent": "#e0b070", "accent2": "#f0d0a0" },
+  "guiFile": "factory/plugins/reel-saturator/gui.html",
   "params": [
     { "name": "Drive",  "index": 0, "min": 0, "max": 1, "default": 0.45 },
     { "name": "Warmth", "index": 1, "min": 0, "max": 1, "default": 0.4 },

@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Acid Bass</title>
+<style>
+  :root{
+    --acc:#c6ff3d;
+    --acc2:#9ae66e;
+    --acc-dim:#5a7a1f;
+    --metal0:#0f1113;
+    --metal1:#23282b;
+    --metal2:#3a4044;
+    --metal3:#565d62;
+    --ink:#0a0c0d;
+    --face:#c9d0d4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a2f33 0%, #14181a 45%, #090b0c 100%);
+    color:#dfe6e9;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    letter-spacing:.02em;
+  }
+
+  /* ====== THE BOX ====== */
+  .box{
+    position:relative;
+    width:760px;height:430px;
+    border-radius:18px;
+    padding:18px 22px 20px;
+    /* brushed silver chassis */
+    background:
+      linear-gradient(180deg,#e9eef1 0%,#aeb6bb 6%,#7c858a 7%,#9aa3a8 8%,#6f777c 50%,#565d62 92%,#42484c 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.6) inset,
+      0 -2px 6px rgba(0,0,0,.5) inset,
+      0 30px 60px rgba(0,0,0,.65),
+      0 2px 0 #20262a;
+    overflow:hidden;
+  }
+  /* brushed-metal micro grain */
+  .box::before{
+    content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.04) 1px 2px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  /* moving sheen */
+  .box::after{
+    content:"";position:absolute;top:0;left:-40%;width:35%;height:100%;
+    background:linear-gradient(105deg,transparent,rgba(255,255,255,.28),transparent);
+    transform:skewX(-18deg);pointer-events:none;
+    animation:sheen 7s ease-in-out infinite;
+  }
+  @keyframes sheen{0%,72%{left:-45%}90%{left:130%}100%{left:130%}}
+
+  /* corner screws */
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#f2f5f6,#888f93 55%,#4a5054 100%);
+    box-shadow:0 1px 1px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.25) inset;}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,#2b3033 44% 56%,transparent 56%);transform:rotate(28deg)}
+  .screw.tl{top:9px;left:9px}.screw.tr{top:9px;right:9px}
+  .screw.bl{bottom:9px;left:9px}.screw.br{bottom:9px;right:9px}
+
+  /* ====== HEADER / READOUT ====== */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:2px 6px 12px}
+  .brand{display:flex;flex-direction:column;line-height:1}
+  .brand .sub{font-size:9px;letter-spacing:.42em;color:#3a4145;font-weight:700;margin-bottom:5px;text-transform:uppercase;
+    text-shadow:0 1px 0 rgba(255,255,255,.5)}
+  .brand .name{font-size:30px;font-weight:800;font-style:italic;letter-spacing:-.01em;
+    color:#1b2023;text-shadow:0 1px 0 rgba(255,255,255,.55),0 -1px 1px rgba(0,0,0,.3)}
+  .brand .name b{color:var(--acc-dim);
+    text-shadow:0 0 8px rgba(198,255,61,.55),0 1px 0 rgba(255,255,255,.4)}
+
+  /* LCD-ish resonance/cutoff scope */
+  .readout{
+    position:relative;width:236px;height:74px;border-radius:8px;
+    background:linear-gradient(180deg,#04150a,#020c06);
+    border:2px solid #1d2326;
+    box-shadow:0 2px 4px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.35);
+    overflow:hidden;
+  }
+  .readout canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .ro-grid{position:absolute;inset:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,rgba(154,230,110,.07) 0 1px,transparent 1px 11px),
+      repeating-linear-gradient(90deg,rgba(154,230,110,.07) 0 1px,transparent 1px 13px);}
+  .ro-glass{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 70% at 50% 0%,rgba(180,255,160,.14),transparent 60%)}
+  .ro-tags{position:absolute;inset:0;pointer-events:none;font-size:8px;color:var(--acc2);
+    text-shadow:0 0 5px rgba(154,230,110,.8);font-weight:700;letter-spacing:.1em}
+  .ro-tags .t1{position:absolute;top:5px;left:8px}
+  .ro-tags .t2{position:absolute;bottom:5px;left:8px}
+  .ro-tags .t3{position:absolute;top:5px;right:8px;color:var(--acc)}
+
+  /* ====== STEP STRIP ====== */
+  .strip{
+    display:grid;grid-template-columns:repeat(16,1fr);gap:5px;
+    padding:11px 12px;margin:0 4px 16px;border-radius:10px;
+    background:linear-gradient(180deg,#14181a,#080a0b);
+    box-shadow:0 2px 5px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.3);
+  }
+  .step{position:relative;height:30px;border-radius:5px;cursor:pointer;
+    background:radial-gradient(circle at 50% 35%,#1c2123,#0c0f10);
+    box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 -2px 3px rgba(0,0,0,.5) inset;
+    transition:transform .08s}
+  .step .led{position:absolute;inset:6px;border-radius:3px;background:#0d2410;
+    box-shadow:0 0 0 1px rgba(0,0,0,.4) inset;transition:background .12s,box-shadow .12s}
+  .step.on .led{background:var(--acc-dim);box-shadow:0 0 0 1px rgba(0,0,0,.4) inset}
+  .step.acc .led{background:linear-gradient(180deg,#fff,var(--acc))}
+  /* the chaser highlights whichever step is current */
+  .step.cur .led{background:var(--acc);
+    box-shadow:0 0 9px 2px var(--acc),0 0 18px var(--acc2),0 0 0 1px rgba(0,0,0,.3) inset}
+  .step.cur.acc .led{background:#fff;box-shadow:0 0 12px 3px var(--acc),0 0 22px #fff}
+  .step:active{transform:translateY(1px)}
+  .step .n{position:absolute;bottom:-13px;left:0;right:0;text-align:center;font-size:7px;color:#5d6469}
+
+  /* ====== KNOB ROW ====== */
+  .rack{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;padding:0 2px}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .label{font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:#2a3033;font-weight:800;
+    text-shadow:0 1px 0 rgba(255,255,255,.45)}
+  .knob{position:relative;width:60px;height:60px;cursor:ns-resize;touch-action:none}
+  .knob svg{display:block;width:60px;height:60px;overflow:visible}
+  .knob .cap{filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
+  .knob:hover .ringGlow{opacity:1}
+  .ringGlow{transition:opacity .2s;opacity:.35}
+  .vbox{font-size:10px;font-weight:700;color:#10130f;
+    background:linear-gradient(180deg,#d8ff8c,#b6ef4d);
+    border:1px solid #4d5b1f;border-radius:4px;padding:1px 6px;min-width:42px;text-align:center;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 1px 2px rgba(0,0,0,.4);
+    text-shadow:0 1px 0 rgba(255,255,255,.3)}
+
+  .knob.dragging .ringGlow{opacity:1}
+  .knob.dragging~.vbox,.dragging .vbox{}
+
+  .credit{position:absolute;bottom:6px;right:54px;font-size:7px;letter-spacing:.3em;
+    color:#2c3236;font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+</style>
+</head>
+<body>
+  <div class="box" id="box">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="head">
+      <div class="brand">
+        <span class="sub">303 · monosquelch</span>
+        <span class="name">Acid<b>Bass</b></span>
+      </div>
+      <div class="readout">
+        <canvas id="scope" width="472" height="148"></canvas>
+        <div class="ro-grid"></div>
+        <div class="ro-glass"></div>
+        <div class="ro-tags">
+          <span class="t1" id="roCut">CUT 035</span>
+          <span class="t2" id="roReso">RES 078</span>
+          <span class="t3">SELF-OSC</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip" id="strip"></div>
+
+    <div class="rack" id="rack"></div>
+    <div class="credit">VIBE · BOUTIQUE</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- params straight from spec.json ----
+  var PARAMS = [
+    {name:"Waveform",  index:0, min:0, max:1, def:0.15, fmt:"morph"},
+    {name:"Cutoff",    index:1, min:0, max:1, def:0.35, fmt:"pct"},
+    {name:"Resonance", index:2, min:0, max:1, def:0.78, fmt:"pct"},
+    {name:"Env Mod",   index:3, min:0, max:1, def:0.70, fmt:"pct"},
+    {name:"Decay",     index:4, min:0, max:1, def:0.40, fmt:"ms"},
+    {name:"Accent",    index:5, min:0, max:1, def:0.50, fmt:"pct"},
+    {name:"Glide",     index:6, min:0, max:1, def:0.25, fmt:"ms"},
+    {name:"Level",     index:7, min:0, max:1, def:0.80, fmt:"pct"}
+  ];
+  var ACC="#c6ff3d", ACC2="#9ae66e";
+
+  function clamp(v,a,b){return v<a?a:v>b?b:v;}
+  function fmtVal(p,v){
+    var n=(v-p.min)/(p.max-p.min);
+    if(p.fmt==="pct") return Math.round(n*100)+"%";
+    if(p.fmt==="ms")  return Math.round(2+n*n*900)+"ms";
+    if(p.fmt==="morph") return n<0.04?"SAW":n>0.96?"SQR":Math.round(n*100)+"%";
+    return n.toFixed(2);
+  }
+
+  // live state shared with scope + readout
+  var STATE={};
+  PARAMS.forEach(function(p){STATE[p.index]=p.def;});
+
+  var host = window.vstai || null;
+  function send(i,v){ if(host&&host.setParam) host.setParam(i,v); }
+
+  // ============== KNOBS (custom SVG) ==============
+  var rack=document.getElementById("rack");
+  var SW=270; // sweep degrees
+  function buildKnob(p){
+    var cell=document.createElement("div"); cell.className="cell";
+    var lab=document.createElement("div"); lab.className="label"; lab.textContent=p.name;
+    var knob=document.createElement("div"); knob.className="knob"; knob.setAttribute("title","drag · double-click resets");
+    var vbox=document.createElement("div"); vbox.className="vbox";
+
+    var ns="http://www.w3.org/2000/svg";
+    var svg=document.createElementNS(ns,"svg"); svg.setAttribute("viewBox","0 0 60 60");
+    // arc geometry helper
+    var cx=30,cy=31,r=23;
+    function pt(deg,rr){var a=(deg-90)*Math.PI/180;return [cx+Math.cos(a)*rr, cy+Math.sin(a)*rr];}
+    function arc(a0,a1,rr){
+      var s=pt(a0,rr),e=pt(a1,rr),large=(a1-a0)>180?1:0;
+      return "M"+s[0]+" "+s[1]+" A"+rr+" "+rr+" 0 "+large+" 1 "+e[0]+" "+e[1];
+    }
+    var start=-(SW/2), end=(SW/2);
+
+    // glow ring behind
+    var glow=document.createElementNS(ns,"path"); glow.setAttribute("class","ringGlow");
+    glow.setAttribute("d",arc(start,end,r+4)); glow.setAttribute("fill","none");
+    glow.setAttribute("stroke",ACC); glow.setAttribute("stroke-width","2");
+    glow.setAttribute("stroke-linecap","round");
+    glow.setAttribute("filter","url(#blur)"); svg.appendChild(glow);
+
+    // track
+    var track=document.createElementNS(ns,"path");
+    track.setAttribute("d",arc(start,end,r)); track.setAttribute("fill","none");
+    track.setAttribute("stroke","#0c0f10"); track.setAttribute("stroke-width","3.5");
+    track.setAttribute("stroke-linecap","round"); svg.appendChild(track);
+
+    // value arc
+    var val=document.createElementNS(ns,"path"); val.setAttribute("fill","none");
+    val.setAttribute("stroke","url(#grad)"); val.setAttribute("stroke-width","3.5");
+    val.setAttribute("stroke-linecap","round"); svg.appendChild(val);
+
+    // metal cap
+    var cap=document.createElementNS(ns,"circle"); cap.setAttribute("class","cap");
+    cap.setAttribute("cx",cx); cap.setAttribute("cy",cy); cap.setAttribute("r","16");
+    cap.setAttribute("fill","url(#cap)"); cap.setAttribute("stroke","#23282b"); cap.setAttribute("stroke-width","1");
+    svg.appendChild(cap);
+    var capRim=document.createElementNS(ns,"circle");
+    capRim.setAttribute("cx",cx); capRim.setAttribute("cy",cy); capRim.setAttribute("r","16");
+    capRim.setAttribute("fill","none"); capRim.setAttribute("stroke","rgba(255,255,255,.18)"); capRim.setAttribute("stroke-width","1");
+    svg.appendChild(capRim);
+
+    // pointer (notch)
+    var notch=document.createElementNS(ns,"line");
+    notch.setAttribute("stroke",ACC); notch.setAttribute("stroke-width","2.6");
+    notch.setAttribute("stroke-linecap","round");
+    notch.setAttribute("filter","url(#nglow)"); svg.appendChild(notch);
+
+    // shared defs (once)
+    if(!document.getElementById("kdefs")){
+      var defs=document.createElementNS(ns,"defs"); defs.setAttribute("id","kdefs");
+      defs.innerHTML=
+        '<radialGradient id="cap" cx="38%" cy="30%" r="80%">'+
+          '<stop offset="0%" stop-color="#5b6469"/><stop offset="45%" stop-color="#3a4044"/>'+
+          '<stop offset="100%" stop-color="#14181a"/></radialGradient>'+
+        '<linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">'+
+          '<stop offset="0%" stop-color="'+ACC2+'"/><stop offset="100%" stop-color="'+ACC+'"/></linearGradient>'+
+        '<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>'+
+        '<filter id="nglow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/>'+
+          '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+      svg.appendChild(defs);
+    }
+
+    knob.appendChild(svg);
+    cell.appendChild(lab); cell.appendChild(knob); cell.appendChild(vbox);
+    rack.appendChild(cell);
+
+    var cur=p.def;
+    function render(){
+      var n=(cur-p.min)/(p.max-p.min);
+      var ang=start+n*(end-start);
+      val.setAttribute("d", arc(start, n<=0.0001?start+0.001:ang, r));
+      glow.setAttribute("d", arc(start, n<=0.0001?start+0.001:ang, r+4));
+      var inner=pt(ang,6), outer=pt(ang,14.5);
+      notch.setAttribute("x1",inner[0]); notch.setAttribute("y1",inner[1]);
+      notch.setAttribute("x2",outer[0]); notch.setAttribute("y2",outer[1]);
+      vbox.textContent=fmtVal(p,cur);
+      STATE[p.index]=cur;
+    }
+    function setVal(v,push){
+      cur=clamp(v,p.min,p.max); render();
+      if(push) send(p.index,cur);
+    }
+    render();
+
+    // ---- drag ----
+    var dragging=false,startY=0,startV=0;
+    function onMove(e){
+      if(!dragging)return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dy=startY-y;
+      var span=p.max-p.min;
+      var fine=e.shiftKey?0.25:1;
+      setVal(startV+ dy/180*span*fine, true);
+      e.preventDefault();
+    }
+    function onUp(){ if(!dragging)return; dragging=false; knob.classList.remove("dragging");
+      window.removeEventListener("pointermove",onMove);
+      window.removeEventListener("pointerup",onUp);
+    }
+    knob.addEventListener("pointerdown",function(e){
+      dragging=true; knob.classList.add("dragging");
+      startY=e.clientY; startV=cur;
+      window.addEventListener("pointermove",onMove);
+      window.addEventListener("pointerup",onUp);
+      e.preventDefault();
+    });
+    knob.addEventListener("dblclick",function(e){ setVal(p.def,true); e.preventDefault(); });
+    // wheel for fine tweaking
+    knob.addEventListener("wheel",function(e){
+      setVal(cur - Math.sign(e.deltaY)*(p.max-p.min)*0.02, true); e.preventDefault();
+    },{passive:false});
+
+    return {set:setVal,get:function(){return cur;}};
+  }
+  var knobs=PARAMS.map(buildKnob);
+
+  // ============== STEP STRIP (the chaser) ==============
+  var strip=document.getElementById("strip");
+  var STEPS=16, steps=[];
+  // a default acid pattern (purely decorative chaser; accents on the 1,5,9,11)
+  var pattern=[1,0,1,1, 1,0,0,1, 1,1,0,1, 0,1,1,0];
+  var accents=[1,0,0,0, 1,0,0,0, 1,0,1,0, 0,0,0,0];
+  for(var i=0;i<STEPS;i++){
+    var s=document.createElement("div"); s.className="step";
+    if(pattern[i]) s.classList.add("on");
+    if(accents[i]) s.classList.add("acc");
+    var led=document.createElement("div"); led.className="led"; s.appendChild(led);
+    if(i%4===0){var n=document.createElement("div"); n.className="n"; n.textContent=(i/4+1); s.appendChild(n);}
+    (function(idx,el){
+      el.addEventListener("click",function(){
+        // toggle the step's accent state for tactile feedback
+        if(el.classList.contains("on")){
+          if(el.classList.contains("acc")) el.classList.remove("acc","on");
+          else el.classList.add("acc");
+        } else { el.classList.add("on"); }
+        pattern[idx]=el.classList.contains("on")?1:0;
+        accents[idx]=el.classList.contains("acc")?1:0;
+      });
+    })(i,s);
+    strip.appendChild(s); steps.push(s);
+  }
+
+  // ============== ANIMATION LOOP ==============
+  var scope=document.getElementById("scope");
+  var sctx=scope.getContext("2d");
+  var W=scope.width,H=scope.height;
+  var roCut=document.getElementById("roCut"), roReso=document.getElementById("roReso");
+
+  var cur=0, lastStep=-1, phase=0, t0=performance.now();
+  function applyCur(idx){
+    steps.forEach(function(s,i){ s.classList.toggle("cur", i===idx && (pattern[i]===1)); });
+  }
+
+  function pad3(v){return ("00"+Math.round(v*100)).slice(-3);}
+
+  function loop(now){
+    var dt=(now-t0)/1000; t0=now;
+    // tempo: glide & decay nudge the chase speed for character
+    var decay=STATE[4], glide=STATE[6];
+    var bps = 2.0 + (1-decay)*2.6;       // faster with shorter decay
+    phase += dt*bps;
+    if(phase>=1){ phase-=1; cur=(cur+1)%STEPS;
+      // skip to next active-ish step occasionally for a "chase" feel
+    }
+    if(cur!==lastStep){ applyCur(cur); lastStep=cur; }
+
+    // ---- scope: resonant low-pass squelch waveform ----
+    var cut=STATE[1], reso=STATE[2], envm=STATE[3], wave=STATE[0], lvl=STATE[7], acc=STATE[5];
+    roCut.textContent="CUT "+pad3(cut);
+    roReso.textContent="RES "+pad3(reso);
+
+    sctx.clearRect(0,0,W,H);
+    // glow under-curve
+    var freq = 2 + cut*9;                 // visible cycles
+    var q = 1 + reso*9;                    // resonant ringing depth
+    var env = Math.exp(-((phase)) * (1.5+ (1-STATE[4])*6)); // filter-env sweep per step
+    var amp = (0.30 + lvl*0.55) * (1 + acc*0.35* (accents[cur]?1:0));
+
+    sctx.lineWidth=2;
+    var grad=sctx.createLinearGradient(0,0,W,0);
+    grad.addColorStop(0,ACC2); grad.addColorStop(1,ACC);
+    sctx.strokeStyle=grad;
+    sctx.shadowColor=ACC; sctx.shadowBlur=8;
+    sctx.beginPath();
+    for(var x=0;x<=W;x+=2){
+      var u=x/W;
+      // base osc: saw<->square morph
+      var saw = 2*((u*freq)%1)-1;
+      var sq  = ((u*freq)%1)<0.5?1:-1;
+      var osc = saw*(1-wave)+sq*wave;
+      // resonant ring riding on the cutoff sweep, modulated by env
+      var ring = Math.sin(u*freq*Math.PI*2*(1+ q*0.18)) * Math.exp(-((u*freq)%1)*q*0.7) * (0.4+envm*0.6) * env;
+      var y = (osc*0.5 + ring) * amp;
+      var py = H/2 - y*(H*0.42);
+      if(x===0) sctx.moveTo(x,py); else sctx.lineTo(x,py);
+    }
+    sctx.stroke();
+    sctx.shadowBlur=0;
+
+    // scan line that tracks the step
+    var sx = (cur+phase)/STEPS * W;
+    sctx.fillStyle="rgba(198,255,61,.10)";
+    sctx.fillRect(sx-1,0,3,H);
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ============== HOST WIRING ==============
+  function ready(){
+    // push every param at its default so host + UI agree
+    knobs.forEach(function(k,i){ send(PARAMS[i].index, k.get()); });
+  }
+  if(host && host.onReady) host.onReady(ready); else ready();
+
+})();
+</script>
+</body>
+</html>

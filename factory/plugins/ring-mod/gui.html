@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ring Mod</title>
+<style>
+  :root{
+    --acc:#ff5ad1;
+    --acc2:#ff8ae0;
+    --steel:#9fb0bd;
+    --steel-d:#3a4650;
+    --bg0:#0a0d12;
+    --bg1:#141a22;
+    --ink:#dfe9f2;
+    --glass:rgba(255,90,209,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"DIN Alternate","Bahnschrift","Avenir Next Condensed",system-ui,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1d2530 0%, #0a0d12 60%, #05070a 100%);
+    color:var(--ink);
+    overflow:hidden;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ===== chassis / bezel ===== */
+  .unit{
+    position:relative;
+    width:100%;height:100%;
+    min-height:100vh;
+    padding:14px;
+    display:flex;flex-direction:column;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,.018) 0 2px, transparent 2px 7px),
+      linear-gradient(160deg, #1a212b 0%, #0c1016 100%);
+    border:1px solid #000;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), inset 0 0 60px rgba(0,0,0,.6);
+  }
+  /* corner rivets */
+  .rivet{position:absolute;width:10px;height:10px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #cdd6dd, #4a555e 60%, #1b2127);
+    box-shadow:0 1px 2px rgba(0,0,0,.8), inset 0 1px 1px rgba(255,255,255,.5);}
+  .rivet.tl{top:7px;left:7px}.rivet.tr{top:7px;right:7px}
+  .rivet.bl{bottom:7px;left:7px}.rivet.br{bottom:7px;right:7px}
+
+  /* ===== header ===== */
+  header{display:flex;align-items:flex-end;justify-content:space-between;
+    padding:2px 10px 10px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .brand{display:flex;flex-direction:column;line-height:1}
+  .brand .sub{font-size:9px;letter-spacing:4px;color:var(--steel);opacity:.7}
+  .brand h1{
+    font-size:26px;letter-spacing:7px;font-weight:700;
+    background:linear-gradient(180deg,#fff 0%,var(--acc2) 45%,var(--acc) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 10px rgba(255,90,209,.35));
+    margin-top:4px;
+  }
+  .powerlamp{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:2px;color:var(--steel)}
+  .lamp{width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #fff, var(--acc) 55%, #6a0040 100%);
+    box-shadow:0 0 10px var(--acc),0 0 22px rgba(255,90,209,.5);
+    animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.55;box-shadow:0 0 6px var(--acc)}50%{opacity:1;box-shadow:0 0 16px var(--acc),0 0 30px rgba(255,90,209,.6)}}
+
+  /* ===== main grid ===== */
+  main{flex:1;display:grid;grid-template-columns:1.35fr .95fr;gap:14px;padding:12px 6px 6px;min-height:0}
+
+  /* ===== scope ===== */
+  .scope-wrap{position:relative;border-radius:10px;overflow:hidden;
+    background:radial-gradient(120% 130% at 50% 0%, #0c1820 0%, #04080b 75%);
+    border:1px solid #000;
+    box-shadow:inset 0 0 0 2px #11181f, inset 0 0 40px rgba(0,0,0,.9), 0 6px 18px rgba(0,0,0,.6);}
+  .scope-wrap::after{/* glass glare + scanlines */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.07), transparent 30%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0 1px, transparent 1px 3px);
+    mix-blend-mode:screen;}
+  canvas{display:block;width:100%;height:100%}
+  .scope-tag{position:absolute;left:10px;top:8px;font-size:8.5px;letter-spacing:3px;
+    color:var(--acc2);opacity:.65;text-shadow:0 0 8px var(--acc)}
+  .scope-tag.r{left:auto;right:10px;color:var(--steel)}
+  .scope-readout{position:absolute;left:10px;bottom:8px;font-size:9px;letter-spacing:1px;
+    color:var(--steel);font-variant-numeric:tabular-nums}
+  .scope-readout b{color:var(--acc2)}
+
+  /* ===== control bay ===== */
+  .bay{display:flex;flex-direction:column;gap:10px;min-height:0}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .panel{
+    position:relative;border-radius:9px;padding:9px 9px 7px;
+    background:linear-gradient(165deg,#222b35 0%,#10151b 100%);
+    border:1px solid #000;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 3px 8px rgba(0,0,0,.5);
+  }
+  .plabel{font-size:8.5px;letter-spacing:2.5px;color:var(--steel);opacity:.85;text-align:center;margin-bottom:2px}
+  .pval{font-size:11px;letter-spacing:.5px;color:var(--acc2);text-align:center;
+    font-variant-numeric:tabular-nums;text-shadow:0 0 9px rgba(255,90,209,.4)}
+
+  /* ===== big carrier dial ===== */
+  .carrier{grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;padding-bottom:10px}
+  .dial{position:relative;width:128px;height:128px;cursor:ns-resize;touch-action:none}
+  .dial svg{display:block;width:100%;height:100%;overflow:visible}
+  .dial .glow-ring{filter:drop-shadow(0 0 6px var(--acc))}
+  .dial .knob-cap{transition:filter .15s}
+  .dial:hover .knob-cap{filter:drop-shadow(0 0 4px rgba(255,90,209,.5))}
+  .dial:active{cursor:grabbing}
+
+  /* small dials */
+  .mini{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:ns-resize;touch-action:none}
+  .mini svg{width:62px;height:62px;display:block;overflow:visible}
+  .mini:active{cursor:grabbing}
+
+  /* ===== waveform toggle ===== */
+  .wave-toggle{grid-column:1 / -1}
+  .seg{display:flex;background:#0b1017;border-radius:7px;padding:3px;gap:3px;
+    box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
+  .seg button{flex:1;border:0;cursor:pointer;border-radius:5px;padding:8px 4px;
+    background:transparent;color:var(--steel);font-family:inherit;font-size:10px;
+    letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:all .2s;position:relative}
+  .seg button svg{width:30px;height:14px}
+  .seg button.on{
+    background:linear-gradient(180deg,var(--acc) 0%,#c0288f 100%);
+    color:#1a0012;
+    box-shadow:0 0 14px rgba(255,90,209,.55), inset 0 1px 0 rgba(255,255,255,.4);
+    text-shadow:none}
+  .seg button.on svg{filter:drop-shadow(0 0 2px rgba(0,0,0,.4))}
+
+  /* ===== mix fader ===== */
+  .mixpanel{grid-column:1 / -1}
+  .fader-track{position:relative;height:16px;border-radius:8px;margin:7px 4px 4px;
+    background:linear-gradient(90deg,#0b1017,#1a2330);
+    box-shadow:inset 0 2px 5px rgba(0,0,0,.8);cursor:ew-resize;touch-action:none}
+  .fader-fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;
+    background:linear-gradient(90deg,#7a1860,var(--acc) 80%,var(--acc2));
+    box-shadow:0 0 12px rgba(255,90,209,.5)}
+  .fader-thumb{position:absolute;top:50%;width:14px;height:26px;border-radius:4px;
+    transform:translate(-50%,-50%);
+    background:linear-gradient(180deg,#e8eef3,#9aa6af 55%,#5a656d);
+    box-shadow:0 1px 3px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.6);}
+  .fader-ends{display:flex;justify-content:space-between;font-size:8px;letter-spacing:2px;
+    color:var(--steel);opacity:.6;padding:0 4px;margin-top:2px}
+
+  /* tick marks around dials drawn in svg */
+  .hint{text-align:center;font-size:7.5px;letter-spacing:2px;color:var(--steel);opacity:.4;padding-top:6px}
+</style>
+</head>
+<body>
+<div class="unit">
+  <span class="rivet tl"></span><span class="rivet tr"></span>
+  <span class="rivet bl"></span><span class="rivet br"></span>
+
+  <header>
+    <div class="brand">
+      <span class="sub">VIBE ANALOG SYSTEMS</span>
+      <h1>RING&nbsp;MOD</h1>
+    </div>
+    <div class="powerlamp"><span class="lamp"></span>CARRIER&nbsp;LIVE</div>
+  </header>
+
+  <main>
+    <!-- LISSAJOUS / OSCILLOSCOPE -->
+    <div class="scope-wrap">
+      <canvas id="scope"></canvas>
+      <div class="scope-tag">X-Y LISSAJOUS</div>
+      <div class="scope-tag r">RM-1000</div>
+      <div class="scope-readout">CARRIER <b id="ro-hz">— Hz</b> &nbsp;·&nbsp; LFO <b id="ro-lfo">— Hz</b> &nbsp;·&nbsp; WET <b id="ro-mix">—</b></div>
+    </div>
+
+    <!-- CONTROL BAY -->
+    <div class="bay">
+      <!-- big carrier dial -->
+      <div class="panel carrier">
+        <div class="plabel">CARRIER FREQUENCY</div>
+        <div class="dial" id="d-freq" data-idx="0" data-min="0" data-max="1" data-def="0.5">
+          <svg viewBox="0 0 100 100">
+            <defs>
+              <radialGradient id="capg" cx="38%" cy="32%" r="75%">
+                <stop offset="0%" stop-color="#3a444e"/>
+                <stop offset="55%" stop-color="#1b232c"/>
+                <stop offset="100%" stop-color="#0a0e13"/>
+              </radialGradient>
+              <linearGradient id="ptr" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fff"/>
+                <stop offset="100%" stop-color="var(--acc)"/>
+              </linearGradient>
+            </defs>
+            <!-- tick ring -->
+            <g id="freq-ticks"></g>
+            <!-- value arc -->
+            <circle class="glow-ring" cx="50" cy="50" r="42" fill="none"
+                    stroke="#10161d" stroke-width="4"/>
+            <circle id="freq-arc" class="glow-ring" cx="50" cy="50" r="42" fill="none"
+                    stroke="var(--acc)" stroke-width="4" stroke-linecap="round"
+                    transform="rotate(135 50 50)"/>
+            <!-- metallic cap -->
+            <circle class="knob-cap" cx="50" cy="50" r="33" fill="url(#capg)"
+                    stroke="#000" stroke-width="1"/>
+            <circle cx="50" cy="50" r="33" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+            <!-- pointer -->
+            <g id="freq-ptr">
+              <rect x="48.5" y="20" width="3" height="20" rx="1.5" fill="url(#ptr)"
+                    filter="drop-shadow(0 0 3px var(--acc))"/>
+              <circle cx="50" cy="50" r="3.5" fill="#0a0e13" stroke="var(--acc)" stroke-width="1"/>
+            </g>
+          </svg>
+        </div>
+        <div class="pval" id="v-freq">—</div>
+      </div>
+
+      <!-- waveform morph toggle -->
+      <div class="panel wave-toggle">
+        <div class="plabel">CARRIER WAVEFORM</div>
+        <div class="seg" id="seg-wave" data-idx="1" data-def="0">
+          <button data-v="0" class="on">
+            <svg viewBox="0 0 40 20"><path d="M2 10 Q10 -3 20 10 T38 10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            SINE
+          </button>
+          <button data-v="1">
+            <svg viewBox="0 0 40 20"><path d="M2 16 H12 V4 H26 V16 H38" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            SQUARE
+          </button>
+        </div>
+      </div>
+
+      <!-- LFO pair -->
+      <div class="row">
+        <div class="panel">
+          <div class="plabel">LFO RATE</div>
+          <div class="mini" id="d-rate" data-idx="2" data-min="0" data-max="1" data-def="0.3">
+            <svg viewBox="0 0 100 100">
+              <g class="mtick"></g>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#10161d" stroke-width="6"/>
+              <circle class="marc" cx="50" cy="50" r="42" fill="none" stroke="var(--acc2)" stroke-width="6" stroke-linecap="round" transform="rotate(135 50 50)"/>
+              <circle cx="50" cy="50" r="30" fill="url(#capg)" stroke="#000"/>
+              <g class="mptr"><rect x="48" y="22" width="4" height="18" rx="2" fill="#fff"/></g>
+            </svg>
+          </div>
+          <div class="pval" id="v-rate">—</div>
+        </div>
+        <div class="panel">
+          <div class="plabel">LFO DEPTH</div>
+          <div class="mini" id="d-depth" data-idx="3" data-min="0" data-max="1" data-def="0.25">
+            <svg viewBox="0 0 100 100">
+              <g class="mtick"></g>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#10161d" stroke-width="6"/>
+              <circle class="marc" cx="50" cy="50" r="42" fill="none" stroke="var(--acc2)" stroke-width="6" stroke-linecap="round" transform="rotate(135 50 50)"/>
+              <circle cx="50" cy="50" r="30" fill="url(#capg)" stroke="#000"/>
+              <g class="mptr"><rect x="48" y="22" width="4" height="18" rx="2" fill="#fff"/></g>
+            </svg>
+          </div>
+          <div class="pval" id="v-depth">—</div>
+        </div>
+      </div>
+
+      <!-- mix fader -->
+      <div class="panel mixpanel">
+        <div class="plabel">DRY / WET MIX</div>
+        <div class="fader-track" id="f-mix" data-idx="4" data-min="0" data-max="1" data-def="1">
+          <div class="fader-fill" id="mix-fill"></div>
+          <div class="fader-thumb" id="mix-thumb"></div>
+        </div>
+        <div class="fader-ends"><span>DRY</span><span id="v-mix">—</span><span>WET</span></div>
+      </div>
+    </div>
+  </main>
+  <div class="hint">DRAG VERTICAL · DOUBLE-CLICK TO RESET</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var TAU=Math.PI*2;
+
+  function clamp(v,a,b){return v<a?a:v>b?b:v;}
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+
+  // ---- shared state mirror for the scope animation ----
+  var state={freq:0.5,wave:0,rate:0.3,depth:0.25,mix:1};
+
+  // ============================================================
+  //  ROTARY DIALS (big + minis): drag = change, dblclick = reset
+  // ============================================================
+  // sweep: 270deg, from -135 to +135 (135 rotation offset on the arc)
+  var SWEEP=270, START=-135, CIRC=2*Math.PI*42;
+
+  function drawTicks(g,count,big){
+    var ns="http://www.w3.org/2000/svg",html="";
+    for(var k=0;k<count;k++){
+      var t=k/(count-1), a=(START + t*SWEEP)*Math.PI/180;
+      var r1=big?47:46, r2=big?50:50;
+      var x1=50+Math.sin(a)*r1, y1=50-Math.cos(a)*r1;
+      var x2=50+Math.sin(a)*r2, y2=50-Math.cos(a)*r2;
+      var ln=document.createElementNS(ns,"line");
+      ln.setAttribute("x1",x1);ln.setAttribute("y1",y1);
+      ln.setAttribute("x2",x2);ln.setAttribute("y2",y2);
+      ln.setAttribute("stroke",(k===0||k===count-1)?"var(--acc2)":"#46525c");
+      ln.setAttribute("stroke-width",(k===0||k===count-1)?"1.4":"0.9");
+      g.appendChild(ln);
+    }
+  }
+
+  function setRotary(o){
+    var frac=(o.val-o.min)/(o.max-o.min);
+    var ang=START + frac*SWEEP;
+    o.ptr.setAttribute("transform","rotate("+ang+" 50 50)");
+    // arc: dasharray reveal
+    if(o.arc){
+      var on=CIRC*(frac*SWEEP/360);
+      o.arc.setAttribute("stroke-dasharray", on+" "+CIRC);
+    }
+  }
+
+  function makeDial(el, onChange){
+    var idx=+el.dataset.idx, min=+el.dataset.min, max=+el.dataset.max, def=+el.dataset.def;
+    var ptr=el.querySelector('#freq-ptr, .mptr');
+    var arc=el.querySelector('#freq-arc, .marc');
+    var ticksG=el.querySelector('#freq-ticks, .mtick');
+    var big=el.id==='d-freq';
+    if(ticksG) drawTicks(ticksG, big?21:11, big);
+    var o={val:def,min:min,max:max,ptr:ptr,arc:arc};
+    setRotary(o);
+    onChange(o.val,true);
+
+    var dragging=false, lastY=0;
+    function apply(v){ o.val=clamp(v,min,max); setRotary(o); send(idx,o.val); onChange(o.val,false); }
+    el.addEventListener('pointerdown',function(e){
+      dragging=true; lastY=e.clientY; el.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    el.addEventListener('pointermove',function(e){
+      if(!dragging)return;
+      var dy=lastY-e.clientY; lastY=e.clientY;
+      var span=(max-min);
+      var step= e.shiftKey?0.25:1;          // shift = fine
+      apply(o.val + dy*0.005*span/step);
+    });
+    function end(e){ if(dragging){dragging=false; try{el.releasePointerCapture(e.pointerId);}catch(_){}} }
+    el.addEventListener('pointerup',end);
+    el.addEventListener('pointercancel',end);
+    el.addEventListener('dblclick',function(){ apply(def); });
+    el.addEventListener('wheel',function(e){
+      e.preventDefault();
+      apply(o.val - (e.deltaY>0?1:-1)*0.02*(max-min));
+    },{passive:false});
+    return {apply:apply, get:function(){return o.val;}};
+  }
+
+  // hz mapping for display only (20 Hz .. ~6 kHz, exponential)
+  function toHz(f){ return Math.round(20*Math.pow(300,f)); }
+  function fmtHz(h){ return h>=1000?(h/1000).toFixed(2)+" kHz":h+" Hz"; }
+  function lfoHz(f){ return (0.05*Math.pow(400,f)).toFixed(2); } // 0.05..20 Hz
+
+  // FREQUENCY
+  var vFreq=document.getElementById('v-freq'), roHz=document.getElementById('ro-hz');
+  makeDial(document.getElementById('d-freq'), function(v){
+    state.freq=v;
+    var h=toHz(v); vFreq.textContent=fmtHz(h); roHz.textContent=fmtHz(h);
+  });
+
+  // LFO RATE
+  var vRate=document.getElementById('v-rate'), roLfo=document.getElementById('ro-lfo');
+  makeDial(document.getElementById('d-rate'), function(v){
+    state.rate=v;
+    var h=lfoHz(v); vRate.textContent=h+" Hz"; roLfo.textContent=h+" Hz";
+  });
+
+  // LFO DEPTH
+  var vDepth=document.getElementById('v-depth');
+  makeDial(document.getElementById('d-depth'), function(v){
+    state.depth=v; vDepth.textContent=Math.round(v*100)+" %";
+  });
+
+  // ============================================================
+  //  WAVEFORM SEGMENTED TOGGLE  (param 1, step 1)
+  // ============================================================
+  (function(){
+    var seg=document.getElementById('seg-wave');
+    var idx=+seg.dataset.idx, def=+seg.dataset.def;
+    var btns=seg.querySelectorAll('button');
+    function select(v,quiet){
+      v=v|0;
+      btns.forEach(function(b){ b.classList.toggle('on', +b.dataset.v===v); });
+      state.wave=v;
+      if(!quiet) send(idx,v);
+    }
+    btns.forEach(function(b){
+      b.addEventListener('click',function(){ select(+b.dataset.v,false); });
+    });
+    seg.addEventListener('dblclick',function(){ select(def,false); });
+    select(def,true); send(idx,def);
+  })();
+
+  // ============================================================
+  //  MIX FADER  (param 4)  drag horizontal
+  // ============================================================
+  (function(){
+    var f=document.getElementById('f-mix');
+    var idx=+f.dataset.idx, min=+f.dataset.min, max=+f.dataset.max, def=+f.dataset.def;
+    var fill=document.getElementById('mix-fill'), thumb=document.getElementById('mix-thumb');
+    var vMix=document.getElementById('v-mix'), roMix=document.getElementById('ro-mix');
+    var val=def;
+    function render(){
+      var frac=(val-min)/(max-min);
+      fill.style.width=(frac*100)+"%";
+      thumb.style.left=(frac*100)+"%";
+      var pct=Math.round(frac*100);
+      vMix.textContent=pct+"%"; roMix.textContent=pct+"%";
+      state.mix=frac;
+    }
+    function setFrac(frac,quiet){
+      val=clamp(min+frac*(max-min),min,max); render();
+      if(!quiet) send(idx,val);
+    }
+    function fromEvent(e){
+      var r=f.getBoundingClientRect();
+      setFrac((e.clientX-r.left)/r.width,false);
+    }
+    var dragging=false;
+    f.addEventListener('pointerdown',function(e){
+      dragging=true; f.setPointerCapture(e.pointerId); fromEvent(e); e.preventDefault();
+    });
+    f.addEventListener('pointermove',function(e){ if(dragging) fromEvent(e); });
+    function end(e){ if(dragging){dragging=false; try{f.releasePointerCapture(e.pointerId);}catch(_){}} }
+    f.addEventListener('pointerup',end);
+    f.addEventListener('pointercancel',end);
+    f.addEventListener('dblclick',function(){ setFrac((def-min)/(max-min),false); });
+    setFrac((def-min)/(max-min),true); send(idx,def);
+  })();
+
+  // ============================================================
+  //  LISSAJOUS SCOPE  — carrier x signal, ring-modulated
+  // ============================================================
+  (function(){
+    var cv=document.getElementById('scope'), ctx=cv.getContext('2d');
+    var W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+    function resize(){
+      var r=cv.getBoundingClientRect();
+      W=r.width;H=r.height;
+      cv.width=W*DPR;cv.height=H*DPR;
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+    new ResizeObserver(resize).observe(cv); resize();
+
+    var ph=0, lfoPh=0;
+    function frame(t){
+      ctx.clearRect(0,0,W,H);
+      var cx=W/2, cy=H/2, R=Math.min(W,H)*0.36;
+
+      // grid graticule
+      ctx.save();
+      ctx.strokeStyle="rgba(120,160,180,.10)"; ctx.lineWidth=1;
+      for(var gx=-2;gx<=2;gx++){ctx.beginPath();ctx.moveTo(cx+gx*R/2,cy-R*1.15);ctx.lineTo(cx+gx*R/2,cy+R*1.15);ctx.stroke();}
+      for(var gy=-2;gy<=2;gy++){ctx.beginPath();ctx.moveTo(cx-R*1.15,cy+gy*R/2);ctx.lineTo(cx+R*1.15,cy+gy*R/2);ctx.stroke();}
+      ctx.strokeStyle="rgba(120,160,180,.20)";
+      ctx.beginPath();ctx.moveTo(cx,cy-R*1.15);ctx.lineTo(cx,cy+R*1.15);
+      ctx.moveTo(cx-R*1.15,cy);ctx.lineTo(cx+R*1.15,cy);ctx.stroke();
+      ctx.restore();
+
+      // carrier params -> animation speeds
+      var cf = 0.6 + state.freq*5.0;                 // carrier multiplier
+      var lfo = Math.sin(lfoPh)*state.depth;         // freq sweep
+      var ratio = cf*(1+lfo*0.6);
+      // morph sine->square via tanh shaping
+      var shape = state.wave; // 0 sine, 1 square (toggle), interpret as morph amount
+      lfoPh += (0.04 + state.rate*0.6);
+      ph += 0.05;
+
+      // draw lissajous of input(sine) * carrier(ratio) ring-mod -> sum/diff
+      var N=420;
+      ctx.lineWidth=2.0; ctx.lineJoin="round";
+      ctx.shadowColor="rgba(255,90,209,.9)"; ctx.shadowBlur=12;
+      var grad=ctx.createLinearGradient(cx-R,cy,cx+R,cy);
+      grad.addColorStop(0,"#ff8ae0"); grad.addColorStop(1,"#ff5ad1");
+      ctx.strokeStyle=grad;
+      ctx.beginPath();
+      var mixAmp = 0.25 + state.mix*0.85;
+      for(var i=0;i<=N;i++){
+        var u=i/N*TAU;
+        // input signal on X, ring-modulated (input*carrier) on Y -> classic RM lissajous
+        var inp=Math.sin(u + ph*0.2);
+        var car=Math.sin(u*ratio + ph);
+        // square-ish shaping of carrier
+        if(shape>0.5) car = Math.tanh(car*4)*0.95;
+        var rm = inp*car;
+        var x = inp;
+        var y = (1-mixAmp)*inp + mixAmp*rm;  // dry/wet on the displayed Y
+        var px=cx + x*R;
+        var py=cy - y*R;
+        if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+
+      // travelling phosphor dot
+      ctx.shadowBlur=18;
+      var du=(t*0.0012)%1*TAU;
+      var di=Math.sin(du+ph*0.2), dc=Math.sin(du*ratio+ph);
+      if(shape>0.5) dc=Math.tanh(dc*4)*0.95;
+      var drm=di*dc;
+      var dpx=cx+di*R, dpy=cy-((1-mixAmp)*di+mixAmp*drm)*R;
+      ctx.beginPath();ctx.fillStyle="#fff";ctx.arc(dpx,dpy,2.6,0,TAU);ctx.fill();
+      ctx.shadowBlur=0;
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  // ============================================================
+  //  HOST READY
+  // ============================================================
+  function ready(){
+    // re-send defaults so host gets a consistent initial state
+    send(0,0.5); send(1,0); send(2,0.3); send(3,0.25); send(4,1);
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

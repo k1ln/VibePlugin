@@ -6,6 +6,7 @@
   "out": "factory/plugins/grit-distortion/x.vstai",
   "publishedAt": 1751000008000,
   "theme": { "accent": "#c0c8d0", "accent2": "#9aa6b4" },
+  "guiFile": "factory/plugins/grit-distortion/gui.html",
   "params": [
     { "name": "Distortion", "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Filter",     "index": 1, "min": 0, "max": 1, "default": 0.4 },

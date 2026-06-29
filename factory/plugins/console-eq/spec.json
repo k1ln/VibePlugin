@@ -6,6 +6,7 @@
   "out": "factory/plugins/console-eq/x.vstai",
   "publishedAt": 1751000037000,
   "theme": { "accent": "#ffd166", "accent2": "#ffe08a" },
+  "guiFile": "factory/plugins/console-eq/gui.html",
   "params": [
     { "name": "Low Gain",  "index": 0, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Mid Freq",  "index": 1, "min": 0, "max": 1, "default": 0.45 },

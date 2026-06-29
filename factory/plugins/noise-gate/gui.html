@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noise Gate</title>
+<style>
+  :root {
+    --accent: #ff6b6b;
+    --accent2: #ffb36b;
+    --bg0: #0c0d10;
+    --bg1: #15171c;
+    --panel: #1b1e25;
+    --panel2: #23272f;
+    --ink: #e7e9ee;
+    --ink-dim: #8b909b;
+    --line: #2c313b;
+    --shadow: rgba(0,0,0,.55);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #20232b 0%, var(--bg0) 60%) fixed;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 18px clamp(12px, 3vw, 26px) 26px;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 4px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  .brand .kicker {
+    font-size: 10px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .brand h1 {
+    margin: 3px 0 0;
+    font-size: 22px;
+    letter-spacing: .04em;
+    font-weight: 700;
+    background: linear-gradient(180deg, #fff, #c9ccd4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* open/closed LED + status */
+  .status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 2px 6px var(--shadow);
+  }
+  .led {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #3a1414;
+    box-shadow: inset 0 0 4px rgba(0,0,0,.8);
+    transition: background .08s, box-shadow .08s;
+  }
+  .led.open {
+    background: var(--accent);
+    box-shadow: 0 0 4px var(--accent), 0 0 12px var(--accent), inset 0 0 3px #fff6;
+  }
+  .status .txt {
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+    min-width: 56px;
+  }
+
+  /* ---------- the gate door stage ---------- */
+  .stage {
+    position: relative;
+    margin: 18px 0 6px;
+    height: 200px;
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, #0a0b0e, #121419);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 2px 14px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.03);
+    overflow: hidden;
+  }
+  /* signal flow lanes behind the door */
+  .lanes {
+    position: absolute;
+    inset: 0;
+    opacity: .5;
+  }
+  .lane {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3a4150 40%, #3a4150 60%, transparent);
+  }
+
+  /* the doorway frame in the middle */
+  .frame {
+    position: absolute;
+    top: 16px; bottom: 16px;
+    left: 50%;
+    width: 150px;
+    transform: translateX(-50%);
+    border-radius: 8px;
+    background: repeating-linear-gradient(45deg, #14161b 0 6px, #171a20 6px 12px);
+    border: 2px solid #0a0b0e;
+    box-shadow: inset 0 0 22px rgba(0,0,0,.9);
+  }
+
+  /* the two swinging gate doors */
+  .door {
+    position: absolute;
+    top: 16px; bottom: 16px;
+    width: 75px;
+    background:
+      linear-gradient(100deg, #2a2e37 0%, #1d2027 55%, #15171c 100%);
+    border: 1px solid #353b46;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 8px 18px rgba(0,0,0,.55);
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .door::after {
+    /* a bolt strip / handle */
+    content: "";
+    position: absolute;
+    top: 8px; bottom: 8px;
+    width: 4px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 6px var(--accent);
+    opacity: .8;
+  }
+  .door.left {
+    left: calc(50% - 75px);
+    transform-origin: left center;
+    border-radius: 6px 2px 2px 6px;
+  }
+  .door.left::after { right: 7px; }
+  .door.right {
+    left: 50%;
+    transform-origin: right center;
+    border-radius: 2px 6px 6px 2px;
+  }
+  .door.right::after { left: 7px; }
+
+  /* the threshold line that runs across the stage */
+  .threshold {
+    position: absolute;
+    left: 0; right: 0;
+    height: 0;
+    border-top: 2px dashed var(--accent2);
+    opacity: .85;
+    box-shadow: 0 0 8px rgba(255,179,107,.4);
+    transition: top .12s ease;
+  }
+  .threshold .tag {
+    position: absolute;
+    right: 8px;
+    top: -9px;
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    background: #0c0d10cc;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  /* a rising level bar that pokes above/below the threshold */
+  .levelbar {
+    position: absolute;
+    left: 14px;
+    bottom: 16px;
+    width: 8px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 10px rgba(255,107,107,.5);
+    height: 4px;
+  }
+
+  /* sweeping shimmer when gate is open (signal passing) */
+  @keyframes flow {
+    0%   { transform: translateX(-120%); opacity: 0; }
+    25%  { opacity: .9; }
+    100% { transform: translateX(120%); opacity: 0; }
+  }
+  .flow {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 60px;
+    background: linear-gradient(90deg, transparent, rgba(255,107,107,.22), transparent);
+    pointer-events: none;
+  }
+  .stage.open .flow { animation: flow 1.1s linear infinite; }
+
+  /* ---------- controls ---------- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .cell {
+    position: relative;
+    padding: 14px 10px 12px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 4px 12px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .cell .label {
+    font-size: 10px;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .knob {
+    position: relative;
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { display: block; }
+  .knob .cap {
+    fill: url(#capGrad);
+    stroke: #0a0b0e;
+    stroke-width: 1.5;
+  }
+  .knob .tick {
+    stroke: var(--ink);
+    stroke-width: 3;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 3px var(--accent));
+  }
+  .value {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .04em;
+    color: var(--ink);
+    background: #0c0d10;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 8px;
+    min-width: 62px;
+    text-align: center;
+  }
+
+  footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: #565b66;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">
+      <span class="kicker">Dynamics · Downward Expander</span>
+      <h1>NOISE GATE</h1>
+    </div>
+    <div class="status">
+      <span class="led" id="led"></span>
+      <span class="txt" id="statusTxt">CLOSED</span>
+    </div>
+  </header>
+
+  <!-- the gate door stage -->
+  <div class="stage" id="stage">
+    <div class="lanes" id="lanes"></div>
+    <div class="threshold" id="threshold"><span class="tag">Threshold</span></div>
+    <div class="levelbar" id="levelbar"></div>
+    <div class="frame"></div>
+    <div class="door left"  id="doorL"></div>
+    <div class="door right" id="doorR"></div>
+    <div class="flow"></div>
+  </div>
+
+  <!-- controls -->
+  <div class="rack" id="rack"></div>
+
+  <footer>Below threshold the gate slams shut · loud signal passes clean</footer>
+</div>
+
+<!-- shared SVG gradient defs for every knob cap -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <radialGradient id="capGrad" cx="38%" cy="30%" r="80%">
+      <stop offset="0%"  stop-color="#343a45"/>
+      <stop offset="55%" stop-color="#22262e"/>
+      <stop offset="100%" stop-color="#14161b"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<script>
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Threshold", index: 0, min: 0, max: 1, def: 0.55, fmt: thr },
+    { name: "Range",     index: 1, min: 0, max: 1, def: 0.80, fmt: rng },
+    { name: "Attack",    index: 2, min: 0, max: 1, def: 0.15, fmt: atk },
+    { name: "Release",   index: 3, min: 0, max: 1, def: 0.35, fmt: rel },
+    { name: "Hold",      index: 4, min: 0, max: 1, def: 0.20, fmt: hld }
+  ];
+
+  // ---- value formatters mirror the DSP unit mapping ----
+  function thr(v) { return (-72 + v * 72).toFixed(1) + " dB"; }
+  function rng(v) { return v <= 0.001 ? "0.0 dB" : (v * -90).toFixed(0) + " dB"; }
+  function atk(v) { return (0.05 + v * v * 49.95).toFixed(2) + " ms"; }
+  function rel(v) { var m = 5 + v * v * 995; return (m >= 100 ? m.toFixed(0) : m.toFixed(1)) + " ms"; }
+  function hld(v) { return (v * 500).toFixed(0) + " ms"; }
+
+  var state = PARAMS.map(function (p) { return p.def; });
+
+  // ---- host bridge ----
+  function push(i, value) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(i, value);
+    }
+  }
+
+  // ---- build the knobs ----
+  var rack = document.getElementById("rack");
+  var ARC0 = -135, ARC1 = 135; // degrees sweep
+
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.innerHTML =
+      '<svg viewBox="0 0 78 78" width="78" height="78">' +
+      '  <circle cx="39" cy="39" r="34" fill="none" stroke="#0a0b0e" stroke-width="6"/>' +
+      '  <path class="arcbg" d="" fill="none" stroke="#2c313b" stroke-width="5" stroke-linecap="round"/>' +
+      '  <path class="arc"   d="" fill="none" stroke="url(#capGrad)" stroke-width="5" stroke-linecap="round"/>' +
+      '  <circle class="cap" cx="39" cy="39" r="26"/>' +
+      '  <line class="tick" x1="39" y1="39" x2="39" y2="18"/>' +
+      '</svg>';
+
+    var value = document.createElement("div");
+    value.className = "value";
+
+    cell.appendChild(label);
+    cell.appendChild(knob);
+    cell.appendChild(value);
+    rack.appendChild(cell);
+
+    var arc = knob.querySelector(".arc");
+    var arcbg = knob.querySelector(".arcbg");
+    var tick = knob.querySelector(".tick");
+    arcbg.setAttribute("d", arcPath(0, 1));
+
+    function render() {
+      var v = state[p.index];
+      var ang = ARC0 + (ARC1 - ARC0) * v;
+      tick.setAttribute("transform", "rotate(" + ang + " 39 39)");
+      // accent the active arc with the theme gradient via stroke colour
+      arc.setAttribute("d", arcPath(0, v));
+      arc.setAttribute("stroke", v > 0.5 ? "var(--accent)" : "var(--accent2)");
+      value.textContent = p.fmt(v);
+    }
+    render();
+
+    // ---- drag to turn (vertical), wheel fine-tune, dbl-click reset ----
+    var dragging = false, startY = 0, startV = 0;
+
+    function setV(v) {
+      v = Math.max(0, Math.min(1, v));
+      state[p.index] = v;
+      push(p.index, v);
+      render();
+    }
+
+    knob.addEventListener("pointerdown", function (e) {
+      dragging = true; startY = e.clientY; startV = state[p.index];
+      knob.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    knob.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dy = startY - e.clientY;
+      setV(startV + dy / 200);
+    });
+    knob.addEventListener("pointerup", function () { dragging = false; });
+    knob.addEventListener("pointercancel", function () { dragging = false; });
+    knob.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      setV(state[p.index] - Math.sign(e.deltaY) * 0.02);
+    }, { passive: false });
+    knob.addEventListener("dblclick", function () { setV(p.def); });
+
+    return render;
+  }
+
+  // build an SVG arc path (value 0..1) along the -135..135 sweep
+  function arcPath(from, to) {
+    var r = 31, cx = 39, cy = 39;
+    var a0 = (ARC0 + (ARC1 - ARC0) * from) * Math.PI / 180;
+    var a1 = (ARC0 + (ARC1 - ARC0) * to) * Math.PI / 180;
+    // start at bottom: rotate so 0deg points down. Our tick points up at 0deg,
+    // so map angle to screen coordinates with up = -y.
+    function pt(a) {
+      return [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+    }
+    var p0 = pt(a0), p1 = pt(a1);
+    var large = (to - from) > 0.5 ? 1 : 0;
+    return "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " +
+           p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  var renderers = PARAMS.map(makeKnob);
+
+  // ---- build the lane lines behind the door ----
+  (function () {
+    var lanes = document.getElementById("lanes");
+    for (var i = 0; i < 9; i++) {
+      var l = document.createElement("div");
+      l.className = "lane";
+      l.style.top = (18 + i * 20) + "px";
+      lanes.appendChild(l);
+    }
+  })();
+
+  // ---- animated gate visual: simulate a level, drive the doors ----
+  var stage = document.getElementById("stage");
+  var doorL = document.getElementById("doorL");
+  var doorR = document.getElementById("doorR");
+  var led = document.getElementById("led");
+  var statusTxt = document.getElementById("statusTxt");
+  var thresholdEl = document.getElementById("threshold");
+  var levelbar = document.getElementById("levelbar");
+
+  var simLevel = 0;     // 0..1 pseudo input level
+  var gateGain = 0;     // 0..1 smoothed open amount
+  var holdLeft = 0;
+  var t = 0;
+
+  function loop() {
+    if (document.hidden) { requestAnimationFrame(loop); return; }
+    t += 0.016;
+
+    // a lively pseudo signal: bursts of "loud" with quiet gaps so the gate works
+    var burst = Math.max(0, Math.sin(t * 1.7)) * (0.6 + 0.4 * Math.sin(t * 11.0));
+    var noise = 0.08 * Math.random();
+    simLevel = simLevel * 0.6 + Math.max(burst, noise) * 0.4;
+
+    var thrV = state[0];                 // 0..1 threshold position
+    var open = simLevel > (thrV * 0.85 + 0.05);
+    if (open) holdLeft = 0.25 + state[4] * 0.8;
+    else if (holdLeft > 0) holdLeft -= 0.016;
+
+    var target = (open || holdLeft > 0) ? 1 : (1 - state[1]) * 0.0; // range = how shut
+    var rangeFloor = (1 - state[1]);     // closed gain visual
+    target = (open || holdLeft > 0) ? 1 : rangeFloor;
+
+    var atkV = 0.20 + state[2] * 0.5;    // smoothing speeds for the visual
+    var relV = 0.04 + (1 - state[3]) * 0.25;
+    var speed = target > gateGain ? atkV : relV;
+    gateGain += (target - gateGain) * speed;
+
+    // swing the doors: 0 gain -> fully shut (0deg), 1 -> swung open (~78deg)
+    var swing = gateGain * 78;
+    doorL.style.transform = "perspective(600px) rotateY(" + (-swing) + "deg)";
+    doorR.style.transform = "perspective(600px) rotateY(" + ( swing) + "deg)";
+
+    // threshold line position (top: high threshold = lower line)
+    var stageH = 200;
+    thresholdEl.style.top = (24 + (1 - thrV) * (stageH - 56)) + "px";
+
+    // level bar height tracks the sim level
+    var lh = 6 + simLevel * (stageH - 40);
+    levelbar.style.height = lh + "px";
+    levelbar.style.opacity = (0.5 + gateGain * 0.5).toFixed(2);
+
+    // LED + status
+    var isOpen = gateGain > 0.55;
+    led.classList.toggle("open", isOpen);
+    stage.classList.toggle("open", isOpen);
+    statusTxt.textContent = isOpen ? "OPEN" : "CLOSED";
+    statusTxt.style.color = isOpen ? "var(--accent)" : "var(--ink-dim)";
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ---- initialise host with defaults ----
+  function init() {
+    for (var i = 0; i < PARAMS.length; i++) {
+      push(PARAMS[i].index, state[i]);
+    }
+    renderers.forEach(function (r) { r(); });
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+</script>
+</body>
+</html>

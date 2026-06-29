@@ -1,0 +1,20 @@
+{
+  "name": "Wave Table",
+  "isInstrument": true,
+  "explanation": "A polyphonic wavetable synthesizer in the spirit of early-1980s German digital hardware. Eight single-cycle waves are generated in code, spanning a pure sine through ever richer harmonic spectra into bright, hollow formant shapes. A Wave Position control scans smoothly through the bank with linear interpolation between tables, morphing the timbre in real time. Each of up to eight voices runs a wavetable oscillator into a resonant 4-pole low-pass shaped by its own filter envelope and amount, then an amplitude envelope, so chords ring with independent contours. Controls: Wave Position, Cutoff, Resonance, Filter Env Amount, Attack, Release, Detune and Level.",
+  "assembly": "factory/plugins/wave-table/assembly.ts",
+  "out": "factory/plugins/wave-table/x.vstai",
+  "publishedAt": 1751000071000,
+  "theme": { "accent": "#5a9cff", "accent2": "#9a6aff" },
+  "guiFile": "factory/plugins/wave-table/gui.html",
+  "params": [
+    { "name": "Wave Position", "index": 0, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Cutoff",        "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Resonance",     "index": 2, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "FilterEnvAmt",  "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Attack",        "index": 4, "min": 0, "max": 1, "default": 0.02 },
+    { "name": "Release",       "index": 5, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Detune",        "index": 6, "min": 0, "max": 1, "default": 0.2 },
+    { "name": "Level",         "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

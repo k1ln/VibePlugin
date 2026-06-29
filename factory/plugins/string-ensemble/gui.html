@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String Ensemble</title>
+<style>
+  :root {
+    --accent:  #e8d6a0;
+    --accent2: #c0a86a;
+    --wood1:   #3a2c1d;
+    --wood2:   #271c11;
+    --cream:   #f3e9cf;
+    --cream-d: #d9caa0;
+    --ink:     #1a140c;
+    --panel:   #2c2114;
+    --panel-hi:#48371f;
+    --text:    #f0e6cf;
+    --text-dim:#b9a784;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0e0a05;
+    color: var(--text);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 14px;
+  }
+
+  .cabinet {
+    position: relative;
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(232,214,160,0.12), transparent 60%),
+      linear-gradient(160deg, var(--wood1), var(--wood2));
+    box-shadow:
+      0 18px 50px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,236,190,0.10),
+      inset 0 -2px 8px rgba(0,0,0,0.5);
+    border: 1px solid rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  /* faint wood grain */
+  .cabinet::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.10;
+    background-image: repeating-linear-gradient(
+      92deg, rgba(255,220,160,0.5) 0 1px, transparent 1px 7px);
+    mix-blend-mode: overlay;
+  }
+
+  /* ---------- header ---------- */
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: var(--cream);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.6), 0 0 18px rgba(232,214,160,0.25);
+  }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent2);
+  }
+  .badge {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    padding: 5px 10px;
+    border-radius: 20px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(0,0,0,0.4);
+    font-weight: 700;
+  }
+
+  /* ---------- string visualiser ---------- */
+  .stage {
+    position: relative;
+    height: 150px;
+    border-radius: 12px;
+    background:
+      radial-gradient(80% 130% at 50% 120%, rgba(232,214,160,0.18), transparent 55%),
+      linear-gradient(180deg, #120c06, #1d1409);
+    border: 1px solid rgba(0,0,0,0.6);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(232,214,160,0.05);
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .stage svg { display: block; width: 100%; height: 100%; }
+
+  /* warm ensemble glow that breathes when playing */
+  .glow {
+    position: absolute;
+    left: 50%; top: 58%;
+    width: 70%; height: 80%;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(closest-side, rgba(232,214,160,0.35), transparent 70%);
+    filter: blur(14px);
+    opacity: 0.25;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .stage.active .glow { animation: breathe 3.2s ease-in-out infinite; opacity: 0.5; }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.30; transform: translate(-50%,-50%) scale(0.96); }
+    50%      { opacity: 0.62; transform: translate(-50%,-50%) scale(1.05); }
+  }
+
+  /* the bowed strings shimmer */
+  .bowstring {
+    transform-origin: center;
+  }
+  .stage.active .bowstring { animation: shimmer 2.6s ease-in-out infinite; }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+  }
+  .bow {
+    transition: transform 0.5s ease;
+  }
+  .stage.active .bow { animation: bowing 2.1s ease-in-out infinite; }
+  @keyframes bowing {
+    0%, 100% { transform: translateX(-14px) rotate(-1deg); }
+    50%      { transform: translateX(14px) rotate(1deg); }
+  }
+
+  /* ---------- controls ---------- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 2;
+  }
+  @media (max-width: 560px) {
+    .rack { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px 8px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+    box-shadow:
+      inset 0 1px 0 rgba(255,236,190,0.12),
+      inset 0 -3px 8px rgba(0,0,0,0.45),
+      0 3px 8px rgba(0,0,0,0.35);
+  }
+  .knob-wrap {
+    position: relative;
+    width: 66px;
+    height: 66px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob-wrap svg { display: block; width: 100%; height: 100%; }
+  .label {
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+  .value {
+    font-size: 11px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+    min-height: 14px;
+  }
+
+  /* ---------- keyboard ---------- */
+  .keyboard {
+    position: relative;
+    height: 96px;
+    border-radius: 8px 8px 10px 10px;
+    padding: 8px 8px 0;
+    background: linear-gradient(180deg, #1b1308, #0f0a04);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.7);
+    z-index: 2;
+  }
+  .keys {
+    position: relative;
+    height: 100%;
+    display: flex;
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream-d) 100%);
+    box-shadow:
+      inset 0 -6px 8px rgba(0,0,0,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.7);
+    cursor: pointer;
+    transition: background 0.08s ease, transform 0.05s ease;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+    transform: translateY(2px);
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 60%;
+    height: 58%;
+    transform: translateX(-50%);
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a2014, #0c0905);
+    box-shadow: inset 0 1px 0 rgba(255,236,190,0.18), 0 3px 5px rgba(0,0,0,0.6);
+    cursor: pointer;
+    z-index: 3;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent2), #6e5a2c);
+    transform: translateX(-50%) translateY(2px);
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 10px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="cabinet">
+
+    <div class="head">
+      <div class="brand">
+        <div class="title">String Ensemble</div>
+        <div class="subtitle">BBD String Machine</div>
+      </div>
+      <div class="badge">Paraphonic</div>
+    </div>
+
+    <!-- bowed-string visualiser -->
+    <div class="stage" id="stage">
+      <div class="glow"></div>
+      <svg viewBox="0 0 700 150" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="strGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fbeec4"/>
+            <stop offset="1" stop-color="#c0a86a"/>
+          </linearGradient>
+          <linearGradient id="bowGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#5a4427"/>
+            <stop offset="0.5" stop-color="#e8d6a0"/>
+            <stop offset="1" stop-color="#5a4427"/>
+          </linearGradient>
+        </defs>
+
+        <!-- soundboard arc -->
+        <path d="M30 138 Q350 96 670 138" fill="none"
+              stroke="rgba(232,214,160,0.22)" stroke-width="2"/>
+
+        <!-- the section of strings -->
+        <g class="bowstring" id="strings"></g>
+
+        <!-- the bow gliding across -->
+        <g class="bow" id="bow">
+          <rect x="200" y="44" width="300" height="4" rx="2" fill="url(#bowGrad)"/>
+          <rect x="196" y="40" width="10" height="12" rx="2" fill="#8a6f3c"/>
+          <rect x="494" y="40" width="10" height="12" rx="2" fill="#8a6f3c"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- knob rack -->
+    <div class="rack" id="rack"></div>
+
+    <!-- keyboard -->
+    <div class="keyboard">
+      <div class="keys" id="keys"></div>
+    </div>
+
+    <div class="hint">Drag knobs · double-click to reset · click keys to play</div>
+  </div>
+</div>
+
+<script>
+  "use strict";
+
+  // ---- parameter map (must match assembly.ts indices) ----
+  var PARAMS = [
+    { name: "Attack",   index: 0, min: 0, max: 1, def: 0.35, fmt: timeFmtA },
+    { name: "Release",  index: 1, min: 0, max: 1, def: 0.45, fmt: timeFmtR },
+    { name: "Ensemble", index: 2, min: 0, max: 1, def: 0.70, fmt: pctFmt },
+    { name: "Tone",     index: 3, min: 0, max: 1, def: 0.55, fmt: pctFmt },
+    { name: "Level",    index: 4, min: 0, max: 1, def: 0.60, fmt: pctFmt }
+  ];
+
+  function pctFmt(v) { return Math.round(v * 100) + "%"; }
+  function timeFmtA(v) {
+    var s = 0.005 + v * v * 2.5;
+    return s < 1 ? Math.round(s * 1000) + " ms" : s.toFixed(2) + " s";
+  }
+  function timeFmtR(v) {
+    var s = 0.03 + v * v * 4.0;
+    return s < 1 ? Math.round(s * 1000) + " ms" : s.toFixed(2) + " s";
+  }
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // ---- host bridge ----
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].index, values[i]);
+    }
+  }
+  function pushAll() { for (var i = 0; i < PARAMS.length; i++) pushParam(i); }
+
+  // ---- knob rendering ----
+  var ARC0 = -135, ARC1 = 135; // degrees
+  function knobSVG() {
+    return '' +
+      '<svg viewBox="0 0 100 100">' +
+      '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(0,0,0,0.55)" stroke-width="8"/>' +
+      '<path class="arc" fill="none" stroke="url(#kg)" stroke-width="8" stroke-linecap="round"/>' +
+      '<defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#fbeec4"/><stop offset="1" stop-color="#c0a86a"/>' +
+      '</linearGradient>' +
+      '<radialGradient id="kb" cx="0.5" cy="0.35" r="0.8">' +
+      '<stop offset="0" stop-color="#5a4527"/><stop offset="1" stop-color="#241a0e"/>' +
+      '</radialGradient></defs>' +
+      '<circle cx="50" cy="50" r="32" fill="url(#kb)" stroke="rgba(255,236,190,0.18)" stroke-width="1"/>' +
+      '<circle cx="50" cy="50" r="32" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1" transform="translate(0,2)"/>' +
+      '<line class="ptr" x1="50" y1="50" x2="50" y2="24" stroke="#f3e9cf" stroke-width="3" stroke-linecap="round"/>' +
+      '</svg>';
+  }
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var p0 = polar(cx, cy, r, a0);
+    var p1 = polar(cx, cy, r, a1);
+    var large = (a1 - a0) > 180 ? 1 : 0;
+    return "M" + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+           " A" + r + " " + r + " 0 " + large + " 1 " +
+           p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  function makeKnob(i) {
+    var p = PARAMS[i];
+    var cell = document.createElement("div");
+    cell.className = "cell";
+
+    var wrap = document.createElement("div");
+    wrap.className = "knob-wrap";
+    wrap.innerHTML = knobSVG();
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "value";
+
+    cell.appendChild(wrap);
+    cell.appendChild(label);
+    cell.appendChild(val);
+
+    var arc = wrap.querySelector(".arc");
+    var ptr = wrap.querySelector(".ptr");
+
+    function norm() { return (values[i] - p.min) / (p.max - p.min); }
+    function render() {
+      var t = norm();
+      var deg = ARC0 + t * (ARC1 - ARC0);
+      arc.setAttribute("d", arcPath(50, 50, 42, ARC0, deg));
+      ptr.setAttribute("transform", "rotate(" + deg + " 50 50)");
+      val.textContent = p.fmt(values[i]);
+    }
+
+    // vertical drag to turn
+    var dragging = false, lastY = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var t = norm() + dy / 180;
+      t = Math.max(0, Math.min(1, t));
+      values[i] = p.min + t * (p.max - p.min);
+      render();
+      pushParam(i);
+    }
+    function onUp() { dragging = false; }
+
+    wrap.addEventListener("mousedown", onDown);
+    wrap.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchend", onUp);
+
+    wrap.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var t = norm() - (e.deltaY > 0 ? 1 : -1) * 0.02;
+      t = Math.max(0, Math.min(1, t));
+      values[i] = p.min + t * (p.max - p.min);
+      render();
+      pushParam(i);
+    }, { passive: false });
+
+    wrap.addEventListener("dblclick", function () {
+      values[i] = p.def;
+      render();
+      pushParam(i);
+    });
+
+    render();
+    return cell;
+  }
+
+  var rack = document.getElementById("rack");
+  for (var ki = 0; ki < PARAMS.length; ki++) rack.appendChild(makeKnob(ki));
+
+  // ---- string section visual ----
+  var stringsG = document.getElementById("strings");
+  var NSTR = 13;
+  for (var s = 0; s < NSTR; s++) {
+    var x = 60 + s * (580 / (NSTR - 1));
+    var ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    ln.setAttribute("x1", x); ln.setAttribute("y1", 16);
+    ln.setAttribute("x2", x); ln.setAttribute("y2", 134);
+    ln.setAttribute("stroke", "url(#strGrad)");
+    ln.setAttribute("stroke-width", (0.8 + (s % 3) * 0.5).toFixed(2));
+    ln.setAttribute("opacity", "0.6");
+    ln.style.transition = "opacity 0.2s ease";
+    stringsG.appendChild(ln);
+  }
+  var stringLines = stringsG.querySelectorAll("line");
+
+  function pluckString(idx) {
+    var li = ((idx % NSTR) + NSTR) % NSTR;
+    var ln = stringLines[li];
+    if (!ln) return;
+    ln.setAttribute("opacity", "1");
+    ln.setAttribute("stroke-width", "2.4");
+    setTimeout(function () {
+      ln.setAttribute("opacity", "0.6");
+      ln.setAttribute("stroke-width", (0.8 + (li % 3) * 0.5).toFixed(2));
+    }, 260);
+  }
+
+  // ---- keyboard ----
+  var stage = document.getElementById("stage");
+  var heldCount = 0;
+  function updateStage() {
+    if (heldCount > 0) stage.classList.add("active");
+    else stage.classList.remove("active");
+  }
+
+  // C3..B4 (two octaves), MIDI 48..71
+  var WHITE = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10 }; // white-index -> semitone offset
+  var BASE = 48;
+  var OCTAVES = 2;
+  var keysEl = document.getElementById("keys");
+  var downKeys = {};
+
+  function noteOn(midi, el, isBlack) {
+    if (downKeys[midi]) return;
+    downKeys[midi] = true;
+    el.classList.add("down");
+    heldCount++;
+    updateStage();
+    pluckString(midi - BASE);
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(midi, 0.85);
+  }
+  function noteOff(midi, el) {
+    if (!downKeys[midi]) return;
+    delete downKeys[midi];
+    el.classList.remove("down");
+    heldCount = Math.max(0, heldCount - 1);
+    updateStage();
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(midi);
+  }
+
+  function wireKey(el, midi, isBlack) {
+    el.addEventListener("mousedown", function (e) { e.preventDefault(); noteOn(midi, el, isBlack); });
+    el.addEventListener("mouseup", function () { noteOff(midi, el); });
+    el.addEventListener("mouseleave", function () { noteOff(midi, el); });
+    el.addEventListener("touchstart", function (e) { e.preventDefault(); noteOn(midi, el, isBlack); }, { passive: false });
+    el.addEventListener("touchend", function (e) { e.preventDefault(); noteOff(midi, el); });
+  }
+
+  // build white keys first, then overlay black keys positioned over them
+  var whiteEls = [];
+  var totalWhite = OCTAVES * 7;
+  for (var o = 0; o < OCTAVES; o++) {
+    for (var w = 0; w < 7; w++) {
+      var midi = BASE + o * 12 + WHITE[w];
+      var k = document.createElement("div");
+      k.className = "wkey";
+      keysEl.appendChild(k);
+      wireKey(k, midi, false);
+      whiteEls.push({ el: k, wIndex: o * 7 + w, octave: o, wpos: w });
+    }
+  }
+
+  // black keys: absolutely positioned relative to .keys
+  function placeBlacks() {
+    var rect = keysEl.getBoundingClientRect();
+    var unit = rect.width / totalWhite;
+    for (var o = 0; o < OCTAVES; o++) {
+      for (var wp in BLACK) {
+        if (!BLACK.hasOwnProperty(wp)) continue;
+        var wIndex = o * 7 + parseInt(wp, 10);
+        var midi = BASE + o * 12 + BLACK[wp];
+        var b = document.createElement("div");
+        b.className = "bkey";
+        // sits on the boundary between white key wIndex and the next
+        b.style.left = ((wIndex + 1) * unit) + "px";
+        keysEl.appendChild(b);
+        wireKey(b, midi, true);
+      }
+    }
+  }
+  placeBlacks();
+  window.addEventListener("resize", function () {
+    var olds = keysEl.querySelectorAll(".bkey");
+    for (var i = 0; i < olds.length; i++) olds[i].remove();
+    placeBlacks();
+  });
+
+  // computer-keyboard play (a row across the bottom octave)
+  var KEYMAP = { a: 48, w: 49, s: 50, e: 51, d: 52, f: 53, t: 54, g: 55, y: 56, h: 57, u: 58, j: 59, k: 60 };
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var m = KEYMAP[e.key];
+    if (m == null) return;
+    if (downKeys[m]) return;
+    downKeys[m] = true;
+    heldCount++; updateStage(); pluckString(m - BASE);
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(m, 0.85);
+  });
+  window.addEventListener("keyup", function (e) {
+    var m = KEYMAP[e.key];
+    if (m == null) return;
+    if (!downKeys[m]) return;
+    delete downKeys[m];
+    heldCount = Math.max(0, heldCount - 1); updateStage();
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(m);
+  });
+
+  // ---- init: push defaults once host is ready ----
+  function start() { pushAll(); }
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(start);
+  else start();
+</script>
+</body>
+</html>

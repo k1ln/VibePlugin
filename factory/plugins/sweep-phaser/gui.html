@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sweep Phaser</title>
+<style>
+  :root{
+    --accent:#c08cff;       /* spec accent — used for the moving notches/glow */
+    --accent2:#e0a0ff;
+    --amber:#ff8a1e;        /* retro pedal orange */
+    --amber-lo:#c95a06;
+    --amber-hi:#ffc46b;
+    --cream:#f6e8cf;
+    --ink:#1a120b;
+    --panel:#2a1a0f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #4a2c12 0%, #2a1709 55%, #160d06 100%);
+    color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:18px;overflow:hidden;
+    -webkit-user-select:none;user-select:none;
+  }
+
+  /* ---------- The pedal enclosure ---------- */
+  .pedal{
+    position:relative;width:430px;border-radius:26px;
+    padding:22px 22px 26px;
+    background:
+      linear-gradient(150deg,#e8861a 0%,#d96e10 38%,#b8530a 72%,#8f3d05 100%);
+    box-shadow:
+      0 28px 60px -16px rgba(0,0,0,.75),
+      0 2px 0 rgba(255,255,255,.22) inset,
+      0 -3px 14px rgba(0,0,0,.45) inset;
+    border:1px solid #6e3203;
+  }
+  /* brushed-metal sheen sweeping over the enclosure */
+  .pedal::before{
+    content:"";position:absolute;inset:0;border-radius:26px;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.16) 47%,rgba(255,255,255,.04) 53%,transparent 70%);
+    background-size:280% 100%;
+    animation:sheen 7s ease-in-out infinite;mix-blend-mode:screen;
+  }
+  @keyframes sheen{0%,100%{background-position:140% 0}50%{background-position:-40% 0}}
+
+  /* corner mounting bolts */
+  .bolt{position:absolute;width:15px;height:15px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff2d4,#7a4410 70%,#3a1f06);
+    box-shadow:0 1px 2px rgba(0,0,0,.6), 0 0 0 2px rgba(0,0,0,.18);}
+  .bolt::after{content:"";position:absolute;inset:4px;border-radius:1px;
+    background:linear-gradient(#3a1f06,#7a4410);transform:rotate(35deg);height:3px;top:6px;}
+  .bolt.tl{top:11px;left:11px}.bolt.tr{top:11px;right:11px}
+  .bolt.bl{bottom:11px;left:11px}.bolt.br{bottom:11px;right:11px}
+
+  /* ---------- Header: script logo + power LED ---------- */
+  .head{position:relative;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:4px 14px 12px;z-index:2}
+  .brand{line-height:1}
+  .brand .sub{font-size:10px;letter-spacing:.42em;text-transform:uppercase;
+    color:rgba(26,18,11,.62);font-weight:700;margin-left:3px}
+  .script{
+    font-family:"Snell Roundhand","Brush Script MT","Segoe Script",cursive;
+    font-size:46px;font-weight:700;font-style:italic;color:#2a1607;
+    text-shadow:0 1px 0 rgba(255,225,180,.55), 0 -1px 1px rgba(0,0,0,.35);
+    letter-spacing:.5px;
+  }
+  .power{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .led{width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--accent2) 40%, var(--accent) 70%, #5b2a8f 100%);
+    box-shadow:0 0 10px 2px var(--accent), 0 0 22px 4px rgba(192,140,255,.5), 0 1px 2px rgba(0,0,0,.5);
+    animation:throb 2.4s ease-in-out infinite;}
+  @keyframes throb{0%,100%{filter:brightness(.8)}50%{filter:brightness(1.35)}}
+  .led-lbl{font-size:8px;letter-spacing:.2em;color:rgba(26,18,11,.6);font-weight:700}
+
+  /* ---------- Spectrum / sweep window ---------- */
+  .screen{
+    position:relative;z-index:2;margin:0 8px 18px;border-radius:14px;overflow:hidden;
+    height:148px;
+    background:linear-gradient(#0c0a14,#0a0712 60%,#06040c);
+    box-shadow:0 0 0 1px #000 inset, 0 0 0 6px #14100a, 0 10px 22px -8px rgba(0,0,0,.8),
+      0 0 30px rgba(192,140,255,.10) inset;
+    border:2px solid #2c1c0e;
+  }
+  .screen svg{display:block;width:100%;height:100%}
+  .scan{position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(transparent 0 2px, rgba(0,0,0,.22) 2px 4px);
+    mix-blend-mode:multiply;opacity:.55}
+  .screen .glassglow{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(80% 60% at 50% 0%, rgba(192,140,255,.14), transparent 70%);}
+  .readout{position:absolute;left:10px;top:8px;font-size:9px;letter-spacing:.18em;
+    color:rgba(224,160,255,.85);text-transform:uppercase;font-weight:700;
+    text-shadow:0 0 8px rgba(192,140,255,.8)}
+  .readout.r{left:auto;right:10px;color:rgba(255,180,110,.8);text-shadow:0 0 8px rgba(255,138,30,.7)}
+
+  /* ---------- Knob row ---------- */
+  .knobs{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);
+    gap:6px;padding:0 6px}
+  .ctrl{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .name{font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;
+    color:#2a1607;text-shadow:0 1px 0 rgba(255,220,170,.45)}
+  .dialwrap{position:relative;width:78px;height:78px;cursor:grab;touch-action:none}
+  .dialwrap.drag{cursor:grabbing}
+  .dialwrap svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .tickring circle{fill:none;stroke:rgba(26,12,4,.5);stroke-width:1}
+  /* the metal knob cap */
+  .cap{filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+  .arc-bg{fill:none;stroke:rgba(20,10,4,.55);stroke-width:5;stroke-linecap:round}
+  .arc-fg{fill:none;stroke:url(#arcg);stroke-width:5;stroke-linecap:round;
+    filter:drop-shadow(0 0 5px rgba(192,140,255,.55))}
+  .val{font-variant-numeric:tabular-nums;font-size:14px;font-weight:800;color:var(--accent2);
+    text-shadow:0 0 8px rgba(192,140,255,.6);min-width:42px;text-align:center;
+    background:rgba(10,7,16,.55);border-radius:6px;padding:2px 6px;
+    box-shadow:0 0 0 1px rgba(0,0,0,.4) inset}
+
+  .foot{z-index:2;position:relative;text-align:center;margin-top:16px;
+    font-size:8.5px;letter-spacing:.32em;text-transform:uppercase;color:rgba(26,18,11,.55);font-weight:700}
+</style>
+</head>
+<body>
+  <div class="pedal" id="pedal">
+    <span class="bolt tl"></span><span class="bolt tr"></span>
+    <span class="bolt bl"></span><span class="bolt br"></span>
+
+    <div class="head">
+      <div class="brand">
+        <div class="script">Sweep&nbsp;Phaser</div>
+        <div class="sub">4&middot;Stage &middot; All&middot;Pass</div>
+      </div>
+      <div class="power"><span class="led"></span><span class="led-lbl">ON</span></div>
+    </div>
+
+    <div class="screen">
+      <div class="readout">Notch&nbsp;Sweep</div>
+      <div class="readout r" id="rateRead">— Hz</div>
+      <svg viewBox="0 0 400 148" preserveAspectRatio="none" id="scope">
+        <defs>
+          <linearGradient id="specg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ff9b3e" stop-opacity=".9"/>
+            <stop offset="1" stop-color="#7a3a05" stop-opacity=".15"/>
+          </linearGradient>
+          <linearGradient id="notchg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e0a0ff" stop-opacity=".0"/>
+            <stop offset=".5" stop-color="#c08cff" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#c08cff" stop-opacity="0"/>
+          </linearGradient>
+          <!-- shared knob arc/pointer gradient — defined ONCE, referenced by every knob -->
+          <linearGradient id="arcg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#e0a0ff"/><stop offset="1" stop-color="#ff8a1e"/>
+          </linearGradient>
+          <filter id="soft"><feGaussianBlur stdDeviation="1.1"/></filter>
+        </defs>
+        <!-- faint frequency grid -->
+        <g stroke="rgba(192,140,255,.10)" stroke-width="1">
+          <line x1="80"  y1="0" x2="80"  y2="148"/><line x1="160" y1="0" x2="160" y2="148"/>
+          <line x1="240" y1="0" x2="240" y2="148"/><line x1="320" y1="0" x2="320" y2="148"/>
+        </g>
+        <!-- the spectrum body (comb) — repainted by rAF -->
+        <path id="spec" class="spec" fill="url(#specg)" stroke="#ffb060" stroke-width="1.4" filter="url(#soft)"/>
+        <!-- two gliding notch bands -->
+        <rect id="notchA" x="0" y="0" width="20" height="148" fill="url(#notchg)"/>
+        <rect id="notchB" x="0" y="0" width="20" height="148" fill="url(#notchg)" opacity=".75"/>
+      </svg>
+      <div class="glassglow"></div>
+      <div class="scan"></div>
+    </div>
+
+    <div class="knobs" id="knobs"></div>
+
+    <div class="foot">Boutique &middot; Optical Phase Modulator</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- params (mirrors spec.json EXACTLY) ----
+  var PARAMS = [
+    { name:"Rate",     index:0, min:0, max:1, def:0.35 },
+    { name:"Depth",    index:1, min:0, max:1, def:0.7  },
+    { name:"Feedback", index:2, min:0, max:1, def:0.5  },
+    { name:"Mix",      index:3, min:0, max:1, def:0.5  }
+  ];
+
+  var state = { 0:0.35, 1:0.7, 2:0.5, 3:0.5 };
+  function send(i,v){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v); }
+
+  // geometry of the knob arc (degrees): -135 .. +135
+  var A0 = -135, A1 = 135;
+  function fmtPct(v){ return Math.round(v*100) + "%"; }
+  function fmtHz(rate){ // map Rate 0..1 -> 0.05 .. 8 Hz (display only)
+    var hz = 0.05 + rate*rate*7.95;
+    return (hz<1 ? hz.toFixed(2) : hz.toFixed(1)) + " Hz";
+  }
+
+  // ---- build knobs ----
+  var host = document.getElementById("knobs");
+  var knobs = [];
+
+  function polar(cx,cy,r,deg){ var a=deg*Math.PI/180; return [cx+r*Math.sin(a), cy-r*Math.cos(a)]; }
+  function arcPath(cx,cy,r,d0,d1){
+    var p0=polar(cx,cy,r,d0), p1=polar(cx,cy,r,d1);
+    var large = (d1-d0)>180?1:0;
+    return "M"+p0[0].toFixed(2)+" "+p0[1].toFixed(2)+
+           " A"+r+" "+r+" 0 "+large+" 1 "+p1[0].toFixed(2)+" "+p1[1].toFixed(2);
+  }
+
+  PARAMS.forEach(function(p){
+    var c = document.createElement("div"); c.className="ctrl";
+    c.innerHTML =
+      '<div class="name">'+p.name+'</div>'+
+      '<div class="dialwrap" tabindex="0">'+
+        '<svg viewBox="0 0 78 78">'+
+          '<defs>'+
+            '<radialGradient id="capg'+p.index+'" cx="38%" cy="30%" r="75%">'+
+              '<stop offset="0" stop-color="#5a4032"/><stop offset="55%" stop-color="#2c1c11"/>'+
+              '<stop offset="100%" stop-color="#160d07"/>'+
+            '</radialGradient>'+
+          '</defs>'+
+          '<path class="arc-bg" d="'+arcPath(39,39,31,A0,A1)+'"/>'+
+          '<path class="arc-fg" data-arc d="'+arcPath(39,39,31,A0,A0)+'"/>'+
+          '<g class="cap">'+
+            '<circle cx="39" cy="39" r="24" fill="url(#capg'+p.index+')" stroke="#0c0703" stroke-width="1"/>'+
+            '<circle cx="39" cy="39" r="24" fill="none" stroke="rgba(255,220,170,.18)" stroke-width="1" transform="translate(0,-1)"/>'+
+            '<line data-ptr x1="39" y1="22" x2="39" y2="33" stroke="url(#arcg)" stroke-width="3" stroke-linecap="round"/>'+
+            '<circle data-cap cx="39" cy="17" r="2.4" fill="#e0a0ff"/>'+
+          '</g>'+
+        '</svg>'+
+      '</div>'+
+      '<div class="val">'+(p.index===0?fmtHz(p.def):fmtPct(p.def))+'</div>';
+    host.appendChild(c);
+
+    var wrap = c.querySelector(".dialwrap");
+    var arcFg= c.querySelector("[data-arc]");
+    var ptr  = c.querySelector("[data-ptr]");
+    var cap  = c.querySelector("[data-cap]");
+    var valEl= c.querySelector(".val");
+    var rateRead = document.getElementById("rateRead");
+
+    var obj = { p:p, val:p.def };
+
+    function paint(){
+      var n = (obj.val - p.min)/(p.max - p.min || 1);
+      var ang = A0 + (A1-A0)*n;
+      arcFg.setAttribute("d", arcPath(39,39,31,A0,ang));
+      var rot = "rotate("+ang+" 39 39)";
+      ptr.setAttribute("transform", rot);
+      cap.setAttribute("transform", rot);
+      valEl.textContent = (p.index===0 ? fmtHz(obj.val) : fmtPct(obj.val));
+      if(p.index===0) rateRead.textContent = fmtHz(obj.val);
+      state[p.index] = obj.val;
+    }
+    function commit(){ paint(); send(p.index, obj.val); }
+
+    function setN(n){ n = n<0?0:(n>1?1:n); obj.val = p.min + (p.max-p.min)*n; commit(); }
+    function norm(){ return (obj.val - p.min)/(p.max - p.min || 1); }
+
+    var dragging=false, startY=0, startN=0;
+    wrap.addEventListener("pointerdown", function(e){
+      dragging=true; startY=e.clientY; startN=norm();
+      wrap.classList.add("drag"); wrap.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    wrap.addEventListener("pointermove", function(e){
+      if(!dragging) return;
+      var dy = startY - e.clientY;
+      var speed = e.shiftKey ? 600 : 220;   // shift = fine
+      setN(startN + dy/speed);
+    });
+    function end(){ dragging=false; wrap.classList.remove("drag"); }
+    wrap.addEventListener("pointerup", end);
+    wrap.addEventListener("pointercancel", end);
+    wrap.addEventListener("dblclick", function(){ obj.val=p.def; commit(); });
+    wrap.addEventListener("wheel", function(e){
+      e.preventDefault(); setN(norm() + (e.deltaY<0?0.025:-0.025));
+    }, {passive:false});
+    wrap.addEventListener("keydown", function(e){
+      if(e.key==="ArrowUp"||e.key==="ArrowRight"){ setN(norm()+0.02); e.preventDefault(); }
+      else if(e.key==="ArrowDown"||e.key==="ArrowLeft"){ setN(norm()-0.02); e.preventDefault(); }
+    });
+
+    obj.paint = paint; knobs.push(obj);
+  });
+
+  // ---- animated spectrum + gliding notches ----
+  var specEl  = document.getElementById("spec");
+  var notchA  = document.getElementById("notchA");
+  var notchB  = document.getElementById("notchB");
+  var W=400, H=148, N=64;
+  var phase=0, last=0;
+
+  function frame(t){
+    if(!last) last=t;
+    var dt = Math.min(0.05,(t-last)/1000); last=t;
+
+    var rate = state[0], depth=state[1], fb=state[2], mix=state[3];
+    // LFO speed scales with Rate (display range ~0.05..8 Hz)
+    var hz = 0.05 + rate*rate*7.95;
+    phase += dt * hz * 0.55;       // gentle visual scaling
+
+    // two notch centres, 180deg apart, swept by the LFO; depth = travel width
+    var sweep = (0.5 + 0.42*depth);          // fraction of width travelled
+    var base  = 0.5 - sweep/2;
+    var lfo   = (Math.sin(phase*2*Math.PI)*0.5+0.5);
+    var cA    = base + sweep*lfo;
+    var cB    = base + sweep*(1-lfo);
+    var notchW= 0.06 + 0.05*(1-fb);          // feedback sharpens (narrows) the notch
+    var pxW   = notchW*W;
+
+    notchA.setAttribute("x", (cA*W - pxW/2).toFixed(1));
+    notchA.setAttribute("width", pxW.toFixed(1));
+    notchB.setAttribute("x", (cB*W - pxW/2).toFixed(1));
+    notchB.setAttribute("width", pxW.toFixed(1));
+    notchA.setAttribute("opacity", (0.35 + 0.6*mix).toFixed(2));
+    notchB.setAttribute("opacity", (0.30 + 0.5*mix).toFixed(2));
+
+    // build a comb spectrum with two dips carved at cA/cB, resonance from fb
+    var d="M0 "+H;
+    for(var k=0;k<=N;k++){
+      var x = k/N;
+      var px = x*W;
+      // base rolling spectral shape
+      var amp = 0.55 + 0.30*Math.sin(x*7.5 + phase*1.3) * (0.5+0.5*Math.sin(x*2.1));
+      // carve notches (gaussian dips); feedback adds resonant peaks at the shoulders
+      function dip(c){
+        var dd=(x-c)/ (notchW*1.1);
+        var g=Math.exp(-dd*dd*9);
+        var res = fb*0.6*Math.exp(-Math.pow((Math.abs(x-c)-notchW*1.1)/(notchW*0.8),2)*6);
+        return g - res;
+      }
+      amp -= depth*0.85*(dip(cA)+dip(cB));
+      amp = amp<0.02?0.02:(amp>1?1:amp);
+      var y = H - amp*(H-14) - 8;
+      d += " L"+px.toFixed(1)+" "+y.toFixed(1);
+    }
+    d += " L"+W+" "+H+" Z";
+    specEl.setAttribute("d", d);
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---- boot ----
+  function ready(){
+    knobs.forEach(function(o){ o.paint(); send(o.p.index, o.val); });
+    requestAnimationFrame(frame);
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

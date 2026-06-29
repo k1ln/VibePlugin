@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vocal Wah</title>
+  <style>
+    :root {
+      --accent: #ffd23f;
+      --accent2: #ff9e2c;
+      --bg0: #16110a;
+      --bg1: #221a0f;
+      --panel: #2c2114;
+      --ink: #f4e9d2;
+      --ink-dim: #b6a079;
+      --chrome-hi: #fff7e0;
+      --chrome-lo: #3a2e1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(120% 90% at 50% -10%, #3a2c16 0%, var(--bg1) 45%, var(--bg0) 100%);
+      color: var(--ink);
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .stage {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 18px 16px 26px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ---------- header ---------- */
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+    .brand .kicker {
+      font-size: 10px;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 7px;
+    }
+    .brand .title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+    }
+    .badge {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--bg0);
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-weight: 800;
+      box-shadow: 0 3px 10px rgba(255,158,44,0.35), inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+
+    /* ---------- main layout ---------- */
+    .main {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 620px) {
+      .main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18)),
+        var(--panel);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+      padding: 16px;
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      font-weight: 700;
+    }
+
+    /* ---------- pedal treadle ---------- */
+    .pedal-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .treadle-svg {
+      width: 100%;
+      max-width: 280px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      filter: drop-shadow(0 14px 18px rgba(0,0,0,0.55));
+    }
+    .treadle-svg.drag { cursor: grabbing; }
+
+    .pedal-read {
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .pedal-read b { color: var(--ink); }
+
+    /* mouth / vowel formant */
+    .mouth-label {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      text-align: center;
+    }
+
+    /* ---------- knobs ---------- */
+    .knob-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px 10px;
+    }
+    .knob-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+    }
+    .knob {
+      width: 84px;
+      height: 84px;
+      cursor: ns-resize;
+      touch-action: none;
+      user-select: none;
+    }
+    .knob-name {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      font-weight: 700;
+    }
+    .knob-val {
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    /* ---------- mode switch ---------- */
+    .mode-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .mode-btn {
+      flex: 1;
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.25));
+      color: var(--ink-dim);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 11px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .mode-btn:hover { color: var(--ink); border-color: rgba(255,210,63,0.4); }
+    .mode-btn.on {
+      color: var(--bg0);
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      border-color: var(--accent);
+      box-shadow: 0 0 18px rgba(255,158,44,0.5), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    .mode-card { display: flex; flex-direction: column; }
+    .auto-lamp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .lamp {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #3a2e1c;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.7);
+      transition: all 0.2s ease;
+    }
+    .lamp.lit {
+      background: radial-gradient(circle at 35% 30%, #fff, var(--accent));
+      box-shadow: 0 0 12px var(--accent), 0 0 24px rgba(255,158,44,0.6);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    .foot {
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <div class="head">
+      <div class="brand">
+        <span class="kicker">Resonant Sweep Filter</span>
+        <span class="title">Vocal Wah</span>
+      </div>
+      <span class="badge">Treadle</span>
+    </div>
+
+    <div class="main">
+
+      <!-- ============ PEDAL ============ -->
+      <div class="card pedal-wrap">
+        <h2>Pedal &middot; tilt to sweep</h2>
+
+        <svg class="treadle-svg" id="treadle" viewBox="0 0 220 200" aria-label="wah treadle">
+          <defs>
+            <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff7e0"/>
+              <stop offset="0.18" stop-color="#cfc3a4"/>
+              <stop offset="0.5" stop-color="#9d9070"/>
+              <stop offset="0.82" stop-color="#5e533a"/>
+              <stop offset="1" stop-color="#34291a"/>
+            </linearGradient>
+            <linearGradient id="tread" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffe487"/>
+              <stop offset="0.45" stop-color="#ffd23f"/>
+              <stop offset="1" stop-color="#ff9e2c"/>
+            </linearGradient>
+            <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#2b2114"/>
+              <stop offset="1" stop-color="#0e0a05"/>
+            </linearGradient>
+            <radialGradient id="mouthG" cx="0.5" cy="0.4" r="0.7">
+              <stop offset="0" stop-color="#ffe487"/>
+              <stop offset="0.6" stop-color="#ff9e2c"/>
+              <stop offset="1" stop-color="#7a3d08"/>
+            </radialGradient>
+            <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="1.4"/>
+            </filter>
+          </defs>
+
+          <!-- base box -->
+          <rect x="22" y="120" width="176" height="66" rx="12" fill="url(#base)"
+                stroke="#000" stroke-width="1.5"/>
+          <!-- mouth / vowel formant sits on the base -->
+          <g id="mouthGroup">
+            <ellipse id="mouth" cx="110" cy="150" rx="34" ry="9" fill="url(#mouthG)"/>
+            <ellipse cx="110" cy="146" rx="34" ry="3" fill="rgba(255,255,255,0.35)" filter="url(#soft)"/>
+          </g>
+
+          <!-- rocking treadle group, pivots near the toe -->
+          <g id="rock" transform="rotate(0 110 158)">
+            <!-- side cheeks -->
+            <rect x="40" y="42" width="140" height="92" rx="14" fill="url(#chrome)"
+                  stroke="#1c150b" stroke-width="1.5"/>
+            <!-- treadle face -->
+            <rect x="54" y="34" width="112" height="86" rx="12" fill="url(#tread)"
+                  stroke="#7a4a0c" stroke-width="1.2"/>
+            <!-- ribbed grip lines -->
+            <g stroke="rgba(60,30,0,0.55)" stroke-width="2.4" stroke-linecap="round">
+              <line x1="66" y1="50" x2="154" y2="50"/>
+              <line x1="66" y1="62" x2="154" y2="62"/>
+              <line x1="66" y1="74" x2="154" y2="74"/>
+              <line x1="66" y1="86" x2="154" y2="86"/>
+              <line x1="66" y1="98" x2="154" y2="98"/>
+            </g>
+            <!-- top highlight -->
+            <rect x="58" y="38" width="104" height="9" rx="5" fill="rgba(255,255,255,0.4)"/>
+            <!-- pivot bolt -->
+            <circle cx="110" cy="120" r="6" fill="#2a2012" stroke="#cdbf9c" stroke-width="1.5"/>
+          </g>
+        </svg>
+
+        <div class="pedal-read">POS <b id="pedalPct">50%</b> &middot; <span id="pedalHz">—</span></div>
+        <div class="mouth-label" id="vowel">vowel: &laquo; uh &raquo;</div>
+      </div>
+
+      <!-- ============ CONTROLS ============ -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <div class="card">
+          <h2>Voicing</h2>
+          <div class="knob-grid">
+            <div class="knob-cell">
+              <svg class="knob" id="knob-q" viewBox="0 0 100 100"></svg>
+              <div class="knob-name">Q &middot; Reso</div>
+              <div class="knob-val" id="val-q">0.60</div>
+            </div>
+            <div class="knob-cell">
+              <svg class="knob" id="knob-range" viewBox="0 0 100 100"></svg>
+              <div class="knob-name">Range</div>
+              <div class="knob-val" id="val-range">0.70</div>
+            </div>
+            <div class="knob-cell">
+              <svg class="knob" id="knob-mix" viewBox="0 0 100 100"></svg>
+              <div class="knob-name">Mix</div>
+              <div class="knob-val" id="val-mix">100%</div>
+            </div>
+            <div class="knob-cell">
+              <svg class="knob" id="knob-pedal" viewBox="0 0 100 100"></svg>
+              <div class="knob-name">Pedal</div>
+              <div class="knob-val" id="val-pedal2">0.50</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mode-card">
+          <h2>Drive Mode</h2>
+          <div class="mode-row">
+            <button class="mode-btn on" id="mode-manual">Manual</button>
+            <button class="mode-btn" id="mode-auto">Auto Env</button>
+          </div>
+          <div class="auto-lamp">
+            <span class="lamp" id="autoLamp"></span>
+            <span id="modeText">treadle drives the sweep</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="foot">Original resonant wah &middot; double-click any control to reset</div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ---- param indices (match spec.json) ----
+    var P_PEDAL = 0, P_Q = 1, P_RANGE = 2, P_MODE = 3, P_MIX = 4;
+
+    var defaults = {};
+    defaults[P_PEDAL] = 0.5;
+    defaults[P_Q] = 0.6;
+    defaults[P_RANGE] = 0.7;
+    defaults[P_MODE] = 0;
+    defaults[P_MIX] = 1.0;
+
+    var state = {};
+    for (var k in defaults) state[k] = defaults[k];
+
+    // ---- host bridge ----
+    function push(index, value) {
+      state[index] = value;
+      if (window.vstai && window.vstai.setParam) {
+        window.vstai.setParam(index, value);
+      }
+    }
+
+    // ====================================================================
+    //  PEDAL TREADLE  (drag to tilt)
+    // ====================================================================
+    var treadle = document.getElementById("treadle");
+    var rock = document.getElementById("rock");
+    var mouth = document.getElementById("mouth");
+    var pedalPct = document.getElementById("pedalPct");
+    var pedalHz = document.getElementById("pedalHz");
+    var vowel = document.getElementById("vowel");
+
+    var VOWELS = ["oo", "oh", "uh", "ah", "eh", "ee"];
+
+    function approxHz(pos) {
+      // mirrors the DSP map: fMin + fSpan * pos^2, fSpan ~ from Range
+      var span = 400 + state[P_RANGE] * 2200;
+      return Math.round(320 + span * pos * pos);
+    }
+
+    function renderPedal() {
+      var pos = state[P_PEDAL];
+      // heel (0) tilts back +18deg, toe (1) tilts forward -22deg
+      var deg = 18 - pos * 40;
+      rock.setAttribute("transform", "rotate(" + deg.toFixed(2) + " 110 158)");
+      // mouth opens as the sweep rises
+      var ry = 4 + pos * 18;
+      mouth.setAttribute("ry", ry.toFixed(1));
+      pedalPct.textContent = Math.round(pos * 100) + "%";
+      pedalHz.textContent = approxHz(pos) + " Hz";
+      var vi = Math.min(VOWELS.length - 1, Math.floor(pos * VOWELS.length));
+      vowel.innerHTML = "vowel: &laquo; " + VOWELS[vi] + " &raquo;";
+      // keep the pedal knob mirror in sync
+      drawKnob(knobs.pedal);
+      document.getElementById("val-pedal2").textContent = pos.toFixed(2);
+    }
+
+    (function () {
+      var dragging = false;
+      var startY = 0, startPos = 0;
+
+      function setFromDrag(clientY) {
+        var dy = startY - clientY;        // up = increase
+        var pos = startPos + dy / 180;
+        pos = Math.max(0, Math.min(1, pos));
+        push(P_PEDAL, pos);
+        renderPedal();
+      }
+      function down(e) {
+        dragging = true;
+        treadle.classList.add("drag");
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        startPos = state[P_PEDAL];
+        e.preventDefault();
+      }
+      function move(e) {
+        if (!dragging) return;
+        var y = (e.touches ? e.touches[0].clientY : e.clientY);
+        setFromDrag(y);
+        e.preventDefault();
+      }
+      function up() { dragging = false; treadle.classList.remove("drag"); }
+
+      treadle.addEventListener("mousedown", down);
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+      treadle.addEventListener("touchstart", down, { passive: false });
+      window.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("touchend", up);
+      treadle.addEventListener("dblclick", function () {
+        push(P_PEDAL, defaults[P_PEDAL]);
+        renderPedal();
+      });
+    })();
+
+    // ====================================================================
+    //  KNOBS  (SVG, drag vertical, dblclick reset, wheel fine-tune)
+    // ====================================================================
+    var knobs = {};
+
+    function makeKnob(id, index, fmt) {
+      var el = document.getElementById(id);
+      var k = { el: el, index: index, fmt: fmt };
+      knobs[index === P_PEDAL ? "pedal" : id.replace("knob-", "")] = k;
+      buildKnob(k);
+      drawKnob(k);
+      attachKnob(k);
+      return k;
+    }
+
+    function buildKnob(k) {
+      k.el.innerHTML =
+        '<defs>' +
+          '<radialGradient id="kbody-' + k.index + '" cx="0.5" cy="0.38" r="0.65">' +
+            '<stop offset="0" stop-color="#403018"/>' +
+            '<stop offset="1" stop-color="#1a130a"/>' +
+          '</radialGradient>' +
+        '</defs>' +
+        '<circle cx="50" cy="50" r="42" fill="#0c0905" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>' +
+        '<linearGradient id="karc-' + k.index + '" x1="0" y1="0" x2="1" y2="1">' +
+          '<stop offset="0" stop-color="#ffd23f"/>' +
+          '<stop offset="1" stop-color="#ff9e2c"/>' +
+        '</linearGradient>' +
+        '<path id="arc-' + k.index + '" fill="none" stroke="url(#karc-' + k.index + ')" stroke-width="6" stroke-linecap="round"/>' +
+        '<circle cx="50" cy="50" r="31" fill="url(#kbody-' + k.index + ')" stroke="#000" stroke-width="1"/>' +
+        '<circle cx="50" cy="50" r="31" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>' +
+        '<line id="ptr-' + k.index + '" x1="50" y1="50" x2="50" y2="24" stroke="#ffd23f" stroke-width="3" stroke-linecap="round"/>';
+    }
+
+    function polar(cx, cy, r, ang) {
+      return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)];
+    }
+
+    function drawKnob(k) {
+      var v = state[k.index];
+      // sweep from 135deg to 405deg (270deg total), top-centred
+      var a0 = Math.PI * 0.75;
+      var a1 = Math.PI * 0.75 + Math.PI * 1.5 * v;
+      var arc = k.el.querySelector("#arc-" + k.index);
+      var p0 = polar(50, 50, 42, Math.PI / 2 + a0);
+      var p1 = polar(50, 50, 42, Math.PI / 2 + a1);
+      var large = (a1 - a0) > Math.PI ? 1 : 0;
+      arc.setAttribute("d",
+        "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+        " A 42 42 0 " + large + " 1 " + p1[0].toFixed(2) + " " + p1[1].toFixed(2));
+      var ptr = k.el.querySelector("#ptr-" + k.index);
+      var pa = Math.PI / 2 + a1;
+      var px = 50 + 24 * Math.cos(pa);
+      var py = 50 + 24 * Math.sin(pa);
+      ptr.setAttribute("x2", px.toFixed(2));
+      ptr.setAttribute("y2", py.toFixed(2));
+    }
+
+    function attachKnob(k) {
+      var dragging = false, startY = 0, startV = 0;
+
+      function commit() {
+        drawKnob(k);
+        if (k.onChange) k.onChange();
+      }
+      k.el.addEventListener("mousedown", function (e) {
+        dragging = true; startY = e.clientY; startV = state[k.index]; e.preventDefault();
+      });
+      window.addEventListener("mousemove", function (e) {
+        if (!dragging) return;
+        var v = startV + (startY - e.clientY) / 160;
+        v = Math.max(0, Math.min(1, v));
+        push(k.index, v); commit();
+      });
+      window.addEventListener("mouseup", function () { dragging = false; });
+      k.el.addEventListener("dblclick", function () {
+        push(k.index, defaults[k.index]); commit();
+      });
+      k.el.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        var v = state[k.index] - Math.sign(e.deltaY) * 0.02;
+        v = Math.max(0, Math.min(1, v));
+        push(k.index, v); commit();
+      }, { passive: false });
+
+      // touch
+      k.el.addEventListener("touchstart", function (e) {
+        dragging = true; startY = e.touches[0].clientY; startV = state[k.index]; e.preventDefault();
+      }, { passive: false });
+      window.addEventListener("touchmove", function (e) {
+        if (!dragging) return;
+        var v = startV + (startY - e.touches[0].clientY) / 160;
+        v = Math.max(0, Math.min(1, v));
+        push(k.index, v); commit();
+      }, { passive: false });
+      window.addEventListener("touchend", function () { dragging = false; });
+    }
+
+    // ---- value readouts ----
+    function fmtQ() { document.getElementById("val-q").textContent = state[P_Q].toFixed(2); }
+    function fmtRange() {
+      document.getElementById("val-range").textContent = state[P_RANGE].toFixed(2);
+      renderPedal(); // range changes the Hz readout
+    }
+    function fmtMix() { document.getElementById("val-mix").textContent = Math.round(state[P_MIX] * 100) + "%"; }
+
+    var kQ = makeKnob("knob-q", P_Q); kQ.onChange = fmtQ;
+    var kR = makeKnob("knob-range", P_RANGE); kR.onChange = fmtRange;
+    var kM = makeKnob("knob-mix", P_MIX); kM.onChange = fmtMix;
+    var kP = makeKnob("knob-pedal", P_PEDAL);
+    kP.onChange = function () {
+      document.getElementById("val-pedal2").textContent = state[P_PEDAL].toFixed(2);
+      renderPedal();
+    };
+
+    // ====================================================================
+    //  MODE SWITCH
+    // ====================================================================
+    var btnManual = document.getElementById("mode-manual");
+    var btnAuto = document.getElementById("mode-auto");
+    var autoLamp = document.getElementById("autoLamp");
+    var modeText = document.getElementById("modeText");
+
+    function renderMode() {
+      var auto = state[P_MODE] >= 0.5;
+      btnAuto.classList.toggle("on", auto);
+      btnManual.classList.toggle("on", !auto);
+      autoLamp.classList.toggle("lit", auto);
+      modeText.textContent = auto ? "envelope drives the sweep" : "treadle drives the sweep";
+      treadle.style.opacity = auto ? "0.55" : "1";
+    }
+    btnManual.addEventListener("click", function () { push(P_MODE, 0); renderMode(); });
+    btnAuto.addEventListener("click", function () { push(P_MODE, 1); renderMode(); });
+
+    // ====================================================================
+    //  INIT — push every param to its default
+    // ====================================================================
+    function initAll() {
+      push(P_PEDAL, defaults[P_PEDAL]);
+      push(P_Q, defaults[P_Q]);
+      push(P_RANGE, defaults[P_RANGE]);
+      push(P_MODE, defaults[P_MODE]);
+      push(P_MIX, defaults[P_MIX]);
+      renderPedal();
+      drawKnob(kQ); drawKnob(kR); drawKnob(kM); drawKnob(kP);
+      fmtQ(); fmtRange(); fmtMix();
+      renderMode();
+    }
+
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(initAll);
+    } else {
+      initAll();
+    }
+  </script>
+</body>
+</html>

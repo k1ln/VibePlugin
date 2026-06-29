@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FM Tines</title>
+<style>
+  :root{
+    --ac:#7ab8ff; --ac2:#9ad0ff;
+    --lcd:#9fe88a; --lcd-dim:#3f7a3a; --lcd-bg:#10271a;
+    --plastic1:#2b2e33; --plastic2:#16181c; --plastic3:#0a0b0d;
+    --membrane:#1d2025; --membrane-lit:#2c313a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace; color:#c7d2e0;
+    background:radial-gradient(120% 90% at 50% -10%,#202329,#0a0b0e 60%,#050506 100%);
+    display:flex; align-items:center; justify-content:center; padding:18px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ====== the unit: a wedge of dark plastic ====== */
+  .unit{
+    position:relative; width:100%; max-width:620px;
+    background:
+      linear-gradient(180deg,#33373e 0%,#23262c 4%,#181b20 5%,#101216 100%);
+    border-radius:14px;
+    padding:0 0 18px;
+    box-shadow:
+      0 36px 80px rgba(0,0,0,.65),
+      0 2px 0 rgba(255,255,255,.05) inset,
+      0 -22px 40px rgba(0,0,0,.5) inset;
+    border:1px solid #000;
+    overflow:hidden;
+  }
+  /* fine moulded texture across the whole faceplate */
+  .unit::before{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background:
+      repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px),
+      repeating-linear-gradient(90deg,rgba(0,0,0,.10) 0 1px,transparent 1px 4px);
+    mix-blend-mode:overlay;
+  }
+  /* two faux screws */
+  .screw{position:absolute;width:11px;height:11px;border-radius:50%;z-index:6;
+    background:radial-gradient(circle at 38% 32%,#5a5f68,#1b1d21 70%);
+    box-shadow:0 1px 1px rgba(0,0,0,.7),0 0 0 1px #000 inset}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,#0a0b0d 44% 56%,transparent 56%)}
+  .screw.tl{top:11px;left:11px} .screw.tr{top:11px;right:11px}
+  .screw.bl{bottom:11px;left:11px} .screw.br{bottom:11px;right:11px}
+
+  /* ====== header / brand bar ====== */
+  .head{position:relative;z-index:2;display:flex;align-items:center;gap:12px;
+    padding:14px 26px 12px;border-bottom:1px solid #000;
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,0))}
+  .pwr{width:10px;height:10px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 40% 35%,#cdeeff,var(--ac) 55%,#0c2a48 100%);
+    box-shadow:0 0 10px var(--ac),0 0 2px #fff inset;animation:pwr 2.6s ease-in-out infinite}
+  @keyframes pwr{0%,100%{opacity:.7;filter:brightness(.85)}50%{opacity:1;filter:brightness(1.25)}}
+  .brand{display:flex;flex-direction:column;line-height:1.05;flex:1}
+  .brand .mk{font-size:8.5px;letter-spacing:.42em;color:#6c7686;text-transform:uppercase}
+  .brand h1{margin:1px 0 0;font-size:21px;font-weight:800;letter-spacing:.14em;
+    font-family:ui-sans-serif,system-ui,sans-serif;
+    background:linear-gradient(180deg,#eef6ff,#7fa9d8);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 1px 0 rgba(0,0,0,.4)}
+  .model{font-size:8px;letter-spacing:.3em;color:#586273;text-transform:uppercase;
+    border:1px solid #2a2f38;border-radius:4px;padding:4px 8px;background:#0c0e12;
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
+
+  /* ====== the green LCD ====== */
+  .lcd{position:relative;z-index:2;margin:16px 26px 8px;border-radius:8px;
+    background:
+      linear-gradient(180deg,var(--lcd-bg),#0a1c12);
+    border:2px solid #05100a;
+    box-shadow:
+      0 3px 10px rgba(0,0,0,.6) inset,
+      0 0 0 4px #1a1c20,
+      0 0 24px rgba(60,180,90,.10);
+    padding:13px 16px 14px;overflow:hidden;
+    image-rendering:pixelated;
+  }
+  /* scanlines + glass glare on the LCD */
+  .lcd::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+  .lcd::after{content:"";position:absolute;top:-60%;left:-20%;width:60%;height:200%;pointer-events:none;
+    background:linear-gradient(115deg,rgba(255,255,255,.07),transparent 60%);transform:rotate(8deg)}
+  .lcd-row{position:relative;z-index:1;display:flex;align-items:flex-start;gap:18px}
+  .lcd-readout{flex:1;min-width:0}
+  .lcd-line{display:flex;justify-content:space-between;align-items:baseline;
+    color:var(--lcd);text-shadow:0 0 6px rgba(120,240,120,.55);
+    font-family:ui-monospace,monospace;letter-spacing:.06em}
+  .lcd-line.big{font-size:17px;font-weight:700}
+  .lcd-line.sub{font-size:10px;color:var(--lcd-dim);margin-top:5px;letter-spacing:.18em;text-shadow:none}
+  .lcd-name{text-transform:uppercase}
+  .lcd-val{font-variant-numeric:tabular-nums}
+  /* bar meter under text */
+  .lcd-bar{position:relative;height:9px;margin-top:9px;border-radius:2px;background:#082414;overflow:hidden;
+    box-shadow:0 0 0 1px #061a0e inset}
+  .lcd-bar i{position:absolute;left:0;top:0;bottom:0;width:50%;
+    background:repeating-linear-gradient(90deg,var(--lcd) 0 5px,transparent 5px 7px);
+    box-shadow:0 0 6px rgba(120,240,120,.5);transition:width .12s ease}
+  /* little waveform that breathes with brightness */
+  .lcd-wave{flex:none;width:120px;height:46px}
+  .lcd-wave path{fill:none;stroke:var(--lcd);stroke-width:1.4;
+    filter:drop-shadow(0 0 3px rgba(120,240,120,.6))}
+
+  /* ====== FM algorithm diagram ====== */
+  .algo{position:relative;z-index:2;margin:10px 26px 4px;padding:10px 14px;
+    border-radius:8px;background:linear-gradient(180deg,#101216,#0a0b0e);
+    border:1px solid #000;box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
+  .algo .cap{font-size:8px;letter-spacing:.34em;color:#5d6675;text-transform:uppercase;margin-bottom:2px}
+  .algo svg{display:block;width:100%;height:74px}
+  .op-box{fill:#13161b;stroke:#2a3038;stroke-width:1.2}
+  .op-lit{fill:url(#opg)}
+  .op-t{font:700 13px ui-sans-serif,sans-serif;fill:#dce6f4}
+  .op-s{font:8px ui-monospace,monospace;fill:#7a8597;letter-spacing:.1em}
+  .wire{fill:none;stroke:#39414d;stroke-width:2}
+  .wire-hot{fill:none;stroke:var(--ac);stroke-width:2.4;
+    filter:drop-shadow(0 0 4px var(--ac));
+    stroke-dasharray:6 7;animation:flow 1s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-13}}
+  .fbk{fill:none;stroke:var(--ac2);stroke-width:2;stroke-dasharray:5 6;
+    filter:drop-shadow(0 0 3px var(--ac2));animation:flow2 1.4s linear infinite}
+  @keyframes flow2{to{stroke-dashoffset:-11}}
+  .spark{fill:var(--ac)}
+
+  /* ====== control deck ====== */
+  .deck{position:relative;z-index:2;display:grid;
+    grid-template-columns:repeat(4,1fr);gap:12px 10px;
+    padding:16px 22px 4px}
+  .ctl{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:11px 6px 12px;border-radius:10px;
+    background:linear-gradient(180deg,#1a1d22,#101216);
+    border:1px solid #000;
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 6px 14px rgba(0,0,0,.4);
+    animation:rise .5s both;animation-delay:var(--d)}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .ctl:hover{background:linear-gradient(180deg,#1f232a,#121419)}
+
+  /* membrane-button knob */
+  .knob{position:relative;width:62px;height:62px;cursor:ns-resize;touch-action:none;user-select:none}
+  .knob .ring{position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 220deg,
+      var(--ac) calc(var(--n,0)*280deg),
+      #20252d calc(var(--n,0)*280deg) 280deg,
+      transparent 280deg);
+    filter:drop-shadow(0 0 calc(2px + var(--n,0)*7px) color-mix(in srgb,var(--ac) 65%,transparent));
+    transition:filter .15s ease}
+  .knob .ring::after{content:"";position:absolute;inset:5px;border-radius:50%;
+    background:radial-gradient(circle at 50% 28%,#3a4150,#10131a 72%);
+    box-shadow:0 3px 8px rgba(0,0,0,.6) inset,0 -1px 0 rgba(255,255,255,.06) inset,0 1px 2px rgba(0,0,0,.6)}
+  .knob .pip{position:absolute;left:50%;top:6px;width:3px;height:16px;margin-left:-1.5px;border-radius:2px;
+    background:linear-gradient(var(--ac),var(--ac2));box-shadow:0 0 7px var(--ac);
+    transform-origin:50% 25px;
+    transform:rotate(calc((var(--n,0) - 0.5) * 280deg));
+    transition:transform .14s cubic-bezier(.2,.8,.25,1)}
+  .knob .ring{transition:filter .15s ease}
+  .knob.live .ring,.knob.live .pip{transition:none}
+
+  .ctl .nm{font-size:9px;letter-spacing:.16em;color:#8a95a6;text-transform:uppercase;text-align:center}
+  .ctl .vv{font-size:12px;font-weight:700;color:var(--lcd);font-variant-numeric:tabular-nums;
+    text-shadow:0 0 6px rgba(120,240,120,.4)}
+  /* membrane press feedback */
+  .knob.act .ring::after{box-shadow:0 4px 12px rgba(0,0,0,.75) inset,0 0 0 1px var(--ac) inset}
+
+  .ctl.wide{grid-column:span 1}
+  /* level control gets a vertical membrane fader instead of a knob */
+  .ctl.fader .track{position:relative;width:38px;height:62px;border-radius:8px;cursor:ns-resize;touch-action:none;
+    background:linear-gradient(180deg,#0a0c10,#15191f);
+    box-shadow:0 2px 6px rgba(0,0,0,.6) inset,0 0 0 1px #000;overflow:hidden}
+  .ctl.fader .track::before{content:"";position:absolute;left:50%;top:6px;bottom:6px;width:4px;margin-left:-2px;
+    border-radius:2px;background:#05070a;box-shadow:0 0 0 1px #000 inset}
+  .ctl.fader .fill{position:absolute;left:0;right:0;bottom:0;
+    background:linear-gradient(0deg,color-mix(in srgb,var(--ac) 60%,#0a1c2a),transparent);
+    box-shadow:0 0 10px color-mix(in srgb,var(--ac) 50%,transparent)}
+  .ctl.fader .cap{position:absolute;left:4px;right:4px;height:14px;border-radius:4px;
+    background:linear-gradient(180deg,#3a4150,#171b22);
+    box-shadow:0 1px 2px rgba(0,0,0,.6),0 -1px 0 rgba(255,255,255,.08) inset,0 0 8px var(--ac);
+    transform:translateY(-50%)}
+  .ctl.fader .cap::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:2px;margin-top:-1px;
+    background:var(--ac);border-radius:1px;box-shadow:0 0 6px var(--ac)}
+
+  /* tiny embossed footer */
+  .foot{position:relative;z-index:2;margin:14px 26px 0;padding-top:10px;border-top:1px solid #000;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:8.5px;letter-spacing:.22em;color:#525b6a;text-transform:uppercase}
+  .foot .dots{display:flex;gap:5px}
+  .foot .dots i{width:5px;height:5px;border-radius:50%;background:#1c2026;box-shadow:0 0 0 1px #000 inset}
+  .foot .dots i.on{background:var(--ac);box-shadow:0 0 6px var(--ac)}
+
+  @media(max-width:520px){.deck{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+  <div class="unit">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="head">
+      <span class="pwr"></span>
+      <div class="brand">
+        <span class="mk">Digital Programmable Algorithm Synthesizer</span>
+        <h1>FM&nbsp;TINES</h1>
+      </div>
+      <span class="model">DX&middot;T7</span>
+    </div>
+
+    <!-- GREEN LCD -->
+    <div class="lcd">
+      <div class="lcd-row">
+        <div class="lcd-readout">
+          <div class="lcd-line big"><span class="lcd-name" id="lcdName">RATIO</span><span class="lcd-val" id="lcdVal">0.50</span></div>
+          <div class="lcd-bar"><i id="lcdBar"></i></div>
+          <div class="lcd-line sub"><span id="lcdHint">EDIT &middot; OP MOD &gt; CAR</span><span id="lcdPg">PG 1/7</span></div>
+        </div>
+        <svg class="lcd-wave" id="lcdWave" viewBox="0 0 120 46" preserveAspectRatio="none"><path d=""></path></svg>
+      </div>
+    </div>
+
+    <!-- FM ALGORITHM DIAGRAM -->
+    <div class="algo">
+      <div class="cap">Algorithm &mdash; 2-OP Phase Modulation</div>
+      <svg viewBox="0 0 560 74" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="opg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1a3a5c"/><stop offset="1" stop-color="#0c1c2c"/>
+          </linearGradient>
+        </defs>
+        <!-- feedback loop on modulator -->
+        <path class="fbk" id="fbk" d="M120 16 C150 -2 168 6 168 26"/>
+        <!-- modulator -> carrier (the FM amount wire) -->
+        <path class="wire" d="M232 32 H322"/>
+        <path class="wire-hot" id="fmwire" d="M232 32 H322"/>
+        <!-- carrier -> output -->
+        <path class="wire" d="M414 32 H520"/>
+        <path class="wire-hot" id="outwire" d="M414 32 H520" style="animation-duration:1.3s"/>
+
+        <!-- MOD operator -->
+        <g>
+          <rect class="op-box" id="modBox" x="150" y="10" width="84" height="44" rx="9"/>
+          <text class="op-t" x="192" y="30" text-anchor="middle">OP 2</text>
+          <text class="op-s" x="192" y="44" text-anchor="middle">MOD</text>
+        </g>
+        <!-- CAR operator -->
+        <g>
+          <rect class="op-box" id="carBox" x="330" y="10" width="84" height="44" rx="9"/>
+          <text class="op-t" x="372" y="30" text-anchor="middle">OP 1</text>
+          <text class="op-s" x="372" y="44" text-anchor="middle">CAR</text>
+        </g>
+        <!-- output node -->
+        <circle class="spark" id="outNode" cx="520" cy="32" r="5"/>
+        <text class="op-s" x="520" y="58" text-anchor="middle">OUT</text>
+        <!-- travelling spark on the FM wire -->
+        <circle class="spark" id="sparkA" cx="232" cy="32" r="3.2"/>
+      </svg>
+    </div>
+
+    <!-- CONTROL DECK -->
+    <div class="deck" id="deck"></div>
+
+    <div class="foot">
+      <span>VOICE / 16&nbsp;NOTE&nbsp;POLY</span>
+      <span class="dots"><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i></span>
+      <span>EP&nbsp;TINE&nbsp;ENGINE</span>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---- param table (re-read from spec: index/min/max/default) ----
+  var PARAMS = [
+    {name:"Ratio",      index:0, min:0, max:1, def:0.5,  type:"knob",  hint:"OP RATIO  MOD:CAR",   fmt:ratioFmt},
+    {name:"FMAmount",   index:1, min:0, max:1, def:0.55, type:"knob",  hint:"MOD INDEX  DEPTH",    fmt:pctFmt},
+    {name:"ModDecay",   index:2, min:0, max:1, def:0.45, type:"knob",  hint:"INDEX ENV  DECAY",    fmt:msFmt},
+    {name:"Attack",     index:3, min:0, max:1, def:0.04, type:"knob",  hint:"AMP ENV  ATTACK",     fmt:msFmt},
+    {name:"Release",    index:4, min:0, max:1, def:0.55, type:"knob",  hint:"AMP ENV  RELEASE",    fmt:msFmt},
+    {name:"Brightness", index:5, min:0, max:1, def:0.6,  type:"knob",  hint:"SPECTRAL  TILT",      fmt:pctFmt},
+    {name:"Level",      index:6, min:0, max:1, def:0.7,  type:"fader", hint:"MASTER  OUTPUT",      fmt:dbFmt}
+  ];
+
+  function ratioFmt(n){ // map 0..1 -> a musical FM ratio readout
+    var ratios=[0.5,1,1.5,2,2.5,3,3.5,4,5,7,9,11,14];
+    var r=ratios[Math.min(ratios.length-1,Math.round(n*(ratios.length-1)))];
+    return r.toFixed(2).replace(/\.00$/,".00");
+  }
+  function pctFmt(n){ return Math.round(n*100)+"%"; }
+  function msFmt(n){ var ms=Math.round(2+n*n*3000); return ms>=1000?(ms/1000).toFixed(2)+"s":ms+"ms"; }
+  function dbFmt(n){ if(n<=0.0001) return "-INF"; var db=20*Math.log10(n); return (db>=0?"+":"")+db.toFixed(1)+"dB"; }
+
+  var state = PARAMS.map(function(p){ return p.def; });
+  var lcd = {
+    name:document.getElementById('lcdName'), val:document.getElementById('lcdVal'),
+    bar:document.getElementById('lcdBar'), hint:document.getElementById('lcdHint'),
+    pg:document.getElementById('lcdPg'), wave:document.getElementById('lcdWave').querySelector('path')
+  };
+  var fmwire=document.getElementById('fmwire'), modBox=document.getElementById('modBox'),
+      carBox=document.getElementById('carBox'), fbk=document.getElementById('fbk'),
+      spark=document.getElementById('sparkA'), outNode=document.getElementById('outNode');
+
+  function nz(p,v){ return (v-p.min)/((p.max-p.min)||1); }
+  function send(p,v){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.index, v); }
+
+  // ---- LCD focus / live display ----
+  var focusIdx = 0;
+  function showLcd(i){
+    focusIdx=i; var p=PARAMS[i], v=state[i], n=nz(p,v);
+    lcd.name.textContent = p.name.toUpperCase();
+    lcd.val.textContent  = p.fmt(n);
+    lcd.bar.style.width  = (8+n*92)+"%";
+    lcd.hint.textContent = p.hint;
+    lcd.pg.textContent   = "PG "+(i+1)+"/"+PARAMS.length;
+  }
+
+  // ---- animated LCD waveform (reflects FMAmount + Brightness) ----
+  var t0=performance.now();
+  function lcdWaveTick(now){
+    var fm=nz(PARAMS[1],state[1]), br=nz(PARAMS[5],state[5]);
+    var ph=(now-t0)*0.004;
+    var pts=[], W=120,H=46;
+    for(var x=0;x<=W;x+=3){
+      var u=x/W;
+      // carrier + FM sideband richness driven by FMAmount & Brightness
+      var s = Math.sin(u*6.283*2 + ph)
+            + fm*0.9*Math.sin(u*6.283*2 + ph + 4*fm*Math.sin(u*6.283*2+ph))
+            + br*0.35*Math.sin(u*6.283*8 + ph*1.7);
+      var y = H/2 - s*(H*0.17);
+      pts.push(x.toFixed(0)+" "+y.toFixed(1));
+    }
+    lcd.wave.setAttribute('d','M'+pts.join(' L'));
+    requestAnimationFrame(lcdWaveTick);
+  }
+
+  // ---- algorithm diagram reacts to engine state ----
+  function refreshAlgo(){
+    var fm=nz(PARAMS[1],state[1]), ratio=nz(PARAMS[0],state[0]),
+        decay=nz(PARAMS[2],state[2]), bright=nz(PARAMS[5],state[5]);
+    // FM wire thickness + glow + flow speed = modulation index
+    fmwire.style.strokeWidth=(1.6+fm*3.4).toFixed(2);
+    fmwire.style.opacity=(0.25+fm*0.75).toFixed(2);
+    fmwire.style.animationDuration=(1.3-fm*0.9).toFixed(2)+"s";
+    fmwire.style.filter='drop-shadow(0 0 '+(2+fm*8).toFixed(1)+'px var(--ac))';
+    // modulator box lit by FM depth, carrier by brightness
+    modBox.setAttribute('class', fm>0.05?'op-lit':'op-box');
+    modBox.style.filter='drop-shadow(0 0 '+(fm*9).toFixed(1)+'px color-mix(in srgb,var(--ac) 70%,transparent))';
+    carBox.setAttribute('class','op-lit');
+    carBox.style.filter='drop-shadow(0 0 '+(3+bright*8).toFixed(1)+'px color-mix(in srgb,var(--ac) 70%,transparent))';
+    // feedback loop appears with high ratio
+    fbk.style.opacity=(0.15+ratio*0.85).toFixed(2);
+    fbk.style.animationDuration=(1.6-ratio*0.9).toFixed(2)+"s";
+    // out node pulse intensity by level
+    var lvl=nz(PARAMS[6],state[6]);
+    outNode.style.filter='drop-shadow(0 0 '+(2+lvl*8).toFixed(1)+'px var(--ac))';
+  }
+  // travelling spark riding the FM wire, paced by ModDecay
+  var sx=232, dir=1;
+  function sparkTick(now){
+    var decay=nz(PARAMS[2],state[2]), fm=nz(PARAMS[1],state[1]);
+    var speed=0.6+ (1-decay)*2.4; // faster decay -> faster bell flutter
+    sx += speed;
+    if(sx>322){ sx=232; }
+    spark.setAttribute('cx', sx.toFixed(1));
+    spark.style.opacity=(0.15+fm*0.85).toFixed(2);
+    spark.setAttribute('r',(2.2+fm*2.2).toFixed(1));
+    requestAnimationFrame(sparkTick);
+  }
+
+  // ---- build controls ----
+  var deck=document.getElementById('deck');
+  PARAMS.forEach(function(p,i){
+    var ctl=document.createElement('div');
+    ctl.className='ctl'+(p.type==='fader'?' fader':'');
+    ctl.style.setProperty('--d',(i*55)+'ms');
+
+    if(p.type==='fader'){
+      ctl.innerHTML=
+        '<div class="track"><div class="fill"></div><div class="cap"></div></div>'+
+        '<div class="nm">'+p.name+'</div><div class="vv"></div>';
+    } else {
+      ctl.innerHTML=
+        '<div class="knob"><div class="ring"><div class="pip"></div></div></div>'+
+        '<div class="nm">'+p.name+'</div><div class="vv"></div>';
+    }
+    deck.appendChild(ctl);
+
+    var vv=ctl.querySelector('.vv');
+    function paint(){
+      var n=nz(p,state[i]);
+      vv.textContent=p.fmt(n);
+      if(p.type==='fader'){
+        ctl.querySelector('.fill').style.height=(n*100)+'%';
+        ctl.querySelector('.cap').style.top=((1-n)*100)+'%';
+      } else {
+        var k=ctl.querySelector('.knob');
+        k.style.setProperty('--n', n);
+      }
+      if(focusIdx===i) showLcd(i);
+      refreshAlgo();
+    }
+    function set(n){
+      n=n<0?0:(n>1?1:n);
+      state[i]=p.min+(p.max-p.min)*n;
+      paint(); send(p,state[i]);
+    }
+    function reset(){ state[i]=p.def; paint(); send(p,state[i]); }
+
+    // pointer drag (vertical) for both knob and fader
+    var grip = p.type==='fader' ? ctl.querySelector('.track') : ctl.querySelector('.knob');
+    var dragY=0, dragN=0, dragging=false;
+    grip.addEventListener('pointerdown',function(e){
+      dragging=true; dragY=e.clientY; dragN=nz(p,state[i]);
+      grip.classList.add('act'); if(grip.classList.contains('knob')) grip.classList.add('live');
+      grip.setPointerCapture(e.pointerId); showLcd(i); e.preventDefault();
+    });
+    grip.addEventListener('pointermove',function(e){
+      if(!dragging)return;
+      set(dragN + (dragY-e.clientY)/180);
+    });
+    function end(){ dragging=false; grip.classList.remove('act'); grip.classList.remove('live'); }
+    grip.addEventListener('pointerup',end);
+    grip.addEventListener('pointercancel',end);
+    grip.addEventListener('dblclick',reset);
+    grip.addEventListener('wheel',function(e){
+      e.preventDefault(); showLcd(i);
+      set(nz(p,state[i]) + (e.deltaY<0?0.03:-0.03));
+    },{passive:false});
+    grip.addEventListener('pointerenter',function(){ showLcd(i); });
+
+    p._paint=paint;
+  });
+
+  function ready(){
+    PARAMS.forEach(function(p,i){ p._paint(); send(p, state[i]); });
+    showLcd(0);
+    refreshAlgo();
+    requestAnimationFrame(lcdWaveTick);
+    requestAnimationFrame(sparkTick);
+  }
+
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

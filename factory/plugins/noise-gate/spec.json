@@ -1,0 +1,17 @@
+{
+  "name": "Noise Gate",
+  "isInstrument": false,
+  "explanation": "A clean noise gate and downward expander. Signal below Threshold is attenuated toward the Range floor while louder material passes untouched; Attack and Release shape the open/close fades, and a Hold time plus built-in hysteresis stop the gate chattering on decays and sustains.",
+  "assembly": "factory/plugins/noise-gate/assembly.ts",
+  "out": "factory/plugins/noise-gate/x.vstai",
+  "publishedAt": 1751000051000,
+  "theme": { "accent": "#ff6b6b", "accent2": "#ffb36b" },
+  "guiFile": "factory/plugins/noise-gate/gui.html",
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Range",     "index": 1, "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Attack",    "index": 2, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Release",   "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Hold",      "index": 4, "min": 0, "max": 1, "default": 0.2 }
+  ]
+}

@@ -6,6 +6,7 @@
   "out": "factory/plugins/fat-mono/x.vstai",
   "publishedAt": 1751000016000,
   "theme": { "accent": "#ff8c42", "accent2": "#ffb454" },
+  "guiFile": "factory/plugins/fat-mono/gui.html",
   "params": [
     { "name": "Detune",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
     { "name": "Cutoff",       "index": 1, "min": 0, "max": 1, "default": 0.45 },

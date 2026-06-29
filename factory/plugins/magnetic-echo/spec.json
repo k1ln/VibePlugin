@@ -1,0 +1,20 @@
+{
+  "name": "Magnetic Echo",
+  "isInstrument": false,
+  "explanation": "An original multi-head magnetic-drum echo. A single circulating loop is read by four fixed playback heads, and a Head Mode selects which head combination sounds for distinct rhythmic multi-tap patterns. Recirculating Swell feedback stacks warm, bandwidth-limited repeats with subtle mechanical flutter. Controls: Time, Swell, Heads, Tone and dry/wet Mix.",
+  "assembly": "factory/plugins/magnetic-echo/assembly.ts",
+  "out": "factory/plugins/magnetic-echo/x.vstai",
+  "publishedAt": 1751000041000,
+  "theme": {
+    "accent": "#e0a85a",
+    "accent2": "#ffd089"
+  },
+  "guiFile": "factory/plugins/magnetic-echo/gui.html",
+  "params": [
+    { "name": "Time",  "index": 0, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Swell", "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Heads", "index": 2, "min": 0, "max": 3, "default": 1, "step": 1 },
+    { "name": "Tone",  "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Mix",   "index": 4, "min": 0, "max": 1, "default": 0.45 }
+  ]
+}

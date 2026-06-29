@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poly Moog</title>
+<style>
+  :root {
+    --accent: #ffae5a;
+    --accent2: #ff7a5a;
+    --panel: #141210;
+    --panel2: #1d1a16;
+    --ink: #efe6d8;
+    --dim: #8c8275;
+    --wood1: #6b3d1c;
+    --wood2: #97582b;
+    --wood3: #4a2a13;
+    --scope: #4dff8e;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: #0a0908;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1b1815 0%, #0a0908 60%);
+  }
+
+  /* ---- the synth chassis: wood cheeks + black panel ---- */
+  .synth {
+    width: min(960px, 100%);
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    border-radius: 14px;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,0.7),
+      0 2px 0 rgba(255,255,255,0.05) inset;
+    overflow: hidden;
+  }
+
+  .cheek {
+    background:
+      repeating-linear-gradient(
+        178deg,
+        var(--wood1) 0px,
+        var(--wood2) 3px,
+        var(--wood3) 6px,
+        var(--wood1) 9px);
+    box-shadow:
+      inset 0 0 30px rgba(0,0,0,0.55),
+      inset -3px 0 6px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .cheek.right { box-shadow: inset 0 0 30px rgba(0,0,0,0.55), inset 3px 0 6px rgba(0,0,0,0.4); }
+  .cheek::after {
+    content: "";
+    position: absolute;
+    inset: 6px 4px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(255,220,180,0.08);
+  }
+
+  .panel {
+    background:
+      linear-gradient(180deg, #211d18 0%, var(--panel) 12%, var(--panel) 100%);
+    padding: 16px 22px 22px;
+    position: relative;
+  }
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 4px 4px;
+    pointer-events: none;
+  }
+
+  /* ---- header ---- */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .logo {
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(180deg, #fff 0%, var(--accent) 70%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .tagline {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* ---- voice LED row ---- */
+  .voices { display: flex; align-items: center; gap: 9px; }
+  .voices .vlabel {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-right: 4px;
+  }
+  .led {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #3a342c, #0d0b09);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.04);
+    transition: background 0.08s linear, box-shadow 0.08s linear;
+  }
+  .led.on {
+    background: radial-gradient(circle at 35% 30%, #fff2d8, var(--accent) 55%, var(--accent2) 100%);
+    box-shadow:
+      0 0 8px var(--accent),
+      0 0 16px rgba(255,122,90,0.55),
+      inset 0 0 2px #fff;
+  }
+
+  /* ---- scope ---- */
+  .scopewrap {
+    margin: 0 0 16px;
+    border-radius: 9px;
+    padding: 8px;
+    background:
+      linear-gradient(180deg, #050b07, #02160b);
+    box-shadow:
+      inset 0 0 0 1px rgba(77,255,142,0.12),
+      inset 0 6px 24px rgba(0,0,0,0.7);
+    position: relative;
+  }
+  canvas { display: block; width: 100%; height: 116px; border-radius: 5px; }
+  .scopeglow {
+    position: absolute; inset: 8px;
+    pointer-events: none;
+    background: radial-gradient(80% 60% at 50% 50%, rgba(77,255,142,0.07), transparent 70%);
+    border-radius: 5px;
+  }
+
+  /* ---- knob grid ---- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 720px) { .rack { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 430px) { .rack { grid-template-columns: repeat(3, 1fr); } }
+
+  .knobcell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 4px 10px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--panel2), #100e0c);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 2px 6px rgba(0,0,0,0.5);
+  }
+  .knoblabel {
+    font-size: 9.5px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: center;
+  }
+  .knob {
+    width: 64px; height: 64px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .knob:focus { outline: none; }
+  .val {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: #0c0a08;
+    border-radius: 4px;
+    padding: 2px 7px;
+    min-width: 42px;
+    text-align: center;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+  }
+
+  /* ---- keyboard ---- */
+  .kbd {
+    margin-top: 16px;
+    display: flex;
+    position: relative;
+    height: 92px;
+    border-radius: 8px;
+    padding: 6px;
+    background: linear-gradient(180deg, #0c0a08, #1a1714);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.7);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+  .keys { position: relative; flex: 1; height: 100%; }
+  .wkey {
+    position: absolute; top: 0; bottom: 0;
+    background: linear-gradient(180deg, #f3ece0, #c9bda9);
+    border-radius: 0 0 5px 5px;
+    box-shadow: inset 0 -3px 5px rgba(0,0,0,0.25), 0 1px 0 #fff inset;
+    border: 1px solid #2b2620;
+    cursor: pointer;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.35);
+  }
+  .bkey {
+    position: absolute; top: 0;
+    height: 58%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a2620, #050403);
+    box-shadow: inset 0 -3px 4px rgba(255,255,255,0.08), 0 3px 5px rgba(0,0,0,0.6);
+    border: 1px solid #000;
+    z-index: 3;
+    cursor: pointer;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent2), #7a2d1a);
+  }
+  .hint {
+    margin-top: 9px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="synth">
+    <div class="cheek left"></div>
+    <div class="panel">
+      <header>
+        <div class="brand">
+          <div class="logo">POLY MOOG</div>
+          <div class="tagline">8-Voice Ladder Polysynth</div>
+        </div>
+        <div class="voices" id="voices">
+          <span class="vlabel">Voices</span>
+        </div>
+      </header>
+
+      <div class="scopewrap">
+        <canvas id="scope"></canvas>
+        <div class="scopeglow"></div>
+      </div>
+
+      <div class="rack" id="rack"></div>
+
+      <div class="kbd">
+        <div class="keys" id="keys"></div>
+      </div>
+      <div class="hint">Drag a knob vertically · double-click to reset · click the keys or use your computer keyboard (A&ndash;K)</div>
+    </div>
+    <div class="cheek right"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Detune",     index: 0, min: 0, max: 1, def: 0.35, fmt: pct },
+    { name: "Cutoff",     index: 1, min: 0, max: 1, def: 0.50, fmt: hz },
+    { name: "Resonance",  index: 2, min: 0, max: 1, def: 0.35, fmt: pct },
+    { name: "Env Amt",    index: 3, min: 0, max: 1, def: 0.60, fmt: pct },
+    { name: "Attack",     index: 4, min: 0, max: 1, def: 0.06, fmt: secAtk },
+    { name: "Release",    index: 5, min: 0, max: 1, def: 0.35, fmt: secRel },
+    { name: "Level",      index: 6, min: 0, max: 1, def: 0.70, fmt: pct }
+  ];
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+  function hz(v) {
+    var f = 50 * Math.pow(320, v);
+    return f >= 1000 ? (f / 1000).toFixed(1) + "k" : Math.round(f) + "Hz";
+  }
+  function secAtk(v) { return (0.002 + v * 1.2).toFixed(2) + "s"; }
+  function secRel(v) { return (0.02 + v * 2.5).toFixed(2) + "s"; }
+
+  // ---- host bridge (guard against undefined) ----
+  function setParam(i, v) {
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+  function noteOn(n, vel) {
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(n, vel);
+  }
+  function noteOff(n) {
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(n);
+  }
+
+  // ===================================================================
+  //  KNOBS — SVG, drag to turn, dbl-click reset, wheel fine-tune
+  // ===================================================================
+  var rack = document.getElementById("rack");
+  var knobState = [];
+
+  function makeKnob(p) {
+    var cell = document.createElement("div");
+    cell.className = "knobcell";
+
+    var label = document.createElement("div");
+    label.className = "knoblabel";
+    label.textContent = p.name;
+
+    var SVGNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(SVGNS, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("class", "knob");
+    svg.setAttribute("tabindex", "0");
+
+    // track arc (270 deg)
+    var track = document.createElementNS(SVGNS, "path");
+    track.setAttribute("d", arcPath(50, 50, 38, -135, 135));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "#322c25");
+    track.setAttribute("stroke-width", "7");
+    track.setAttribute("stroke-linecap", "round");
+
+    // value arc
+    var arc = document.createElementNS(SVGNS, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#kg)");
+    arc.setAttribute("stroke-width", "7");
+    arc.setAttribute("stroke-linecap", "round");
+
+    // gradient def
+    var defs = document.createElementNS(SVGNS, "defs");
+    var grad = document.createElementNS(SVGNS, "linearGradient");
+    grad.setAttribute("id", "kg");
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "1");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "0");
+    var st1 = document.createElementNS(SVGNS, "stop");
+    st1.setAttribute("offset", "0%"); st1.setAttribute("stop-color", "#ff7a5a");
+    var st2 = document.createElementNS(SVGNS, "stop");
+    st2.setAttribute("offset", "100%"); st2.setAttribute("stop-color", "#ffae5a");
+    grad.appendChild(st1); grad.appendChild(st2); defs.appendChild(grad);
+
+    // body
+    var body = document.createElementNS(SVGNS, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "27");
+    body.setAttribute("fill", "url(#kb)");
+    body.setAttribute("stroke", "#000"); body.setAttribute("stroke-width", "1");
+    var bgrad = document.createElementNS(SVGNS, "radialGradient");
+    bgrad.setAttribute("id", "kb");
+    bgrad.setAttribute("cx", "0.4"); bgrad.setAttribute("cy", "0.32"); bgrad.setAttribute("r", "0.8");
+    var b1 = document.createElementNS(SVGNS, "stop");
+    b1.setAttribute("offset", "0%"); b1.setAttribute("stop-color", "#3a342c");
+    var b2 = document.createElementNS(SVGNS, "stop");
+    b2.setAttribute("offset", "100%"); b2.setAttribute("stop-color", "#0c0a08");
+    bgrad.appendChild(b1); bgrad.appendChild(b2); defs.appendChild(bgrad);
+
+    // pointer notch
+    var notch = document.createElementNS(SVGNS, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "27");
+    notch.setAttribute("stroke", "#ffd9a8");
+    notch.setAttribute("stroke-width", "3.2");
+    notch.setAttribute("stroke-linecap", "round");
+
+    svg.appendChild(defs);
+    svg.appendChild(track);
+    svg.appendChild(arc);
+    svg.appendChild(body);
+    svg.appendChild(notch);
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    cell.appendChild(label);
+    cell.appendChild(svg);
+    cell.appendChild(val);
+    rack.appendChild(cell);
+
+    var st = { p: p, value: p.def, arc: arc, notch: notch, val: val };
+    knobState.push(st);
+    draw(st);
+
+    // ---- interactions ----
+    var dragging = false, startY = 0, startVal = 0;
+
+    function clientY(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
+
+    function onDown(e) {
+      dragging = true;
+      startY = clientY(e);
+      startVal = st.value;
+      e.preventDefault();
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("touchend", onUp);
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var dy = startY - clientY(e);
+      var range = p.max - p.min;
+      var fine = (e.shiftKey) ? 0.25 : 1;
+      setVal(startVal + (dy / 180) * range * fine);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    }
+
+    function setVal(v) {
+      st.value = Math.max(p.min, Math.min(p.max, v));
+      draw(st);
+      setParam(p.index, st.value);
+    }
+
+    svg.addEventListener("mousedown", onDown);
+    svg.addEventListener("touchstart", onDown, { passive: false });
+    svg.addEventListener("dblclick", function () { setVal(p.def); });
+    svg.addEventListener("wheel", function (e) {
+      var range = p.max - p.min;
+      setVal(st.value - Math.sign(e.deltaY) * range * 0.03);
+      e.preventDefault();
+    }, { passive: false });
+    svg.addEventListener("keydown", function (e) {
+      var range = p.max - p.min;
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") { setVal(st.value + range * 0.04); e.preventDefault(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowLeft") { setVal(st.value - range * 0.04); e.preventDefault(); }
+    });
+
+    st.setVal = setVal;
+    return st;
+  }
+
+  function draw(st) {
+    var p = st.p;
+    var norm = (st.value - p.min) / (p.max - p.min);
+    var ang = -135 + norm * 270;
+    st.arc.setAttribute("d", arcPath(50, 50, 38, -135, ang));
+    var rad = (ang - 90) * Math.PI / 180;
+    var x2 = 50 + Math.cos(rad) * 23;
+    var y2 = 50 + Math.sin(rad) * 23;
+    st.notch.setAttribute("x2", x2.toFixed(2));
+    st.notch.setAttribute("y2", y2.toFixed(2));
+    st.val.textContent = p.fmt(st.value);
+  }
+
+  function arcPath(cx, cy, r, a0, a1) {
+    var p0 = polar(cx, cy, r, a0);
+    var p1 = polar(cx, cy, r, a1);
+    var large = (a1 - a0) > 180 ? 1 : 0;
+    return "M " + p0.x + " " + p0.y + " A " + r + " " + r + " 0 " + large + " 1 " + p1.x + " " + p1.y;
+  }
+  function polar(cx, cy, r, deg) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return { x: (cx + Math.cos(rad) * r).toFixed(2), y: (cy + Math.sin(rad) * r).toFixed(2) };
+  }
+
+  // ===================================================================
+  //  VOICE LEDS
+  // ===================================================================
+  var NUM_VOICES = 8;
+  var voicesEl = document.getElementById("voices");
+  var leds = [];
+  for (var i = 0; i < NUM_VOICES; i++) {
+    var d = document.createElement("div");
+    d.className = "led";
+    voicesEl.appendChild(d);
+    leds.push(d);
+  }
+  // voice allocation mirror (free-first, oldest-steal) so LEDs match the engine
+  var voiceNote = new Array(NUM_VOICES).fill(-1);
+  var voiceAge = new Array(NUM_VOICES).fill(0);
+  var ageCtr = 0;
+
+  function ledOn(note) {
+    var slot = -1;
+    for (var i = 0; i < NUM_VOICES; i++) if (voiceNote[i] < 0) { slot = i; break; }
+    if (slot < 0) {
+      slot = 0; var oldest = voiceAge[0];
+      for (var j = 1; j < NUM_VOICES; j++) if (voiceAge[j] < oldest) { oldest = voiceAge[j]; slot = j; }
+    }
+    voiceNote[slot] = note;
+    voiceAge[slot] = ageCtr++;
+    leds[slot].classList.add("on");
+  }
+  function ledOff(note) {
+    for (var i = 0; i < NUM_VOICES; i++) {
+      if (voiceNote[i] === note) {
+        voiceNote[i] = -1;
+        leds[i].classList.remove("on");
+      }
+    }
+  }
+
+  // ===================================================================
+  //  KEYBOARD
+  // ===================================================================
+  var keysEl = document.getElementById("keys");
+  var FIRST = 48; // C3
+  var NKEYS = 25; // two octaves + 1
+  var isBlack = function (n) { var m = n % 12; return m === 1 || m === 3 || m === 6 || m === 8 || m === 10; };
+
+  var whiteCount = 0;
+  for (var k = 0; k < NKEYS; k++) if (!isBlack(FIRST + k)) whiteCount++;
+  var wIdx = 0;
+  var keyEls = {};
+
+  for (var k2 = 0; k2 < NKEYS; k2++) {
+    var note = FIRST + k2;
+    var el = document.createElement("div");
+    if (isBlack(note)) {
+      el.className = "bkey";
+      // position relative to the previous white key
+      var leftPct = (wIdx / whiteCount) * 100 - (1 / whiteCount) * 32;
+      el.style.left = leftPct + "%";
+      el.style.width = (1 / whiteCount) * 64 + "%";
+    } else {
+      el.className = "wkey";
+      el.style.left = (wIdx / whiteCount) * 100 + "%";
+      el.style.width = (1 / whiteCount) * 100 + "%";
+      wIdx++;
+    }
+    el.dataset.note = note;
+    keysEl.appendChild(el);
+    keyEls[note] = el;
+  }
+
+  var heldPointer = {};
+
+  function press(note) {
+    if (keyEls[note] && !keyEls[note].classList.contains("down")) {
+      keyEls[note].classList.add("down");
+      noteOn(note, 0.9);
+      ledOn(note);
+    }
+  }
+  function release(note) {
+    if (keyEls[note] && keyEls[note].classList.contains("down")) {
+      keyEls[note].classList.remove("down");
+      noteOff(note);
+      ledOff(note);
+    }
+  }
+
+  keysEl.addEventListener("mousedown", function (e) {
+    var n = +e.target.dataset.note;
+    if (n) { press(n); heldPointer.mouse = n; }
+  });
+  window.addEventListener("mouseup", function () {
+    if (heldPointer.mouse) { release(heldPointer.mouse); heldPointer.mouse = 0; }
+  });
+  keysEl.addEventListener("mouseover", function (e) {
+    if (heldPointer.mouse) {
+      var n = +e.target.dataset.note;
+      if (n && n !== heldPointer.mouse) { release(heldPointer.mouse); press(n); heldPointer.mouse = n; }
+    }
+  });
+  keysEl.addEventListener("touchstart", function (e) {
+    for (var t = 0; t < e.changedTouches.length; t++) {
+      var el = document.elementFromPoint(e.changedTouches[t].clientX, e.changedTouches[t].clientY);
+      if (el && el.dataset.note) press(+el.dataset.note);
+    }
+    e.preventDefault();
+  }, { passive: false });
+  keysEl.addEventListener("touchend", function (e) {
+    // release everything held on touchend (simple + robust)
+    for (var n in keyEls) if (keyEls[n].classList.contains("down")) release(+n);
+    e.preventDefault();
+  }, { passive: false });
+
+  // computer keyboard
+  var KEYMAP = { a:48, w:49, s:50, e:51, d:52, f:53, t:54, g:55, y:56, h:57, u:58, j:59, k:60, o:61, l:62, p:63 };
+  var keyDown = {};
+  window.addEventListener("keydown", function (e) {
+    var n = KEYMAP[e.key];
+    if (n != null && !keyDown[e.key]) { keyDown[e.key] = true; press(n); }
+  });
+  window.addEventListener("keyup", function (e) {
+    var n = KEYMAP[e.key];
+    if (n != null) { keyDown[e.key] = false; release(n); }
+  });
+
+  // ===================================================================
+  //  OSCILLOSCOPE — synthesized from active voices + envelopes,
+  //  fat green CRT trace driven by which knobs are set.
+  // ===================================================================
+  var cv = document.getElementById("scope");
+  var ctx = cv.getContext("2d");
+  var phase = 0;
+
+  function resize() {
+    var r = cv.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = Math.max(1, r.width * dpr);
+    cv.height = Math.max(1, r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+
+  function valOf(idx) {
+    for (var i = 0; i < knobState.length; i++) if (knobState[i].p.index === idx) return knobState[i].value;
+    return 0;
+  }
+
+  function activeVoices() {
+    var c = 0;
+    for (var i = 0; i < NUM_VOICES; i++) if (voiceNote[i] >= 0) c++;
+    return c;
+  }
+
+  var energy = 0;
+
+  function frame() {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var r = cv.getBoundingClientRect();
+    var W = r.width, H = r.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // grid
+    ctx.strokeStyle = "rgba(77,255,142,0.10)";
+    ctx.lineWidth = 1;
+    for (var gx = 0; gx <= 8; gx++) {
+      var x = (gx / 8) * W;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (var gy = 0; gy <= 4; gy++) {
+      var y = (gy / 4) * H;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    var active = activeVoices();
+    var target = active > 0 ? 1 : 0;
+    energy += (target - energy) * 0.08;
+
+    // shape from knobs
+    var detune = valOf(0);
+    var cutoff = valOf(1);
+    var reso = valOf(2);
+    var level = valOf(6);
+    var amp = (0.12 + level * 0.78) * energy;
+    var speed = 0.6 + cutoff * 2.2 + active * 0.15;
+    phase += 0.02 * speed;
+
+    // draw the fat green trace
+    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = "rgba(77,255,142,0.9)";
+    ctx.shadowColor = "rgba(77,255,142,0.8)";
+    ctx.shadowBlur = 9;
+    ctx.beginPath();
+    var N = 256;
+    for (var i = 0; i <= N; i++) {
+      var t = i / N;
+      var ph = t * Math.PI * 2 * (2 + Math.floor(cutoff * 5));
+      // base saw-ish + detune beating + resonant ring
+      var saw = ((t * (2 + Math.floor(detune * 4)) % 1) * 2 - 1);
+      var beat = Math.sin(phase * 0.5 + t * Math.PI * 2 * (1 + detune * 3));
+      var ring = reso * 0.6 * Math.sin(ph * (1 + reso) + phase);
+      var s = (saw * 0.5 + beat * 0.4 + ring) * amp;
+      var px = t * W;
+      var py = H / 2 - s * (H * 0.40);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // center line
+    ctx.strokeStyle = "rgba(77,255,142,0.18)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+
+    requestAnimationFrame(frame);
+  }
+
+  // ===================================================================
+  //  BOOT
+  // ===================================================================
+  function boot() {
+    PARAMS.forEach(makeKnob);
+    // initialise every param to its default
+    knobState.forEach(function (st) { setParam(st.p.index, st.value); });
+    resize();
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

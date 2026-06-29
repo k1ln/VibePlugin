@@ -1,0 +1,475 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grit Sampler</title>
+<style>
+/* ============================================================
+   GRIT SAMPLER — 12-bit gritty hardware sampler.
+   MPC/SP-style rubber pads + a faders strip + a bit-crushed
+   stepped waveform display. Everything bespoke, inline, animated.
+   ============================================================ */
+:root{
+  --ac:#ff9e54;          /* warm amber accent */
+  --ac2:#ffc080;         /* lighter amber */
+  --case:#1a1410;        /* dark chassis */
+  --case2:#0d0a07;
+  --steel:#2a2622;
+  --pad:#231d18;
+  --ink:#f3e7d8;
+  --dim:#9b8a78;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--ink);
+  background:
+    radial-gradient(120% 90% at 50% -10%, #3a2c20 0%, #1a130d 50%, #070503 100%);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  overflow:hidden;
+}
+
+/* ---------- the hardware unit ---------- */
+.unit{
+  position:relative;width:100%;max-width:640px;border-radius:18px;overflow:hidden;
+  background:
+    linear-gradient(160deg,#241c15,#13100c 60%,#0a0805);
+  border:1px solid #3a2e22;
+  box-shadow:
+    0 34px 70px rgba(0,0,0,.7),
+    0 2px 0 rgba(255,255,255,.05) inset,
+    0 0 0 1px rgba(0,0,0,.6) inset,
+    0 -30px 50px rgba(255,158,84,.04) inset;
+  animation:boot .7s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes boot{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+/* brushed-metal speckle overlay across the whole unit */
+.unit::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background:
+    repeating-linear-gradient(115deg,rgba(255,255,255,.018) 0 2px,transparent 2px 5px),
+    repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+/* warm bloom that breathes behind the panel */
+.unit::after{
+  content:"";position:absolute;left:50%;top:-30%;width:120%;height:90%;z-index:0;
+  transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,158,84,.16),transparent 70%);
+  filter:blur(20px);animation:bloom 8s ease-in-out infinite alternate;
+}
+@keyframes bloom{from{opacity:.5;transform:translate(-52%,0)}to{opacity:.95;transform:translate(-48%,3%)}}
+
+/* ---------- top brand bar ---------- */
+.brand{
+  position:relative;z-index:2;display:flex;align-items:center;gap:12px;
+  padding:13px 18px 12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.18));
+  border-bottom:1px solid #000;
+}
+.brand .pwr{
+  width:11px;height:11px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 35% 30%,#ffd9a8,var(--ac) 60%,#7a3d12);
+  box-shadow:0 0 10px var(--ac),0 0 2px #fff inset;
+  animation:beat 1.9s ease-in-out infinite;
+}
+@keyframes beat{0%,100%{box-shadow:0 0 5px var(--ac)}50%{box-shadow:0 0 16px var(--ac),0 0 3px #fff inset}}
+.logo{display:flex;flex-direction:column;line-height:1;flex:1}
+.logo b{
+  font-size:18px;letter-spacing:.18em;font-weight:800;
+  background:linear-gradient(92deg,var(--ac2),var(--ac) 55%,#c96b2a);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.4);
+}
+.logo small{font-size:9px;letter-spacing:.34em;color:var(--dim);margin-top:5px;text-transform:uppercase}
+.model{
+  font-size:9px;letter-spacing:.2em;color:#0c0805;text-transform:uppercase;
+  background:linear-gradient(var(--ac2),var(--ac));padding:4px 9px;border-radius:4px;
+  font-weight:800;box-shadow:0 1px 0 rgba(255,255,255,.4) inset,0 2px 6px rgba(0,0,0,.4);
+}
+
+/* ---------- LCD waveform window ---------- */
+.lcd{
+  position:relative;z-index:2;margin:14px 18px 4px;border-radius:9px;overflow:hidden;
+  background:linear-gradient(180deg,#0b1a14,#06120d);
+  border:1px solid #02100a;
+  box-shadow:0 2px 0 rgba(255,255,255,.05) inset,0 -10px 22px rgba(0,0,0,.6) inset,0 1px 2px rgba(0,0,0,.5);
+}
+.lcd::after{ /* scanline glass */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);
+  opacity:.5;
+}
+.lcd .scr{display:block;width:100%;height:96px}
+.lcd .tag{
+  position:absolute;top:7px;left:10px;font-size:9px;letter-spacing:.18em;color:#3ddc97;
+  text-shadow:0 0 6px rgba(61,220,151,.6);text-transform:uppercase;z-index:3;
+}
+.lcd .rate{
+  position:absolute;top:7px;right:10px;font-size:9px;letter-spacing:.12em;color:#3ddc97;
+  text-shadow:0 0 6px rgba(61,220,151,.6);z-index:3;font-variant-numeric:tabular-nums;
+}
+
+/* ---------- main work area: pads + faders ---------- */
+.work{position:relative;z-index:2;display:flex;gap:14px;padding:14px 18px 16px}
+
+/* pad grid */
+.pads{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:9px;flex:1;
+}
+.pad{
+  position:relative;aspect-ratio:1/1;border-radius:9px;cursor:pointer;user-select:none;
+  background:linear-gradient(165deg,#2b2118,#161009 70%,#0d0905);
+  border:1px solid #070402;
+  box-shadow:
+    0 3px 0 #000,0 5px 9px rgba(0,0,0,.6),
+    0 1px 0 rgba(255,255,255,.06) inset,
+    0 -6px 12px rgba(0,0,0,.5) inset;
+  transition:transform .07s ease,box-shadow .07s ease;
+}
+.pad span{ /* corner number */
+  position:absolute;top:6px;left:8px;font-size:9px;color:#6a5847;letter-spacing:.05em;
+}
+.pad .glow{ /* hit glow */
+  position:absolute;inset:0;border-radius:9px;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 45%,var(--ac2),var(--ac) 45%,transparent 72%);
+  box-shadow:0 0 22px var(--ac),0 0 4px #fff inset;
+}
+.pad.lit .glow{animation:hit .45s ease-out}
+@keyframes hit{0%{opacity:.95}100%{opacity:0}}
+.pad.lit{
+  transform:translateY(3px);
+  box-shadow:0 0 0 #000,0 1px 3px rgba(0,0,0,.6),0 0 16px rgba(255,158,84,.35) inset;
+}
+.pad:hover{box-shadow:0 3px 0 #000,0 5px 9px rgba(0,0,0,.6),0 0 0 1px rgba(255,158,84,.25) inset,0 -6px 12px rgba(0,0,0,.5) inset}
+
+/* fader strip on the right */
+.strip{
+  width:118px;flex:none;display:flex;flex-direction:column;gap:9px;
+  padding:11px 12px;border-radius:11px;
+  background:linear-gradient(180deg,#181208,#0c0805);
+  border:1px solid #050302;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 -8px 16px rgba(0,0,0,.5) inset;
+}
+.striphd{font-size:8.5px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;text-align:center}
+.fader{
+  position:relative;display:flex;flex-direction:column;align-items:center;
+}
+.fname{font-size:8.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:5px}
+.track{
+  position:relative;width:100%;height:74px;border-radius:5px;cursor:ns-resize;touch-action:none;
+  background:linear-gradient(90deg,#0a0604,#160f08,#0a0604);
+  box-shadow:0 0 0 1px #000 inset,0 2px 5px rgba(0,0,0,.6) inset;
+}
+.track .fill{ /* lit portion below the cap */
+  position:absolute;left:50%;bottom:6px;width:3px;transform:translateX(-50%);border-radius:2px;
+  background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 7px var(--ac);
+  transition:height .08s linear;
+}
+.cap{
+  position:absolute;left:50%;width:34px;height:15px;transform:translate(-50%,50%);
+  border-radius:4px;
+  background:linear-gradient(180deg,#4a4036,#1d1610);
+  border:1px solid #000;
+  box-shadow:0 2px 4px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.12) inset;
+  transition:bottom .08s linear;
+}
+.cap::before{ /* grip line */
+  content:"";position:absolute;left:5px;right:5px;top:50%;height:2px;transform:translateY(-50%);
+  border-radius:2px;background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 5px var(--ac);
+}
+.fval{font-size:9px;color:var(--ink);margin-top:5px;font-variant-numeric:tabular-nums}
+
+/* ---------- bottom control row: 6 mini-knobs ---------- */
+.knobs{
+  position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;
+  padding:0 18px 8px;
+}
+.kn{
+  display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 2px 8px;
+  border-radius:10px;transition:background .15s ease,transform .15s ease;
+  animation:rise .55s both;
+}
+.kn:nth-child(1){animation-delay:.05s}.kn:nth-child(2){animation-delay:.10s}
+.kn:nth-child(3){animation-delay:.15s}.kn:nth-child(4){animation-delay:.20s}
+.kn:nth-child(5){animation-delay:.25s}.kn:nth-child(6){animation-delay:.30s}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.kn:hover{background:rgba(255,158,84,.05);transform:translateY(-2px)}
+.dial{
+  position:relative;width:54px;height:54px;cursor:ns-resize;touch-action:none;user-select:none;
+}
+.dial .ring{ /* progress arc */
+  position:absolute;inset:0;border-radius:50%;--n:0;
+  background:conic-gradient(from 220deg,var(--ac) calc(var(--n)*280deg),rgba(255,255,255,.06) calc(var(--n)*280deg) 280deg,transparent 280deg);
+  filter:drop-shadow(0 0 calc(2px + var(--n)*7px) rgba(255,158,84,.55));
+  transition:--n .12s cubic-bezier(.2,.8,.25,1);
+}
+.dial .knurl{ /* knurled body */
+  position:absolute;inset:7px;border-radius:50%;
+  background:
+    repeating-conic-gradient(#3a2e22 0 4deg,#241c15 4deg 8deg),
+    radial-gradient(circle at 50% 32%,#4a3c2c,#16100a 75%);
+  background-blend-mode:overlay,normal;
+  box-shadow:0 2px 5px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.08) inset;
+}
+.dial .ptr{
+  position:absolute;top:6px;left:50%;width:3px;height:16px;margin-left:-1.5px;border-radius:2px;
+  background:linear-gradient(var(--ac2),var(--ac));box-shadow:0 0 6px var(--ac);
+  transform-origin:50% 21px;transform:rotate(calc((var(--n) - .5)*280deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1);
+}
+.dial.act .knurl{box-shadow:0 0 0 1px var(--ac) inset,0 2px 5px rgba(0,0,0,.7)}
+.knm{font-size:8.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.knv{font-size:10px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+
+/* footer plate */
+.plate{
+  position:relative;z-index:2;font-size:9.5px;line-height:1.5;color:#7a6957;
+  padding:9px 18px 13px;border-top:1px solid #000;
+  background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(255,255,255,.02));
+  letter-spacing:.02em;
+}
+@property --n{syntax:'<number>';inherits:true;initial-value:0}
+</style></head>
+<body>
+<div class="unit">
+
+  <div class="brand">
+    <span class="pwr"></span>
+    <div class="logo"><b>GRIT&nbsp;SAMPLER</b><small>12-BIT DRUM ENGINE</small></div>
+    <span class="model">SP·12</span>
+  </div>
+
+  <div class="lcd">
+    <span class="tag">WAVE</span>
+    <span class="rate" id="rateLbl">12-BIT</span>
+    <canvas class="scr" id="scr" width="600" height="96"></canvas>
+  </div>
+
+  <div class="work">
+    <div class="pads" id="pads"></div>
+    <div class="strip">
+      <div class="striphd">LEVEL</div>
+      <!-- the master fader (Level param) -->
+      <div class="fader" id="lvlFader">
+        <div class="fname" id="lvlName">LEVEL</div>
+        <div class="track" id="lvlTrack">
+          <div class="fill" id="lvlFill"></div>
+          <div class="cap" id="lvlCap"></div>
+        </div>
+        <div class="fval" id="lvlVal"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="knobs" id="knobs"></div>
+
+  <div class="plate" id="plate"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* -------- param table re-read from spec.json (exact indices) -------- */
+  var PARAMS = [
+    {name:"Pitch", index:0, min:0, max:1, def:0.5},
+    {name:"Grit",  index:1, min:0, max:1, def:0.55},
+    {name:"Crush", index:2, min:0, max:1, def:0.4},
+    {name:"Tone",  index:3, min:0, max:1, def:0.6},
+    {name:"Drive", index:4, min:0, max:1, def:0.35},
+    {name:"Decay", index:5, min:0, max:1, def:0.7},
+    {name:"Level", index:6, min:0, max:1, def:0.8}
+  ];
+  var byName={}; PARAMS.forEach(function(p){byName[p.name]=p;});
+
+  /* live normalized state per index, drives the waveform render */
+  var state={};
+  PARAMS.forEach(function(p){state[p.index]=(p.def-p.min)/(p.max-p.min||1);});
+
+  function send(p,val){
+    if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,val);
+    state[p.index]=(val-p.min)/(p.max-p.min||1);
+  }
+  function fmt(v){ return (Math.round(v*100)).toString(); } /* 0..1 -> 0..100 */
+
+  /* -------- the six bottom knobs: every param except Level -------- */
+  function buildKnobs(){
+    var host=document.getElementById('knobs');
+    PARAMS.filter(function(p){return p.name!=="Level";}).forEach(function(p){
+      var cell=document.createElement('div'); cell.className='kn';
+      cell.innerHTML=
+        '<div class="dial"><i class="ring"></i><i class="knurl"></i><i class="ptr"></i></div>'+
+        '<div class="knm">'+p.name+'</div><div class="knv"></div>';
+      host.appendChild(cell);
+
+      var dial=cell.querySelector('.dial'), ring=cell.querySelector('.ring'),
+          ptr=cell.querySelector('.ptr'), out=cell.querySelector('.knv');
+      var val=p.def;
+      function norm(){return (val-p.min)/(p.max-p.min||1);}
+      function paint(){
+        var n=norm(); ring.style.setProperty('--n',n); ptr.style.setProperty('--n',n);
+        out.textContent=fmt(n); send(p,val);
+      }
+      function setN(n){ n=n<0?0:n>1?1:n; val=p.min+(p.max-p.min)*n; paint(); }
+
+      dial.addEventListener('pointerdown',function(e){
+        dial._d=1;dial._y=e.clientY;dial._n=norm();dial.classList.add('act');
+        dial.setPointerCapture(e.pointerId);e.preventDefault();
+      });
+      dial.addEventListener('pointermove',function(e){
+        if(!dial._d)return; setN(dial._n+(dial._y-e.clientY)/180);
+      });
+      var stop=function(){dial._d=0;dial.classList.remove('act');};
+      dial.addEventListener('pointerup',stop);
+      dial.addEventListener('pointercancel',stop);
+      dial.addEventListener('dblclick',function(){val=p.def;paint();});
+      dial.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?.03:-.03));},{passive:false});
+      paint();
+    });
+  }
+
+  /* -------- the master fader (Level) -------- */
+  function buildFader(){
+    var p=byName["Level"];
+    document.getElementById('lvlName').textContent=p.name;
+    var track=document.getElementById('lvlTrack'),
+        fill=document.getElementById('lvlFill'),
+        cap=document.getElementById('lvlCap'),
+        out=document.getElementById('lvlVal');
+    var val=p.def, H=74, pad=6, range=H-pad*2-7;
+    function norm(){return (val-p.min)/(p.max-p.min||1);}
+    function paint(){
+      var n=norm();
+      cap.style.bottom=(pad+n*range)+"px";
+      fill.style.height=(n*range)+"px";
+      out.textContent=fmt(n); send(p,val);
+    }
+    function setN(n){n=n<0?0:n>1?1:n;val=p.min+(p.max-p.min)*n;paint();}
+    function fromEvent(e){
+      var r=track.getBoundingClientRect();
+      var y=(r.bottom-e.clientY-pad-3.5)/range;
+      setN(y);
+    }
+    track.addEventListener('pointerdown',function(e){
+      track._d=1;track.setPointerCapture(e.pointerId);fromEvent(e);e.preventDefault();
+    });
+    track.addEventListener('pointermove',function(e){if(track._d)fromEvent(e);});
+    var stop=function(){track._d=0;};
+    track.addEventListener('pointerup',stop);
+    track.addEventListener('pointercancel',stop);
+    track.addEventListener('dblclick',function(){val=p.def;paint();});
+    track.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?.03:-.03));},{passive:false});
+    paint();
+  }
+
+  /* -------- 16 trigger pads (perform; optional noteOn) -------- */
+  function buildPads(){
+    var host=document.getElementById('pads');
+    /* MPC layout: bottom-left is the lowest note. Map to a small kit spread. */
+    var base=48;
+    for(var r=0;r<4;r++){
+      for(var c=0;c<4;c++){
+        var idx=r*4+c, note=base+( (3-r)*4 + c ); /* top rows = higher */
+        var pad=document.createElement('div'); pad.className='pad';
+        pad.dataset.note=note;
+        pad.innerHTML='<i class="glow"></i><span>'+(idx+1)+'</span>';
+        host.appendChild(pad);
+      }
+    }
+    var pads=host.querySelectorAll('.pad'), active={};
+    function hz(m){return 440*Math.pow(2,(m-69)/12);}
+    function trigger(pad){
+      var n=+pad.dataset.note;
+      pad.classList.remove('lit'); void pad.offsetWidth; pad.classList.add('lit');
+      if(window.vstai&&window.vstai.noteOn) window.vstai.noteOn(n,hz(n),0.95);
+      pulseScope();
+    }
+    function release(pad){
+      var n=+pad.dataset.note;
+      if(window.vstai&&window.vstai.noteOff) window.vstai.noteOff(n);
+    }
+    pads.forEach(function(pad){
+      pad.addEventListener('pointerdown',function(e){e.preventDefault();active[pad.dataset.note]=1;trigger(pad);});
+      pad.addEventListener('pointerup',function(){release(pad);});
+      pad.addEventListener('pointerleave',function(){if(active[pad.dataset.note]){active[pad.dataset.note]=0;release(pad);}});
+      pad.addEventListener('pointercancel',function(){release(pad);});
+    });
+  }
+
+  /* -------- bit-crushed waveform display (rAF) -------- */
+  var cv=document.getElementById('scr'), g=cv.getContext('2d');
+  var rateLbl=document.getElementById('rateLbl');
+  var t=0, hitEnv=0;
+  function pulseScope(){ hitEnv=1; }
+  function draw(){
+    requestAnimationFrame(draw);
+    var W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
+    t+=0.018; hitEnv*=0.94;
+
+    /* params steer the look */
+    var pitch=state[0], grit=state[1], crush=state[2], tone=state[3],
+        drive=state[4], decay=state[5];
+
+    /* crush -> fewer horizontal steps (bit reduction look) */
+    var steps=Math.max(6,Math.round(64-crush*52));     /* fewer = more crushed */
+    /* grit -> quantization levels (vertical staircase) */
+    var levels=Math.max(3,Math.round(28-grit*22));
+    rateLbl.textContent=Math.round(16-crush*5)+"-BIT · "+(Math.round(8+grit*30))+"k";
+
+    /* baseline grid */
+    g.strokeStyle='rgba(61,220,151,.10)';g.lineWidth=1;
+    g.beginPath();g.moveTo(0,H/2);g.lineTo(W,H/2);g.stroke();
+
+    /* build a decaying drum-ish envelope * carrier, then quantize both axes */
+    var amp=0.30+drive*0.5+hitEnv*0.45;
+    var freq=2.2+pitch*5.5;
+    var col='rgba(61,220,151,'+(0.55+hitEnv*0.4)+')';
+    g.strokeStyle=col; g.lineWidth=2;
+    g.shadowBlur=8+hitEnv*14; g.shadowColor='#3ddc97';
+
+    g.beginPath();
+    var prevY=null;
+    for(var sx=0; sx<=steps; sx++){
+      var u=sx/steps;                 /* 0..1 across screen */
+      var env=Math.exp(-u*(2.2+(1-decay)*5));        /* decay shapes tail */
+      /* layered carrier + a little noise for grit */
+      var phase=u*freq*6.28318 + t;
+      var car=Math.sin(phase)+0.4*Math.sin(phase*2.0)*tone+(grit*0.25)*( (Math.sin(phase*13.7+t*3)) );
+      var raw=car*env*amp;
+      raw=raw>1?1:raw<-1?-1:raw;
+      /* vertical quantize -> staircase (bit reduction) */
+      var q=Math.round(raw*levels)/levels;
+      var x=u*W;
+      var y=H/2 - q*(H*0.42);
+      if(prevY===null){ g.moveTo(x,y); }
+      else { g.lineTo(x,prevY); g.lineTo(x,y); } /* sample-and-hold step */
+      prevY=y;
+    }
+    g.stroke();
+    g.shadowBlur=0;
+
+    /* faint sample-point dots */
+    g.fillStyle='rgba(61,220,151,.35)';
+    for(var dx=0; dx<=steps; dx++){
+      var uu=dx/steps;
+      var ee=Math.exp(-uu*(2.2+(1-decay)*5));
+      var ph=uu*freq*6.28318+t;
+      var cc=Math.sin(ph)*ee*amp;
+      cc=Math.round((cc>1?1:cc<-1?-1:cc)*levels)/levels;
+      g.fillRect(uu*W-1, H/2-cc*(H*0.42)-1, 2,2);
+    }
+  }
+  draw();
+
+  /* -------- footer -------- */
+  document.getElementById('plate').textContent=
+    "12-bit drum engine · pitch-tracked CC0 cadence · variable bit-crush + decimation · soft-clip drive · play the pads";
+
+  /* -------- init under host hook -------- */
+  function ready(){
+    buildPads();
+    buildFader();
+    buildKnobs();
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

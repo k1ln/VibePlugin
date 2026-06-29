@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Air Exciter</title>
+<style>
+  :root {
+    --accent: #bfe3ff;
+    --accent2: #e6f0ff;
+    --ink: #eaf4ff;
+    --dim: #7d93ad;
+    --panel: #0c1722;
+    --panel2: #122433;
+    --glow: rgba(191, 227, 255, 0.55);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #060d14;
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    overflow: auto;
+  }
+
+  /* ----- the panel ----- */
+  .shell {
+    position: relative;
+    width: min(560px, 96vw);
+    border-radius: 22px;
+    padding: 26px 28px 30px;
+    background:
+      radial-gradient(130% 90% at 50% -10%, rgba(191,227,255,0.16), transparent 55%),
+      linear-gradient(180deg, #14283a 0%, #0b1622 48%, #08111a 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.07) inset,
+      0 -30px 60px -40px rgba(191,227,255,0.25) inset,
+      0 30px 80px -30px rgba(0,0,0,0.85),
+      0 0 0 1px rgba(120,170,210,0.10);
+    overflow: hidden;
+  }
+
+  /* faint scanline / sheen texture */
+  .shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.6;
+  }
+
+  /* ----- particle field rising behind the controls ----- */
+  .field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .spark {
+    position: absolute;
+    bottom: -8px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent2), var(--accent) 40%, transparent 70%);
+    filter: drop-shadow(0 0 5px var(--glow));
+    opacity: 0;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+    12%  { opacity: 0.9; }
+    70%  { opacity: 0.7; }
+    100% { transform: translateY(-340px) scale(1.1); opacity: 0; }
+  }
+
+  .content { position: relative; z-index: 2; }
+
+  /* ----- header ----- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .mark {
+    width: 46px; height: 46px;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 8px var(--glow));
+  }
+  .titles h1 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .titles p {
+    margin-top: 3px;
+    font-size: 10px;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* live shimmer meter strip */
+  .shimmer {
+    margin: 0 0 22px;
+    height: 30px;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #081420, #0a1a28);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 14px -8px #000 inset;
+    overflow: hidden;
+    position: relative;
+  }
+  .shimmer canvas { display: block; width: 100%; height: 100%; }
+
+  /* ----- knob grid ----- */
+  .knobs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 440px) {
+    .knobs { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 6px 12px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 24px -18px #000;
+    transition: box-shadow 0.25s, transform 0.15s;
+  }
+  .cell:hover { transform: translateY(-2px); }
+  .cell.live {
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.07) inset,
+      0 0 0 1px rgba(191,227,255,0.35),
+      0 0 26px -4px var(--glow);
+  }
+
+  .knob {
+    position: relative;
+    width: 92px; height: 92px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  .label {
+    margin-top: 12px;
+    font-size: 10.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .val {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+    text-shadow: 0 0 10px rgba(191,227,255,0.25);
+  }
+
+  .foot {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 9.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #43586d;
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="field" id="field"></div>
+    <div class="content">
+      <header>
+        <svg class="mark" viewBox="0 0 48 48" fill="none">
+          <defs>
+            <radialGradient id="g" cx="50%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#e6f0ff"/>
+              <stop offset="100%" stop-color="#5fa8d8"/>
+            </radialGradient>
+          </defs>
+          <path d="M24 3 L28 20 L45 24 L28 28 L24 45 L20 28 L3 24 L20 20 Z"
+                fill="url(#g)" opacity="0.95"/>
+          <circle cx="38" cy="11" r="2.2" fill="#e6f0ff"/>
+          <circle cx="10" cy="36" r="1.6" fill="#bfe3ff" opacity="0.8"/>
+        </svg>
+        <div class="titles">
+          <h1>Air Exciter</h1>
+          <p>Harmonic Presence Generator</p>
+        </div>
+      </header>
+
+      <div class="shimmer"><canvas id="viz"></canvas></div>
+
+      <div class="knobs" id="knobs"></div>
+
+      <div class="foot">Drag vertically · double-click to reset</div>
+    </div>
+  </div>
+
+<script>
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  const PARAMS = [
+    { index: 0, name: "Tune",   min: 0, max: 1, def: 0.45, fmt: tuneFmt },
+    { index: 1, name: "Amount", min: 0, max: 1, def: 0.5,  fmt: pctFmt },
+    { index: 2, name: "Air",    min: 0, max: 1, def: 0.5,  fmt: pctFmt },
+    { index: 3, name: "Mix",    min: 0, max: 1, def: 1.0,  fmt: pctFmt }
+  ];
+
+  function pctFmt(v) { return Math.round(v * 100) + "%"; }
+  function tuneFmt(v) {
+    // mirror the DSP mapping: 1200 + v^2 * 7800 Hz
+    const hz = 1200 + v * v * 7800;
+    return hz >= 1000 ? (hz / 1000).toFixed(2) + " kHz" : Math.round(hz) + " Hz";
+  }
+
+  const norm = (p, v) => (v - p.min) / (p.max - p.min);
+  const denorm = (p, t) => p.min + t * (p.max - p.min);
+
+  // ---- host bridge ----
+  function pushParam(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  // ---- build a knob ----
+  const ARC0 = -135, ARC1 = 135; // degrees
+  const R = 34, CX = 46, CY = 46;
+
+  function polar(cx, cy, r, deg) {
+    const a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(r, a0, a1) {
+    const [x0, y0] = polar(CX, CY, r, a0);
+    const [x1, y1] = polar(CX, CY, r, a1);
+    const large = (a1 - a0) > 180 ? 1 : 0;
+    return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  }
+
+  const controls = [];
+  const knobsEl = document.getElementById("knobs");
+
+  PARAMS.forEach((p) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+
+    const knob = document.createElement("div");
+    knob.className = "knob";
+    knob.innerHTML = `
+      <svg viewBox="0 0 92 92">
+        <defs>
+          <radialGradient id="body${p.index}" cx="50%" cy="38%" r="65%">
+            <stop offset="0%" stop-color="#1d3346"/>
+            <stop offset="60%" stop-color="#0e1f2d"/>
+            <stop offset="100%" stop-color="#081119"/>
+          </radialGradient>
+          <linearGradient id="rim${p.index}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(191,227,255,0.55)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.4)"/>
+          </linearGradient>
+        </defs>
+        <path d="${arcPath(R + 6, ARC0, ARC1)}" stroke="#0a151f" stroke-width="5"
+              fill="none" stroke-linecap="round"/>
+        <path class="track" d="${arcPath(R + 6, ARC0, ARC1)}" stroke="#16293a"
+              stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path class="fill" d="" stroke="var(--accent)" stroke-width="3.4"
+              fill="none" stroke-linecap="round"
+              style="filter: drop-shadow(0 0 5px var(--glow));"/>
+        <circle cx="${CX}" cy="${CY}" r="${R}" fill="url(#body${p.index})"
+                stroke="url(#rim${p.index})" stroke-width="1.4"/>
+        <circle cx="${CX}" cy="${CY}" r="${R - 3}" fill="none"
+                stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <line class="pointer" x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY - R + 7}"
+              stroke="var(--accent2)" stroke-width="2.6" stroke-linecap="round"
+              style="filter: drop-shadow(0 0 4px var(--glow));"/>
+        <circle cx="${CX}" cy="${CY}" r="2.6" fill="#bfe3ff"/>
+      </svg>`;
+
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+
+    const val = document.createElement("div");
+    val.className = "val";
+
+    cell.appendChild(knob);
+    cell.appendChild(label);
+    cell.appendChild(val);
+    knobsEl.appendChild(cell);
+
+    const ctrl = {
+      p, cell, knob, val,
+      fill: knob.querySelector(".fill"),
+      pointer: knob.querySelector(".pointer"),
+      t: norm(p, p.def)
+    };
+    controls.push(ctrl);
+
+    function render() {
+      const t = ctrl.t;
+      const ang = ARC0 + t * (ARC1 - ARC0);
+      ctrl.fill.setAttribute("d", t > 0.001 ? arcPath(R + 6, ARC0, ang) : "");
+      ctrl.pointer.setAttribute("transform", `rotate(${ang} ${CX} ${CY})`);
+      const real = denorm(p, t);
+      ctrl.val.textContent = p.fmt(real);
+    }
+    function commit() { render(); pushParam(p.index, denorm(p, ctrl.t)); }
+    ctrl.render = render;
+    ctrl.commit = commit;
+
+    // ---- drag interaction (vertical) ----
+    let dragging = false, lastY = 0;
+
+    function onDown(e) {
+      dragging = true;
+      cell.classList.add("live");
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY);
+      const dy = lastY - y;
+      lastY = y;
+      const fine = e.shiftKey ? 0.25 : 1;
+      ctrl.t = Math.min(1, Math.max(0, ctrl.t + (dy / 200) * fine));
+      commit();
+      e.preventDefault();
+    }
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      cell.classList.remove("live");
+    }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    knob.addEventListener("wheel", (e) => {
+      const fine = e.shiftKey ? 0.25 : 1;
+      ctrl.t = Math.min(1, Math.max(0, ctrl.t - Math.sign(e.deltaY) * 0.03 * fine));
+      commit();
+      e.preventDefault();
+    }, { passive: false });
+
+    knob.addEventListener("dblclick", () => {
+      ctrl.t = norm(p, p.def);
+      cell.classList.add("live");
+      commit();
+      setTimeout(() => cell.classList.remove("live"), 220);
+    });
+
+    render();
+  });
+
+  // ---- initialise all params to defaults on the engine ----
+  function init() {
+    controls.forEach((c) => pushParam(c.p.index, denorm(c.p, c.t)));
+  }
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+
+  // ---- rising-sparkle particle field ----
+  const field = document.getElementById("field");
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement("div");
+    s.className = "spark";
+    s.style.left = Math.random() * 100 + "%";
+    const dur = 4 + Math.random() * 6;
+    s.style.animationDuration = dur + "s";
+    s.style.animationDelay = (-Math.random() * dur) + "s";
+    const sz = 2 + Math.random() * 4;
+    s.style.width = sz + "px";
+    s.style.height = sz + "px";
+    field.appendChild(s);
+  }
+
+  // ---- live shimmer visualiser (driven by Amount + Air) ----
+  const viz = document.getElementById("viz");
+  const vctx = viz.getContext("2d");
+  let phase = 0;
+
+  function amountVal() {
+    const a = controls.find((c) => c.p.name === "Amount");
+    return a ? a.t : 0.5;
+  }
+  function airVal() {
+    const a = controls.find((c) => c.p.name === "Air");
+    return a ? a.t : 0.5;
+  }
+
+  function resizeViz() {
+    const r = viz.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    viz.width = Math.max(1, r.width * dpr);
+    viz.height = Math.max(1, r.height * dpr);
+    vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function drawViz() {
+    if (document.hidden) { requestAnimationFrame(drawViz); return; }
+    const r = viz.getBoundingClientRect();
+    const w = r.width, h = r.height;
+    vctx.clearRect(0, 0, w, h);
+
+    const amt = amountVal();
+    const air = airVal();
+    phase += 0.04 + air * 0.05;
+
+    // layered shimmer: higher Air = more high-frequency ripples; Amount = height
+    vctx.lineWidth = 1.6;
+    for (let layer = 0; layer < 3; layer++) {
+      const alpha = 0.25 + layer * 0.22;
+      vctx.strokeStyle = `rgba(191, 227, 255, ${alpha * (0.4 + amt * 0.6)})`;
+      vctx.beginPath();
+      const freq = 6 + layer * 6 + air * 22;
+      const amp = (h * 0.32) * (0.3 + amt * 0.7) * (1 - layer * 0.22);
+      for (let x = 0; x <= w; x += 3) {
+        const t = x / w;
+        const y = h / 2
+          + Math.sin(t * freq + phase + layer) * amp
+          * Math.sin(t * Math.PI); // taper at the edges
+        if (x === 0) vctx.moveTo(x, y); else vctx.lineTo(x, y);
+      }
+      vctx.stroke();
+    }
+    requestAnimationFrame(drawViz);
+  }
+
+  window.addEventListener("resize", resizeViz);
+  resizeViz();
+  requestAnimationFrame(drawViz);
+</script>
+</body>
+</html>
