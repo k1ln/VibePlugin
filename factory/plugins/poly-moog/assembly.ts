@@ -297,7 +297,7 @@ export function process(n: i32): void {
 
     // ---- sum + soft saturate for analog glue + output level -----
     let mix: f32 = outL * voiceScale;
-    mix = f32(Mathf.tanh(mix * 1.15));
+    mix = f32(Mathf.tanh(mix * 3.2));
     mix *= level;
 
     outBuf[f] = mix;

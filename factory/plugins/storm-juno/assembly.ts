@@ -352,7 +352,7 @@ export function process(n: i32): void {
     }
 
     let mono: f32 = outL * voiceScale;
-    mono = f32(Mathf.tanh(mono * 1.1));
+    mono = f32(Mathf.tanh(mono * 2.7));
 
     // ---- stereo chorus for width -------------------------------
     chPhase += chInc; if (chPhase >= 1.0) chPhase -= 1.0;

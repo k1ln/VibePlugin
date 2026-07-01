@@ -71,7 +71,7 @@ export function process(n: i32): void {
   const det: f32 = 1.0 + detN * 0.04 + ringN * 0.9;       // osc2 ratio (ring pushes it up ~2x)
   const dryGain: f32 = 1.0 - ringN * 0.85;
   const ringGain: f32 = ringN * 1.7;
-  const out: f32 = level * 0.4;
+  const out: f32 = level * 0.9;
 
   for (let i = 0; i < n; i++) {
     let mix: f32 = 0.0;
@@ -96,8 +96,7 @@ export function process(n: i32): void {
       vBp[s] = bpN; vLp[s] = lpN;
       mix += lpN * vAmp[s] * vVel[s];
     }
-    let o: f32 = mix * out;
-    if (o > 1.4) o = 1.4; else if (o < -1.4) o = -1.4;
+    let o: f32 = f32(Mathf.tanh(mix * out));
     outBuf[i] = o; outBuf[MAX_FRAMES + i] = o;
   }
 }

@@ -298,7 +298,7 @@ export function process(n: i32): void {
     dcY1 = dcOut;
     mix = dcOut;
 
-    mix = f32(Mathf.tanh(mix * 1.1));
+    mix = f32(Mathf.tanh(mix * 2.4));
 
     outBuf[f] = mix;
     outBuf[MAX_FRAMES + f] = mix;

@@ -295,7 +295,7 @@ export function process(n: i32): void {
     dcY = y;
 
     // hi-fi polish: gentle soft limit, then scale by Level.
-    let outS: f32 = tanhf(y * 1.05) * outGain;
+    let outS: f32 = tanhf(y * 3.6) * outGain;
     if (outS > 1.0) outS = 1.0;
     if (outS < -1.0) outS = -1.0;
 

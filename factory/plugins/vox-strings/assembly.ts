@@ -277,7 +277,7 @@ export function process(n: i32): void {
     let mono: f32 = strSum * strLvl + vowel * voxLvl * 1.4;
     mono *= voiceScale;
     // gentle saturation glues the section
-    mono = f32(Mathf.tanh(mono));
+    mono = f32(Mathf.tanh(mono * 2.2));
 
     // ---- write into the ensemble delay lines ----------------------
     dlyL[dlyPos] = mono;

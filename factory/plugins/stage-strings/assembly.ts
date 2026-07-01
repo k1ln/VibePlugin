@@ -37,6 +37,7 @@ const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS)
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
 
 let sampleRate: f32 = 48000.0;
+let dcxL: f32 = 0.0; let dcyL: f32 = 0.0; let dcxR: f32 = 0.0; let dcyR: f32 = 0.0; // DC blocker
 
 // ---- parameter indices (must match spec.json) -----------------------
 const P_STRINGS:  i32 = 0;  // 0..1 -> string section level
@@ -92,6 +93,7 @@ let toneZR: f32 = 0.0;
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr > 0.0 ? sr : 48000.0;
+  dcxL = 0.0; dcyL = 0.0; dcxR = 0.0; dcyR = 0.0;
   for (let v = 0; v < NUM_VOICES; v++) {
     vNote[v] = -1; vActive[v] = 0; vGate[v] = 0; vAge[v] = 0;
     vInc[v] = 0.0; vVel[v] = 0.0;
@@ -292,9 +294,11 @@ export function process(n: i32): void {
 
     outL *= level;
     outR *= level;
-
-    outBuf[f] = clampf(outL, -1.0, 1.0);
-    outBuf[MAX_FRAMES + f] = clampf(outR, -1.0, 1.0);
+    // DC blocker (stereo) — driving into tanh amplified a small offset
+    const dl: f32 = outL - dcxL + 0.9985 * dcyL; dcxL = outL; dcyL = dl; outL = dl;
+    const dr: f32 = outR - dcxR + 0.9985 * dcyR; dcxR = outR; dcyR = dr; outR = dr;
+    outBuf[f] = f32(Mathf.tanh(outL * 4.2));
+    outBuf[MAX_FRAMES + f] = f32(Mathf.tanh(outR * 4.2));
   }
 }
 

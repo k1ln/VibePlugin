@@ -226,8 +226,8 @@ export function process(n: i32): void {
     outR *= level;
 
     // final clamp for safety
-    outBuf[f] = clampf(outL, -1.0, 1.0);
-    outBuf[MAX_FRAMES + f] = clampf(outR, -1.0, 1.0);
+    outBuf[f] = f32(Mathf.tanh(outL * 2.1));
+    outBuf[MAX_FRAMES + f] = f32(Mathf.tanh(outR * 2.1));
   }
 }
 

@@ -280,8 +280,8 @@ export function process(n: i32): void {
     let outR: f32 = sig * dry + wetR * wet * 0.7;
 
     // gentle soft saturation for choral glue, then output level
-    outL = f32(Mathf.tanh(outL * 1.05)) * level;
-    outR = f32(Mathf.tanh(outR * 1.05)) * level;
+    outL = f32(Mathf.tanh(outL * 3.6)) * level;
+    outR = f32(Mathf.tanh(outR * 3.6)) * level;
 
     outBuf[f] = outL;
     outBuf[MAX_FRAMES + f] = outR;

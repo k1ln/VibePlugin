@@ -349,8 +349,8 @@ export function process(n: i32): void {
     // ---- sum + gentle soft clip + output level ------------------
     let mixL: f32 = outL * voiceScale;
     let mixR: f32 = outR * voiceScale;
-    mixL = f32(Mathf.tanh(mixL * 1.1)) * level;
-    mixR = f32(Mathf.tanh(mixR * 1.1)) * level;
+    mixL = f32(Mathf.tanh(mixL * 2.8)) * level;
+    mixR = f32(Mathf.tanh(mixR * 2.8)) * level;
 
     outBuf[f] = mixL;
     outBuf[MAX_FRAMES + f] = mixR;

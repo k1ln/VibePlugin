@@ -331,7 +331,7 @@ export function process(n: i32): void {
     }
 
     let mix: f32 = outL * voiceScale * level;
-    mix = f32(Mathf.tanh(mix * 1.1));
+    mix = f32(Mathf.tanh(mix * 2.7));
 
     outBuf[f] = mix;
     outBuf[MAX_FRAMES + f] = mix;

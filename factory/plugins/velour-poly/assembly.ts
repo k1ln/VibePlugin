@@ -347,8 +347,8 @@ export function process(n: i32): void {
     let outR: f32 = dry * (1.0 - 0.5 * chMix) + wetR * chMix;
 
     // final velvet glue + output level
-    outL = f32(Mathf.tanh(outL * 1.1)) * level;
-    outR = f32(Mathf.tanh(outR * 1.1)) * level;
+    outL = f32(Mathf.tanh(outL * 2.3)) * level;
+    outR = f32(Mathf.tanh(outR * 2.3)) * level;
 
     outBuf[f] = outL;
     outBuf[MAX_FRAMES + f] = outR;

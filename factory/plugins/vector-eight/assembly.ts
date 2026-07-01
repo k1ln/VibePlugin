@@ -66,7 +66,7 @@ export function process(n: i32): void {
   const k: f32 = 2.0 - 1.9 * resoN;
   const lfoInc: f32 = (0.4 + scanN * 5.0) / sampleRate * 6.2831853;   // scan speed
   const scanDepth: f32 = scanN * 0.9;
-  const out: f32 = level * 0.45;
+  const out: f32 = level * 1.0;
 
   for (let i = 0; i < n; i++) {
     lfo += lfoInc; if (lfo > 6.2831853) lfo -= 6.2831853;
@@ -104,8 +104,7 @@ export function process(n: i32): void {
       vBp[s] = bpN; vLp[s] = lpN;
       mix += lpN * vAmp[s] * vVel[s];
     }
-    let o: f32 = mix * out;
-    if (o > 1.4) o = 1.4; else if (o < -1.4) o = -1.4;
+    let o: f32 = f32(Mathf.tanh(mix * out));
     outBuf[i] = o; outBuf[MAX_FRAMES + i] = o;
   }
 }

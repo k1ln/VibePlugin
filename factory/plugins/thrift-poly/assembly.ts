@@ -227,7 +227,7 @@ export function process(n: i32): void {
     const outL: f32 = v * (1.0 - chMix) + wetL * chMix;
     const outR: f32 = v * (1.0 - chMix) + wetR * chMix;
 
-    outBuf[f] = clampf(outL, -1.0, 1.0);
-    if (channels > 1) outBuf[MAX_FRAMES + f] = clampf(outR, -1.0, 1.0);
+    outBuf[f] = f32(Mathf.tanh(outL * 2.5));
+    if (channels > 1) outBuf[MAX_FRAMES + f] = f32(Mathf.tanh(outR * 2.5));
   }
 }
