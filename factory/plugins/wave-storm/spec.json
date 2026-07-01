@@ -1,0 +1,18 @@
+{
+  "name": "Wave Storm",
+  "isInstrument": true,
+  "explanation": "A wavetable-scanning synth in the Waldorf Blofeld lineage — distinct from the factory's fixed-wave PPG/Wavestation units: a smooth wavetable of eight single-cycle frames (built at init from harmonic spectra) is scanned continuously by a Position control and swept by the envelope (Scan), so the timbre morphs over each note. Resonant low-pass with its own envelope, amp envelope, 8-voice poly. Controls: Position, Scan (envelope→position), Cutoff, Resonance, Env Amount and Level.",
+  "assembly": "factory/plugins/wave-storm/assembly.ts",
+  "out": "factory/plugins/wave-storm/x.vstai",
+  "guiFile": "factory/plugins/wave-storm/gui.html",
+  "publishedAt": 1751000175000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#ff8a3d" },
+  "params": [
+    { "name": "Position",   "index": 0, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Scan",       "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Cutoff",     "index": 2, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Resonance",  "index": 3, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Env Amount", "index": 4, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

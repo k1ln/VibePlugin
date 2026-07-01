@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Glue</title>
+<style>
+  :root{
+    --accent:#9aa6b2;
+    --accent2:#5ad0ff;
+    --blue:#2f6fd6;
+    --red:#d6433a;
+    --panel:#c7ccd2;
+    --panel2:#aeb4bb;
+    --ink:#23282d;
+    --etch:#7d848c;
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;}
+  html,body{margin:0;height:100%;background:radial-gradient(120% 120% at 50% 0%,#2a2f35 0%,#15181c 70%,#0c0e10 100%);font-family:"Helvetica Neue",Arial,sans-serif;color:var(--ink);}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:22px;}
+
+  /* ---- the console module: brushed silver-grey ---- */
+  .module{
+    position:relative;width:560px;border-radius:12px;padding:18px 20px 22px;
+    background:
+      repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.045) 1px 3px),
+      linear-gradient(180deg,#d9dde2 0%,#c2c7cd 40%,#b3b9c0 60%,#cdd2d8 100%);
+    box-shadow:0 22px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 6px rgba(0,0,0,.25);
+    border:1px solid #8d949b;
+  }
+  /* screw corners */
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fafbfc,#9aa0a7 60%,#6b7077);
+    box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(255,255,255,.4);}
+  .screw::after{content:"";position:absolute;inset:3px;border-top:1.5px solid #5c6168;transform:rotate(35deg);}
+  .screw.tl{top:7px;left:7px}.screw.tr{top:7px;right:7px}.screw.bl{bottom:7px;left:7px}.screw.br{bottom:7px;right:7px}
+
+  .brand{display:flex;align-items:baseline;justify-content:space-between;margin:0 6px 12px;}
+  .brand .name{font-weight:800;letter-spacing:3px;font-size:19px;color:#1d2227;text-shadow:0 1px 0 rgba(255,255,255,.6);}
+  .brand .sub{font-size:9.5px;letter-spacing:2px;color:#5a616a;text-transform:uppercase;}
+
+  /* ---- VU meter ---- */
+  .meterBox{
+    margin:0 6px 16px;border-radius:8px;padding:12px 14px 8px;
+    background:linear-gradient(180deg,#f3ead2 0%,#e7dcc0 100%);
+    border:1px solid #8c8674;box-shadow:inset 0 2px 8px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.5);
+    position:relative;overflow:hidden;
+  }
+  .meterBox::before{content:"GAIN REDUCTION (dB)";position:absolute;top:6px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:2px;color:#7a6f52;}
+  svg.vu{display:block;width:100%;height:118px;}
+  .needle{transform-box:fill-box;transform-origin:50% 100%;transition:transform .05s linear;}
+  .glass{position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.35),rgba(255,255,255,0) 45%);pointer-events:none;border-radius:8px;}
+
+  /* ---- controls row ---- */
+  .controls{display:flex;justify-content:space-between;gap:6px;margin:0 4px;}
+  .ctl{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .ctl .cap{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#2a2f34;text-transform:uppercase;}
+  .ctl .val{font-size:10px;color:#3a4047;font-variant-numeric:tabular-nums;min-height:12px;letter-spacing:.5px;}
+
+  .knob{position:relative;width:78px;height:78px;cursor:grab;touch-action:none;}
+  .knob.drag{cursor:grabbing;}
+  .knob .dial{position:absolute;inset:9px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%,#43494f,#22262b 70%,#15181b);
+    box-shadow:0 4px 8px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,255,255,.18),inset 0 -3px 6px rgba(0,0,0,.6);}
+  .knob .ring{position:absolute;inset:0;}
+  /* chicken-head pointer */
+  .pointer{position:absolute;left:50%;top:50%;width:0;height:0;transform-origin:50% 50%;}
+  .pointer i{position:absolute;left:-5px;top:-3px;width:0;height:0;
+    border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:26px solid var(--ph,#e9edf1);
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.5));}
+  .pointer b{position:absolute;left:-9px;top:-4px;width:8px;height:8px;border-radius:50%;background:#11140f;}
+  .ticks{position:absolute;inset:-3px;}
+  .tick{position:absolute;left:50%;top:50%;width:2px;height:7px;background:#4a5057;transform-origin:50% 40px;border-radius:1px;}
+  .tlbl{position:absolute;font-size:8.5px;color:#3b4147;font-weight:700;transform:translate(-50%,-50%);}
+
+  /* AUTO badge */
+  .autoBadge{margin-top:5px;font-size:8.5px;letter-spacing:2px;padding:2px 7px;border-radius:9px;font-weight:800;
+    color:#0c2230;background:#9aa6b2;border:1px solid #6f7882;opacity:.45;transition:all .25s;}
+  .autoBadge.on{opacity:1;background:linear-gradient(180deg,var(--accent2),#37b8e6);color:#04222e;
+    box-shadow:0 0 10px var(--accent2),0 0 22px rgba(90,208,255,.5);animation:breathe 2.4s ease-in-out infinite;}
+  @keyframes breathe{0%,100%{box-shadow:0 0 8px var(--accent2),0 0 16px rgba(90,208,255,.4);}50%{box-shadow:0 0 16px var(--accent2),0 0 34px rgba(90,208,255,.75);}}
+
+  .footer{margin:16px 8px 0;display:flex;justify-content:space-between;align-items:center;font-size:8px;letter-spacing:1.5px;color:#5b626b;}
+  .led{width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#aef0ff,var(--accent2));box-shadow:0 0 8px var(--accent2);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="module">
+    <span class="screw tl"></span><span class="screw tr"></span><span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="brand">
+      <span class="name">MASTER&nbsp;GLUE</span>
+      <span class="sub">Stereo&nbsp;Bus&nbsp;Compressor</span>
+    </div>
+
+    <div class="meterBox">
+      <svg class="vu" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet">
+        <!-- arc -->
+        <path d="M40 110 A120 120 0 0 1 280 110" fill="none" stroke="#b6a987" stroke-width="2"/>
+        <!-- centre zero tick + scale -->
+        <g id="scale" fill="#5d543b" font-size="9" font-family="Arial" text-anchor="middle"></g>
+        <line x1="160" y1="20" x2="160" y2="34" stroke="#2a3a1a" stroke-width="2"/>
+        <text x="160" y="14" fill="#2a3a1a" font-size="9" text-anchor="middle" font-weight="700">0</text>
+        <!-- red zone right (heavy reduction) -->
+        <path d="M205 41 A120 120 0 0 1 280 110" fill="none" stroke="#c44" stroke-width="3" opacity=".55"/>
+        <!-- needle -->
+        <g class="needle" id="needle">
+          <line x1="160" y1="110" x2="160" y2="30" stroke="#1a1d12" stroke-width="2.4"/>
+          <circle cx="160" cy="110" r="6" fill="#2a2d20"/>
+        </g>
+        <text x="160" y="106" fill="#7a6f52" font-size="7" text-anchor="middle" letter-spacing="1">VU</text>
+      </svg>
+      <div class="glass"></div>
+    </div>
+
+    <div class="controls" id="controls"></div>
+
+    <div class="footer">
+      <span>BRITISH&nbsp;MIX-BUS&nbsp;GLUE</span>
+      <span style="display:flex;align-items:center;gap:6px;"><span class="led"></span>POWER</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // ---------- host bridge ----------
+  var HOST = (window.vstai && typeof window.vstai.setParam === "function") ? window.vstai : null;
+  function send(i,v){ if(HOST) try{ HOST.setParam(i,v); }catch(e){} }
+
+  // ---------- param model ----------
+  // continuous knobs map 0..1; stepped knobs map integer positions.
+  var RATIO_LBL = ["2:1","4:1","10:1"];
+  var ATTACK_LBL = ["0.1","0.3","3","10"];        // ms feel
+  var RELEASE_LBL = ["0.1","0.3","0.6","1.2","AUTO"]; // s + AUTO
+
+  var PARAMS = [
+    {name:"Threshold", idx:0, type:"cont", min:0,max:1, def:0.5, fmt:function(v){return (-30+v*30).toFixed(1)+" dB";}},
+    {name:"Ratio",     idx:1, type:"step", steps:RATIO_LBL,  def:1, ph:"var(--blue)", color:"var(--blue)"},
+    {name:"Attack",    idx:2, type:"step", steps:ATTACK_LBL, def:1, ph:"var(--red)",  color:"var(--red)", unit:" ms"},
+    {name:"Release",   idx:3, type:"step", steps:RELEASE_LBL,def:4, ph:"var(--blue)", color:"var(--blue)", unit:" s"},
+    {name:"Makeup",    idx:4, type:"cont", min:0,max:1, def:0.3, fmt:function(v){return "+"+(v*18).toFixed(1)+" dB";}},
+    {name:"Mix",       idx:5, type:"cont", min:0,max:1, def:1.0, fmt:function(v){return Math.round(v*100)+"%";}}
+  ];
+
+  var state = {};   // idx -> current real value
+  var autoBadgeEl = null;
+
+  // sweep arc: -135deg .. +135deg
+  var A0=-135, A1=135;
+
+  function buildKnob(p){
+    var ctl = document.createElement("div"); ctl.className="ctl";
+    var cap = document.createElement("div"); cap.className="cap"; cap.textContent=p.name;
+    var knob = document.createElement("div"); knob.className="knob";
+    var ring = document.createElement("div"); ring.className="ring";
+    var ticks = document.createElement("div"); ticks.className="ticks";
+    var dial = document.createElement("div"); dial.className="dial";
+    var ptr = document.createElement("div"); ptr.className="pointer";
+    if(p.ph) ptr.style.setProperty("--ph", p.ph.indexOf("var")===0? getCss(p.ph):p.ph);
+    var pi=document.createElement("i"); var pb=document.createElement("b");
+    ptr.appendChild(pi); ptr.appendChild(pb);
+    knob.appendChild(ring); knob.appendChild(dial); knob.appendChild(ticks); knob.appendChild(ptr);
+    var val = document.createElement("div"); val.className="val";
+
+    // stepped tick marks
+    if(p.type==="step"){
+      var nS=p.steps.length;
+      for(var s=0;s<nS;s++){
+        var a=A0+(A1-A0)*(s/(nS-1));
+        var t=document.createElement("div"); t.className="tick";
+        t.style.transform="translate(-50%,-50%) rotate("+a+"deg)";
+        ticks.appendChild(t);
+      }
+    }
+
+    ctl.appendChild(cap); ctl.appendChild(knob); ctl.appendChild(val);
+
+    // AUTO badge under Release
+    var badge=null;
+    if(p.name==="Release"){
+      badge=document.createElement("div"); badge.className="autoBadge"; badge.textContent="AUTO";
+      ctl.appendChild(badge); autoBadgeEl=badge;
+    }
+
+    p._el={knob:knob,ptr:ptr,val:val,badge:badge};
+    wireKnob(p);
+    return ctl;
+  }
+
+  function getCss(varExpr){
+    var name=varExpr.replace("var(","").replace(")","").trim();
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||"#e9edf1";
+  }
+
+  function norm(p){ // current value -> 0..1 for the dial
+    var v=state[p.idx];
+    if(p.type==="step"){ return v/(p.steps.length-1); }
+    return (v-p.min)/(p.max-p.min);
+  }
+
+  function render(p){
+    var t=norm(p);
+    var ang=A0+(A1-A0)*t;
+    p._el.ptr.style.transform="rotate("+ang+"deg)";
+    // label
+    if(p.type==="step"){
+      var i=state[p.idx]|0;
+      var lbl=p.steps[i];
+      p._el.val.textContent = (lbl==="AUTO"? "AUTO" : lbl + (p.unit||""));
+      if(p.badge){
+        if(lbl==="AUTO") p.badge.classList.add("on"); else p.badge.classList.remove("on");
+      }
+    }else{
+      p._el.val.textContent = p.fmt(state[p.idx]);
+    }
+  }
+
+  function setVal(p,v,push){
+    if(p.type==="step"){
+      var n=p.steps.length-1;
+      v=Math.max(0,Math.min(n,Math.round(v)));
+    }else{
+      v=Math.max(p.min,Math.min(p.max,v));
+    }
+    state[p.idx]=v;
+    render(p);
+    if(push!==false) send(p.idx,v);
+    updateMeter();
+  }
+
+  function wireKnob(p){
+    var el=p._el.knob;
+    var dragging=false, startY=0, startVal=0;
+
+    function down(e){
+      dragging=true; el.classList.add("drag");
+      startY=(e.touches?e.touches[0].clientY:e.clientY);
+      startVal=norm(p);
+      e.preventDefault();
+      window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false}); window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dn=(startY-y)/180; // up = increase
+      var nt=Math.max(0,Math.min(1,startVal+dn));
+      if(p.type==="step"){
+        setVal(p, nt*(p.steps.length-1));
+      }else{
+        setVal(p, p.min+(p.max-p.min)*nt);
+      }
+      e.preventDefault();
+    }
+    function up(){ dragging=false; el.classList.remove("drag");
+      window.removeEventListener("mousemove",move); window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move); window.removeEventListener("touchend",up);
+    }
+    el.addEventListener("mousedown",down);
+    el.addEventListener("touchstart",down,{passive:false});
+    el.addEventListener("dblclick",function(){ setVal(p, p.def); });
+    el.addEventListener("wheel",function(e){
+      e.preventDefault();
+      var step=(p.type==="step")?1:(e.shiftKey?0.005:0.02);
+      var dir=e.deltaY<0?1:-1;
+      if(p.type==="step") setVal(p, state[p.idx]+dir);
+      else setVal(p, state[p.idx]+dir*step*(p.max-p.min));
+    },{passive:false});
+  }
+
+  // ---------- GR meter (centre-zero, swings RIGHT with reduction) ----------
+  var needle=document.getElementById("needle");
+  var grShown=0; // smoothed displayed reduction dB
+  function estimateGR(){
+    // rough visual estimate from threshold + ratio (no audio here): show a
+    // gentle, breathing reduction so the iconic needle moves.
+    var thr=state[0], ratioSel=state[1]|0, mix=state[5];
+    var ratio=[2,4,10][ratioSel];
+    // lower threshold -> more reduction; scale to ~0..10 dB
+    var base=(1-thr)*( (ratio-1)/9 *0.6+0.4 )*8.0*mix;
+    return base;
+  }
+  function updateMeter(){ grTarget=estimateGR(); }
+  var grTarget=0;
+  function tick(){
+    // breathing wobble when AUTO release is engaged
+    var auto=(state[3]|0)===4;
+    var t=performance.now()/1000;
+    var wob=auto? (Math.sin(t*1.7)*0.6+Math.sin(t*0.9)*0.4) : 0;
+    var target=grTarget+ (auto? wob:0);
+    grShown += (target-grShown)*0.08;
+    // map 0..12 dB reduction -> 0..+62deg (right of centre)
+    var dB=Math.max(0,Math.min(12,grShown));
+    var ang = dB/12*62;
+    needle.style.transform="rotate("+ang+"deg)";
+    requestAnimationFrame(tick);
+  }
+
+  // VU scale labels
+  (function(){
+    var g=document.getElementById("scale");
+    var marks=[{db:"-3",a:-40},{db:"-6",a:-70},{db:"3",a:40},{db:"6",a:70}];
+    marks.forEach(function(m){
+      var rad=(m.a-90)*Math.PI/180;
+      var x=160+118*Math.cos(rad), y=110+118*Math.sin(rad);
+      var txt=document.createElementNS("http://www.w3.org/2000/svg","text");
+      txt.setAttribute("x",x); txt.setAttribute("y",y); txt.textContent=m.db;
+      g.appendChild(txt);
+    });
+  })();
+
+  // ---------- init ----------
+  function init(){
+    var host=document.getElementById("controls");
+    PARAMS.forEach(function(p){
+      state[p.idx]=p.def;
+      host.appendChild(buildKnob(p));
+    });
+    PARAMS.forEach(function(p){ render(p); send(p.idx,state[p.idx]); });
+    updateMeter();
+    requestAnimationFrame(tick);
+  }
+
+  if(window.vstai && typeof window.vstai.onReady==="function"){
+    window.vstai.onReady(init);
+  }else{
+    init();
+  }
+})();
+</script>
+</body>
+</html>

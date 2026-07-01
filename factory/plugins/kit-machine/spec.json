@@ -1,0 +1,17 @@
+{
+  "name": "Kit Machine",
+  "isInstrument": true,
+  "explanation": "A sample-playback drum machine. Eight short drum one-shots (kick, snare, closed and open hat, clap, tom, rim, cowbell) are baked into the plugin as PCM and played back polyphonically — a true sampler engine, distinct from real-time-synthesised analog drum boxes. A MIDI note selects a voice (note modulo 8) and fires a one-shot; global Tune, Decay, Snap (attack), Tone and Level shape the whole kit. The drum samples are original, self-authored CC0 content synthesised offline (no third-party samples).",
+  "assembly": "factory/plugins/kit-machine/assembly.ts",
+  "out": "factory/plugins/kit-machine/x.vstai",
+  "guiFile": "factory/plugins/kit-machine/gui.html",
+  "publishedAt": 1751000153000,
+  "theme": { "accent": "#ff7a3d", "accent2": "#ffd24a" },
+  "params": [
+    { "name": "Tune",  "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay", "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Snap",  "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Tone",  "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Level", "index": 4, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

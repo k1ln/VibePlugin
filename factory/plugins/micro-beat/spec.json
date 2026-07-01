@@ -1,0 +1,18 @@
+{
+  "name": "Micro Beat",
+  "isInstrument": true,
+  "explanation": "A tiny budget analog drum box in the Boss DR-110 lineage — distinct from the factory's bigger drum machines by a thin, clicky, bright character: a short clicky kick, a papery snare, sizzly 'tssh' hats and a thin clap/cymbal, all synthesised in real time. A MIDI note selects a voice (note % 5) into a 6-slot pool. Controls: Pitch, Decay, Click (attack snap), Hat (brightness/length), Accent and Level.",
+  "assembly": "factory/plugins/micro-beat/assembly.ts",
+  "out": "factory/plugins/micro-beat/x.vstai",
+  "guiFile": "factory/plugins/micro-beat/gui.html",
+  "publishedAt": 1751000171000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#aab4c0" },
+  "params": [
+    { "name": "Pitch",  "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay",  "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Click",  "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Hat",    "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Accent", "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",  "index": 5, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

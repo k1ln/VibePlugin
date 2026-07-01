@@ -1,0 +1,19 @@
+{
+  "name": "Twin Volt",
+  "isInstrument": true,
+  "explanation": "A fat dual-VCO monophonic synth voice in the classic late-70s mono lineage. Two detuned analog-style oscillators (a saw and a pulse) plus a square sub-oscillator an octave down are summed and ALSO ring-modulated against each other, so the Ring control blends clangy, inharmonic metallic colour into the tone. The mix drives a punchy 4-pole resonant low-pass with its own decay envelope, then an amp envelope; pitch glides between notes. Great for fat basses and clangy leads. Controls: Cutoff, Resonance, Env Amount, Ring, Detune, Decay and Level.",
+  "assembly": "factory/plugins/twin-volt/assembly.ts",
+  "out": "factory/plugins/twin-volt/x.vstai",
+  "publishedAt": 1751000143000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#ff7a5a" },
+  "guiFile": "factory/plugins/twin-volt/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.60 },
+    { "name": "Ring",       "index": 3, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Detune",     "index": 4, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Decay",      "index": 5, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.80 }
+  ]
+}

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choral Bank</title>
+<style>
+  :root {
+    --accent:  #7ab0ff;
+    --accent2: #d0b0ff;
+    --sky0: #0b1226;
+    --sky1: #101c3a;
+    --sky2: #1b2c52;
+    --haze: rgba(208,176,255,0.16);
+    --ink:  #eaf2ff;
+    --ink-dim: #9fb4d6;
+    --panel: rgba(18,30,58,0.66);
+    --stroke: rgba(160,190,255,0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--sky0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- cathedral sky backdrop ---------------------------------- */
+  .app {
+    position: relative;
+    min-height: 100%;
+    padding: 22px 22px 18px;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(122,176,255,0.28), transparent 60%),
+      radial-gradient(90% 70% at 18% 8%, rgba(208,176,255,0.18), transparent 55%),
+      radial-gradient(90% 70% at 84% 6%, rgba(122,176,255,0.16), transparent 55%),
+      linear-gradient(180deg, var(--sky1) 0%, var(--sky0) 70%);
+    overflow: hidden;
+  }
+
+  /* slow-drifting ensemble haze layers */
+  .haze {
+    position: absolute;
+    inset: -40% -20%;
+    pointer-events: none;
+    background:
+      radial-gradient(40% 30% at 30% 40%, var(--haze), transparent 70%),
+      radial-gradient(36% 28% at 70% 55%, rgba(122,176,255,0.14), transparent 70%),
+      radial-gradient(30% 24% at 50% 30%, rgba(255,255,255,0.06), transparent 70%);
+    filter: blur(14px);
+    animation: drift 26s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(-3%, -2%, 0) scale(1.02); opacity: 0.85; }
+    50%  { transform: translate3d(3%, 2%, 0)   scale(1.08); opacity: 1; }
+    100% { transform: translate3d(-2%, 3%, 0)  scale(1.04); opacity: 0.9; }
+  }
+
+  /* faint cathedral arch columns */
+  .arches {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 2; max-width: 880px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .title {
+    font-size: clamp(20px, 4.4vw, 30px);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    background: linear-gradient(92deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 28px rgba(122,176,255,0.25);
+  }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* ---- shimmering choral wavefield ----------------------------- */
+  .field {
+    position: relative;
+    height: 96px;
+    border-radius: 14px;
+    border: 1px solid var(--stroke);
+    background: linear-gradient(180deg, rgba(11,18,38,0.7), rgba(27,44,82,0.5));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -16px 30px rgba(0,0,0,0.4);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .field svg { display: block; width: 100%; height: 100%; }
+
+  /* ---- control sections ---------------------------------------- */
+  .sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    padding: 14px 10px 10px;
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .panel .legend {
+    font-size: 9px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .knobrow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .knob {
+    width: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    user-select: none;
+    cursor: ns-resize;
+  }
+  .knob svg { overflow: visible; touch-action: none; }
+  .knob .name {
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .knob .val {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .knob:hover .ring { stroke: var(--accent); }
+  .knob:hover .glow { opacity: 0.85; }
+
+  /* ---- keyboard ------------------------------------------------ */
+  .kb {
+    position: relative;
+    height: 88px;
+    border-radius: 12px;
+    border: 1px solid var(--stroke);
+    background: linear-gradient(180deg, rgba(20,32,60,0.8), rgba(10,16,34,0.9));
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    padding: 8px;
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+  }
+  .keys { position: relative; flex: 1; height: 100%; }
+  .wkey {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #eaf1ff, #b9c8e6);
+    border: 1px solid rgba(20,30,55,0.4);
+    box-shadow: inset 0 -8px 10px rgba(120,150,210,0.25);
+    cursor: pointer;
+    transition: background 0.08s, box-shadow 0.08s;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent), #9fc3ff);
+    box-shadow: inset 0 -6px 14px rgba(122,176,255,0.6), 0 0 16px rgba(122,176,255,0.5);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    height: 58%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #1a2440, #0a1124);
+    border: 1px solid rgba(0,0,0,0.6);
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.7);
+    cursor: pointer;
+    z-index: 3;
+    transition: background 0.08s, box-shadow 0.08s;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent2), #7a5fb0);
+    box-shadow: 0 0 16px rgba(208,176,255,0.6);
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="haze"></div>
+  <svg class="arches" preserveAspectRatio="none" viewBox="0 0 880 600">
+    <g fill="none" stroke="rgba(160,190,255,0.10)" stroke-width="1.5">
+      <path d="M120 600 L120 220 Q120 120 220 120 Q320 120 320 220 L320 600"/>
+      <path d="M340 600 L340 180 Q340 70 440 70 Q540 70 540 180 L540 600"/>
+      <path d="M560 600 L560 220 Q560 120 660 120 Q760 120 760 220 L760 600"/>
+    </g>
+  </svg>
+
+  <div class="wrap">
+    <header>
+      <div class="title">Choral Bank</div>
+      <div class="subtitle">Fully-Poly Ensemble Organ</div>
+    </header>
+
+    <div class="field">
+      <svg id="field" preserveAspectRatio="none" viewBox="0 0 880 96">
+        <defs>
+          <linearGradient id="gw" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d0b0ff" stop-opacity="0.9"/>
+            <stop offset="1" stop-color="#7ab0ff" stop-opacity="0.5"/>
+          </linearGradient>
+        </defs>
+        <path id="w1" fill="none" stroke="url(#gw)" stroke-width="2"   opacity="0.9"/>
+        <path id="w2" fill="none" stroke="#7ab0ff"  stroke-width="1.4" opacity="0.5"/>
+        <path id="w3" fill="none" stroke="#d0b0ff"  stroke-width="1.2" opacity="0.4"/>
+      </svg>
+    </div>
+
+    <div class="sections" id="sections"></div>
+
+    <div class="kb">
+      <div class="keys" id="keys"></div>
+    </div>
+    <div class="hint">Drag knobs vertically &middot; double-click to reset &middot; play the keys</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices match assembly.ts) --------------
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.55, group: "Voice" },
+    { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.22, group: "Voice" },
+    { name: "Brightness", index: 5, min: 0, max: 1, def: 0.50, group: "Voice" },
+    { name: "Attack",     index: 2, min: 0, max: 1, def: 0.30, group: "Swell" },
+    { name: "Release",    index: 3, min: 0, max: 1, def: 0.45, group: "Swell" },
+    { name: "Ensemble",   index: 4, min: 0, max: 1, def: 0.70, group: "Ensemble" },
+    { name: "Level",      index: 6, min: 0, max: 1, def: 0.55, group: "Ensemble" }
+  ];
+
+  var state = {};       // index -> current value
+  var ready = false;
+
+  function pushParam(index, value) {
+    state[index] = value;
+    if (window.vstai && window.vstai.setParam) {
+      try { window.vstai.setParam(index, value); } catch (e) {}
+    }
+  }
+
+  // ---- knob factory --------------------------------------------
+  function makeKnob(p) {
+    var R = 30, CX = 38, CY = 38;
+    var START = 135, SWEEP = 270; // degrees
+
+    var el = document.createElement("div");
+    el.className = "knob";
+    el.innerHTML =
+      '<svg width="76" height="76" viewBox="0 0 76 76">' +
+        '<circle class="glow" cx="38" cy="38" r="33" fill="none" stroke="' + accentFor(p) + '" stroke-width="6" opacity="0" filter="blur(4px)"/>' +
+        '<circle cx="38" cy="38" r="33" fill="#0c1430" stroke="rgba(160,190,255,0.18)" stroke-width="1"/>' +
+        '<path class="track" fill="none" stroke="rgba(160,190,255,0.16)" stroke-width="4" stroke-linecap="round"/>' +
+        '<path class="ring" fill="none" stroke="' + accentFor(p) + '" stroke-width="4" stroke-linecap="round"/>' +
+        '<circle cx="38" cy="38" r="22" fill="url(#body' + p.index + ')"/>' +
+        '<defs><radialGradient id="body' + p.index + '" cx="0.4" cy="0.3" r="0.8">' +
+          '<stop offset="0" stop-color="#2a3a64"/><stop offset="1" stop-color="#0b1430"/>' +
+        '</radialGradient></defs>' +
+        '<line class="ptr" x1="38" y1="38" x2="38" y2="20" stroke="#eaf2ff" stroke-width="2.5" stroke-linecap="round"/>' +
+      '</svg>' +
+      '<div class="name">' + p.name + '</div>' +
+      '<div class="val">0</div>';
+
+    var svg = el.querySelector("svg");
+    var ringEl = el.querySelector(".ring");
+    var trackEl = el.querySelector(".track");
+    var ptrEl = el.querySelector(".ptr");
+    var valEl = el.querySelector(".val");
+
+    function polar(deg, r) {
+      var a = (deg - 90) * Math.PI / 180;
+      return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+    }
+    function arc(fromDeg, toDeg, r) {
+      var s = polar(fromDeg, r), e = polar(toDeg, r);
+      var large = (toDeg - fromDeg) > 180 ? 1 : 0;
+      return "M" + s[0].toFixed(2) + " " + s[1].toFixed(2) +
+             " A" + r + " " + r + " 0 " + large + " 1 " + e[0].toFixed(2) + " " + e[1].toFixed(2);
+    }
+    trackEl.setAttribute("d", arc(START, START + SWEEP, R));
+
+    function norm(v) { return (v - p.min) / (p.max - p.min); }
+
+    function render(v) {
+      var t = norm(v);
+      var end = START + SWEEP * t;
+      ringEl.setAttribute("d", arc(START, Math.max(START + 0.01, end), R));
+      var pe = polar(end, 16);
+      ptrEl.setAttribute("x2", pe[0].toFixed(2));
+      ptrEl.setAttribute("y2", pe[1].toFixed(2));
+      valEl.textContent = formatVal(p, v);
+    }
+
+    function setVal(v, push) {
+      v = Math.max(p.min, Math.min(p.max, v));
+      render(v);
+      if (push) pushParam(p.index, v);
+      el._value = v;
+    }
+
+    // ---- drag interaction --------------------------------------
+    var dragging = false, lastY = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      var g = el.querySelector(".glow"); if (g) g.setAttribute("opacity", "0.9");
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var range = p.max - p.min;
+      var fine = (e.shiftKey ? 0.25 : 1);
+      setVal(el._value + dy * 0.005 * range * fine, true);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      var g = el.querySelector(".glow"); if (g) g.setAttribute("opacity", "0");
+    }
+
+    svg.addEventListener("mousedown", onDown);
+    svg.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchend", onUp);
+
+    svg.addEventListener("wheel", function (e) {
+      var range = p.max - p.min;
+      setVal(el._value - Math.sign(e.deltaY) * 0.02 * range, true);
+      e.preventDefault();
+    }, { passive: false });
+
+    svg.addEventListener("dblclick", function () { setVal(p.def, true); });
+
+    el._setVal = setVal;
+    el._param = p;
+    return el;
+  }
+
+  function accentFor(p) {
+    return (p.group === "Ensemble") ? "#d0b0ff" : "#7ab0ff";
+  }
+
+  function formatVal(p, v) {
+    var t = (v - p.min) / (p.max - p.min);
+    return Math.round(t * 100) + "%";
+  }
+
+  // ---- build sections ------------------------------------------
+  var knobEls = [];
+  function buildUI() {
+    var sections = document.getElementById("sections");
+    var groups = ["Voice", "Swell", "Ensemble"];
+    groups.forEach(function (gname) {
+      var panel = document.createElement("div");
+      panel.className = "panel";
+      var legend = document.createElement("div");
+      legend.className = "legend";
+      legend.textContent = gname;
+      panel.appendChild(legend);
+      var row = document.createElement("div");
+      row.className = "knobrow";
+      PARAMS.filter(function (p) { return p.group === gname; }).forEach(function (p) {
+        var k = makeKnob(p);
+        row.appendChild(k);
+        knobEls.push(k);
+      });
+      panel.appendChild(row);
+      sections.appendChild(panel);
+    });
+  }
+
+  // ---- on-screen keyboard --------------------------------------
+  function buildKeyboard() {
+    var keys = document.getElementById("keys");
+    var startMidi = 48; // C3
+    var numWhite = 17;  // ~2.5 octaves of white keys
+    var whitePattern = [0, 2, 4, 5, 7, 9, 11];
+    var blackAfter = { 0: 1, 2: 1, 5: 1, 7: 1, 9: 1 }; // semitone offsets that have a black key after
+
+    var whiteW = 100 / numWhite; // percent
+    var wIndex = 0;
+    var midi = startMidi;
+    var whiteMidis = [];
+
+    // figure out white-key midis
+    var m = startMidi;
+    while (whiteMidis.length < numWhite) {
+      var pc = m % 12;
+      if (whitePattern.indexOf(pc) >= 0) whiteMidis.push(m);
+      m++;
+    }
+
+    whiteMidis.forEach(function (mm, i) {
+      var k = document.createElement("div");
+      k.className = "wkey";
+      k.style.left = (i * whiteW) + "%";
+      k.style.width = whiteW + "%";
+      bindKey(k, mm);
+      keys.appendChild(k);
+    });
+
+    // black keys sit between whites that have a sharp
+    whiteMidis.forEach(function (mm, i) {
+      var pc = mm % 12;
+      if (blackAfter[pc] && i < numWhite - 1) {
+        var k = document.createElement("div");
+        k.className = "bkey";
+        k.style.left = ((i + 1) * whiteW - whiteW * 0.3) + "%";
+        k.style.width = (whiteW * 0.6) + "%";
+        bindKey(k, mm + 1);
+        keys.appendChild(k);
+      }
+    });
+  }
+
+  function bindKey(el, midi) {
+    var held = false;
+    function on(e) {
+      if (held) return;
+      held = true;
+      el.classList.add("down");
+      if (window.vstai && window.vstai.noteOn) {
+        try { window.vstai.noteOn(midi, 0.85); } catch (err) {}
+      }
+      e.preventDefault();
+    }
+    function off() {
+      if (!held) return;
+      held = false;
+      el.classList.remove("down");
+      if (window.vstai && window.vstai.noteOff) {
+        try { window.vstai.noteOff(midi); } catch (err) {}
+      }
+    }
+    el.addEventListener("mousedown", on);
+    el.addEventListener("mouseenter", function (e) { if (e.buttons === 1) on(e); });
+    el.addEventListener("mouseleave", off);
+    el.addEventListener("mouseup", off);
+    el.addEventListener("touchstart", on, { passive: false });
+    el.addEventListener("touchend", off);
+    window.addEventListener("mouseup", off);
+  }
+
+  // ---- shimmering wavefield animation --------------------------
+  var raf = 0;
+  function startField() {
+    var w1 = document.getElementById("w1");
+    var w2 = document.getElementById("w2");
+    var w3 = document.getElementById("w3");
+    var W = 880, H = 96, MID = 48, N = 64;
+
+    function wave(el, t, amp, freq, phase, drift) {
+      var d = "M0 " + MID;
+      for (var i = 0; i <= N; i++) {
+        var x = (i / N) * W;
+        var ens = (state[4] != null ? state[4] : 0.7);
+        var br = (state[5] != null ? state[5] : 0.5);
+        var a = amp * (0.4 + ens * 0.9);
+        var y = MID
+          + Math.sin(i * freq + t * drift + phase) * a
+          + Math.sin(i * freq * 2.3 + t * drift * 1.4) * a * 0.3 * (0.3 + br);
+        d += " L" + x.toFixed(1) + " " + y.toFixed(2);
+      }
+      el.setAttribute("d", d);
+    }
+
+    function loop(ts) {
+      var t = ts * 0.001;
+      wave(w1, t, 16, 0.28, 0.0, 0.7);
+      wave(w2, t, 12, 0.36, 1.6, -0.9);
+      wave(w3, t, 9,  0.22, 3.1, 0.5);
+      raf = requestAnimationFrame(loop);
+    }
+    raf = requestAnimationFrame(loop);
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    } else if (!raf) {
+      startField();
+    }
+  });
+
+  // ---- init -----------------------------------------------------
+  function init() {
+    buildUI();
+    buildKeyboard();
+    // set every knob to default and push to engine
+    knobEls.forEach(function (k) { k._setVal(k._param.def, true); });
+    startField();
+    ready = true;
+  }
+
+  function boot() {
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(init);
+    } else {
+      init();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

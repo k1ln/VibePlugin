@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Halo Ensemble</title>
+<style>
+  :root{ --acc:#6ad0e8; --acc2:#e8b0d0; --bg0:#070d10; --bg1:#0d1a20; --ink:#e8f4f7; --dim:#6f8a94; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(120% 90% at 50% -10%,#13303a 0%,var(--bg1) 46%,var(--bg0) 100%); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#0f2028,#070d10); border:1px solid rgba(106,208,232,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(232,244,247,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc2); box-shadow:0 0 10px var(--acc2); animation:pulse 3.0s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4;} 50%{ opacity:1;} }
+  .screen{ height:110px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative; background:linear-gradient(180deg,#0b1a20,#070f12); border:1px solid rgba(106,208,232,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.22em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:70px; height:70px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(214,236,240,.13); stroke-width:7; stroke-linecap:round; } .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(106,208,232,.6)); }
+  .pcap{ fill:#0b171c; stroke:rgba(106,208,232,.22); stroke-width:1; } .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); } .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(106,208,232,.1); padding:1px 7px; border-radius:7px; border:1px solid rgba(106,208,232,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style></head>
+<body>
+  <div class="unit">
+    <header><span class="logo">HALO&nbsp;ENSEMBLE</span><span class="sub">string ensemble poly</span><span class="led"></span></header>
+    <div class="screen"><div class="scrlbl">ENSEMBLE&nbsp;WASH</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){"use strict";
+  var P=[{name:"Tone",idx:0,def:0.35},{name:"Cutoff",idx:1,def:0.6},{name:"Attack",idx:2,def:0.3},{name:"Ensemble",idx:3,def:0.6},{name:"Shimmer",idx:4,def:0.5},{name:"Level",idx:5,def:0.8}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 80 80"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ad0e8"/><stop offset="1" stop-color="#e8b0d0"/></linearGradient></defs><circle class="track" cx="40" cy="40" r="33"></circle><circle class="arc" cx="40" cy="40" r="33" transform="rotate(135 40 40)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="40" cy="40" r="20"></circle><line class="ptr" x1="40" y1="40" x2="40" y2="23"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el); var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString()); var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(40+Math.sin(ang)*16).toFixed(2)); ptr.setAttribute("y2",(40-Math.cos(ang)*16).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); } window.addEventListener("resize",resize); resize();
+  // lush ensemble wash: several detuned layers beating against each other + halo glow
+  function frame(ts){ ctx.clearRect(0,0,W,H); var tone=vals[0], cut=vals[1], ens=vals[3], shim=vals[4]; var mid=H*0.56;
+    var NL=6;
+    for(var L=0;L<NL;L++){ var dt=(L-NL/2)*(0.4+shim*1.2); var hue=L/(NL-1);
+      var col="rgba("+Math.round(106+hue*130)+","+Math.round(208-hue*100)+","+Math.round(232-hue*30)+",";
+      ctx.beginPath();
+      for(var x=0;x<=W;x+=2){ var t=x/W;
+        var base=Math.sin((t*4.0+dt*0.01)*6.2831853 + ts/650 + L*0.5);
+        // ensemble chorus phasing
+        var ch=Math.sin(t*13*6.2831853 + ts/500*(1+ens) + L*1.3)*ens*0.4;
+        var sq=(( (t*4.0)%1)<0.5?1:-1)*tone*0.4;
+        var v=(base*(1-tone*0.4)+sq+ch)*(0.3+cut*0.4);
+        ctx.lineTo(x, mid + v*(H*0.20)); }
+      ctx.strokeStyle=col+(0.22+0.2*(1-hue))+")"; ctx.lineWidth=1.4; ctx.shadowColor=col+"0.5)"; ctx.shadowBlur=6; ctx.stroke(); ctx.shadowBlur=0;
+    }
+    // halo arc glow at top
+    var hy=mid, hr=Math.min(W*0.42,120)*(0.7+ens*0.4);
+    var g=ctx.createRadialGradient(W/2,hy,hr*0.4,W/2,hy,hr); g.addColorStop(0,"rgba(232,176,208,0.0)"); g.addColorStop(0.85,"rgba(106,208,232,"+(0.05+ens*0.08)+")"); g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(W/2,hy,hr,0,Math.PI*2); ctx.fill();
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script></body></html>

@@ -1,0 +1,17 @@
+{
+  "name": "Tower Spring",
+  "isInstrument": false,
+  "explanation": "An original model of a tall studio spring-reverb tank: a long cascade of dispersive all-pass lines smears transients into a clean, bright 'boing/chirp' that feeds a long, lightly-modulated stereo feedback delay for a smooth, hi-fi tail up to several seconds. Decay lengthens the tail, Tone tilts dark to bright, Boing sets the dispersion/chirp amount, Width spreads the two decorrelated spring loops, and Mix blends dry/wet.",
+  "assembly": "factory/plugins/tower-spring/assembly.ts",
+  "out": "factory/plugins/tower-spring/x.vstai",
+  "publishedAt": 1751000131000,
+  "theme": { "accent": "#7ad0c0", "accent2": "#cfe8a0" },
+  "guiFile": "factory/plugins/tower-spring/gui.html",
+  "params": [
+    { "name": "Mix",   "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Decay", "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Tone",  "index": 2, "min": 0, "max": 1, "default": 0.62 },
+    { "name": "Boing", "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Width", "index": 4, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

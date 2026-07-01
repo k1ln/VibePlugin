@@ -1,0 +1,18 @@
+{
+  "name": "Funk Filter",
+  "isInstrument": false,
+  "explanation": "An envelope-follower auto-wah: a resonant state-variable filter whose cutoff is swept by the input's own dynamics. Play louder and the peak swoops further; a peak-detecting envelope follower with snappy attack and a musical release tail drives the sweep. Direction flips it (up: louder opens the filter; down: louder closes it), Mode picks a low-pass or a vocal band-pass voice, Sensitivity sets how hard the envelope pushes, Resonance sets the Q/peak, and Range sets the span of the sweep. The classic funky, vocal 'wow' that tracks your playing. Controls: Sensitivity, Resonance, Range, Direction, Mode and dry/wet Mix.",
+  "assembly": "factory/plugins/funk-filter/assembly.ts",
+  "out": "factory/plugins/funk-filter/x.vstai",
+  "publishedAt": 1751000125000,
+  "theme": { "accent": "#ffcf3d", "accent2": "#9a3dff" },
+  "guiFile": "factory/plugins/funk-filter/gui.html",
+  "params": [
+    { "name": "Sensitivity", "index": 0, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Resonance",   "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Range",       "index": 2, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Direction",   "index": 3, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Mode",        "index": 4, "min": 0, "max": 1, "default": 1, "step": 1 },
+    { "name": "Mix",         "index": 5, "min": 0, "max": 1, "default": 1 }
+  ]
+}

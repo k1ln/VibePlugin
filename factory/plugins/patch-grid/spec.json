@@ -1,0 +1,18 @@
+{
+  "name": "Patch Grid",
+  "isInstrument": true,
+  "explanation": "A patch-matrix modular voice in the EMS Synthi 100 lineage. The Synthi's pin matrix let anything modulate anything, and its most iconic sound is ring modulation between a played oscillator and a free-running one, giving clangorous, inharmonic, bell-and-drone timbres. Here osc1 tracks the note, Osc2 Freq sets a free-running second oscillator at an absolute pitch (so the ring product goes inharmonic), Ring sets the ring-mod amount, Noise adds the Synthi's coloured noise, all through a resonant low-pass with a decay envelope. Mono, last-note priority. Controls: Osc2 Freq, Ring, Noise, Cutoff, Decay and Level.",
+  "assembly": "factory/plugins/patch-grid/assembly.ts",
+  "out": "factory/plugins/patch-grid/x.vstai",
+  "guiFile": "factory/plugins/patch-grid/gui.html",
+  "publishedAt": 1751312000000,
+  "theme": { "accent": "#7ad090", "accent2": "#e0b040" },
+  "params": [
+    { "name": "Osc2 Freq", "index": 0, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Ring",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Noise",     "index": 2, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Cutoff",    "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Decay",     "index": 4, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Level",     "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Wide Ensemble",
+  "isInstrument": false,
+  "explanation": "A lush bucket-brigade (BBD) stereo chorus ensemble with a vibrato mode. A mono-summed input is fanned into a wide stereo image by two modulated delay lines whose sweep runs in anti-phase on the left and right, so the channels swirl against each other for a big ensemble. The Mode control morphs from chorus (dry plus modulated taps) to vibrato (pure modulated tap, so the whole signal pitch-wobbles). A BBD-darkness Tone low-passes the wet path and a soft saturation emulates compander grit for warm analog character. Controls: Rate, Depth, Mode, Tone and dry/wet Mix.",
+  "assembly": "factory/plugins/wide-ensemble/assembly.ts",
+  "out": "factory/plugins/wide-ensemble/x.vstai",
+  "publishedAt": 1751000129000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#9a7bff" },
+  "guiFile": "factory/plugins/wide-ensemble/gui.html",
+  "params": [
+    { "name": "Rate",  "index": 0, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "Depth", "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Mode",  "index": 2, "min": 0, "max": 1, "default": 0 },
+    { "name": "Tone",  "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mix",   "index": 4, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arc Poly</title>
+<style>
+  :root {
+    --accent: #ff8a3d;
+    --accent2: #5ad0a0;
+    --slate-0: #1b1e22;
+    --slate-1: #23272c;
+    --slate-2: #2c3137;
+    --slate-3: #3a4047;
+    --edge-hi: rgba(255,255,255,0.10);
+    --edge-lo: rgba(0,0,0,0.55);
+    --ink: #d9dde1;
+    --ink-dim: #8b929a;
+    --font: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a2f35 0%, #1b1e22 55%, #15171a 100%);
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 18px clamp(12px, 3vw, 26px) 26px;
+  }
+
+  /* ---------- hardware panel ---------- */
+  .panel {
+    position: relative;
+    border-radius: 16px;
+    padding: 18px 20px 22px;
+    background:
+      linear-gradient(180deg, #30353b 0%, #262b30 8%, #23272c 100%);
+    box-shadow:
+      inset 0 1px 0 var(--edge-hi),
+      inset 0 -2px 6px var(--edge-lo),
+      0 22px 50px rgba(0,0,0,0.55),
+      0 2px 0 rgba(0,0,0,0.4);
+    border: 1px solid #14171a;
+  }
+  /* brushed-metal hairlines */
+  .panel::before {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 16px;
+    background: repeating-linear-gradient(
+      90deg, rgba(255,255,255,0.018) 0 2px, rgba(0,0,0,0.02) 2px 4px);
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  /* corner mounting screws */
+  .screw {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #565d64, #2a2e33 70%, #1a1d20);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 1px 2px rgba(0,0,0,0.6);
+  }
+  .screw::after {
+    content: ""; position: absolute; inset: 3px;
+    background: linear-gradient(45deg, transparent 44%, #1a1d20 44% 56%, transparent 56%);
+  }
+  .screw.tl { top: 10px; left: 10px; }
+  .screw.tr { top: 10px; right: 10px; }
+  .screw.bl { bottom: 10px; left: 10px; }
+  .screw.br { bottom: 10px; right: 10px; }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 14px 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo-mark {
+    width: 40px; height: 40px;
+    filter: drop-shadow(0 0 6px rgba(255,138,61,0.45));
+  }
+  .title { line-height: 1; }
+  .title h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fff, #c8ccd1 60%, #9aa0a7);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .title .sub {
+    margin-top: 5px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .badge {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid #14171a;
+    border-radius: 6px;
+    padding: 6px 9px;
+    background: linear-gradient(180deg, #2b3036, #21262b);
+    box-shadow: inset 0 1px 0 var(--edge-hi);
+  }
+  .badge b { color: var(--accent2); }
+
+  /* ---------- S&H scope ---------- */
+  .scope-wrap {
+    margin: 0 14px 18px;
+    border-radius: 12px;
+    padding: 12px 14px 10px;
+    background: linear-gradient(180deg, #0d1416, #0a0f11);
+    border: 1px solid #05080a;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(90,208,160,0.06);
+  }
+  .scope-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .scope-head .lbl {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent2);
+  }
+  .scope-head .lbl .dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent2); margin-right: 7px; vertical-align: middle;
+    box-shadow: 0 0 8px var(--accent2);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
+  .scope-head .read {
+    font-size: 10px; letter-spacing: 1px; color: var(--ink-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  canvas#scope {
+    display: block; width: 100%; height: 96px;
+    border-radius: 6px;
+  }
+
+  /* ---------- slider bank ---------- */
+  .bank {
+    display: flex;
+    gap: clamp(6px, 1.6vw, 16px);
+    justify-content: center;
+    padding: 4px 6px 0;
+    flex-wrap: wrap;
+  }
+  .slot {
+    flex: 1 1 0;
+    min-width: 78px;
+    max-width: 116px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .slot .name {
+    font-size: 9.5px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 9px;
+    text-align: center;
+    min-height: 12px;
+  }
+  .slot.sh .name { color: var(--accent2); }
+
+  .fader {
+    position: relative;
+    width: 46px;
+    height: 168px;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #1c2024, #15181b);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.7), inset 0 -1px 0 var(--edge-hi);
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  /* the slot well */
+  .fader .well {
+    position: absolute;
+    left: 50%; top: 12px; bottom: 12px;
+    width: 8px; transform: translateX(-50%);
+    border-radius: 5px;
+    background: linear-gradient(90deg, #000, #1e2226 50%, #000);
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.9);
+    overflow: hidden;
+  }
+  /* filled (lit) portion below the cap */
+  .fader .fill {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, var(--accent), #b85a1f);
+    box-shadow: 0 0 8px rgba(255,138,61,0.55);
+    transition: height 0.04s linear;
+  }
+  .slot.sh .fader .fill {
+    background: linear-gradient(180deg, var(--accent2), #2c7a5a);
+    box-shadow: 0 0 8px rgba(90,208,160,0.55);
+  }
+  /* tick marks */
+  .fader .ticks {
+    position: absolute;
+    right: 6px; top: 12px; bottom: 12px;
+    width: 6px;
+  }
+  .fader .ticks i {
+    position: absolute; right: 0; width: 6px; height: 1px;
+    background: rgba(255,255,255,0.16);
+  }
+  /* the cap */
+  .fader .cap {
+    position: absolute;
+    left: 50%;
+    width: 38px; height: 22px;
+    transform: translate(-50%, 50%);
+    border-radius: 5px;
+    background: linear-gradient(180deg, #4a525a 0%, #353b41 45%, #20242a 100%);
+    box-shadow:
+      0 3px 6px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.28),
+      inset 0 -2px 3px rgba(0,0,0,0.5);
+    transition: box-shadow 0.15s ease;
+  }
+  /* grip line in the cap, lit accent */
+  .fader .cap::after {
+    content: "";
+    position: absolute; left: 6px; right: 6px; top: 50%;
+    height: 3px; transform: translateY(-50%);
+    border-radius: 2px;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .slot.sh .fader .cap::after {
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+  }
+  .fader:hover .cap,
+  .fader.drag .cap {
+    box-shadow:
+      0 4px 10px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      inset 0 -2px 3px rgba(0,0,0,0.5),
+      0 0 14px rgba(255,138,61,0.4);
+  }
+  .slot.sh .fader:hover .cap,
+  .slot.sh .fader.drag .cap {
+    box-shadow:
+      0 4px 10px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      inset 0 -2px 3px rgba(0,0,0,0.5),
+      0 0 14px rgba(90,208,160,0.4);
+  }
+  .slot .val {
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- keyboard ---------- */
+  .kbd-wrap {
+    margin: 20px 14px 2px;
+    padding: 12px 14px 14px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #2a2f35, #1f2429);
+    box-shadow: inset 0 1px 0 var(--edge-hi), inset 0 -2px 5px var(--edge-lo);
+  }
+  .kbd-label {
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 8px;
+  }
+  .keys {
+    position: relative;
+    height: 96px;
+    display: flex;
+    user-select: none;
+    touch-action: none;
+  }
+  .wkey {
+    position: relative;
+    flex: 1 1 0;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #f2efe8, #d8d3c8);
+    box-shadow: inset 0 -4px 5px rgba(0,0,0,0.18), 0 2px 3px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent), #d8761f);
+    box-shadow: inset 0 3px 8px rgba(0,0,0,0.35);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 5.5%;
+    height: 60%;
+    margin-left: -2.75%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2c3036, #0f1215);
+    box-shadow: inset 0 -3px 3px rgba(255,255,255,0.08), 0 3px 4px rgba(0,0,0,0.6);
+    cursor: pointer;
+    z-index: 2;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent2), #2c7a5a);
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="panel">
+      <span class="screw tl"></span><span class="screw tr"></span>
+      <span class="screw bl"></span><span class="screw br"></span>
+
+      <header>
+        <div class="brand">
+          <svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true">
+            <defs>
+              <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff8a3d"/>
+                <stop offset="1" stop-color="#5ad0a0"/>
+              </linearGradient>
+            </defs>
+            <path d="M6 34 A18 18 0 0 1 42 34" fill="none" stroke="url(#lg)" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M8 40 h6 v-8 h6 v6 h6 v-12 h6 v10 h6" fill="none" stroke="#5ad0a0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+          </svg>
+          <div class="title">
+            <h1>Arc Poly</h1>
+            <div class="sub">American Poly Synthesizer</div>
+          </div>
+        </div>
+        <div class="badge">Sample &amp; Hold &middot; <b>VCO/VCF</b></div>
+      </header>
+
+      <div class="scope-wrap">
+        <div class="scope-head">
+          <span class="lbl"><span class="dot"></span>Sample &amp; Hold</span>
+          <span class="read" id="shRead">depth 0% &middot; rate 0.0 hz</span>
+        </div>
+        <canvas id="scope" width="780" height="96"></canvas>
+      </div>
+
+      <div class="bank" id="bank"></div>
+
+      <div class="kbd-wrap">
+        <div class="kbd-label">Keyboard &middot; click / drag to play</div>
+        <div class="keys" id="keys"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts / spec.json) ----
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.42, sh: false },
+    { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.55, sh: false },
+    { name: "Env Amount", index: 2, min: 0, max: 1, def: 0.60, sh: false },
+    { name: "S&H Depth",  index: 3, min: 0, max: 1, def: 0.45, sh: true },
+    { name: "S&H Rate",   index: 4, min: 0, max: 1, def: 0.40, sh: true },
+    { name: "Decay",      index: 5, min: 0, max: 1, def: 0.45, sh: false },
+    { name: "Level",      index: 6, min: 0, max: 1, def: 0.80, sh: false }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  function pushParam(p) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(p.index, values[p.index] * (p.max - p.min) + p.min);
+    }
+  }
+
+  // ---- build faders ----
+  var bank = document.getElementById("bank");
+
+  function fmt(p, v) {
+    if (p.name === "S&H Rate") {
+      var hz = 0.4 + v * v * 23.6;
+      return hz.toFixed(hz < 10 ? 2 : 1) + " Hz";
+    }
+    if (p.name === "Cutoff") {
+      var hz2 = 70 * Math.exp(v * 4.86);
+      return hz2 >= 1000 ? (hz2 / 1000).toFixed(2) + " kHz" : Math.round(hz2) + " Hz";
+    }
+    return Math.round(v * 100) + "%";
+  }
+
+  var faders = [];
+
+  PARAMS.forEach(function (p) {
+    var slot = document.createElement("div");
+    slot.className = "slot" + (p.sh ? " sh" : "");
+
+    var name = document.createElement("div");
+    name.className = "name";
+    name.textContent = p.name;
+
+    var fader = document.createElement("div");
+    fader.className = "fader";
+
+    var well = document.createElement("div");
+    well.className = "well";
+    var fill = document.createElement("div");
+    fill.className = "fill";
+    well.appendChild(fill);
+
+    var ticks = document.createElement("div");
+    ticks.className = "ticks";
+    for (var t = 0; t <= 10; t++) {
+      var ti = document.createElement("i");
+      ti.style.top = (t * 10) + "%";
+      ti.style.width = (t % 5 === 0) ? "6px" : "3px";
+      ticks.appendChild(ti);
+    }
+
+    var cap = document.createElement("div");
+    cap.className = "cap";
+
+    fader.appendChild(well);
+    fader.appendChild(ticks);
+    fader.appendChild(cap);
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    slot.appendChild(name);
+    slot.appendChild(fader);
+    slot.appendChild(val);
+    bank.appendChild(slot);
+
+    var rec = { p: p, fader: fader, cap: cap, fill: fill, val: val };
+    faders.push(rec);
+
+    // travel range of the cap inside the fader (cap is 22px tall, 12px pad)
+    function layout() {
+      var v = values[p.index];
+      var h = fader.clientHeight;
+      var pad = 12;
+      var usable = h - pad * 2;
+      // cap centre travels from bottom(pad) to top(pad); css uses bottom offset
+      var bottom = pad + v * usable;
+      cap.style.bottom = bottom + "px";
+      cap.style.top = "auto";
+      fill.style.height = (v * (h - 24)) + "px";
+      val.textContent = fmt(p, v);
+    }
+    rec.layout = layout;
+
+    // ---- dragging ----
+    var dragging = false;
+    var startY = 0, startV = 0;
+
+    function setFromDelta(dy) {
+      var h = fader.clientHeight - 24;
+      var nv = startV + (-dy) / h;
+      nv = Math.max(0, Math.min(1, nv));
+      values[p.index] = nv;
+      layout();
+      pushParam(p);
+    }
+
+    fader.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      startY = e.clientY;
+      startV = values[p.index];
+      fader.classList.add("drag");
+      fader.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    fader.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      setFromDelta(e.clientY - startY);
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      fader.classList.remove("drag");
+      try { fader.releasePointerCapture(e.pointerId); } catch (x) {}
+    }
+    fader.addEventListener("pointerup", endDrag);
+    fader.addEventListener("pointercancel", endDrag);
+
+    // wheel fine-tune
+    fader.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var nv = values[p.index] - Math.sign(e.deltaY) * 0.02;
+      values[p.index] = Math.max(0, Math.min(1, nv));
+      layout();
+      pushParam(p);
+    }, { passive: false });
+
+    // double-click reset
+    fader.addEventListener("dblclick", function () {
+      values[p.index] = p.def;
+      layout();
+      pushParam(p);
+    });
+  });
+
+  function layoutAll() { faders.forEach(function (r) { r.layout(); }); }
+  window.addEventListener("resize", layoutAll);
+
+  // ============================================================
+  //  S&H animated scope — a staircase of stepped random levels
+  //  that re-samples at the live S&H Rate, scaled by S&H Depth.
+  // ============================================================
+  var canvas = document.getElementById("scope");
+  var ctx = canvas.getContext("2d");
+  var shRead = document.getElementById("shRead");
+
+  var STEPS = 26;
+  var levels = new Array(STEPS);
+  for (var s = 0; s < STEPS; s++) levels[s] = Math.random() * 2 - 1;
+  var smooth = new Array(STEPS).fill(0);
+
+  var stepClock = 0;       // seconds accumulator
+  var lastT = performance.now();
+  var glow = 0;            // brief brighten when a new step lands
+
+  function shRateHz() {
+    var v = values[4];
+    return 0.4 + v * v * 23.6;
+  }
+
+  function draw() {
+    if (document.hidden) { requestAnimationFrame(draw); lastT = performance.now(); return; }
+
+    var now = performance.now();
+    var dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+
+    var rate = shRateHz();
+    var depth = values[3];
+
+    // advance the step clock; each "tick" shifts the staircase + new random
+    stepClock += dt * rate;
+    while (stepClock >= 1) {
+      stepClock -= 1;
+      levels.shift();
+      levels.push(Math.random() * 2 - 1);
+      glow = 1;
+    }
+    glow *= 0.90;
+
+    // light slew so bars settle, matching the DSP's stepped-but-clickless feel
+    for (var i = 0; i < STEPS; i++) {
+      smooth[i] += (levels[i] - smooth[i]) * Math.min(1, dt * 28);
+    }
+
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // backdrop grid
+    ctx.strokeStyle = "rgba(90,208,160,0.08)";
+    ctx.lineWidth = 1;
+    for (var gx = 0; gx <= 6; gx++) {
+      var x = (gx / 6) * W;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+
+    // staircase
+    var bw = W / STEPS;
+    var mid = H / 2;
+    var amp = (H / 2 - 6) * depth;
+
+    // filled area under the staircase (orange wash scaled by depth)
+    ctx.beginPath();
+    ctx.moveTo(0, mid);
+    for (var k = 0; k < STEPS; k++) {
+      var yy = mid - smooth[k] * amp;
+      ctx.lineTo(k * bw, yy);
+      ctx.lineTo((k + 1) * bw, yy);
+    }
+    ctx.lineTo(W, mid);
+    ctx.closePath();
+    var grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, "rgba(255,138,61," + (0.30 + glow * 0.25) + ")");
+    grad.addColorStop(0.5, "rgba(255,138,61,0.10)");
+    grad.addColorStop(1, "rgba(90,208,160,0.10)");
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // bright step line
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(90,208,160," + (0.85 + glow * 0.15) + ")";
+    ctx.shadowColor = "rgba(90,208,160,0.7)";
+    ctx.shadowBlur = 8 + glow * 10;
+    ctx.beginPath();
+    for (var j = 0; j < STEPS; j++) {
+      var y = mid - smooth[j] * amp;
+      if (j === 0) ctx.moveTo(0, y);
+      ctx.lineTo(j * bw, y);
+      ctx.lineTo((j + 1) * bw, y);
+    }
+    ctx.stroke();
+
+    // the newest (right-most) step node, lit accent
+    ctx.shadowBlur = 0;
+    var lastY = mid - smooth[STEPS - 1] * amp;
+    ctx.fillStyle = "rgba(255,138,61," + (0.6 + glow * 0.4) + ")";
+    ctx.beginPath();
+    ctx.arc(W - bw / 2, lastY, 3 + glow * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    shRead.textContent =
+      "depth " + Math.round(depth * 100) + "% · rate " +
+      (rate < 10 ? rate.toFixed(2) : rate.toFixed(1)) + " hz";
+
+    requestAnimationFrame(draw);
+  }
+
+  // ---- keyboard ----
+  var keysEl = document.getElementById("keys");
+  var WHITE = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+  var BLACK = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10, 7: 13, 8: 15, 10: 18, 11: 20, 12: 22 };
+  var BASE = 48; // C3
+  var down = {};
+
+  function mkNoteOn(n, el) {
+    if (down[n]) return;
+    down[n] = el;
+    el.classList.add("down");
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(n, 0.85);
+  }
+  function mkNoteOff(n) {
+    var el = down[n];
+    if (!el) return;
+    el.classList.remove("down");
+    delete down[n];
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(n);
+  }
+
+  // build white keys then position black keys over them
+  WHITE.forEach(function (semi, wi) {
+    var note = BASE + semi;
+    var k = document.createElement("div");
+    k.className = "wkey";
+    k.dataset.note = note;
+    keysEl.appendChild(k);
+  });
+
+  // black keys positioned relative to white index
+  var whiteCount = WHITE.length;
+  Object.keys(BLACK).forEach(function (wiKey) {
+    var wi = +wiKey;
+    var note = BASE + BLACK[wi];
+    var b = document.createElement("div");
+    b.className = "bkey";
+    b.dataset.note = note;
+    // each white key spans (100/whiteCount)%; black sits at its right edge
+    b.style.left = (((wi + 1) / whiteCount) * 100) + "%";
+    keysEl.appendChild(b);
+  });
+
+  function noteFromEvent(e) {
+    var t = document.elementFromPoint(e.clientX, e.clientY);
+    if (t && t.dataset && t.dataset.note) return { n: +t.dataset.note, el: t };
+    return null;
+  }
+
+  var mouseHeld = null;
+  keysEl.addEventListener("pointerdown", function (e) {
+    var hit = noteFromEvent(e);
+    if (!hit) return;
+    mkNoteOn(hit.n, hit.el);
+    mouseHeld = hit.n;
+    keysEl.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  keysEl.addEventListener("pointermove", function (e) {
+    if (mouseHeld === null) return;
+    var hit = noteFromEvent(e);
+    if (hit && hit.n !== mouseHeld) {
+      mkNoteOff(mouseHeld);
+      mkNoteOn(hit.n, hit.el);
+      mouseHeld = hit.n;
+    }
+  });
+  function releaseMouse(e) {
+    if (mouseHeld !== null) { mkNoteOff(mouseHeld); mouseHeld = null; }
+    try { keysEl.releasePointerCapture(e.pointerId); } catch (x) {}
+  }
+  keysEl.addEventListener("pointerup", releaseMouse);
+  keysEl.addEventListener("pointercancel", releaseMouse);
+
+  // computer-keyboard playing (A,W,S,E,D ... home row)
+  var KEYMAP = { a:0, w:1, s:2, e:3, d:4, f:5, t:6, g:7, y:8, h:9, u:10, j:11, k:12 };
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var m = KEYMAP[e.key.toLowerCase()];
+    if (m === undefined) return;
+    var note = BASE + m;
+    var el = keysEl.querySelector('[data-note="' + note + '"]');
+    if (el) mkNoteOn(note, el);
+  });
+  window.addEventListener("keyup", function (e) {
+    var m = KEYMAP[e.key.toLowerCase()];
+    if (m === undefined) return;
+    mkNoteOff(BASE + m);
+  });
+
+  // ---- init ----
+  function start() {
+    PARAMS.forEach(function (p) { pushParam(p); });
+    layoutAll();
+    requestAnimationFrame(draw);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

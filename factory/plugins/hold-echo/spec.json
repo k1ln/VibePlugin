@@ -1,0 +1,18 @@
+{
+  "name": "Hold Echo",
+  "isInstrument": false,
+  "explanation": "A studio digital delay with modulation and infinite hold. A clean delay line feeds linear-interpolated repeats whose read tap is gently swept by a quadrature LFO for chorus / pitch-wobble echoes; a tilt tone filter darkens or brightens the feedback path, and a Hold control lifts feedback toward unity while fading the input out so the captured buffer loops and freezes without runaway. A soft limiter keeps the loop bounded. Controls: Time, Feedback, Modulation, Tone, Hold and dry/wet Mix.",
+  "assembly": "factory/plugins/hold-echo/assembly.ts",
+  "out": "factory/plugins/hold-echo/x.vstai",
+  "publishedAt": 1751000121000,
+  "theme": { "accent": "#3de0c4", "accent2": "#7a86ff" },
+  "guiFile": "factory/plugins/hold-echo/gui.html",
+  "params": [
+    { "name": "Time",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Feedback",   "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Modulation", "index": 2, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Tone",       "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Hold",       "index": 4, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Mix",        "index": 5, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

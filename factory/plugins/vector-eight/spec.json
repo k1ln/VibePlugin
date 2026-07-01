@@ -1,0 +1,18 @@
+{
+  "name": "Vector Eight",
+  "isInstrument": true,
+  "explanation": "A vector-synthesis polysynth in the Sequential Prophet VS lineage. Four oscillators (sine, saw, square and a hollow-digital tone) sit at the corners of a vector square and are blended by an X/Y position. The signature SCAN orbits that position with an LFO so the timbre is in constant motion even on a single held chord. 8-voice poly through a resonant two-pole low-pass. Controls: Cutoff, Resonance, Vector X, Vector Y, Scan (orbit speed and depth) and Level.",
+  "assembly": "factory/plugins/vector-eight/assembly.ts",
+  "out": "factory/plugins/vector-eight/x.vstai",
+  "guiFile": "factory/plugins/vector-eight/gui.html",
+  "publishedAt": 1751303600000,
+  "theme": { "accent": "#6ce0a0", "accent2": "#ffd24a" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Vector X",   "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Vector Y",   "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Scan",       "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

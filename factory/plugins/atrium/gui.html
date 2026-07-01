@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atrium</title>
+<style>
+  :root {
+    --accent:  #9ad6e0;
+    --accent2: #c0e8c0;
+    --ink:     #1d3a40;
+    --ink-soft:#5b7e84;
+    --panel:   #eef7f6;
+    --panel-2: #e2f1ef;
+    --line:    rgba(40, 90, 96, 0.14);
+    --glow:    rgba(154, 214, 224, 0.55);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #ffffff 0%, var(--panel) 45%, var(--panel-2) 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 18px;
+    overflow-x: hidden;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 680px;
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.55));
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow:
+      0 24px 60px -24px rgba(34, 86, 92, 0.45),
+      0 2px 0 rgba(255,255,255,0.9) inset,
+      0 -1px 0 var(--line) inset;
+    padding: 20px 22px 24px;
+    backdrop-filter: blur(6px);
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(150deg, var(--accent), var(--accent2));
+    box-shadow: 0 6px 16px -6px var(--glow), 0 1px 0 rgba(255,255,255,0.8) inset;
+    position: relative;
+    flex: none;
+  }
+  .mark::after {
+    content: "";
+    position: absolute; inset: 7px;
+    border: 1.6px solid rgba(255,255,255,0.85);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+  }
+  h1 {
+    font-size: 19px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin: 0;
+    color: var(--ink);
+  }
+  .tagline {
+    font-size: 9.5px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+  .badge {
+    font-size: 9px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: rgba(255,255,255,0.6);
+  }
+
+  /* ---------- the room visualiser ---------- */
+  .room {
+    position: relative;
+    height: 188px;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background:
+      radial-gradient(130% 120% at 50% 120%, rgba(192,232,192,0.35), rgba(154,214,224,0.12) 55%, rgba(255,255,255,0.0) 100%),
+      linear-gradient(180deg, #f4fbfa, #e6f4f2);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset;
+  }
+  .room canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .room svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .roomLabel {
+    position: absolute;
+    left: 14px; bottom: 11px;
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    pointer-events: none;
+  }
+
+  /* ---------- controls ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 10px;
+  }
+  @media (max-width: 460px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .knob {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 6px 11px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(232,244,242,0.45));
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.85) inset;
+    cursor: ns-resize;
+    user-select: none;
+    transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+  }
+  .knob:hover { border-color: rgba(120,180,188,0.4); }
+  .knob.active {
+    box-shadow: 0 0 0 1px var(--glow), 0 10px 24px -12px var(--glow);
+    transform: translateY(-1px);
+  }
+
+  .dial { width: 76px; height: 76px; position: relative; }
+  .dial svg { width: 100%; height: 100%; overflow: visible; }
+
+  .pName {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .pVal {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .pVal small { font-size: 9px; color: var(--ink-soft); font-weight: 500; margin-left: 1px; }
+
+  .foot {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .foot .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); display: inline-block; margin-right: 6px;
+    box-shadow: 0 0 8px var(--glow); animation: pulse 2.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:.5; } 50% { opacity:1; } }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="mark"></div>
+        <div>
+          <h1>Atrium</h1>
+          <div class="tagline">Natural Ambience Reverb</div>
+        </div>
+      </div>
+      <div class="badge">Diffuse Room</div>
+    </header>
+
+    <div class="room" id="room">
+      <canvas id="cloud"></canvas>
+      <svg viewBox="0 0 600 188" preserveAspectRatio="none" id="outline">
+        <!-- luminous room outline, drawn in script so it can breathe with Size -->
+        <polyline id="roomPath" fill="none" stroke="rgba(70,140,148,0.45)" stroke-width="1.4"
+                  stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline>
+        <polyline id="roomGlow" fill="none" stroke="rgba(154,214,224,0.5)" stroke-width="3"
+                  stroke-linejoin="round" vector-effect="non-scaling-stroke" filter="url(#soft)"></polyline>
+        <defs>
+          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.4"/>
+          </filter>
+        </defs>
+      </svg>
+      <div class="roomLabel">Ambience Field</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="foot">
+      <span><span class="dot"></span>Natural diffuse room</span>
+      <span id="srLabel">48 kHz</span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // -------- parameter model (indices match assembly.ts) --------
+  var PARAMS = [
+    { name: "Mix",       index: 0, def: 0.35, unit: "%",  fmt: pct },
+    { name: "Size",      index: 1, def: 0.50, unit: "",   fmt: room },
+    { name: "Decay",     index: 2, def: 0.55, unit: "s",  fmt: secs },
+    { name: "Diffusion", index: 3, def: 0.70, unit: "%",  fmt: pct },
+    { name: "Air",       index: 4, def: 0.60, unit: "%",  fmt: pct },
+    { name: "Width",     index: 5, def: 0.80, unit: "%",  fmt: pct }
+  ];
+
+  function pct(v)  { return Math.round(v * 100) + "<small>%</small>"; }
+  function room(v) {
+    var labels = ["Booth", "Small Room", "Studio", "Chamber", "Large Room", "Hall"];
+    return labels[Math.min(labels.length - 1, Math.floor(v * labels.length))];
+  }
+  function secs(v) { return (0.4 + v * 7.6).toFixed(1) + "<small>s</small>"; }
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // -------- host bridge --------
+  function push(i) {
+    if (window.vstai && window.vstai.setParam) {
+      try { window.vstai.setParam(PARAMS[i].index, values[i]); } catch (e) {}
+    }
+  }
+  function pushAll() { for (var i = 0; i < PARAMS.length; i++) push(i); }
+
+  // ===================================================================
+  //  KNOBS
+  // ===================================================================
+  var grid = document.getElementById("grid");
+  var knobEls = [];
+
+  PARAMS.forEach(function (p, i) {
+    var wrap = document.createElement("div");
+    wrap.className = "knob";
+    wrap.innerHTML =
+      '<div class="dial">' +
+        '<svg viewBox="0 0 100 100">' +
+          '<circle cx="50" cy="50" r="40" fill="none" stroke="rgba(40,90,96,0.12)" stroke-width="7"/>' +
+          '<circle class="arc" cx="50" cy="50" r="40" fill="none" stroke-width="7" stroke-linecap="round" ' +
+                  'transform="rotate(135 50 50)"/>' +
+          '<circle class="body" cx="50" cy="50" r="31" />' +
+          '<line class="ptr" x1="50" y1="50" x2="50" y2="24" stroke-width="3.4" stroke-linecap="round"/>' +
+        '</svg>' +
+      '</div>' +
+      '<div class="pName">' + p.name + '</div>' +
+      '<div class="pVal"></div>';
+    grid.appendChild(wrap);
+
+    var arc  = wrap.querySelector(".arc");
+    var body = wrap.querySelector(".body");
+    var ptr  = wrap.querySelector(".ptr");
+    var valEl = wrap.querySelector(".pVal");
+
+    body.setAttribute("fill", "url(#cap" + i + ")");
+    // build a per-knob radial gradient
+    var svg = wrap.querySelector("svg");
+    var defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    defs.innerHTML =
+      '<radialGradient id="cap' + i + '" cx="42%" cy="36%" r="72%">' +
+        '<stop offset="0%" stop-color="#ffffff"/>' +
+        '<stop offset="55%" stop-color="#eef7f6"/>' +
+        '<stop offset="100%" stop-color="#d4e9e6"/>' +
+      '</radialGradient>';
+    svg.insertBefore(defs, svg.firstChild);
+    arc.setAttribute("stroke", "url(#cap" + i + ")");
+    arc.setAttribute("stroke", i % 2 ? "#bfe6c0" : "#9ad6e0");
+    ptr.setAttribute("stroke", "#3f7a82");
+
+    var CIRC = 2 * Math.PI * 40;
+    var SWEEP = 0.75; // 270deg of the circle
+
+    function render() {
+      var v = values[i];
+      // arc fill: a 270deg sweep starting at the 135deg transform origin
+      arc.style.strokeDasharray = (CIRC * SWEEP * v) + " " + (CIRC * 2);
+      // pointer rotation: -135deg .. +135deg
+      var ang = -135 + v * 270;
+      ptr.setAttribute("transform", "rotate(" + ang + " 50 50)");
+      valEl.innerHTML = p.fmt(v);
+    }
+
+    knobEls.push({ wrap: wrap, render: render, p: p, i: i });
+
+    // ----- drag interaction -----
+    var dragging = false, lastY = 0;
+
+    function down(e) {
+      dragging = true;
+      wrap.classList.add("active");
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      e.preventDefault();
+      window.addEventListener("mousemove", move);
+      window.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("mouseup", up);
+      window.addEventListener("touchend", up);
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var fine = e.shiftKey ? 0.25 : 1;
+      values[i] = clamp01(values[i] + dy * 0.005 * fine);
+      render();
+      push(i);
+      e.preventDefault();
+    }
+    function up() {
+      dragging = false;
+      wrap.classList.remove("active");
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchend", up);
+    }
+
+    wrap.addEventListener("mousedown", down);
+    wrap.addEventListener("touchstart", down, { passive: false });
+    wrap.addEventListener("dblclick", function () {
+      values[i] = p.def; render(); push(i);
+    });
+    wrap.addEventListener("wheel", function (e) {
+      values[i] = clamp01(values[i] - Math.sign(e.deltaY) * (e.shiftKey ? 0.005 : 0.02));
+      render(); push(i);
+      e.preventDefault();
+    }, { passive: false });
+
+    render();
+  });
+
+  function clamp01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+
+  // ===================================================================
+  //  ROOM OUTLINE — breathes with Size
+  // ===================================================================
+  var roomPath = document.getElementById("roomPath");
+  var roomGlow = document.getElementById("roomGlow");
+
+  function drawRoom() {
+    var size = values[1];          // 0..1
+    var cx = 300, cyBase = 96;
+    var halfW = 120 + size * 150;  // width grows with size
+    var halfH = 46 + size * 30;
+    var topY = cyBase - halfH, botY = cyBase + halfH;
+    // a soft hexagonal room cross-section
+    var pts = [
+      [cx - halfW, botY],
+      [cx - halfW * 0.78, topY + 6],
+      [cx, topY],
+      [cx + halfW * 0.78, topY + 6],
+      [cx + halfW, botY],
+      [cx, botY + 10],
+      [cx - halfW, botY]
+    ];
+    var s = pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ");
+    roomPath.setAttribute("points", s);
+    roomGlow.setAttribute("points", s);
+  }
+
+  // ===================================================================
+  //  DIFFUSING PARTICLE CLOUD
+  // ===================================================================
+  var canvas = document.getElementById("cloud");
+  var ctx = canvas.getContext("2d");
+  var roomBox = document.getElementById("room");
+  var W = 0, H = 0, DPR = 1;
+
+  function resize() {
+    DPR = Math.min(2, window.devicePixelRatio || 1);
+    W = roomBox.clientWidth; H = roomBox.clientHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener("resize", function () { resize(); drawRoom(); });
+
+  var N = 120;
+  var parts = [];
+  function seed() {
+    parts = [];
+    for (var k = 0; k < N; k++) {
+      parts.push({
+        x: Math.random(),
+        y: Math.random(),
+        a: Math.random() * Math.PI * 2,
+        sp: 0.2 + Math.random() * 0.8,
+        r: 0.6 + Math.random() * 1.8,
+        life: Math.random()
+      });
+    }
+  }
+  seed();
+
+  var t0 = performance.now();
+
+  function frame(now) {
+    if (document.hidden) { requestAnimationFrame(frame); return; }
+    var dt = Math.min(40, now - (frame._last || now)); frame._last = now;
+
+    var mix   = values[0];
+    var size  = values[1];
+    var decay = values[2];
+    var diff  = values[3];
+    var air   = values[4];
+    var width = values[5];
+
+    ctx.clearRect(0, 0, W, H);
+
+    // luminous room interior tint, brighter with Air
+    var cx = W * 0.5, cy = H * 0.62;
+    var g = ctx.createRadialGradient(cx, cy, 8, cx, cy, W * (0.32 + size * 0.3));
+    g.addColorStop(0, "rgba(192,232,192," + (0.10 + air * 0.16).toFixed(3) + ")");
+    g.addColorStop(1, "rgba(154,214,224,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // particle field — density scales with Diffusion, energy with Mix+Decay
+    var active = Math.round(N * (0.3 + diff * 0.7));
+    var spread = 0.18 + size * 0.5;           // how far the cloud fills the room
+    var speed = (0.0006 + decay * 0.0009) * dt;
+    var energy = 0.25 + mix * 0.75;
+
+    ctx.globalCompositeOperation = "lighter";
+    for (var k = 0; k < active; k++) {
+      var pt = parts[k];
+      // drift outward then recycle — an expanding diffuse cloud
+      pt.life += speed;
+      if (pt.life > 1) { pt.life -= 1; pt.a = Math.random() * Math.PI * 2; }
+      var rad = pt.life * spread;
+      // decorrelate horizontal motion by width for a wide field
+      var px = cx + Math.cos(pt.a) * rad * W * (0.9 + width * 0.5);
+      var py = cy + Math.sin(pt.a) * rad * H * 0.85 - pt.life * 6;
+      var fade = Math.sin(pt.life * Math.PI); // fade in/out over life
+      var alpha = fade * energy * (0.18 + air * 0.22);
+      var rr = pt.r * (1 + air * 0.6);
+      var grd = ctx.createRadialGradient(px, py, 0, px, py, rr * 4);
+      var col = (k % 3 === 0) ? "192,232,192" : "154,214,224";
+      grd.addColorStop(0, "rgba(" + col + "," + alpha.toFixed(3) + ")");
+      grd.addColorStop(1, "rgba(" + col + ",0)");
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(px, py, rr * 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+
+    requestAnimationFrame(frame);
+  }
+
+  // ===================================================================
+  //  BOOT
+  // ===================================================================
+  function start() {
+    resize();
+    drawRoom();
+    pushAll();
+    // re-render room outline whenever Size knob changes: hook into knob render
+    var sizeKnob = knobEls[1];
+    var origRender = sizeKnob.render;
+    sizeKnob.render = function () { origRender(); drawRoom(); };
+    requestAnimationFrame(frame);
+
+    if (window.vstai && window.vstai.getParam) {
+      // adopt any host-side values
+      for (var i = 0; i < PARAMS.length; i++) {
+        try {
+          var v = window.vstai.getParam(PARAMS[i].index);
+          if (typeof v === "number" && isFinite(v)) {
+            values[i] = clamp01(v);
+            knobEls[i].render();
+          }
+        } catch (e) {}
+      }
+      drawRoom();
+    }
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

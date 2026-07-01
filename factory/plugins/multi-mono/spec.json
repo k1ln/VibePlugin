@@ -1,0 +1,18 @@
+{
+  "name": "Multi Mono",
+  "isInstrument": true,
+  "explanation": "An expressive single-VCO monosynth in the Multimoog lineage. One oscillator (sawtooth plus variable pulse) and a square sub run through a Moog-style resonant low-pass with its own envelope; the signature OSC MOD applies an LFO to both pitch (vibrato) and pulse-width for the lip/aftertouch-style growl and expression. Last-note mono with glide. Controls: Cutoff, Resonance, Env Amount, Osc Mod, Sub and Level.",
+  "assembly": "factory/plugins/multi-mono/assembly.ts",
+  "out": "factory/plugins/multi-mono/x.vstai",
+  "guiFile": "factory/plugins/multi-mono/gui.html",
+  "publishedAt": 1751300000000,
+  "theme": { "accent": "#f08a3c", "accent2": "#5ad0e0" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Osc Mod",    "index": 3, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Sub",        "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

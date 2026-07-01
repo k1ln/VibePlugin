@@ -312,6 +312,7 @@ footer .sp{margin-left:auto;font-style:italic;color:#9a8255;max-width:430px;text
   var W=300,H=96, fillEl=document.getElementById('envfill'), lineEl=document.getElementById('envline');
   var dA=document.getElementById('dA'),dD=document.getElementById('dD'),dS=document.getElementById('dS');
   function drawEnv(){
+    if(!lineEl||!fillEl) return;
     var a=live["Attack"], d=live["Decay"], s=live["Sustain"], r=live["Release"];
     var x0=4, top=8, bot=H-8;
     var aw=8+a*90, dw=8+d*80, sw=46, rw=8+r*80;

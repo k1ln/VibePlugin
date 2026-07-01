@@ -277,6 +277,38 @@
     render();
   });
 
+  // ---- PATCH BAY: make the banana jacks real vertical-drag controls ----
+  // Each jack patches a stage and IS a control: drag = set its parameter,
+  // dbl-click = default, wheel = fine. Mirrors the knobs so the patch bay
+  // actually does something.
+  (function(){
+    var jackEls = Array.prototype.slice.call(document.querySelectorAll(".jack"));
+    var JMAP = [3, 0, 1, 2, 4]; // Primary Osc->Tone, Modulator->Timbre, Folder In->Fold, LPG->Gate Decay, Voice Out->Level
+    function applyParam(idx, v){
+      var p = PARAMS[idx]; v = Math.max(p.min, Math.min(p.max, v));
+      values[idx] = v; if (p._render) p._render(); send(p.index, v);
+      if (typeof updateVis === "function") updateVis(); renderJacks();
+    }
+    function renderJacks(){
+      jackEls.forEach(function(j, k){ var pi = JMAP[k]; if (pi == null) return; var nv = values[pi];
+        var inner = j.querySelector("i"); if (inner) inner.style.opacity = (0.25 + 0.75*nv).toFixed(2);
+        j.style.boxShadow = "0 0 " + (2 + nv*11).toFixed(1) + "px var(--jc)";
+      });
+    }
+    jackEls.forEach(function(j, k){
+      var pi = JMAP[k]; if (pi == null) return;
+      j.style.cursor = "ns-resize"; j.title = "drag: " + PARAMS[pi].name;
+      var dragging=false, startY=0, startV=0;
+      j.addEventListener("mousedown", function(e){ dragging=true; startY=e.clientY; startV=values[pi]; document.body.style.cursor="grabbing"; e.preventDefault(); });
+      window.addEventListener("mousemove", function(e){ if(!dragging)return; applyParam(pi, startV + (startY-e.clientY)/180); });
+      window.addEventListener("mouseup", function(){ if(dragging){ dragging=false; document.body.style.cursor=""; } });
+      j.addEventListener("click", function(){ /* click nudges up a touch for discoverability */ applyParam(pi, values[pi] + 0.08 > 1 ? PARAMS[pi].def : values[pi] + 0.08); });
+      j.addEventListener("dblclick", function(){ applyParam(pi, PARAMS[pi].def); });
+      j.addEventListener("wheel", function(e){ e.preventDefault(); applyParam(pi, values[pi] - Math.sign(e.deltaY)*0.02); }, {passive:false});
+    });
+    renderJacks();
+  })();
+
   // ---- live visualisation: wavefolder curve + patch cables + ripple ----
   var foldPath = document.getElementById("foldPath");
   var ripple   = document.getElementById("ripple");

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip Stage</title>
+<style>
+  :root{
+    --accent:#ffd86a;
+    --accent2:#ff9a5a;
+    --cream:#f4ead2;
+    --ink:#2b2317;
+    --panel:#1b1610;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+  html,body{height:100%}
+  body{
+    font-family:'Segoe UI',-apple-system,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #3a2f1d 0%, #221b12 45%, #14100b 100%);
+    color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+
+  .module{
+    position:relative;
+    width:560px;
+    border-radius:20px;
+    padding:22px 24px 24px;
+    background:
+      linear-gradient(180deg,#efe4c8 0%, #e7d8b4 100%);
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,.7),
+      0 2px 0 rgba(255,255,255,.55) inset,
+      0 -2px 0 rgba(120,90,40,.35) inset;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  /* warm brushed sheen */
+  .module::before{
+    content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, rgba(150,120,60,.04) 2px 4px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  /* corner screws */
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff8e6, #9a824c 70%, #5c4a22);
+    box-shadow:0 1px 2px rgba(0,0,0,.4), 0 0 0 2px rgba(255,255,255,.25) inset}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:50%;
+    background:linear-gradient(45deg,transparent 44%, rgba(70,50,20,.6) 46% 54%, transparent 56%)}
+  .screw.tl{top:10px;left:10px}.screw.tr{top:10px;right:10px}
+  .screw.bl{bottom:10px;left:10px}.screw.br{bottom:10px;right:10px}
+
+  header{display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 6px 14px;border-bottom:1px solid rgba(120,90,40,.3);margin-bottom:16px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand .name{font-size:21px;font-weight:800;letter-spacing:2px;
+    color:#3a2f1d;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .brand .sub{font-size:9.5px;letter-spacing:3px;font-weight:600;color:#8a6f3c;text-transform:uppercase}
+  .pilot{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:2px;color:#7a6133;font-weight:600}
+  .lamp{width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff1c2, var(--accent) 55%, #b8801f);
+    box-shadow:0 0 10px 1px rgba(255,180,60,.8);animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 7px 0 rgba(255,180,60,.55);opacity:.85}
+    50%{box-shadow:0 0 16px 3px rgba(255,180,60,.95);opacity:1}}
+
+  /* ---- transfer curve display ---- */
+  .scope{
+    position:relative;border-radius:12px;overflow:hidden;
+    background:linear-gradient(180deg,#171109,#0c0805);
+    box-shadow:0 2px 8px rgba(0,0,0,.5) inset, 0 1px 0 rgba(255,255,255,.4);
+    padding:0;margin-bottom:18px;height:170px;
+  }
+  .scope svg{display:block;width:100%;height:100%}
+  .scanline{animation:scan 4.5s linear infinite}
+  @keyframes scan{0%{transform:translateY(-2px)}100%{transform:translateY(172px)}}
+  .scope .badge{position:absolute;top:9px;left:11px;font-size:9px;letter-spacing:2px;
+    color:#c8a85a;font-weight:700;text-transform:uppercase;opacity:.8}
+  .scope .readout{position:absolute;top:9px;right:11px;font-size:10px;letter-spacing:1px;
+    color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 8px rgba(255,200,90,.6)}
+
+  /* ---- controls row ---- */
+  .controls{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .knob-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;width:84px}
+  .knob{position:relative;width:66px;height:66px;cursor:ns-resize;touch-action:none}
+  .knob svg{display:block;overflow:visible}
+  .knob .cap{filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+  .klabel{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#6e5830;text-transform:uppercase}
+  .kval{font-size:10.5px;font-weight:700;color:#3a2f1d;font-variant-numeric:tabular-nums;
+    padding:2px 7px;border-radius:6px;background:rgba(120,90,40,.12);min-width:42px;text-align:center}
+
+  /* ---- curve toggle ---- */
+  .toggle-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;width:96px}
+  .toggle{position:relative;width:90px;height:30px;border-radius:16px;cursor:pointer;
+    background:linear-gradient(180deg,#221a10,#100c07);
+    box-shadow:0 2px 5px rgba(0,0,0,.5) inset,0 1px 0 rgba(255,255,255,.35);
+    display:flex;align-items:center;font-size:9.5px;font-weight:800;letter-spacing:1px}
+  .toggle span{flex:1;text-align:center;z-index:2;transition:color .25s;color:#7a6133}
+  .toggle span.on{color:#1b1306}
+  .toggle .slider{position:absolute;top:3px;left:3px;width:42px;height:24px;border-radius:13px;
+    background:linear-gradient(180deg,var(--accent),var(--accent2));
+    box-shadow:0 1px 3px rgba(0,0,0,.5),0 0 12px rgba(255,180,70,.5);
+    transition:left .28s cubic-bezier(.5,1.6,.4,1)}
+  .toggle.tube .slider{left:45px}
+
+  /* ---- output meter ---- */
+  .meter-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;width:50px}
+  .meter{position:relative;width:20px;height:66px;border-radius:5px;overflow:hidden;
+    background:linear-gradient(180deg,#171109,#0a0704);
+    box-shadow:0 2px 5px rgba(0,0,0,.5) inset,0 1px 0 rgba(255,255,255,.35)}
+  .meter .fill{position:absolute;left:0;right:0;bottom:0;height:0%;
+    background:linear-gradient(0deg,#5fd07a 0%, var(--accent) 62%, var(--accent2) 88%, #ff5a4a 100%);
+    transition:height .07s linear}
+  .meter .ticks{position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent 0 10px,rgba(0,0,0,.35) 10px 11px)}
+</style>
+</head>
+<body>
+  <div class="module">
+    <i class="screw tl"></i><i class="screw tr"></i><i class="screw bl"></i><i class="screw br"></i>
+
+    <header>
+      <div class="brand">
+        <div class="name">CLIP&nbsp;STAGE</div>
+        <div class="sub">transparent saturator</div>
+      </div>
+      <div class="pilot"><span id="modeTxt">DIODE</span><span class="lamp"></span></div>
+    </header>
+
+    <div class="scope">
+      <span class="badge">transfer curve</span>
+      <span class="readout" id="readout">+0.0 dB</span>
+      <svg viewBox="0 0 520 170" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffd86a" stop-opacity="0.28"/>
+            <stop offset="1" stop-color="#ff9a5a" stop-opacity="0.02"/>
+          </linearGradient>
+          <linearGradient id="curveLine" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#ff9a5a"/>
+            <stop offset="0.5" stop-color="#ffd86a"/>
+            <stop offset="1" stop-color="#ff9a5a"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- grid -->
+        <g stroke="rgba(200,168,90,0.13)" stroke-width="1">
+          <line x1="0" y1="42.5" x2="520" y2="42.5"/>
+          <line x1="0" y1="85" x2="520" y2="85"/>
+          <line x1="0" y1="127.5" x2="520" y2="127.5"/>
+          <line x1="130" y1="0" x2="130" y2="170"/>
+          <line x1="260" y1="0" x2="260" y2="170"/>
+          <line x1="390" y1="0" x2="390" y2="170"/>
+        </g>
+        <!-- unity reference (diagonal) -->
+        <line x1="0" y1="170" x2="520" y2="0" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="4 5"/>
+        <path id="curveArea" fill="url(#curveFill)"/>
+        <path id="curvePath" fill="none" stroke="url(#curveLine)" stroke-width="2.6"
+              stroke-linecap="round" filter="url(#glow)"/>
+        <circle id="dot" r="4" fill="#fff3cf" stroke="#ff9a5a" stroke-width="1.5"
+                style="filter:drop-shadow(0 0 6px rgba(255,200,90,.9))"/>
+        <line class="scanline" x1="0" y1="0" x2="520" y2="0"
+              stroke="rgba(255,216,106,0.12)" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <div class="controls">
+      <div class="knob-wrap" data-knob="0">
+        <div class="knob"></div>
+        <div class="klabel">Drive</div>
+        <div class="kval">—</div>
+      </div>
+
+      <div class="toggle-wrap">
+        <div class="toggle" id="curveToggle">
+          <span class="on">DIODE</span><span>TUBE</span>
+          <div class="slider"></div>
+        </div>
+        <div class="klabel">Curve</div>
+      </div>
+
+      <div class="knob-wrap" data-knob="2">
+        <div class="knob"></div>
+        <div class="klabel">Tone</div>
+        <div class="kval">—</div>
+      </div>
+
+      <div class="knob-wrap" data-knob="3">
+        <div class="knob"></div>
+        <div class="klabel">Trim</div>
+        <div class="kval">—</div>
+      </div>
+
+      <div class="knob-wrap" data-knob="4">
+        <div class="knob"></div>
+        <div class="klabel">Mix</div>
+        <div class="kval">—</div>
+      </div>
+
+      <div class="meter-wrap">
+        <div class="meter"><div class="fill" id="meterFill"></div><div class="ticks"></div></div>
+        <div class="klabel">Out</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- param model (index, default match spec.json) ----
+  var PARAMS = {
+    0:{name:"Drive", def:0.40},
+    1:{name:"Curve", def:0,    step:1, max:1},
+    2:{name:"Tone",  def:0.60},
+    3:{name:"Trim",  def:0.65},
+    4:{name:"Mix",   def:1.00}
+  };
+  var state = {0:0.40, 1:0, 2:0.60, 3:0.65, 4:1.00};
+
+  function send(i,v){
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+
+  // ---- value formatting per param ----
+  function fmt(i){
+    var v = state[i];
+    if(i===0) return Math.round(v*100)+"%";            // drive
+    if(i===2) return Math.round(v*100)+"%";            // tone
+    if(i===3){ var db = (v*1.5); db = db<=0?-60:20*Math.log10(db);
+               return (db>=0?"+":"")+db.toFixed(1)+" dB"; }
+    if(i===4) return Math.round(v*100)+"%";            // mix
+    return v.toFixed(2);
+  }
+
+  // ====================================================================
+  //  KNOBS — custom SVG, draggable (ns), double-click reset
+  // ====================================================================
+  var ARC_A0 = -135, ARC_A1 = 135; // degrees sweep
+  function knobSVG(){
+    var ns="http://www.w3.org/2000/svg";
+    var svg=document.createElementNS(ns,"svg");
+    svg.setAttribute("viewBox","0 0 66 66");svg.setAttribute("width","66");svg.setAttribute("height","66");
+    svg.innerHTML =
+      '<defs>'+
+        '<radialGradient id="kc" cx="38%" cy="30%" r="75%">'+
+          '<stop offset="0" stop-color="#fff7e2"/><stop offset="0.55" stop-color="#e7d3a4"/>'+
+          '<stop offset="1" stop-color="#b89a5c"/></radialGradient>'+
+      '</defs>'+
+      '<circle cx="33" cy="33" r="30" fill="none" stroke="rgba(80,60,25,.25)" stroke-width="4"/>'+
+      '<circle class="track" cx="33" cy="33" r="30" fill="none" stroke="rgba(80,60,25,.18)" stroke-width="4"'+
+        ' stroke-linecap="round"/>'+
+      '<circle class="arc" cx="33" cy="33" r="30" fill="none" stroke="#ffce5e" stroke-width="4"'+
+        ' stroke-linecap="round" style="filter:drop-shadow(0 0 4px rgba(255,190,70,.7))"/>'+
+      '<circle class="cap" cx="33" cy="33" r="22" fill="url(#kc)" stroke="#9a824c" stroke-width="1"/>'+
+      '<line class="ptr" x1="33" y1="33" x2="33" y2="16" stroke="#5c4a22" stroke-width="3" stroke-linecap="round"/>';
+    return svg;
+  }
+  var R=30, C=2*Math.PI*R, ARC_LEN=(270/360)*C;
+
+  function renderKnob(el, frac){
+    var arc=el.querySelector(".arc"), track=el.querySelector(".track"), ptr=el.querySelector(".ptr");
+    track.setAttribute("stroke-dasharray", ARC_LEN+" "+C);
+    track.setAttribute("transform","rotate(135 33 33)");
+    arc.setAttribute("stroke-dasharray", (ARC_LEN*frac)+" "+C);
+    arc.setAttribute("transform","rotate(135 33 33)");
+    var ang = ARC_A0 + frac*(ARC_A1-ARC_A0);
+    ptr.setAttribute("transform","rotate("+ang+" 33 33)");
+  }
+
+  document.querySelectorAll(".knob-wrap").forEach(function(wrap){
+    var idx = parseInt(wrap.getAttribute("data-knob"),10);
+    var holder = wrap.querySelector(".knob");
+    var valEl = wrap.querySelector(".kval");
+    var svg = knobSVG();
+    holder.appendChild(svg);
+
+    function refresh(){
+      renderKnob(svg, state[idx]);
+      valEl.textContent = fmt(idx);
+    }
+    function set(v, push){
+      v = Math.max(0, Math.min(1, v));
+      state[idx]=v;
+      refresh();
+      if(push) send(idx, v);
+      scheduleScope();
+    }
+
+    // drag
+    var dragging=false, lastY=0;
+    holder.addEventListener("pointerdown", function(e){
+      dragging=true; lastY=e.clientY; holder.setPointerCapture(e.pointerId);
+      svg.querySelector(".cap").style.filter="drop-shadow(0 0 8px rgba(255,200,90,.6))";
+      e.preventDefault();
+    });
+    holder.addEventListener("pointermove", function(e){
+      if(!dragging) return;
+      var dy = lastY - e.clientY; lastY=e.clientY;
+      var fine = e.shiftKey?0.25:1;
+      set(state[idx] + dy*0.005*fine, true);
+    });
+    function end(){ dragging=false; svg.querySelector(".cap").style.filter=""; }
+    holder.addEventListener("pointerup", end);
+    holder.addEventListener("pointercancel", end);
+    // double-click reset
+    holder.addEventListener("dblclick", function(){ set(PARAMS[idx].def, true); });
+
+    wrap._set=set; wrap._refresh=refresh;
+    refresh();
+  });
+
+  // ====================================================================
+  //  CURVE TOGGLE (stepped 0/1)
+  // ====================================================================
+  var toggle = document.getElementById("curveToggle");
+  var spans = toggle.querySelectorAll("span");
+  var modeTxt = document.getElementById("modeTxt");
+  function applyCurve(v, push){
+    state[1] = v?1:0;
+    toggle.classList.toggle("tube", state[1]===1);
+    spans[0].classList.toggle("on", state[1]===0);
+    spans[1].classList.toggle("on", state[1]===1);
+    modeTxt.textContent = state[1]===1 ? "TUBE" : "DIODE";
+    if(push) send(1, state[1]);
+    scheduleScope();
+  }
+  toggle.addEventListener("click", function(){ applyCurve(state[1]===1?0:1, true); });
+  toggle.addEventListener("dblclick", function(e){ e.preventDefault(); applyCurve(PARAMS[1].def, true); });
+
+  // ====================================================================
+  //  TRANSFER CURVE — mirrors the DSP math so the graph is truthful
+  // ====================================================================
+  var curvePath = document.getElementById("curvePath");
+  var curveArea = document.getElementById("curveArea");
+  var dot = document.getElementById("dot");
+  var readout = document.getElementById("readout");
+  var meterFill = document.getElementById("meterFill");
+  var W=520, H=170;
+
+  function tanh(x){ if(x>20)return 1; if(x<-20)return -1;
+    var e=Math.exp(2*x); return (e-1)/(e+1); }
+
+  function shape(x, drive, comp, isTube){
+    var pre = x*drive, y;
+    if(isTube){ var bias=0.18; y = tanh(pre+bias) - tanh(bias); }
+    else { y = tanh(pre); }
+    return y*comp;
+  }
+
+  var scopeQueued=false;
+  function scheduleScope(){ if(scopeQueued)return; scopeQueued=true; requestAnimationFrame(drawScope); }
+
+  function drawScope(){
+    scopeQueued=false;
+    var driveN=state[0], isTube=state[1]===1, trim=state[3]*1.5, mix=state[4];
+    var drive=1+driveN*11, comp=1/Math.sqrt(drive);
+
+    var d="", a="M0 "+H, N=90, lastX=0,lastY=0;
+    for(var k=0;k<=N;k++){
+      var t=k/N;                       // 0..1
+      var xin=(t*2-1);                 // -1..1 input
+      var wet=shape(xin, drive, comp, isTube)*trim;
+      var yout=xin*(1-mix)+wet*mix;
+      var px=t*W;
+      var py=H/2 - yout*(H/2-6);
+      py=Math.max(2,Math.min(H-2,py));
+      d += (k===0?"M":"L")+px.toFixed(1)+" "+py.toFixed(1);
+      a += "L"+px.toFixed(1)+" "+py.toFixed(1);
+      lastX=px; lastY=py;
+    }
+    a += "L"+W+" "+H+"Z";
+    curvePath.setAttribute("d", d);
+    curveArea.setAttribute("d", a);
+
+    // moving dot at a representative ~+drive operating point
+    var probe=0.6;
+    var wetP=shape(probe, drive, comp, isTube)*trim;
+    var outP=probe*(1-mix)+wetP*mix;
+    dot.setAttribute("cx", (((probe+1)/2)*W).toFixed(1));
+    dot.setAttribute("cy", (H/2 - outP*(H/2-6)).toFixed(1));
+
+    // gain readout = output level at probe vs input (dB)
+    var g = Math.abs(outP)/probe;
+    var db = g<=0.0001?-60:20*Math.log10(g);
+    readout.textContent = (db>=0?"+":"")+db.toFixed(1)+" dB";
+
+    // meter target = peak of |out| over sweep
+    var peak=Math.abs(lastY); // placeholder, compute true peak below
+    peak=0;
+    for(var s=0;s<=40;s++){
+      var xx=(s/40)*2-1, ww=shape(xx,drive,comp,isTube)*trim;
+      var oo=Math.abs(xx*(1-mix)+ww*mix);
+      if(oo>peak)peak=oo;
+    }
+    meterTarget=Math.min(1,peak);
+  }
+
+  // animated meter eases toward target
+  var meterTarget=0, meterVal=0;
+  (function meterLoop(){
+    meterVal += (meterTarget - meterVal)*0.12;
+    meterFill.style.height=(meterVal*100).toFixed(1)+"%";
+    requestAnimationFrame(meterLoop);
+  })();
+
+  // ====================================================================
+  //  READY / INIT
+  // ====================================================================
+  function ready(){
+    // init host to defaults
+    for(var i in PARAMS){ send(parseInt(i,10), state[i]); }
+    document.querySelectorAll(".knob-wrap").forEach(function(w){ w._refresh(); });
+    applyCurve(state[1], false);
+    drawScope();
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

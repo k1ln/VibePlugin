@@ -133,7 +133,7 @@ export function process(n: i32): void {
   // brighter Tone -> less damping; modulation depth in samples
   const dcoef: f32 = clampf(0.05 + (1.0 - tone) * 0.9, 0.0, 0.98);
   const modDepth: f32 = modAmt * 22.0 * srRatio;
-  const outScale: f32 = 0.30;
+  const outScale: f32 = 0.25;
 
   for (let f = 0; f < n; f++) {
     const l: f32 = inBuf[f];
@@ -176,7 +176,10 @@ export function process(n: i32): void {
     const wetL: f32 = (outs[0] - outs[2] + outs[4] - outs[6]) * outScale;
     const wetR: f32 = (outs[1] - outs[3] + outs[5] - outs[7]) * outScale;
 
-    outBuf[f] = l * (1.0 - mix) + wetL * mix;
-    outBuf[MAX_FRAMES + f] = r * (1.0 - mix) + wetR * mix;
+    let oL: f32 = l * (1.0 - mix) + wetL * mix;
+    let oR: f32 = r * (1.0 - mix) + wetR * mix;
+    if (oL > 1.0) oL = 1.0; else if (oL < -1.0) oL = -1.0;
+    if (oR > 1.0) oR = 1.0; else if (oR < -1.0) oR = -1.0;
+    outBuf[f] = oL; outBuf[MAX_FRAMES + f] = oR;
   }
 }

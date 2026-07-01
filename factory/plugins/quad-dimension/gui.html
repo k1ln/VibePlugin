@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quad Dimension</title>
+<style>
+  :root {
+    --accent: #5ad0ff;
+    --accent2: #c8a0ff;
+    --steel-1: #1a2740;
+    --steel-2: #0d1626;
+    --chrome-1: #e9f1fb;
+    --chrome-2: #8fa6c4;
+    --chrome-3: #3d536f;
+    --ink: #cfe2f6;
+    --ink-dim: #6f86a6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #16243c 0%, #0a1120 55%, #060a14 100%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 22px 14px 34px;
+    overflow-x: hidden;
+  }
+
+  /* ---------- the pedal chassis ---------- */
+  .pedal {
+    position: relative;
+    width: min(440px, 96vw);
+    border-radius: 22px;
+    padding: 20px 22px 24px;
+    background:
+      linear-gradient(180deg, #20355a 0%, #16284a 30%, #102040 70%, #0b1730 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.10) inset,
+      0 -2px 14px rgba(0,0,0,0.55) inset,
+      0 26px 60px rgba(0,0,0,0.65),
+      0 4px 12px rgba(0,0,0,0.5);
+    border: 1px solid rgba(120,160,220,0.18);
+  }
+
+  /* metal corner bolts */
+  .bolt {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, var(--chrome-1) 0%, var(--chrome-2) 40%, var(--chrome-3) 75%, #1b2538 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .bolt::after {
+    content: "";
+    position: absolute; inset: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(0,0,0,0.25));
+  }
+  .bolt.tl { top: 10px; left: 10px; }
+  .bolt.tr { top: 10px; right: 10px; }
+  .bolt.bl { bottom: 10px; left: 10px; }
+  .bolt.br { bottom: 10px; right: 10px; }
+
+  /* ---------- header ---------- */
+  .head {
+    text-align: center;
+    margin: 4px 0 16px;
+  }
+  .brand {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 3px;
+  }
+  .title {
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, var(--chrome-1), var(--chrome-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .subtitle {
+    font-size: 9.5px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.78;
+    margin-top: 4px;
+  }
+
+  /* ---------- stereo field visualiser ---------- */
+  .field-wrap {
+    position: relative;
+    margin: 4px 0 18px;
+    border-radius: 14px;
+    padding: 10px;
+    background: linear-gradient(180deg, #060c18, #03060e);
+    box-shadow:
+      0 2px 5px rgba(0,0,0,0.6) inset,
+      0 0 0 1px rgba(90,208,255,0.10) inset;
+  }
+  .field { display: block; width: 100%; height: 132px; border-radius: 9px; }
+  .field-labels {
+    position: absolute;
+    top: 14px; left: 18px; right: 18px;
+    display: flex; justify-content: space-between;
+    font-size: 8.5px; letter-spacing: 2px; color: var(--ink-dim);
+    pointer-events: none;
+  }
+
+  /* ---------- mode buttons ---------- */
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .mode-btn {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid rgba(120,160,220,0.22);
+    background: linear-gradient(180deg, #182a4a 0%, #0d1a32 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 -3px 8px rgba(0,0,0,0.5) inset,
+      0 4px 8px rgba(0,0,0,0.45);
+    transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .mode-btn:hover { transform: translateY(-1px); }
+  .mode-btn:active { transform: translateY(1px); }
+
+  /* the little lamp inside each button */
+  .lamp {
+    position: absolute;
+    top: 12px; left: 50%; transform: translateX(-50%);
+    width: 16px; height: 16px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #2c3a55, #101a2c);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.6) inset;
+    transition: background 0.2s ease, box-shadow 0.25s ease;
+  }
+  .mode-num {
+    position: absolute;
+    bottom: 9px; left: 0; right: 0;
+    text-align: center;
+    font-size: 17px; font-weight: 700;
+    color: var(--ink-dim);
+    transition: color 0.2s ease, text-shadow 0.25s ease;
+  }
+
+  .mode-btn.active {
+    background: linear-gradient(180deg, #1e3358 0%, #0e1f3c 100%);
+    border-color: rgba(90,208,255,0.55);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.12) inset,
+      0 -3px 8px rgba(0,0,0,0.5) inset,
+      0 0 14px rgba(90,208,255,0.35),
+      0 4px 8px rgba(0,0,0,0.45);
+  }
+  .mode-btn.active .lamp {
+    background: radial-gradient(circle at 40% 35%, #d8f6ff, var(--accent) 55%, #1a6f99 100%);
+    box-shadow:
+      0 0 10px var(--accent),
+      0 0 18px rgba(90,208,255,0.55),
+      0 1px 2px rgba(0,0,0,0.4) inset;
+    animation: lampPulse 2.4s ease-in-out infinite;
+  }
+  .mode-btn.active .mode-num {
+    color: #eaf7ff;
+    text-shadow: 0 0 8px rgba(90,208,255,0.7);
+  }
+  @keyframes lampPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.28); }
+  }
+
+  .mode-caption {
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 2px 0 18px;
+  }
+  .mode-caption b { color: var(--accent2); font-weight: 600; }
+
+  /* ---------- knob row ---------- */
+  .knobs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .knob-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .knob {
+    position: relative;
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; }
+  .klabel {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .kval {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: 0.5px;
+  }
+
+  .footer {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 8.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .pow {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 8px var(--accent2);
+    animation: lampPulse 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+  <div class="pedal">
+    <span class="bolt tl"></span>
+    <span class="bolt tr"></span>
+    <span class="bolt bl"></span>
+    <span class="bolt br"></span>
+
+    <div class="head">
+      <div class="brand">Stereo Dimension</div>
+      <div class="title">Quad Dimension</div>
+      <div class="subtitle">Button-Mode Chorus</div>
+    </div>
+
+    <div class="field-wrap">
+      <div class="field-labels"><span>L</span><span>STEREO FIELD</span><span>R</span></div>
+      <canvas class="field" id="field" width="800" height="264"></canvas>
+    </div>
+
+    <div class="modes" id="modes">
+      <div class="mode-btn" data-mode="0"><span class="lamp"></span><span class="mode-num">1</span></div>
+      <div class="mode-btn" data-mode="1"><span class="lamp"></span><span class="mode-num">2</span></div>
+      <div class="mode-btn" data-mode="2"><span class="lamp"></span><span class="mode-num">3</span></div>
+      <div class="mode-btn" data-mode="3"><span class="lamp"></span><span class="mode-num">4</span></div>
+    </div>
+    <div class="mode-caption">Mode <b id="modeName">1 · Subtle</b></div>
+
+    <div class="knobs">
+      <div class="knob-cell">
+        <div class="knob" id="knobWidth" data-index="1"></div>
+        <div class="klabel">Width</div>
+        <div class="kval" id="valWidth">70%</div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob" id="knobTone" data-index="2"></div>
+        <div class="klabel">Tone</div>
+        <div class="kval" id="valTone">50%</div>
+      </div>
+      <div class="knob-cell">
+        <div class="knob" id="knobMix" data-index="3"></div>
+        <div class="klabel">Mix</div>
+        <div class="kval" id="valMix">60%</div>
+      </div>
+    </div>
+
+    <div class="footer"><span class="pow"></span><span>Quad Dimension · Hi-Fi Dimensional Widener</span></div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- host bridge --------------------------------------------------
+  var bridge = {
+    setParam: function (i, v) {
+      if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+    }
+  };
+
+  // ---- parameter model ---------------------------------------------
+  // index: 0 Mode(0..3 step1), 1 Width, 2 Tone, 3 Mix
+  var state = { mode: 0, width: 0.7, tone: 0.5, mix: 0.6 };
+  var defaults = { mode: 0, width: 0.7, tone: 0.5, mix: 0.6 };
+
+  var MODE_NAMES = ["1 · Subtle", "2 · Open", "3 · Wide", "4 · Widest"];
+
+  // ---- MODE BUTTONS -------------------------------------------------
+  var modeBtns = Array.prototype.slice.call(document.querySelectorAll(".mode-btn"));
+  var modeNameEl = document.getElementById("modeName");
+
+  function applyMode(m) {
+    state.mode = m;
+    for (var i = 0; i < modeBtns.length; i++) {
+      modeBtns[i].classList.toggle("active", i === m);
+    }
+    modeNameEl.textContent = MODE_NAMES[m];
+    bridge.setParam(0, m); // real value 0..3
+  }
+
+  modeBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      applyMode(parseInt(btn.getAttribute("data-mode"), 10));
+    });
+    btn.addEventListener("dblclick", function () {
+      applyMode(defaults.mode);
+    });
+  });
+
+  // ---- KNOBS (SVG, drag vertical, dbl-click reset, wheel fine) ------
+  var A0 = -135, A1 = 135; // sweep range in degrees
+
+  function makeKnob(el, getVal, setVal, fmt) {
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("viewBox", "0 0 100 100");
+
+    // track arc
+    var track = document.createElementNS(ns, "path");
+    track.setAttribute("d", arcPath(50, 50, 38, A0, A1));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(120,160,220,0.18)");
+    track.setAttribute("stroke-width", "6");
+    track.setAttribute("stroke-linecap", "round");
+    svg.appendChild(track);
+
+    // value arc
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "url(#kgrad)");
+    arc.setAttribute("stroke-width", "6");
+    arc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(arc);
+
+    // gradient defs
+    var defs = document.createElementNS(ns, "defs");
+    defs.innerHTML =
+      '<linearGradient id="kgrad" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#5ad0ff"/>' +
+      '<stop offset="1" stop-color="#c8a0ff"/>' +
+      '</linearGradient>' +
+      '<radialGradient id="kbody" cx="0.4" cy="0.32" r="0.85">' +
+      '<stop offset="0" stop-color="#2a3e63"/>' +
+      '<stop offset="0.6" stop-color="#162844"/>' +
+      '<stop offset="1" stop-color="#0a1426"/>' +
+      '</radialGradient>';
+    svg.appendChild(defs);
+
+    // body
+    var body = document.createElementNS(ns, "circle");
+    body.setAttribute("cx", "50"); body.setAttribute("cy", "50"); body.setAttribute("r", "29");
+    body.setAttribute("fill", "url(#kbody)");
+    body.setAttribute("stroke", "rgba(255,255,255,0.10)");
+    body.setAttribute("stroke-width", "1");
+    svg.appendChild(body);
+
+    // pointer notch
+    var notch = document.createElementNS(ns, "line");
+    notch.setAttribute("x1", "50"); notch.setAttribute("y1", "50");
+    notch.setAttribute("x2", "50"); notch.setAttribute("y2", "26");
+    notch.setAttribute("stroke", "#eaf7ff");
+    notch.setAttribute("stroke-width", "3");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    el.appendChild(svg);
+
+    function render() {
+      var v = getVal();          // 0..1
+      var ang = A0 + (A1 - A0) * v;
+      arc.setAttribute("d", arcPath(50, 50, 38, A0, ang));
+      notch.setAttribute("transform", "rotate(" + ang + " 50 50)");
+      fmt(v);
+    }
+
+    // dragging
+    var dragging = false, startY = 0, startV = 0;
+    function onDown(e) {
+      dragging = true;
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = getVal();
+      el.style.filter = "drop-shadow(0 0 9px rgba(90,208,255,0.45))";
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dv = (startY - y) / 200; // up = increase
+      var v = Math.max(0, Math.min(1, startV + dv));
+      setVal(v);
+      render();
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      el.style.filter = "none";
+    }
+    el.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    el.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    el.addEventListener("dblclick", function () {
+      setVal(null); // signal: reset to default
+      render();
+    });
+    el.addEventListener("wheel", function (e) {
+      var v = Math.max(0, Math.min(1, getVal() - Math.sign(e.deltaY) * 0.02));
+      setVal(v);
+      render();
+      e.preventDefault();
+    }, { passive: false });
+
+    return { render: render };
+  }
+
+  function polar(cx, cy, r, deg) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var p0 = polar(cx, cy, r, a0);
+    var p1 = polar(cx, cy, r, a1);
+    var large = Math.abs(a1 - a0) > 180 ? 1 : 0;
+    return "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 1 " +
+           p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  function pct(v) { return Math.round(v * 100) + "%"; }
+
+  var valWidth = document.getElementById("valWidth");
+  var valTone = document.getElementById("valTone");
+  var valMix = document.getElementById("valMix");
+
+  var kWidth = makeKnob(
+    document.getElementById("knobWidth"),
+    function () { return state.width; },
+    function (v) { if (v === null) v = defaults.width; state.width = v; bridge.setParam(1, v); },
+    function (v) { valWidth.textContent = pct(v); }
+  );
+  var kTone = makeKnob(
+    document.getElementById("knobTone"),
+    function () { return state.tone; },
+    function (v) { if (v === null) v = defaults.tone; state.tone = v; bridge.setParam(2, v); },
+    function (v) { valTone.textContent = pct(v); }
+  );
+  var kMix = makeKnob(
+    document.getElementById("knobMix"),
+    function () { return state.mix; },
+    function (v) { if (v === null) v = defaults.mix; state.mix = v; bridge.setParam(3, v); },
+    function (v) { valMix.textContent = pct(v); }
+  );
+
+  // ---- STEREO FIELD VISUALISER -------------------------------------
+  var cv = document.getElementById("field");
+  var ctx = cv.getContext("2d");
+  var W = cv.width, H = cv.height;
+  var t0 = performance.now();
+
+  function draw(now) {
+    var t = (now - t0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+
+    // background grid glow
+    var bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "rgba(12,24,44,0.6)");
+    bg.addColorStop(1, "rgba(4,8,16,0.9)");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    var cx = W / 2, cy = H / 2;
+
+    // width drives how far the two lobes spread; mode adds extra spread;
+    // mix controls overall brightness/presence.
+    var spread = (0.18 + 0.62 * state.width) * (1 + state.mode * 0.22);
+    var presence = 0.25 + 0.75 * state.mix;
+    var sparkle = 0.35 + 0.65 * state.tone;
+
+    // center column (mono / mid)
+    ctx.strokeStyle = "rgba(120,160,220,0.18)";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx, 18); ctx.lineTo(cx, H - 18); ctx.stroke();
+
+    // two breathing lobes — left lobe and right lobe, anti-phase motion
+    for (var s = -1; s <= 1; s += 2) {
+      var phase = t * (0.6 + state.mode * 0.18) + (s > 0 ? Math.PI : 0);
+      var lobeX = cx + s * spread * (W * 0.40);
+      var breath = 1 + 0.12 * Math.sin(phase);
+      var rad = (40 + 30 * state.width) * breath;
+
+      var col = s < 0 ? "90,208,255" : "200,160,255";
+      var g = ctx.createRadialGradient(lobeX, cy, 4, lobeX, cy, rad);
+      g.addColorStop(0, "rgba(" + col + "," + (0.55 * presence) + ")");
+      g.addColorStop(0.5, "rgba(" + col + "," + (0.18 * presence) + ")");
+      g.addColorStop(1, "rgba(" + col + ",0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(lobeX, cy, rad, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // connecting wave between the lobes — anti-phase shimmer
+    ctx.lineWidth = 2;
+    var waveGrad = ctx.createLinearGradient(0, 0, W, 0);
+    waveGrad.addColorStop(0, "rgba(90,208,255," + presence + ")");
+    waveGrad.addColorStop(1, "rgba(200,160,255," + presence + ")");
+    ctx.strokeStyle = waveGrad;
+    ctx.beginPath();
+    var amp = (10 + 34 * state.width) * presence;
+    var freq = 5 + state.mode * 3;
+    for (var x = 24; x <= W - 24; x++) {
+      var u = (x - 24) / (W - 48);
+      var y = cy +
+        Math.sin(u * Math.PI * freq + t * 2.4) * amp * Math.sin(u * Math.PI) +
+        Math.sin(u * Math.PI * freq * 2.0 - t * 1.7) * amp * 0.35 * sparkle * Math.sin(u * Math.PI);
+      if (x === 24) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // sparkle dots driven by Tone
+    var dotCount = Math.round(6 + sparkle * 16);
+    for (var d = 0; d < dotCount; d++) {
+      var dp = (d / dotCount);
+      var dx = 24 + dp * (W - 48);
+      var dy = cy + Math.sin(dp * 22 + t * 3.1 + d) * (20 + 40 * state.width);
+      var tw = 0.4 + 0.6 * Math.abs(Math.sin(t * 4 + d * 1.7));
+      ctx.fillStyle = "rgba(234,247,255," + (tw * sparkle * presence * 0.8) + ")";
+      ctx.beginPath();
+      ctx.arc(dx, dy, 1.4 + sparkle * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (!document.hidden) requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) requestAnimationFrame(draw);
+  });
+
+  // ---- init: push every param to its default ------------------------
+  function initAll() {
+    applyMode(state.mode);
+    kWidth.render(); bridge.setParam(1, state.width);
+    kTone.render();  bridge.setParam(2, state.tone);
+    kMix.render();   bridge.setParam(3, state.mix);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(initAll);
+  } else {
+    initAll();
+  }
+})();
+</script>
+</body>
+</html>

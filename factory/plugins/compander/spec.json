@@ -1,0 +1,17 @@
+{
+  "name": "Compander",
+  "isInstrument": false,
+  "explanation": "A companding 'noise-reduction character' processor in the Dolby A/SR + HX lineage. Distinct from the factory's studio compressors: a level-dependent compress→expand with high-frequency pre-emphasis that imparts the characteristic tape-NR sheen and gentle breathing — used as a tone/dynamics colour. Controls: Squeeze (compand depth), HF (high-shelf emphasis), Tone (tilt), Output and Mix.",
+  "assembly": "factory/plugins/compander/assembly.ts",
+  "out": "factory/plugins/compander/x.vstai",
+  "guiFile": "factory/plugins/compander/gui.html",
+  "publishedAt": 1751000169000,
+  "theme": { "accent": "#7aa0d0", "accent2": "#c0c8d4" },
+  "params": [
+    { "name": "Squeeze", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "HF",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tone",    "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Output",  "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",     "index": 4, "min": 0, "max": 1, "default": 1.0 }
+  ]
+}

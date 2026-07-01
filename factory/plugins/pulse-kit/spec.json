@@ -1,0 +1,18 @@
+{
+  "name": "Pulse Kit",
+  "isInstrument": true,
+  "explanation": "A bright digital/FM drum machine in the Yamaha RX5 lineage. Where the warm boxes are round and the 8-bit box is crunchy, this one is glassy and metallic: FM kick, FM snare, inharmonic FM toms, glassy FM hats and a dense shimmering FM crash, all synthesised in real time with two-operator FM for the bright 80s digital-percussion character. Like the original it is a preset PATTERN box: hold a note to start an internal 16-step groove with a tom fill, release to stop and let the tails ring. Controls: Tune (kick/tom pitch), Decay, Snap (snare noise vs tone), Metal (FM brightness of hats/toms/crash), Accent and Level.",
+  "assembly": "factory/plugins/pulse-kit/assembly.ts",
+  "out": "factory/plugins/pulse-kit/x.vstai",
+  "guiFile": "factory/plugins/pulse-kit/gui.html",
+  "publishedAt": 1751304800000,
+  "theme": { "accent": "#3ad0e0", "accent2": "#ff7a3a" },
+  "params": [
+    { "name": "Tune",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Snap",   "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Metal",  "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Accent", "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",  "index": 5, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

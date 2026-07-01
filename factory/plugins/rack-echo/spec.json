@@ -1,0 +1,17 @@
+{
+  "name": "Rack Echo",
+  "isInstrument": false,
+  "explanation": "A pristine 80s studio rack digital delay with a doubler mode. Clean, hi-fi repeats (no tape grit, no companding) run through a low-pass filtered feedback path so successive echoes gently roll off their highs. A subtle stereo LFO modulates the read position so a single repeat can be fattened into a wide chorused double or slapback. Controls: Time, Feedback, Modulation (doubler/chorus depth), Tone (repeat HF) and dry/wet Mix; Mix at 0 is dry.",
+  "assembly": "factory/plugins/rack-echo/assembly.ts",
+  "out": "factory/plugins/rack-echo/x.vstai",
+  "publishedAt": 1751000148000,
+  "theme": { "accent": "#6ad0ff", "accent2": "#b0a0ff" },
+  "guiFile": "factory/plugins/rack-echo/gui.html",
+  "params": [
+    { "name": "Time",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Feedback",   "index": 1, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Modulation", "index": 2, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Tone",       "index": 3, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Mix",        "index": 4, "min": 0, "max": 1, "default": 0.40 }
+  ]
+}

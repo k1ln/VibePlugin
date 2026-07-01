@@ -259,6 +259,7 @@ footer .sp{margin-left:auto;font-style:italic;color:#a98a58;max-width:420px;text
     return s;
   }
   function reshape(){
+    if(!wa||!wb) return;
     var sp=live["Spread"]||0, cut=live["Cutoff"]||0;
     var amp=8+cut*16;            // brighter cutoff -> taller teeth
     var duty=0.5+sp*0.4;

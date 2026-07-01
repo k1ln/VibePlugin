@@ -1,0 +1,18 @@
+{
+  "name": "Prism Eight",
+  "isInstrument": true,
+  "explanation": "A flexible, slightly metallic 8-voice analog/hybrid polysynth in the Rhodes Chroma lineage. Its signature is RING modulation between the two oscillators: turn Ring up and the detuned saws cross into clangorous, bell-like, inharmonic territory the way the Chroma's patchable voice could. Each voice runs two detuned saws through a resonant two-pole low-pass with its own envelope. Controls: Cutoff, Resonance, Env Amount, Ring (ring-mod depth), Detune and Level.",
+  "assembly": "factory/plugins/prism-eight/assembly.ts",
+  "out": "factory/plugins/prism-eight/x.vstai",
+  "guiFile": "factory/plugins/prism-eight/gui.html",
+  "publishedAt": 1751302400000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#ff7ad0" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Ring",       "index": 3, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Detune",     "index": 4, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

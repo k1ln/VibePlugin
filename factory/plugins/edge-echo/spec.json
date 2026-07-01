@@ -1,0 +1,17 @@
+{
+  "name": "Edge Echo",
+  "isInstrument": false,
+  "explanation": "A bright rackmount digital delay with a coloured input preamp. The preamp adds drive and presence for the punchy, present 'edge' tone, feeding clean, slightly bright digital repeats with filtered feedback. Controls: preamp Drive, delay Time (20 ms to ~1.2 s), Feedback, repeat Tone and dry/wet Mix.",
+  "assembly": "factory/plugins/edge-echo/assembly.ts",
+  "out": "factory/plugins/edge-echo/x.vstai",
+  "guiFile": "factory/plugins/edge-echo/gui.html",
+  "publishedAt": 1751000152000,
+  "theme": { "accent": "#6ad0ff", "accent2": "#b0a0ff" },
+  "params": [
+    { "name": "Drive",    "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Time",     "index": 1, "min": 0, "max": 1, "default": 0.38 },
+    { "name": "Feedback", "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Tone",     "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",      "index": 4, "min": 0, "max": 1, "default": 0.35 }
+  ]
+}

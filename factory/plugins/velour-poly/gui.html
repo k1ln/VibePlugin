@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velour Poly</title>
+<style>
+  :root {
+    --accent: #c87aff;
+    --accent2: #ffb0d0;
+    --panel: #1a1620;
+    --panel-hi: #261f30;
+    --ink: #ece6f3;
+    --ink-dim: #9a8fac;
+    --well: #120f17;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    background: #0d0a12;
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 760px;
+    border-radius: 22px;
+    padding: 22px 24px 26px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 12% -10%, rgba(200,122,255,0.22), transparent 55%),
+      radial-gradient(120% 90% at 92% 0%, rgba(255,176,208,0.18), transparent 55%),
+      linear-gradient(160deg, #221b2c 0%, #16121d 55%, #110d16 100%);
+    box-shadow:
+      0 30px 70px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      inset 0 -2px 14px rgba(0,0,0,0.5);
+    border: 1px solid rgba(200,122,255,0.18);
+  }
+
+  /* soft moving velvet sheen */
+  .shell::before {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    background:
+      radial-gradient(40% 30% at 30% 30%, rgba(200,122,255,0.10), transparent 60%),
+      radial-gradient(40% 30% at 70% 60%, rgba(255,176,208,0.10), transparent 60%);
+    filter: blur(20px);
+    animation: drift 16s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes drift {
+    0%   { transform: translate(-3%, -2%) scale(1.0); }
+    100% { transform: translate(3%, 2%) scale(1.08); }
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+    margin-bottom: 14px;
+  }
+  .title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(95deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(200,122,255,0.25);
+  }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* ---- waveform scope ---- */
+  .scope-wrap {
+    position: relative;
+    z-index: 2;
+    border-radius: 14px;
+    padding: 8px;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.5));
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(200,122,255,0.12);
+    margin-bottom: 18px;
+  }
+  canvas#scope {
+    display: block;
+    width: 100%;
+    height: 96px;
+    border-radius: 8px;
+  }
+
+  /* ---- controls grid ---- */
+  .rack {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px 10px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 540px) {
+    .rack { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .knob .dial {
+    cursor: ns-resize;
+    touch-action: none;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.55));
+    transition: filter 0.18s ease;
+  }
+  .knob:hover .dial { filter: drop-shadow(0 6px 16px rgba(200,122,255,0.4)); }
+  .knob .label {
+    margin-top: 7px;
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .knob .val {
+    margin-top: 3px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---- bender ---- */
+  .bender-zone {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -3px 10px rgba(0,0,0,0.5);
+    margin-bottom: 16px;
+  }
+  .bender-zone .tag {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .bender {
+    position: relative;
+    flex: 1;
+    height: 26px;
+    border-radius: 13px;
+    background: var(--well);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+    cursor: ew-resize;
+    touch-action: none;
+    overflow: hidden;
+  }
+  .bender .center-line {
+    position: absolute;
+    left: 50%;
+    top: 4px; bottom: 4px;
+    width: 1px;
+    background: rgba(200,122,255,0.3);
+    transform: translateX(-0.5px);
+  }
+  .bender .cap {
+    position: absolute;
+    top: 3px; bottom: 3px;
+    width: 38px;
+    border-radius: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, #4a3b5e, #2a2238);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
+    border: 1px solid rgba(200,122,255,0.35);
+    transition: box-shadow 0.15s ease;
+  }
+  .bender:hover .cap { box-shadow: 0 2px 14px rgba(255,176,208,0.45), inset 0 1px 0 rgba(255,255,255,0.2); }
+
+  /* ---- keyboard ---- */
+  .keys {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    height: 96px;
+    border-radius: 10px;
+    padding: 6px;
+    background: linear-gradient(180deg, #0a070e, #15101d);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.7);
+  }
+  .keybed {
+    position: relative;
+    flex: 1;
+    height: 100%;
+  }
+  .wkey {
+    position: absolute;
+    top: 0; bottom: 0;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #e9e2f0 0%, #c7bdd6 100%);
+    box-shadow: inset 0 -6px 8px rgba(0,0,0,0.18), 0 1px 0 rgba(0,0,0,0.4);
+    cursor: pointer;
+    border: 1px solid #15101d;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent2) 0%, var(--accent) 100%);
+    box-shadow: inset 0 -4px 10px rgba(0,0,0,0.3), 0 0 16px rgba(200,122,255,0.6);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    height: 60%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a2238 0%, #0c0911 100%);
+    box-shadow: inset 0 -3px 6px rgba(255,255,255,0.06), 0 2px 4px rgba(0,0,0,0.7);
+    cursor: pointer;
+    z-index: 3;
+    border: 1px solid #000;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent) 0%, #7a3fb0 100%);
+    box-shadow: 0 0 14px rgba(200,122,255,0.7);
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title">Velour Poly</div>
+      <div class="subtitle">DCO &nbsp;Velvet&nbsp; Polysynth</div>
+    </header>
+
+    <div class="scope-wrap">
+      <canvas id="scope"></canvas>
+    </div>
+
+    <div class="rack" id="rack"></div>
+
+    <div class="bender-zone">
+      <span class="tag">Bender</span>
+      <div class="bender" id="bender">
+        <div class="center-line"></div>
+        <div class="cap" id="benderCap"></div>
+      </div>
+      <span class="tag" id="benderVal">0.0 st</span>
+    </div>
+
+    <div class="keys"><div class="keybed" id="keybed"></div></div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, def: 0.5  },
+    { name: "Resonance",  index: 1, def: 0.3  },
+    { name: "Env Amount", index: 2, def: 0.55 },
+    { name: "Cross-Mod",  index: 3, def: 0.25 },
+    { name: "Chorus",     index: 4, def: 0.45 },
+    { name: "Attack",     index: 5, def: 0.15 },
+    { name: "Release",    index: 6, def: 0.4  },
+    { name: "Level",      index: 7, def: 0.7  }
+  ];
+
+  var values = {};
+
+  function pushParam(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  // ===== KNOBS =====================================================
+  function makeKnob(spec) {
+    var wrap = document.createElement("div");
+    wrap.className = "knob";
+
+    var size = 66;
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("class", "dial");
+    svg.setAttribute("width", size);
+    svg.setAttribute("height", size);
+    svg.setAttribute("viewBox", "0 0 " + size + " " + size);
+
+    var cx = size / 2, cy = size / 2, r = 25;
+    var startA = 135, endA = 405; // degrees, sweep 270°
+
+    function defGrad(id, c1, c2) {
+      var g = document.createElementNS(svgNS, "linearGradient");
+      g.setAttribute("id", id);
+      g.setAttribute("x1", "0"); g.setAttribute("y1", "0");
+      g.setAttribute("x2", "0"); g.setAttribute("y2", "1");
+      var s1 = document.createElementNS(svgNS, "stop");
+      s1.setAttribute("offset", "0"); s1.setAttribute("stop-color", c1);
+      var s2 = document.createElementNS(svgNS, "stop");
+      s2.setAttribute("offset", "1"); s2.setAttribute("stop-color", c2);
+      g.appendChild(s1); g.appendChild(s2);
+      return g;
+    }
+    var defs = document.createElementNS(svgNS, "defs");
+    defs.appendChild(defGrad("body" + spec.index, "#3a2f4d", "#1d1727"));
+    defs.appendChild(defGrad("arc" + spec.index, "#ffb0d0", "#c87aff"));
+    svg.appendChild(defs);
+
+    // outer well
+    var well = document.createElementNS(svgNS, "circle");
+    well.setAttribute("cx", cx); well.setAttribute("cy", cy);
+    well.setAttribute("r", r + 5);
+    well.setAttribute("fill", "#100c16");
+    svg.appendChild(well);
+
+    function arcPath(a0, a1) {
+      var rr = r + 2;
+      var x0 = cx + rr * Math.cos(a0 * Math.PI / 180);
+      var y0 = cy + rr * Math.sin(a0 * Math.PI / 180);
+      var x1 = cx + rr * Math.cos(a1 * Math.PI / 180);
+      var y1 = cy + rr * Math.sin(a1 * Math.PI / 180);
+      var large = (a1 - a0) > 180 ? 1 : 0;
+      return "M " + x0 + " " + y0 + " A " + rr + " " + rr + " 0 " + large + " 1 " + x1 + " " + y1;
+    }
+
+    // track arc
+    var track = document.createElementNS(svgNS, "path");
+    track.setAttribute("d", arcPath(startA, endA));
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "rgba(255,255,255,0.08)");
+    track.setAttribute("stroke-width", "4");
+    track.setAttribute("stroke-linecap", "round");
+    svg.appendChild(track);
+
+    // value arc
+    var valArc = document.createElementNS(svgNS, "path");
+    valArc.setAttribute("fill", "none");
+    valArc.setAttribute("stroke", "url(#arc" + spec.index + ")");
+    valArc.setAttribute("stroke-width", "4");
+    valArc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(valArc);
+
+    // body
+    var body = document.createElementNS(svgNS, "circle");
+    body.setAttribute("cx", cx); body.setAttribute("cy", cy);
+    body.setAttribute("r", r - 2);
+    body.setAttribute("fill", "url(#body" + spec.index + ")");
+    body.setAttribute("stroke", "rgba(255,255,255,0.08)");
+    body.setAttribute("stroke-width", "1");
+    svg.appendChild(body);
+
+    // pointer
+    var ptr = document.createElementNS(svgNS, "line");
+    ptr.setAttribute("stroke", "#ffd9ec");
+    ptr.setAttribute("stroke-width", "2.5");
+    ptr.setAttribute("stroke-linecap", "round");
+    svg.appendChild(ptr);
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = spec.name;
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    wrap.appendChild(svg);
+    wrap.appendChild(label);
+    wrap.appendChild(val);
+
+    function render(v) {
+      var a = startA + (endA - startA) * v;
+      valArc.setAttribute("d", arcPath(startA, a));
+      var pr = r - 6;
+      var px = cx + pr * Math.cos(a * Math.PI / 180);
+      var py = cy + pr * Math.sin(a * Math.PI / 180);
+      ptr.setAttribute("x1", cx); ptr.setAttribute("y1", cy);
+      ptr.setAttribute("x2", px); ptr.setAttribute("y2", py);
+      val.textContent = Math.round(v * 100) + "%";
+    }
+
+    function setValue(v, push) {
+      v = Math.max(0, Math.min(1, v));
+      values[spec.index] = v;
+      render(v);
+      if (push) pushParam(spec.index, v);
+    }
+
+    // drag (vertical), wheel (fine), dblclick (reset)
+    var dragging = false, lastY = 0;
+    svg.addEventListener("pointerdown", function (e) {
+      dragging = true; lastY = e.clientY;
+      svg.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    svg.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dy = lastY - e.clientY;
+      lastY = e.clientY;
+      setValue(values[spec.index] + dy * 0.005, true);
+    });
+    svg.addEventListener("pointerup", function (e) {
+      dragging = false;
+      try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
+    });
+    svg.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      setValue(values[spec.index] - e.deltaY * 0.0006, true);
+    }, { passive: false });
+    svg.addEventListener("dblclick", function () {
+      setValue(spec.def, true);
+    });
+
+    setValue(spec.def, false);
+    return { el: wrap, setValue: setValue };
+  }
+
+  var rack = document.getElementById("rack");
+  PARAMS.forEach(function (p) {
+    var k = makeKnob(p);
+    rack.appendChild(k.el);
+  });
+
+  // ===== SCOPE =====================================================
+  var canvas = document.getElementById("scope");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function sizeCanvas() {
+    var rect = canvas.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", sizeCanvas);
+
+  var t0 = performance.now();
+  var activeNotes = 0;
+  var energy = 0;
+
+  function drawScope(now) {
+    if (!document.hidden) {
+      var t = (now - t0) / 1000;
+      ctx.clearRect(0, 0, W, H);
+
+      // velvet backlight bars
+      var grad = ctx.createLinearGradient(0, 0, W, 0);
+      grad.addColorStop(0, "rgba(255,176,208,0.0)");
+      grad.addColorStop(0.5, "rgba(200,122,255,0.12)");
+      grad.addColorStop(1, "rgba(255,176,208,0.0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      energy += ((activeNotes > 0 ? 1 : 0.12) - energy) * 0.05;
+
+      var cutoff = values[0] || 0;
+      var xmod = values[3] || 0;
+      var chorus = values[4] || 0;
+
+      // three plush chorus-shimmer waves
+      var layers = [
+        { c: "rgba(200,122,255,0.9)", ph: 0,    amp: 1.0 },
+        { c: "rgba(255,176,208,0.55)", ph: 1.7, amp: 0.7 },
+        { c: "rgba(255,255,255,0.25)", ph: 3.4, amp: 0.45 }
+      ];
+      var mid = H / 2;
+      var baseAmp = (0.18 + 0.55 * energy) * H * 0.5;
+      var freq = 2 + cutoff * 6;
+      var harm = 1 + xmod * 4;
+
+      for (var L = 0; L < layers.length; L++) {
+        var ly = layers[L];
+        ctx.beginPath();
+        ctx.lineWidth = 2 - L * 0.4;
+        ctx.strokeStyle = ly.c;
+        var shimmer = ly.ph + t * (0.6 + chorus * 1.6) + L * chorus * 0.8;
+        for (var x = 0; x <= W; x += 2) {
+          var u = x / W;
+          var s = Math.sin(u * Math.PI * 2 * freq + shimmer)
+                * Math.sin(u * Math.PI * harm + shimmer * 0.5);
+          var y = mid + s * baseAmp * ly.amp * (0.6 + 0.4 * Math.sin(t * 1.3 + L));
+          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+    requestAnimationFrame(drawScope);
+  }
+
+  // ===== BENDER ===================================================
+  var bender = document.getElementById("bender");
+  var benderCap = document.getElementById("benderCap");
+  var benderVal = document.getElementById("benderVal");
+  var bendPos = 0.5; // 0..1, center = no bend
+  var benderDragging = false;
+
+  function renderBender() {
+    var pct = bendPos * 100;
+    benderCap.style.left = pct + "%";
+    var st = (bendPos - 0.5) * 4; // +/- 2 semitones display
+    benderVal.textContent = (st >= 0 ? "+" : "") + st.toFixed(1) + " st";
+  }
+  function setBend(p) {
+    bendPos = Math.max(0, Math.min(1, p));
+    renderBender();
+  }
+  function benderFromEvent(e) {
+    var rect = bender.getBoundingClientRect();
+    setBend((e.clientX - rect.left) / rect.width);
+  }
+  bender.addEventListener("pointerdown", function (e) {
+    benderDragging = true;
+    bender.setPointerCapture(e.pointerId);
+    benderFromEvent(e);
+    e.preventDefault();
+  });
+  bender.addEventListener("pointermove", function (e) {
+    if (benderDragging) benderFromEvent(e);
+  });
+  function releaseBender(e) {
+    benderDragging = false;
+    try { bender.releasePointerCapture(e.pointerId); } catch (err) {}
+    // spring back to center, like a real pitch bender
+    var animate = function () {
+      bendPos += (0.5 - bendPos) * 0.25;
+      if (Math.abs(bendPos - 0.5) < 0.002) bendPos = 0.5;
+      renderBender();
+      if (bendPos !== 0.5) requestAnimationFrame(animate);
+    };
+    animate();
+  }
+  bender.addEventListener("pointerup", releaseBender);
+  bender.addEventListener("dblclick", function () { setBend(0.5); });
+  renderBender();
+
+  // ===== KEYBOARD =================================================
+  var keybed = document.getElementById("keybed");
+  var START = 48; // C3
+  var NUM_WHITE = 14;
+  var WHITE_SET = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK_AFTER = { 0: 1, 2: 1, 5: 1, 7: 1, 9: 1 }; // semitone offsets that have a black key after
+  var heldByKey = {};
+
+  function noteOnUI(midi, vel) {
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(midi, vel);
+    activeNotes++;
+  }
+  function noteOffUI(midi) {
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(midi);
+    activeNotes = Math.max(0, activeNotes - 1);
+  }
+
+  // build keys: walk chromatic from START, placing whites by running index
+  var whiteMidis = [];
+  var whiteCount = 0;
+  var chromatic = [];
+  var m = START;
+  while (whiteCount < NUM_WHITE) {
+    var pc = m % 12;
+    var isWhite = WHITE_SET.indexOf(pc) >= 0;
+    chromatic.push({ midi: m, pc: pc, white: isWhite });
+    if (isWhite) whiteCount++;
+    m++;
+  }
+
+  var whiteW = 100 / NUM_WHITE;
+  var widx = 0;
+  chromatic.forEach(function (nObj) {
+    if (nObj.white) {
+      var el = document.createElement("div");
+      el.className = "wkey";
+      el.style.left = (widx * whiteW) + "%";
+      el.style.width = whiteW + "%";
+      bindKey(el, nObj.midi);
+      keybed.appendChild(el);
+      whiteMidis.push({ midi: nObj.midi, x: widx });
+      widx++;
+    }
+  });
+  // black keys positioned over the gaps
+  var lastWhiteX = -1;
+  chromatic.forEach(function (nObj) {
+    if (nObj.white) { lastWhiteX++; return; }
+    var el = document.createElement("div");
+    el.className = "bkey";
+    var bw = whiteW * 0.62;
+    var center = (lastWhiteX + 1) * whiteW; // boundary between this and next white
+    el.style.left = (center - bw / 2) + "%";
+    el.style.width = bw + "%";
+    bindKey(el, nObj.midi);
+    keybed.appendChild(el);
+  });
+
+  function bindKey(el, midiNote) {
+    el.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      el.classList.add("down");
+      heldByKey[midiNote] = true;
+      noteOnUI(midiNote, 0.9);
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    var release = function (e) {
+      if (heldByKey[midiNote]) {
+        heldByKey[midiNote] = false;
+        el.classList.remove("down");
+        noteOffUI(midiNote);
+      }
+    };
+    el.addEventListener("pointerup", release);
+    el.addEventListener("pointerleave", function (e) {
+      // only release if dragged out while pressed and not captured
+      if (heldByKey[midiNote] && e.buttons === 0) release(e);
+    });
+    el.addEventListener("pointercancel", release);
+  }
+
+  // computer keyboard row a..k -> white keys
+  var KEYMAP = { a: 0, s: 1, d: 2, f: 3, g: 4, h: 5, j: 6, k: 7, l: 8 };
+  document.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var k = e.key.toLowerCase();
+    if (KEYMAP[k] != null && whiteMidis[KEYMAP[k]]) {
+      var mn = whiteMidis[KEYMAP[k]].midi;
+      if (!heldByKey[mn]) { heldByKey[mn] = true; noteOnUI(mn, 0.85); }
+    }
+  });
+  document.addEventListener("keyup", function (e) {
+    var k = e.key.toLowerCase();
+    if (KEYMAP[k] != null && whiteMidis[KEYMAP[k]]) {
+      var mn = whiteMidis[KEYMAP[k]].midi;
+      if (heldByKey[mn]) { heldByKey[mn] = false; noteOffUI(mn); }
+    }
+  });
+
+  // ===== INIT / READY =============================================
+  function start() {
+    // push every param at its default
+    PARAMS.forEach(function (p) {
+      pushParam(p.index, values[p.index] != null ? values[p.index] : p.def);
+    });
+    sizeCanvas();
+    requestAnimationFrame(drawScope);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Vox Shifter",
+  "isInstrument": false,
+  "explanation": "A formant-aware vocal pitch shifter in the PSOLA / phase-vocoder family. A twin-grain crossfaded delay-line pitch shifter moves the pitch (Shift, plus/minus 12 semitones) click-free, while an independent Formant control sweeps a pair of resonant vowel formants over the shifted voice, so you can pitch a voice up without the chipmunk formant collapse, or slide the formants for gender and vowel morphs. Mix blends dry and wet; Output trims level. Controls: Shift, Formant, Mix, Output.",
+  "assembly": "factory/plugins/vox-shifter/assembly.ts",
+  "out": "factory/plugins/vox-shifter/x.vstai",
+  "guiFile": "factory/plugins/vox-shifter/gui.html",
+  "publishedAt": 1751307800000,
+  "theme": { "accent": "#ff5ab0", "accent2": "#5ad0ff" },
+  "params": [
+    { "name": "Shift",   "index": 0, "min": -12, "max": 12, "default": 5 },
+    { "name": "Formant", "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",     "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Output",  "index": 3, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nova Six</title>
+<style>
+  :root{ --acc:#5ad0ff; --acc2:#ff9a5a; --bg0:#070b11; --bg1:#0e1822; --ink:#e2eef6; --dim:#5e7688; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#15263400,#0e1822 40%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#1a2c3c,#0a131c); border:1px solid rgba(90,208,255,.18);
+    box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(190,230,255,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+  .screen{ height:84px; border-radius:9px; overflow:hidden; margin-bottom:14px; position:relative;
+    background:linear-gradient(180deg,#08161f,#0a1822); border:1px solid rgba(90,208,255,.14); box-shadow:inset 0 2px 18px rgba(0,0,0,.5); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .faders{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; }
+  .fader{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .slot{ width:26px; height:128px; border-radius:14px; position:relative; cursor:ns-resize; touch-action:none;
+    background:linear-gradient(180deg,#0a141d,#16242f); border:1px solid rgba(90,208,255,.2); box-shadow:inset 0 2px 8px rgba(0,0,0,.6); }
+  .fill{ position:absolute; left:3px; right:3px; bottom:3px; border-radius:11px; background:linear-gradient(180deg,var(--acc),var(--acc2)); box-shadow:0 0 12px rgba(90,208,255,.5); }
+  .cap{ position:absolute; left:-4px; right:-4px; height:14px; border-radius:6px; transform:translateY(50%); background:linear-gradient(180deg,#eaf6ff,#9fc4d8); box-shadow:0 3px 6px rgba(0,0,0,.5); }
+  .fn{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  .fv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .fader:hover .fn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">NOVA&nbsp;SIX</span><span class="sub">dco polysynth · hpf</span><span class="led"></span></header>
+    <div class="screen"><canvas id="cv"></canvas></div>
+    <div class="faders" id="faders"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var P=[{name:"Cutoff",idx:0,def:0.6},{name:"Reso",idx:1,def:0.3},{name:"HPF",idx:2,def:0.15},{name:"Env",idx:3,def:0.5},{name:"Chorus",idx:4,def:0.55},{name:"Level",idx:5,def:0.8}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var fw=document.getElementById("faders");
+  var fs=P.map(function(p){
+    var el=document.createElement("div"); el.className="fader";
+    el.innerHTML='<div class="slot"><div class="fill"></div><div class="cap"></div></div><span class="fn">'+p.name+'</span><span class="fv"></span>';
+    fw.appendChild(el);
+    var fill=el.querySelector(".fill"), cap=el.querySelector(".cap"), val=el.querySelector(".fv"), slot=el.querySelector(".slot");
+    function render(v){ var h=Math.max(0,Math.min(1,v)); fill.style.height=(h*100)+"%"; cap.style.bottom=(h*100)+"%"; val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    slot.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; slot.setPointerCapture(e.pointerId); e.preventDefault(); });
+    slot.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/128)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    slot.addEventListener("pointerup",function(){ drag=null; });
+    slot.addEventListener("pointercancel",function(){ drag=null; });
+    slot.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+  function frame(ts){
+    ctx.clearRect(0,0,W,H); var cut=vals[0], hpf=vals[2], ch=vals[4]; var mid=H*0.55;
+    function w(off,col,amp){ ctx.beginPath();
+      for(var x=0;x<=W;x+=2){ var t=x/W; var saw=2*((t*4+ts/900+off)%1)-1; var y=saw*(0.4+cut*0.6) - (hpf*0.5*Math.sin(t*Math.PI*2)); ctx.lineTo(x, mid + y*amp); }
+      ctx.strokeStyle=col; ctx.lineWidth=2; ctx.shadowColor=col; ctx.shadowBlur=7; ctx.stroke(); ctx.shadowBlur=0; }
+    w(0,"rgba(90,208,255,0.9)",16);
+    if(ch>0.05) w(0.5+ch,"rgba(255,154,90,"+(0.3+ch*0.5)+")",14);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); fs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

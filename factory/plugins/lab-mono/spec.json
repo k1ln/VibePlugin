@@ -1,0 +1,19 @@
+{
+  "name": "Lab Mono",
+  "isInstrument": true,
+  "explanation": "An aggressive, patchable single-VCO monophonic synth: one oscillator (saw + PWM pulse) drives a screaming Korg-35-style 2-pole resonant low-pass that sings toward self-oscillation as Resonance is pushed. A punchy decay envelope sweeps the cutoff, and a patchable MOD source — stepped sample & hold at slow rates, a smooth triangle LFO at fast rates — wires straight into the filter for burbling, zapping movement. Last-note-priority mono; pitch tracks each played note in Hz. Raw, experimental lab-synth grit, fully bounded.",
+  "assembly": "factory/plugins/lab-mono/assembly.ts",
+  "out": "factory/plugins/lab-mono/x.vstai",
+  "guiFile": "factory/plugins/lab-mono/gui.html",
+  "publishedAt": 1751000147000,
+  "theme": { "accent": "#43e0a0", "accent2": "#ff7adf" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.62 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Mod",        "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mod Rate",   "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Decay",      "index": 5, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

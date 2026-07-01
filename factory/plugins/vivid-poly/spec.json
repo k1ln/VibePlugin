@@ -1,0 +1,20 @@
+{
+  "name": "Vivid Poly",
+  "isInstrument": true,
+  "explanation": "A bright, punchy 8-voice analog-style polyphonic synthesizer built for cutting leads and forward brass stabs. Each voice runs two DCOs — a band-limited saw and a variable-width pulse with PWM — plus a Ring control that morphs in oscillator-sync and ring-modulation grit for an aggressive metallic top end. The mix feeds a snappy resonant 4-pole low-pass driven by a fast, punchy filter envelope, then a quick amplitude AR; chords ring with independent contours and pitch tracks the keyboard. Controls: Cutoff, Resonance, Env Amount, PWM, Ring, Attack, Release and Level. Vivid and aggressive rather than mellow.",
+  "assembly": "factory/plugins/vivid-poly/assembly.ts",
+  "out": "factory/plugins/vivid-poly/x.vstai",
+  "publishedAt": 1751000109000,
+  "theme": { "accent": "#ffd23d", "accent2": "#ff5a4d" },
+  "guiFile": "factory/plugins/vivid-poly/gui.html",
+  "params": [
+    { "name": "Cutoff",    "index": 0, "min": 0, "max": 1, "default": 0.62 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "EnvAmount", "index": 2, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "PWM",       "index": 3, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Ring",      "index": 4, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Attack",    "index": 5, "min": 0, "max": 1, "default": 0.04 },
+    { "name": "Release",   "index": 6, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Level",     "index": 7, "min": 0, "max": 1, "default": 0.80 }
+  ]
+}

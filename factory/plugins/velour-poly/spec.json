@@ -1,0 +1,20 @@
+{
+  "name": "Velour Poly",
+  "isInstrument": true,
+  "explanation": "A warm, velvety velocity-sensitive DCO polyphonic synthesizer with up to eight voices. Each voice runs two digitally-clocked oscillators — a band-limited saw and a band-limited pulse — with gentle cross-modulation for a slightly hollow, glassy character, into a smooth resonant low-pass driven by its own envelope (Cutoff + Env Amount); an amplitude envelope and brightness track key velocity, and a stereo chorus widens it into a lush 80s pad. Controls: Cutoff, Resonance, Env Amount, Cross-Mod, Chorus, Attack, Release and Level.",
+  "assembly": "factory/plugins/velour-poly/assembly.ts",
+  "out": "factory/plugins/velour-poly/x.vstai",
+  "publishedAt": 1751000139000,
+  "theme": { "accent": "#c87aff", "accent2": "#ffb0d0" },
+  "guiFile": "factory/plugins/velour-poly/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Cross-Mod",  "index": 3, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Chorus",     "index": 4, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Attack",     "index": 5, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Release",    "index": 6, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

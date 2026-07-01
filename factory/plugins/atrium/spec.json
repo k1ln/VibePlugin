@@ -1,0 +1,18 @@
+{
+  "name": "Atrium",
+  "isInstrument": false,
+  "explanation": "A natural, bright digital ambience room reverb. Cascaded input-diffusion allpasses scatter the signal into a dense early-reflection cloud that feeds an 8-line feedback delay network with a lossless Hadamard mix, giving a smooth, colourless, metallic-ring-free tail. A gentle high-frequency air shelf keeps the top open and the room sounds invisible rather than boxy. Controls: Mix, Size, Decay, Diffusion, Air and stereo Width.",
+  "assembly": "factory/plugins/atrium/assembly.ts",
+  "out": "factory/plugins/atrium/x.vstai",
+  "publishedAt": 1751000140000,
+  "theme": { "accent": "#9ad6e0", "accent2": "#c0e8c0" },
+  "guiFile": "factory/plugins/atrium/gui.html",
+  "params": [
+    { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Size",      "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay",     "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Diffusion", "index": 3, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Air",       "index": 4, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Width",     "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

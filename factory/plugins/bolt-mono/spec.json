@@ -1,0 +1,19 @@
+{
+  "name": "Bolt Mono",
+  "isInstrument": true,
+  "explanation": "A lean, punchy two-oscillator hard-sync mono synth in the compact American two-VCO lead/bass tradition. OSC-1 is a saw master; OSC-2 is a detuned pulse that hard-syncs to the master, resetting its phase every master cycle for the signature zappy, metallic sync edge. Both feed a punchy Moog-style 4-pole resonant ladder low-pass driven by a fast decay envelope, with quick glide and a snappy amp envelope. Sync adds the aggressive edge, Cutoff and Resonance snap, Detune fattens slightly, and the whole voice stays tight, fast and immediate — a small, aggressive lead/bass machine. Pure algorithm, no samples; pitch tracks each played note in Hz.",
+  "assembly": "factory/plugins/bolt-mono/assembly.ts",
+  "out": "factory/plugins/bolt-mono/x.vstai",
+  "publishedAt": 1751000146000,
+  "theme": { "accent": "#ffd23d", "accent2": "#ff4d4d" },
+  "guiFile": "factory/plugins/bolt-mono/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Sync",       "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Detune",     "index": 4, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Decay",      "index": 5, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

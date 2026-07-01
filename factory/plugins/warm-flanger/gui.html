@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warm Flanger</title>
+<style>
+  :root{
+    --accent:#ffb86a;     /* honeyed orange */
+    --accent2:#6ad0ff;    /* cool cyan glint */
+    --cream:#f4e6cf;
+    --cream2:#e9d4ae;
+    --shell:#3a2a1c;
+    --shell2:#241710;
+    --ink:#2a1c10;
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:"Avenir Next",-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 100% at 50% -10%,#5a4126 0%,#2c1d11 55%,#170e07 100%);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:18px;overflow:hidden;
+  }
+
+  /* ---- pedal shell ---------------------------------------------------- */
+  .pedal{
+    position:relative;width:430px;border-radius:28px;
+    padding:22px 24px 26px;
+    background:
+      linear-gradient(160deg,#ffd9a0 0%,#ffc27e 34%,#f4a85a 64%,#e08f42 100%);
+    box-shadow:
+      0 28px 60px rgba(0,0,0,.55),
+      0 2px 0 rgba(255,255,255,.35) inset,
+      0 -18px 40px rgba(120,60,10,.28) inset;
+    border:1px solid rgba(120,60,10,.35);
+  }
+  /* honeycomb screws */
+  .screw{position:absolute;width:15px;height:15px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff6e6,#caa46e 60%,#7d5a30);
+    box-shadow:0 1px 2px rgba(0,0,0,.5);}
+  .screw::after{content:"";position:absolute;inset:4px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,#6b4a26 44%,#6b4a26 56%,transparent 56%);
+    transform:rotate(30deg);}
+  .screw.tl{top:12px;left:12px}.screw.tr{top:12px;right:12px}
+  .screw.bl{bottom:12px;left:12px}.screw.br{bottom:12px;right:12px}
+
+  .title{
+    text-align:center;margin:2px 0 4px;font-weight:800;letter-spacing:.16em;
+    font-size:13px;color:#5a3411;text-transform:uppercase;
+    text-shadow:0 1px 0 rgba(255,255,255,.4);
+  }
+  .sub{
+    text-align:center;font-size:9.5px;letter-spacing:.42em;margin-bottom:8px;
+    color:#8a5a28;text-transform:uppercase;font-weight:700;
+  }
+
+  /* ---- comb-sweep window --------------------------------------------- */
+  .window{
+    position:relative;height:118px;border-radius:14px;overflow:hidden;
+    margin:6px 2px 18px;
+    background:linear-gradient(180deg,#2a1a0d,#120a04);
+    box-shadow:0 3px 14px rgba(0,0,0,.6) inset,0 0 0 2px rgba(120,70,20,.5),
+      0 1px 0 rgba(255,220,170,.25);
+  }
+  .window svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .glass{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(120deg,rgba(255,255,255,.10),transparent 40%);
+    border-radius:14px;}
+  .grain{position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
+    background-image:radial-gradient(rgba(255,255,255,.7) .5px,transparent .6px);
+    background-size:3px 3px;}
+
+  /* ---- knob bank ------------------------------------------------------ */
+  .bank{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 2px;}
+  .knobwrap{display:flex;flex-direction:column;align-items:center;}
+  .knob{
+    --ang:-135deg;position:relative;width:62px;height:62px;border-radius:50%;
+    cursor:grab;touch-action:none;
+    background:
+      radial-gradient(circle at 38% 30%,#fff3df,#e7c896 52%,#b88a4e 100%);
+    box-shadow:
+      0 5px 10px rgba(60,30,5,.5),
+      0 -2px 5px rgba(255,255,255,.5) inset,
+      0 3px 6px rgba(90,50,10,.4) inset;
+    transition:box-shadow .15s ease;
+  }
+  .knob:active{cursor:grabbing;}
+  .knob.grab{box-shadow:0 5px 14px rgba(0,0,0,.55),0 0 0 3px rgba(255,184,106,.55),
+      0 -2px 5px rgba(255,255,255,.5) inset;}
+  .knob .cap{position:absolute;inset:9px;border-radius:50%;
+    background:
+      radial-gradient(circle at 40% 32%,#5a3a1c,#321f0d 70%,#1c1108);
+    box-shadow:0 1px 2px rgba(255,220,170,.25) inset,0 2px 5px rgba(0,0,0,.6);}
+  .knob .pointer{
+    position:absolute;left:50%;top:50%;width:4px;height:24px;border-radius:3px;
+    background:linear-gradient(var(--accent),#ff8c3c);
+    transform-origin:50% 100%;
+    transform:translate(-50%,-100%) rotate(var(--ang));
+    box-shadow:0 0 7px rgba(255,184,106,.85);
+  }
+  /* tick ring */
+  .ring{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;}
+  .ring svg{width:100%;height:100%;}
+  .name{margin-top:7px;font-size:9.5px;font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;color:#5a3411;text-shadow:0 1px 0 rgba(255,255,255,.4);}
+  .val{font-size:10px;font-weight:700;color:#7a4a18;margin-top:1px;
+    font-variant-numeric:tabular-nums;}
+
+  /* glow LED */
+  .led{position:absolute;top:18px;left:50%;transform:translateX(-50%);
+    width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#fff,var(--accent2) 60%,#1f6f96);
+    box-shadow:0 0 12px var(--accent2),0 0 3px #fff;
+    animation:pulse 2.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.55;box-shadow:0 0 8px var(--accent2)}
+    50%{opacity:1;box-shadow:0 0 18px var(--accent2),0 0 5px #fff}}
+
+  .hint{text-align:center;font-size:8.5px;color:#8a5a28;letter-spacing:.18em;
+    margin-top:14px;text-transform:uppercase;opacity:.8;}
+</style>
+</head>
+<body>
+  <div class="pedal" id="pedal">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+    <span class="led"></span>
+
+    <div class="title">Warm Flanger</div>
+    <div class="sub">Analog &middot; BBD &middot; Sweep</div>
+
+    <div class="window">
+      <svg id="comb" viewBox="0 0 430 118" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffb86a" stop-opacity="0"/>
+            <stop offset="0.5" stop-color="#ffb86a" stop-opacity=".9"/>
+            <stop offset="1" stop-color="#6ad0ff" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="wg2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6ad0ff" stop-opacity="0"/>
+            <stop offset="0.55" stop-color="#ffd9a0" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#ff8c3c" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g id="combg"></g>
+      </svg>
+      <div class="glass"></div>
+      <div class="grain"></div>
+    </div>
+
+    <div class="bank" id="bank"></div>
+    <div class="hint">drag knobs &middot; double-click to reset</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  var PARAMS = [
+    { name:"Manual", index:0, min:0, max:1, def:0.35 },
+    { name:"Width",  index:1, min:0, max:1, def:0.55 },
+    { name:"Rate",   index:2, min:0, max:1, def:0.25 },
+    { name:"Regen",  index:3, min:0, max:1, def:0.45 },
+    { name:"Mix",    index:4, min:0, max:1, def:0.50 }
+  ];
+  var vals = PARAMS.map(function(p){ return p.def; });
+
+  function send(i){
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, vals[i]);
+  }
+  function fmt(v){ return Math.round(v*100) + "%"; }
+
+  // ---- build tick ring svg ----
+  function ringSVG(){
+    var s='<svg viewBox="0 0 76 76">';
+    for(var k=0;k<=10;k++){
+      var a=(-135 + k*27)*Math.PI/180;
+      var x1=38+30*Math.cos(a), y1=38+30*Math.sin(a);
+      var x2=38+34*Math.cos(a), y2=38+34*Math.sin(a);
+      s+='<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="rgba(90,52,17,.55)" stroke-width="1.5" stroke-linecap="round"/>';
+    }
+    return s+'</svg>';
+  }
+
+  var knobEls=[], valEls=[];
+
+  function buildKnob(p){
+    var wrap=document.createElement("div"); wrap.className="knobwrap";
+    var ring=document.createElement("div"); ring.className="ring"; ring.innerHTML=ringSVG();
+    var knob=document.createElement("div"); knob.className="knob";
+    knob.innerHTML='<div class="cap"></div><div class="pointer"></div>';
+    ring.appendChild(knob);
+    var name=document.createElement("div"); name.className="name"; name.textContent=p.name;
+    var val=document.createElement("div"); val.className="val";
+    wrap.appendChild(ring); wrap.appendChild(name); wrap.appendChild(val);
+
+    knobEls[p.index]=knob; valEls[p.index]=val;
+
+    function paint(){
+      var v=vals[p.index];
+      var ang=-135 + v*270;
+      knob.querySelector(".pointer").style.setProperty("--ang", ang+"deg");
+      val.textContent=fmt(v);
+    }
+    knob._paint=paint; paint();
+
+    // drag handling (vertical)
+    var dragging=false, startY=0, startV=0;
+    function down(e){
+      dragging=true; knob.classList.add("grab");
+      startY=(e.touches?e.touches[0].clientY:e.clientY);
+      startV=vals[p.index];
+      e.preventDefault();
+      window.addEventListener("mousemove",move);
+      window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false});
+      window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dv=(startY-y)/180; // 180px = full sweep
+      var nv=Math.max(0,Math.min(1,startV+dv));
+      vals[p.index]=nv; paint(); send(p.index);
+      e.preventDefault();
+    }
+    function up(){
+      dragging=false; knob.classList.remove("grab");
+      window.removeEventListener("mousemove",move);
+      window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move);
+      window.removeEventListener("touchend",up);
+    }
+    knob.addEventListener("mousedown",down);
+    knob.addEventListener("touchstart",down,{passive:false});
+    knob.addEventListener("dblclick",function(){
+      vals[p.index]=p.def; paint(); send(p.index);
+    });
+    // wheel fine-tune
+    knob.addEventListener("wheel",function(e){
+      var nv=Math.max(0,Math.min(1,vals[p.index]-Math.sign(e.deltaY)*0.02));
+      vals[p.index]=nv; paint(); send(p.index); e.preventDefault();
+    },{passive:false});
+
+    return wrap;
+  }
+
+  var bank=document.getElementById("bank");
+  PARAMS.forEach(function(p){ bank.appendChild(buildKnob(p)); });
+
+  // ---- animated honeyed comb sweep ----
+  var combg=document.getElementById("combg");
+  var NBANDS=26, paths=[];
+  for(var i=0;i<NBANDS;i++){
+    var pth=document.createElementNS("http://www.w3.org/2000/svg","path");
+    pth.setAttribute("fill","none");
+    pth.setAttribute("stroke", i%2 ? "url(#wg2)" : "url(#wg)");
+    pth.setAttribute("stroke-width", (i%2?1.1:1.6).toFixed(1));
+    combg.appendChild(pth); paths.push(pth);
+  }
+
+  var t0=performance.now();
+  function frame(now){
+    var t=(now-t0)/1000;
+    var rate=0.05 + Math.pow(vals[2],2)*5.95;     // Hz, matches DSP feel
+    var width=vals[1];                            // sweep depth
+    var manual=vals[0];                           // parked centre
+    var regen=vals[3];                            // notch sharpness
+    var mix=vals[4];                              // wet visibility
+    var lfo=Math.sin(2*Math.PI*rate*0.18*t);      // slowed for the eye
+    var centre=215 + (manual-0.5)*150;            // horizontal park position
+    var sweep=lfo*width*150;
+    var W=430,H=118;
+
+    for(var b=0;b<NBANDS;b++){
+      var phase=b/NBANDS;
+      var d="M0 "+(H/2);
+      var amp=(8 + regen*22) * (mix*0.6+0.4) * (1 - b/(NBANDS*1.6));
+      var notch=centre+sweep + (b- NBANDS/2)*3;
+      for(var x=0;x<=W;x+=10){
+        // comb-ish ripple whose density swells near the moving notch
+        var dist=Math.abs(x-notch);
+        var env=Math.exp(-dist*dist/(2*900));      // gaussian around notch
+        var freq=0.045 + env*0.10 + phase*0.01;
+        var y=H/2 + Math.sin(x*freq + t*(1.2+phase*2) + phase*6)*amp*(0.4+env)
+                  + Math.sin(x*0.012 + t*0.6)*4;
+        d+=" L"+x.toFixed(0)+" "+y.toFixed(1);
+      }
+      paths[b].setAttribute("d",d);
+      paths[b].style.opacity = (0.12 + (1-b/NBANDS)*0.5).toFixed(2);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function ready(){
+    for(var i=0;i<PARAMS.length;i++){
+      if(knobEls[i]) knobEls[i]._paint();
+      send(i);                       // initialise host to defaults
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

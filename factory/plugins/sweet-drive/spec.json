@@ -1,0 +1,16 @@
+{
+  "name": "Sweet Drive",
+  "isInstrument": false,
+  "explanation": "A warm asymmetric soft-clip overdrive. The signal is band-limited to clean the low end, then pushed into an asymmetric waveshaper that clips one half harder than the other — generating even harmonics for a sweeter, slightly fatter break-up over a gentle mid-hump. Touch-sensitive, amp-like dynamics; a post tone low-pass shapes brightness, with output Level and dry/wet Mix. Controls: Drive, Tone, Level, Mix.",
+  "assembly": "factory/plugins/sweet-drive/assembly.ts",
+  "out": "factory/plugins/sweet-drive/x.vstai",
+  "publishedAt": 1751000119000,
+  "theme": { "accent": "#ffd23d", "accent2": "#ff8a2a" },
+  "guiFile": "factory/plugins/sweet-drive/gui.html",
+  "params": [
+    { "name": "Drive", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Tone",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Mix",   "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

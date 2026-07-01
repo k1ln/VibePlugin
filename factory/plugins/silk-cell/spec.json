@@ -1,0 +1,18 @@
+{
+  "name": "Silk Cell",
+  "isInstrument": true,
+  "explanation": "A warm 8-bit sampler in the E-mu Emulator II lineage. It plays a baked, self-authored CC0 sample - a warm detuned-saw string/choir ensemble tone, gently low-passed and 8-bit crushed for the lush Emulator II warmth - pitched across the keyboard with an amp envelope and a resonant low-pass. A gentle Vibrato LFO keeps a held note alive. 6-voice poly. Controls: Tune, Cutoff, Attack, Decay, Vibrato and Level.",
+  "assembly": "factory/plugins/silk-cell/assembly.ts",
+  "out": "factory/plugins/silk-cell/x.vstai",
+  "guiFile": "factory/plugins/silk-cell/gui.html",
+  "publishedAt": 1751308400000,
+  "theme": { "accent": "#d0a060", "accent2": "#8a6ad0" },
+  "params": [
+    { "name": "Tune",    "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Cutoff",  "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Attack",  "index": 2, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Decay",   "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Vibrato", "index": 4, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Level",   "index": 5, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

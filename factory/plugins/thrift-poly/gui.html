@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thrift Poly</title>
+<style>
+  :root{
+    --mint:#5ad0a0;
+    --amber:#ffd24a;
+    --panel:#23262a;
+    --panel2:#1a1c1f;
+    --char:#2c3035;
+    --ink:#0c0d0e;
+    --lcd:#0a1410;
+    --lcdtxt:#7dffc4;
+    --label:#9aa3a0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    background:radial-gradient(120% 120% at 30% -10%, #34383d 0%, #1c1e21 55%, #131416 100%);
+    color:var(--label);
+    display:flex;align-items:center;justify-content:center;
+    padding:14px;
+    -webkit-user-select:none;user-select:none;
+    overflow:hidden;
+  }
+  .unit{
+    width:680px;max-width:100%;
+    background:
+      linear-gradient(180deg,#2b2f34 0%, #24272b 8%, #202326 100%);
+    border-radius:14px;
+    padding:18px 20px 22px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.06) inset,
+      0 -2px 0 rgba(0,0,0,.5) inset,
+      0 18px 40px rgba(0,0,0,.55),
+      0 2px 6px rgba(0,0,0,.6);
+    border:1px solid #0e0f10;
+    position:relative;
+  }
+  /* faux ventilation / brand groove */
+  .unit::before{
+    content:"";position:absolute;left:20px;right:20px;top:0;height:6px;
+    background:repeating-linear-gradient(90deg,transparent 0 7px,rgba(0,0,0,.25) 7px 8px);
+    border-radius:14px 14px 0 0;opacity:.4;
+  }
+  .top{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    margin-bottom:14px;gap:14px;
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;}
+  .brand .name{
+    font-weight:800;letter-spacing:.14em;font-size:19px;
+    color:#e9efe9;text-transform:uppercase;
+    text-shadow:0 1px 0 #000;
+  }
+  .brand .name b{color:var(--mint);}
+  .brand .sub{
+    font-size:9px;letter-spacing:.35em;color:#6f7873;text-transform:uppercase;
+  }
+  /* numeric LCD */
+  .lcd{
+    background:linear-gradient(180deg,#0d1a14,#06100b);
+    border:1px solid #000;border-radius:6px;
+    padding:7px 12px;min-width:188px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.8),0 0 0 2px #15181a;
+    position:relative;overflow:hidden;
+  }
+  .lcd::after{ /* scanline glass */
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);
+    pointer-events:none;
+  }
+  .lcd .pname{
+    font:700 9px/1 "Courier New",monospace;letter-spacing:.22em;
+    color:#3f7a5e;text-transform:uppercase;
+  }
+  .lcd .pval{
+    font:700 26px/1 "Courier New",monospace;letter-spacing:.04em;
+    color:var(--lcdtxt);
+    text-shadow:0 0 6px rgba(125,255,196,.55);
+    display:flex;align-items:baseline;gap:4px;margin-top:3px;
+  }
+  .lcd .pval small{font-size:11px;color:#4d9a76;}
+  .lcd .blink{
+    position:absolute;right:9px;top:9px;width:7px;height:7px;border-radius:50%;
+    background:var(--amber);box-shadow:0 0 8px var(--amber);
+    animation:beat 1.6s steps(1,end) infinite;
+  }
+  @keyframes beat{0%,55%{opacity:1}56%,100%{opacity:.15}}
+
+  /* main 2-column body */
+  .body{display:grid;grid-template-columns:218px 1fr;gap:18px;}
+
+  /* left: scope + chorus lamp */
+  .scopeWrap{
+    background:linear-gradient(180deg,#11241b,#081310);
+    border-radius:9px;border:1px solid #000;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.85),0 0 0 2px #15181a;
+    padding:10px;display:flex;flex-direction:column;gap:9px;
+  }
+  .scope{
+    width:100%;height:104px;border-radius:5px;display:block;
+    background:
+      repeating-linear-gradient(0deg,rgba(90,208,160,.06) 0 11px,transparent 11px 12px),
+      repeating-linear-gradient(90deg,rgba(90,208,160,.06) 0 11px,transparent 11px 12px),
+      #06100b;
+  }
+  .lampRow{display:flex;align-items:center;gap:9px;padding:0 2px 2px;}
+  .lamp{
+    width:14px;height:14px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff6cf 0%, var(--amber) 45%, #6a4f00 100%);
+    box-shadow:0 0 0 2px #0a0a0a, 0 0 12px var(--amber);
+    transition:opacity .2s, box-shadow .2s;
+  }
+  .lamp.on{animation:chorusPulse 1.7s ease-in-out infinite;}
+  @keyframes chorusPulse{
+    0%,100%{box-shadow:0 0 0 2px #0a0a0a,0 0 6px rgba(255,210,74,.5);opacity:.7}
+    50%{box-shadow:0 0 0 2px #0a0a0a,0 0 18px rgba(255,210,74,1);opacity:1}
+  }
+  .lampRow .lt{font:700 9px/1 "Courier New",monospace;letter-spacing:.2em;color:#8a8f8c;text-transform:uppercase;}
+
+  /* right: controls grid */
+  .controls{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px 8px;
+    background:linear-gradient(180deg,#2a2e33,#212429);
+    border-radius:9px;padding:16px 12px 10px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -2px 4px rgba(0,0,0,.4);
+    border:1px solid #141618;
+  }
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px;}
+
+  /* the BIG shared filter dial spans full width on top */
+  .cell.big{grid-column:1 / -1;flex-direction:row;justify-content:center;gap:18px;align-items:center;}
+  .bigtxt{display:flex;flex-direction:column;gap:3px;max-width:150px;}
+  .bigtxt .t{font:800 12px/1 sans-serif;letter-spacing:.12em;color:var(--mint);text-transform:uppercase;}
+  .bigtxt .d{font:400 10px/1.35 sans-serif;color:#7f8784;}
+
+  .knob{
+    --val:0.5;
+    width:58px;height:58px;border-radius:50%;cursor:grab;position:relative;
+    background:
+      radial-gradient(circle at 38% 30%, #4a4f55 0%, #2e3237 55%, #191b1d 100%);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.6),
+      0 -1px 1px rgba(255,255,255,.06) inset,
+      0 4px 8px rgba(0,0,0,.5);
+    border:1px solid #0c0d0e;
+    touch-action:none;
+  }
+  .knob.dragging{cursor:grabbing;}
+  .knob::after{ /* pointer */
+    content:"";position:absolute;left:50%;top:7px;width:3px;height:18px;
+    margin-left:-1.5px;border-radius:2px;
+    background:var(--mint);
+    box-shadow:0 0 6px var(--mint);
+    transform-origin:50% 22px;
+    transform:rotate(calc((var(--val) * 270deg) - 135deg));
+    transition:transform .04s linear;
+  }
+  /* glowing ring driven by --val */
+  .knob .ring{
+    position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+    background:conic-gradient(from 225deg,
+      var(--mint) 0deg,
+      var(--mint) calc(var(--val) * 270deg),
+      rgba(255,255,255,.05) calc(var(--val) * 270deg),
+      rgba(255,255,255,.05) 270deg,
+      transparent 270deg);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 4px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 calc(100% - 4px));
+    filter:drop-shadow(0 0 4px rgba(90,208,160,.6));
+    opacity:.9;
+  }
+  .knob.big2{width:96px;height:96px;}
+  .knob.big2::after{top:9px;height:30px;transform-origin:50% 39px;}
+  .knob.big2.glow .ring{
+    filter:drop-shadow(0 0 9px rgba(90,208,160,.95));
+    animation:filterGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes filterGlow{0%,100%{opacity:.85}50%{opacity:1}}
+
+  .lab{font:700 9px/1 "Courier New",monospace;letter-spacing:.16em;color:var(--label);text-transform:uppercase;}
+
+  /* membrane buttons row (decorative voice indicators) */
+  .voices{
+    grid-column:1 / -1;
+    display:flex;gap:6px;justify-content:center;margin-top:4px;
+  }
+  .mbtn{
+    flex:1;max-width:54px;height:26px;border-radius:4px;
+    background:linear-gradient(180deg,#33373c,#202326);
+    border:1px solid #0c0d0e;
+    box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 2px 3px rgba(0,0,0,.5);
+    display:flex;align-items:center;justify-content:center;
+    font:700 9px/1 "Courier New",monospace;color:#5c6460;letter-spacing:.05em;
+    position:relative;overflow:hidden;
+  }
+  .mbtn .dot{
+    width:6px;height:6px;border-radius:50%;background:#2a3a33;margin-right:5px;
+    transition:background .08s, box-shadow .08s;
+  }
+  .mbtn.lit .dot{background:var(--mint);box-shadow:0 0 8px var(--mint);}
+  .mbtn.lit{color:#cdd4cf;}
+
+  .foot{
+    margin-top:13px;display:flex;justify-content:space-between;align-items:center;
+    font:600 8.5px/1 "Courier New",monospace;letter-spacing:.18em;color:#5a615d;
+    text-transform:uppercase;
+  }
+  .foot .para{color:var(--mint);}
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="top">
+      <div class="brand">
+        <div class="name">THRIFT<b>·</b>POLY</div>
+        <div class="sub">8-Voice Paraphonic DCO</div>
+      </div>
+      <div class="lcd">
+        <div class="blink"></div>
+        <div class="pname" id="lcdName">CUTOFF</div>
+        <div class="pval"><span id="lcdVal">045</span><small id="lcdUnit">%</small></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="scopeWrap">
+        <canvas class="scope" id="scope" width="380" height="208"></canvas>
+        <div class="lampRow">
+          <div class="lamp" id="chorusLamp"></div>
+          <div class="lt">Chorus</div>
+        </div>
+      </div>
+
+      <div class="controls" id="controls">
+        <div class="cell big">
+          <div class="knob big2 glow" data-idx="0" data-min="0" data-max="1" data-def="0.45" id="kCut">
+            <div class="ring"></div>
+          </div>
+          <div class="bigtxt">
+            <div class="t">Shared Filter</div>
+            <div class="d">One resonant low-pass for all voices — sweep it and whole chords gurgle together.</div>
+          </div>
+        </div>
+
+        <div class="cell"><div class="knob" data-idx="1" data-min="0" data-max="1" data-def="0.4"><div class="ring"></div></div><div class="lab">Reso</div></div>
+        <div class="cell"><div class="knob" data-idx="2" data-min="0" data-max="1" data-def="0.6"><div class="ring"></div></div><div class="lab">Env Amt</div></div>
+        <div class="cell"><div class="knob" data-idx="3" data-min="0" data-max="1" data-def="0.5"><div class="ring"></div></div><div class="lab">Sub</div></div>
+        <div class="cell"><div class="knob" data-idx="4" data-min="0" data-max="1" data-def="0.5" id="kChor"><div class="ring"></div></div><div class="lab">Chorus</div></div>
+        <div class="cell"><div class="knob" data-idx="5" data-min="0" data-max="1" data-def="0.35"><div class="ring"></div></div><div class="lab">Release</div></div>
+        <div class="cell"><div class="knob" data-idx="6" data-min="0" data-max="1" data-def="0.7"><div class="ring"></div></div><div class="lab">Level</div></div>
+
+        <div class="voices" id="voices"></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="para">◆ Paraphonic Architecture</span>
+      <span>Budget Classic · DCO + Sub + Chorus</span>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var LABELS = ["CUTOFF","RESONANCE","ENV AMOUNT","SUB","CHORUS","RELEASE","LEVEL"];
+  var host = null;
+
+  function setParam(i,v){
+    try{ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v); }catch(e){}
+  }
+
+  // ---- voice indicator buttons (decorative, animated on activity) ----
+  var voicesEl = document.getElementById("voices");
+  for (var i=0;i<8;i++){
+    var b=document.createElement("div");
+    b.className="mbtn";
+    b.innerHTML='<span class="dot"></span>V'+(i+1);
+    voicesEl.appendChild(b);
+  }
+  var voiceBtns = voicesEl.querySelectorAll(".mbtn");
+
+  // ---- knob wiring ----
+  var lcdName=document.getElementById("lcdName");
+  var lcdVal=document.getElementById("lcdVal");
+  var chorusLamp=document.getElementById("chorusLamp");
+
+  var knobs=[].slice.call(document.querySelectorAll(".knob"));
+  var state={}; // idx -> norm value 0..1
+
+  function fmt(n){ var s=Math.round(n*100); return (s<10?"00":s<100?"0":"")+s; }
+
+  function showLcd(idx){
+    lcdName.textContent = LABELS[idx];
+    lcdVal.textContent = fmt(state[idx]);
+  }
+
+  function applyKnob(k, norm, show){
+    var idx=+k.getAttribute("data-idx");
+    var mn=+k.getAttribute("data-min"), mx=+k.getAttribute("data-max");
+    norm = norm<0?0:norm>1?1:norm;
+    state[idx]=norm;
+    k.style.setProperty("--val", norm.toFixed(4));
+    var real = mn + norm*(mx-mn);
+    setParam(idx, real);
+    if(show!==false) showLcd(idx);
+    if(idx===4){ // chorus lamp
+      if(norm>0.02){ chorusLamp.classList.add("on"); chorusLamp.style.opacity="1"; }
+      else { chorusLamp.classList.remove("on"); chorusLamp.style.opacity=".22"; }
+    }
+  }
+
+  knobs.forEach(function(k){
+    var idx=+k.getAttribute("data-idx");
+    var def=+k.getAttribute("data-def");
+    applyKnob(k, def, false);
+
+    var dragging=false, lastY=0;
+    function down(e){
+      dragging=true; k.classList.add("dragging");
+      lastY=(e.touches?e.touches[0].clientY:e.clientY);
+      showLcd(idx);
+      e.preventDefault();
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dy=lastY-y; lastY=y;
+      var step = e.shiftKey?0.0008:0.004;
+      applyKnob(k, state[idx]+dy*step, true);
+      e.preventDefault();
+    }
+    function up(){ dragging=false; k.classList.remove("dragging"); }
+
+    k.addEventListener("mousedown",down);
+    window.addEventListener("mousemove",move);
+    window.addEventListener("mouseup",up);
+    k.addEventListener("touchstart",down,{passive:false});
+    window.addEventListener("touchmove",move,{passive:false});
+    window.addEventListener("touchend",up);
+    k.addEventListener("dblclick",function(e){ applyKnob(k,def,true); e.preventDefault(); });
+    k.addEventListener("wheel",function(e){
+      applyKnob(k, state[idx] - (e.deltaY>0?0.03:-0.03), true);
+      e.preventDefault();
+    },{passive:false});
+  });
+
+  // ---- animated scope: stacked gurgly square/saw waves driven by params ----
+  var cv=document.getElementById("scope");
+  var ctx=cv.getContext("2d");
+  var W=cv.width, H=cv.height;
+  var t=0;
+
+  function draw(){
+    t+=0.018;
+    ctx.clearRect(0,0,W,H);
+    var cut=state[0], reso=state[1], sub=state[3], chor=state[4], lvl=state[6];
+
+    // gurgle: shared cutoff modulates how 'open' the waves look + a slow LFO wobble
+    var open = 0.18 + cut*0.82;
+    var wob = Math.sin(t*0.9)*chor*0.5;       // chorus wobble
+    var nLayers = 3;                           // stacked voices
+    for (var L=0; L<nLayers; L++){
+      var yMid = H*(0.28 + L*0.24);
+      var amp = (H*0.16) * open * (0.7+0.3*lvl);
+      var freq = 0.045 * (1 + L*0.45);
+      var alpha = 0.85 - L*0.18;
+      ctx.beginPath();
+      for (var x=0;x<=W;x+=2){
+        // square-ish core with saw lean + sub octave + chorus wobble
+        var ph = x*freq + t*1.3 + L*1.1 + wob;
+        var sq = Math.sin(ph) >= 0 ? 1 : -1;
+        var saw = ((ph/Math.PI)%2)-1;
+        var subw = (Math.sin(ph*0.5) >= 0 ? 1 : -1) * sub*0.5;
+        // resonance => ringing overshoot near edges
+        var ring = Math.sin(ph*6)*reso*0.22*Math.max(0,1-Math.abs(saw));
+        var v = (sq*0.6 + saw*0.4 + subw + ring);
+        var y = yMid - v*amp;
+        if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = "rgba(90,208,160,"+alpha.toFixed(3)+")";
+      ctx.lineWidth = 2;
+      ctx.shadowColor="rgba(90,208,160,.7)";
+      ctx.shadowBlur=6;
+      ctx.stroke();
+    }
+    ctx.shadowBlur=0;
+
+    // amber cutoff marker line
+    var cy = H - cut*H*0.92 - 4;
+    ctx.strokeStyle="rgba(255,210,74,.5)";
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // animate voice lamps with a gentle running pattern
+    var lit = Math.floor((Math.sin(t*0.7)*0.5+0.5)*5)+3;
+    for (var vi=0; vi<8; vi++){
+      if(vi<lit) voiceBtns[vi].classList.add("lit");
+      else voiceBtns[vi].classList.remove("lit");
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // init chorus lamp state
+  applyKnob(document.getElementById("kChor"), state[4], false);
+  showLcd(0);
+
+  // ---- host contract ----
+  function boot(){
+    // re-push all current values so DSP matches GUI defaults
+    knobs.forEach(function(k){
+      var idx=+k.getAttribute("data-idx");
+      applyKnob(k, state[idx], false);
+    });
+  }
+  if (window.vstai && typeof window.vstai.onReady === "function"){
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

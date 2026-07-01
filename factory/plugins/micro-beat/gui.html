@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Micro Beat</title>
+<style>
+  :root{ --acc:#5ad0ff; --acc2:#aab4c0; --bg0:#0a0c0e; --bg1:#161a1e; --ink:#e6edf2; --dim:#74808c; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#22282e 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(92vw,680px); border-radius:14px; padding:16px 22px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#242a30,#0c0f12); border:1px solid rgba(90,208,255,.18); box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:19px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:9px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:8px; height:8px; border-radius:50%; background:var(--acc); box-shadow:0 0 8px var(--acc); animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4;} 50%{ opacity:1;} }
+  /* LCD strip with voice lamps + step grid */
+  .lcd{ border-radius:7px; padding:8px 10px; margin-bottom:14px; background:linear-gradient(180deg,#0c2a26,#0a201d); border:1px solid rgba(90,255,200,.18); box-shadow:inset 0 2px 12px rgba(0,0,0,.5); }
+  .lamps{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:8px; }
+  .lamp{ font-size:8px; letter-spacing:.04em; text-transform:uppercase; text-align:center; padding:3px 0; border-radius:4px; color:#3f6; background:rgba(0,0,0,.25); border:1px solid rgba(90,255,200,.18); transition:all .06s; }
+  .lamp.on{ background:rgba(90,255,200,.85); color:#04130f; box-shadow:0 0 10px rgba(90,255,200,.6); }
+  .grid{ display:grid; grid-template-columns:repeat(16,1fr); gap:3px; }
+  .cell{ height:8px; border-radius:2px; background:rgba(90,255,200,.12); }
+  .cell.play{ background:#6affce; box-shadow:0 0 6px #6affce; }
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:64px; height:64px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(180,205,225,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(90,208,255,.6)); }
+  .pcap{ fill:#10151a; stroke:rgba(90,208,255,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:10px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(90,208,255,.1); padding:1px 6px; border-radius:6px; border:1px solid rgba(90,208,255,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">MICRO&nbsp;BEAT</span><span class="sub">budget drum box</span><span class="led"></span></header>
+    <div class="lcd"><div class="lamps" id="lamps"></div><div class="grid" id="grid"></div></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var VOICES=["Kick","Snare","Hat","Clap","Cym"];
+  var P=[{name:"Pitch",idx:0,def:0.5},{name:"Decay",idx:1,def:0.4},{name:"Click",idx:2,def:0.6},{name:"Hat",idx:3,def:0.6},{name:"Accent",idx:4,def:0.5},{name:"Level",idx:5,def:0.85}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var lw=document.getElementById("lamps");
+  var lamps=VOICES.map(function(nm){ var e=document.createElement("div"); e.className="lamp"; e.textContent=nm; lw.appendChild(e); return e; });
+  var gw=document.getElementById("grid"), cells=[];
+  for(var i=0;i<16;i++){ var c=document.createElement("div"); c.className="cell"; gw.appendChild(c); cells.push(c); }
+  var PAT=[0,2,1,2, 0,2,1,2, 0,2,3,2, 0,2,1,4];
+  var R=29, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 72 72"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ad0ff"/><stop offset="1" stop-color="#aab4c0"/></linearGradient></defs>'+
+      '<circle class="track" cx="36" cy="36" r="29"></circle><circle class="arc" cx="36" cy="36" r="29" transform="rotate(135 36 36)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="36" cy="36" r="18"></circle><line class="ptr" x1="36" y1="36" x2="36" y2="21"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(36+Math.sin(ang)*14).toFixed(2)); ptr.setAttribute("y2",(36-Math.cos(ang)*14).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/160)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def); return {render:render};
+  });
+  var step=-1,last=0,acc=0;
+  function frame(ts){ if(!last)last=ts; var dt=ts-last; last=ts; acc+=dt; var ms=60000/115/4;
+    if(acc>=ms){ acc-=ms; if(step>=0) cells[step].classList.remove("play"); step=(step+1)%16; cells[step].classList.add("play");
+      var v=PAT[step]; for(var i=0;i<5;i++) lamps[i].classList.toggle("on", i===v); }
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

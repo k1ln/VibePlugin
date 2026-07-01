@@ -1,0 +1,16 @@
+{
+  "name": "Bender Fuzz",
+  "isInstrument": false,
+  "explanation": "A thick, gated germanium fuzz in the vintage three-transistor lineage. Three cascaded asymmetric germanium-style clipping stages build a hard, mid-forward wall of fuzz that is grittier and more aggressive than a typical Fuzz Face or Big Muff. An envelope-tracking gate chokes the output as notes decay, giving the ragged staccato cut-off and 'spit' the circuit is famous for. A tilt Tone control shapes brightness and Level sets output. Controls: Fuzz, Gate, Tone, Level.",
+  "assembly": "factory/plugins/bender-fuzz/assembly.ts",
+  "out": "factory/plugins/bender-fuzz/x.vstai",
+  "publishedAt": 1751000114000,
+  "theme": { "accent": "#c8a85a", "accent2": "#ff6a3d" },
+  "guiFile": "factory/plugins/bender-fuzz/gui.html",
+  "params": [
+    { "name": "Fuzz",  "index": 0, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Gate",  "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Tone",  "index": 2, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level", "index": 3, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

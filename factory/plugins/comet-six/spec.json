@@ -1,0 +1,20 @@
+{
+  "name": "Comet Six",
+  "isInstrument": true,
+  "explanation": "A six-voice analog-style polyphonic synthesizer in the lineage of the early-80s multimode flagships. Each voice runs two oscillators — a band-limited saw and pulse — with oscillator cross-modulation and a touch of hard-sync grit for metallic edge, feeding a resonant state-variable filter whose MODE continuously morphs between low-pass, band-pass and high-pass for hollow, bright and nasal poly tones a plain low-pass cannot reach. A dedicated filter envelope and an amplitude AR shape every voice, so chords ring independently. Controls: Cutoff, Resonance, Filter Mode, Env Amount, Cross-Mod, Attack, Release and Level.",
+  "assembly": "factory/plugins/comet-six/assembly.ts",
+  "out": "factory/plugins/comet-six/x.vstai",
+  "publishedAt": 1751000130000,
+  "theme": { "accent": "#6ad0ff", "accent2": "#ff6ad0" },
+  "guiFile": "factory/plugins/comet-six/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "FilterMode", "index": 2, "min": 0, "max": 2, "default": 0, "step": 1 },
+    { "name": "EnvAmount",  "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "CrossMod",   "index": 4, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Attack",     "index": 5, "min": 0, "max": 1, "default": 0.04 },
+    { "name": "Release",    "index": 6, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Level",      "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

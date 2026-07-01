@@ -1,0 +1,19 @@
+{
+  "name": "Sub Station",
+  "isInstrument": true,
+  "explanation": "A modern virtual-analog acid/electro bass mono synth: a saw oscillator and a hard-synced pulse oscillator (the Sync control sets OSC2's pitch above OSC1, tearing out a screaming sync edge) plus a sub one octave down for weight. The mix drives a snappy resonant low-pass that squelches and screams under its decay envelope, then a post Overdrive stage adds aggressive, slightly-digital grit for in-your-face acid lines and squelchy leads.",
+  "assembly": "factory/plugins/sub-station/assembly.ts",
+  "out": "factory/plugins/sub-station/x.vstai",
+  "guiFile": "factory/plugins/sub-station/gui.html",
+  "publishedAt": 1751000124000,
+  "theme": { "accent": "#3dff9a", "accent2": "#ff3d6a" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.72 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.78 },
+    { "name": "Sync",       "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Overdrive",  "index": 4, "min": 0, "max": 1, "default": 0.40 },
+    { "name": "Decay",      "index": 5, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.80 }
+  ]
+}

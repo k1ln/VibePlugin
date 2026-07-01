@@ -1,0 +1,18 @@
+{
+  "name": "Polar Six",
+  "isInstrument": true,
+  "explanation": "A warm 6-voice analog polysynth in the Sequential / Chroma Polaris lineage. Its signature is oscillator hard sync: a second sawtooth is locked to the first's period but runs at a higher ratio set by Sync, so sweeping Sync gives the classic tearing sync-lead harmonics. A third gently-detuned saw layer (Detune) adds analog warmth, and a smooth resonant two-pole low-pass with its own envelope shapes the tone. 6-voice poly. Controls: Cutoff, Resonance, Env Amount, Sync (sync ratio), Detune (warmth layer) and Level.",
+  "assembly": "factory/plugins/polar-six/assembly.ts",
+  "out": "factory/plugins/polar-six/x.vstai",
+  "guiFile": "factory/plugins/polar-six/gui.html",
+  "publishedAt": 1751310800000,
+  "theme": { "accent": "#6ab8e0", "accent2": "#f0e2c0" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Sync",       "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Detune",     "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

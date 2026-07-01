@@ -1,0 +1,358 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --gold:#ffcf3d;        /* faceplate gold accent */
+  --ember:#d94a2a;       /* hot clipping ember */
+  --panel:#0c0b0a;       /* black tolex */
+  --brass:#caa23b;
+  --ink:#15110a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#f3e6c4;
+  background:
+    radial-gradient(130% 100% at 50% -20%,#211a12 0%,#0d0a07 60%,#040302 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:22px;overflow:hidden;
+}
+
+/* ===================== AMP CABINET ===================== */
+.amp{
+  position:relative;
+  width:360px;
+  border-radius:16px;
+  padding:16px;
+  background:
+    linear-gradient(180deg,#1c1714 0%,#100c09 55%,#070504 100%);
+  box-shadow:
+    0 44px 90px -22px rgba(0,0,0,.85),
+    0 0 0 2px #060403,
+    0 0 0 10px #18130d,           /* black tolex border */
+    0 0 0 12px #2a2014,
+    0 0 0 13px rgba(255,207,61,.08);
+  animation:rise .7s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.96)}to{opacity:1;transform:none}}
+
+/* tolex grain over the whole cab */
+.amp::before{
+  content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;
+  background:
+    repeating-linear-gradient(58deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(-58deg,rgba(0,0,0,.18) 0 1px,transparent 1px 4px);
+  opacity:.6;mix-blend-mode:overlay;
+}
+
+/* corner protectors */
+.corner{position:absolute;width:24px;height:24px;z-index:3;
+  background:radial-gradient(circle at 35% 30%,#3a3326,#1a160f 70%);
+  box-shadow:0 1px 2px rgba(0,0,0,.7),inset 0 1px 1px rgba(255,255,255,.12);}
+.corner.tl{top:-7px;left:-7px;border-radius:14px 4px 14px 4px}
+.corner.tr{top:-7px;right:-7px;border-radius:4px 14px 4px 14px}
+.corner.bl{bottom:-7px;left:-7px;border-radius:4px 14px 4px 14px}
+.corner.br{bottom:-7px;right:-7px;border-radius:14px 4px 14px 4px}
+
+/* ===================== GOLD FACEPLATE ===================== */
+.faceplate{
+  position:relative;
+  border-radius:9px;
+  padding:14px 16px 12px;
+  background:
+    linear-gradient(180deg,#ffe07a 0%,#f2bb33 18%,#d99a1e 55%,#b97e16 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -3px 8px rgba(80,45,0,.5),
+    0 2px 4px rgba(0,0,0,.6),
+    0 0 0 1px #6e4d0d;
+}
+/* brushed gold sheen */
+.faceplate::before{
+  content:"";position:absolute;inset:0;border-radius:9px;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.10) 0 1px,transparent 1px 3px),
+    radial-gradient(120% 80% at 25% 0%,rgba(255,255,255,.45),transparent 50%);
+  mix-blend-mode:screen;opacity:.55;
+}
+
+/* brand row */
+.brandrow{display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:2;margin-bottom:6px}
+.logo{
+  font-family:"Brush Script MT","Segoe Script",cursive;
+  font-size:30px;font-weight:700;font-style:italic;
+  color:#1a1206;
+  text-shadow:0 1px 0 rgba(255,255,255,.55),0 2px 3px rgba(80,50,0,.5);
+  letter-spacing:.5px;line-height:1;
+}
+.modeltag{
+  font:700 9px/1 ui-sans-serif,system-ui;letter-spacing:.22em;
+  color:#3a2807;text-transform:uppercase;
+  border:1px solid rgba(58,40,7,.5);border-radius:3px;padding:4px 6px;
+  background:rgba(255,255,255,.12);
+}
+
+/* power lamp (jewel) */
+.jewel{
+  position:relative;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#ffe8a0,var(--ember) 55%,#5c1503 100%);
+  box-shadow:0 0 12px 3px rgba(217,74,42,.7),inset 0 0 4px rgba(0,0,0,.4);
+  animation:flicker 3.4s ease-in-out infinite;
+}
+@keyframes flicker{
+  0%,100%{box-shadow:0 0 12px 3px rgba(217,74,42,.7),inset 0 0 4px rgba(0,0,0,.4)}
+  50%{box-shadow:0 0 18px 5px rgba(255,160,60,.85),inset 0 0 4px rgba(0,0,0,.4)}
+}
+
+/* ===================== CLIPPING SCOPE ===================== */
+.scope{
+  position:relative;z-index:2;
+  margin:4px 0 10px;border-radius:6px;height:78px;overflow:hidden;
+  background:
+    radial-gradient(120% 140% at 50% 0%,#2a1404 0%,#170a02 70%,#0a0401 100%);
+  box-shadow:inset 0 0 0 1px #6e4d0d,inset 0 4px 14px rgba(0,0,0,.7);
+}
+.scope svg{display:block;width:100%;height:100%}
+.grid{stroke:rgba(255,207,61,.10);stroke-width:1}
+.wave{fill:none;stroke:url(#emberg);stroke-width:2.4;
+  filter:drop-shadow(0 0 5px rgba(217,74,42,.85));
+  stroke-linejoin:round;stroke-linecap:round}
+.rail{stroke:rgba(255,207,61,.28);stroke-width:1;stroke-dasharray:4 5}
+.glow{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.92}50%{opacity:.6}}
+
+/* ===================== TWEED GRILLE + KNOBS ===================== */
+.deck{
+  position:relative;z-index:2;
+  border-radius:7px;padding:16px 8px 12px;
+  background:
+    repeating-linear-gradient(48deg,#7a6336 0 2px,#5e4c28 2px 4px),
+    repeating-linear-gradient(-48deg,rgba(0,0,0,.22) 0 2px,transparent 2px 4px),
+    linear-gradient(180deg,#6b572f,#4a3c20);
+  box-shadow:inset 0 0 0 1px #2c2310,inset 0 2px 10px rgba(0,0,0,.6),
+             0 1px 0 rgba(255,255,255,.06);
+}
+.deck::after{ /* grille cloth weave shimmer */
+  content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.10) 0 3px,transparent 3px 6px);
+  opacity:.5;
+}
+.knobs{display:flex;justify-content:space-around;position:relative;z-index:2}
+
+.pot{display:flex;flex-direction:column;align-items:center;gap:7px;
+  opacity:0;transform:translateY(10px);
+  animation:potin .55s cubic-bezier(.2,.8,.25,1) forwards;animation-delay:var(--d)}
+@keyframes potin{to{opacity:1;transform:none}}
+
+.knob{position:relative;width:64px;height:64px;cursor:ns-resize;touch-action:none;
+  outline:none;transition:transform .12s ease}
+.knob:hover{transform:translateY(-2px)}
+.knob.act{transform:scale(1.04)}
+
+/* glowing ring behind the cap reflects value */
+.arc{position:absolute;inset:-7px;border-radius:50%;
+  background:conic-gradient(from 220deg,
+     var(--ember) 0deg,
+     var(--gold) calc(var(--n,0)*280deg),
+     rgba(255,255,255,.06) calc(var(--n,0)*280deg),
+     rgba(255,255,255,.06) 280deg,
+     transparent 280deg);
+  -webkit-mask:radial-gradient(circle,transparent 56%,#000 58%);
+          mask:radial-gradient(circle,transparent 56%,#000 58%);
+  filter:drop-shadow(0 0 6px rgba(255,180,60,.55));}
+
+.skirt{position:absolute;inset:2px;border-radius:50%;
+  background:radial-gradient(circle at 50% 38%,#2a2a2c,#101012 70%,#050506);
+  box-shadow:0 5px 10px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.08);}
+
+/* chicken-head pointer cap */
+.cap{position:absolute;inset:11px;border-radius:50%;
+  background:
+    radial-gradient(circle at 42% 32%,#fff4cf 0%,var(--gold) 30%,#b9821a 70%,#6e4d0d 100%);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.7),inset 0 -3px 6px rgba(80,45,0,.6),
+             0 2px 3px rgba(0,0,0,.5);
+  transform:rotate(calc(-140deg + var(--n,0)*280deg));transition:transform .05s linear;}
+.cap::after{content:"";position:absolute;left:50%;top:5px;width:5px;height:16px;
+  margin-left:-2.5px;border-radius:2px;
+  background:linear-gradient(#1a1206,#3a2807);
+  box-shadow:0 0 5px rgba(217,74,42,.7);}
+
+.pname{font:700 10px/1 ui-sans-serif,system-ui;letter-spacing:.16em;
+  text-transform:uppercase;color:#f0d690;text-shadow:0 1px 1px rgba(0,0,0,.7)}
+.pval{font:700 11px/1 ui-monospace,Menlo,monospace;color:var(--gold);
+  text-shadow:0 0 6px rgba(255,180,60,.6);min-height:11px}
+
+/* bottom strip / serial */
+.foot{display:flex;justify-content:space-between;align-items:center;
+  margin-top:10px;position:relative;z-index:2;
+  font:600 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#7c6a3c}
+.foot .input{display:flex;align-items:center;gap:6px}
+.jack{width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#3a3326,#0c0a06 70%);
+  box-shadow:inset 0 0 3px rgba(0,0,0,.9),0 0 0 2px #4a3c20}
+</style>
+</head>
+<body>
+<div class="amp">
+  <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+
+  <div class="faceplate">
+    <div class="brandrow">
+      <div class="logo">Brit&nbsp;Distortion</div>
+      <div class="jewel" title="Power"></div>
+    </div>
+
+    <div class="scope">
+      <svg viewBox="0 0 320 78" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="emberg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe07a"/>
+            <stop offset="0.5" stop-color="var(--gold)"/>
+            <stop offset="1" stop-color="#d94a2a"/>
+          </linearGradient>
+        </defs>
+        <line class="grid" x1="0" y1="39" x2="320" y2="39"/>
+        <line class="grid" x1="80" y1="0" x2="80" y2="78"/>
+        <line class="grid" x1="160" y1="0" x2="160" y2="78"/>
+        <line class="grid" x1="240" y1="0" x2="240" y2="78"/>
+        <line class="rail" id="railT" x1="0" y1="12" x2="320" y2="12"/>
+        <line class="rail" id="railB" x1="0" y1="66" x2="320" y2="66"/>
+        <path class="wave glow" id="wave" d=""/>
+      </svg>
+    </div>
+
+    <div class="deck">
+      <div class="knobs" id="knobs"></div>
+    </div>
+
+    <div class="foot">
+      <div class="input"><span class="jack"></span>INPUT</div>
+      <div>BD-1 &middot; CLASS-A PREAMP</div>
+      <div class="modeltag">Amp&nbsp;In&nbsp;A&nbsp;Box</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Gain",  index:0,min:0,max:1,def:0.55},
+    {name:"Bass",  index:1,min:0,max:1,def:0.5},
+    {name:"Mid",   index:2,min:0,max:1,def:0.5},
+    {name:"Treble",index:3,min:0,max:1,def:0.55},
+    {name:"Level", index:4,min:0,max:1,def:0.6}
+  ];
+  var state={};
+  var knobsEl=document.getElementById('knobs');
+  var waveEl=document.getElementById('wave');
+
+  function disp(v){ return Math.round(v*10); } // 0..10 amp-knob feel
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*70)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0" title="'+p.name+'">'+
+        '<i class="arc"></i><i class="skirt"></i><i class="cap"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    knobsEl.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var cap=cell.querySelector('.cap');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var nrm=norm();
+      arc.style.setProperty('--n',nrm);
+      cap.style.setProperty('--n',nrm);
+      val.textContent=disp(nrm);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      onChange();
+    }
+    function setNorm(nrm){
+      nrm=nrm<0?0:nrm>1?1:nrm;
+      v=p.min+(p.max-p.min)*nrm;
+      paint();
+    }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true;startY=e.clientY;startN=norm();
+      knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?620:210;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){drag=false;knob.classList.remove('act');}
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){v=p.def;paint();});
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault();setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  // ---- live amp-in-a-box clip + tone-stack visualisation ----
+  function onChange(){
+    var gain =state[0]!=null?state[0]:0.55;
+    var bass =state[1]!=null?state[1]:0.5;
+    var mid  =state[2]!=null?state[2]:0.5;
+    var treb =state[3]!=null?state[3]:0.55;
+    var level=state[4]!=null?state[4]:0.6;
+
+    var g=1+gain*22;                         // visual drive
+    var amp=18+22*level;
+    var bassG=0.35+bass*1.85, midG=0.18+mid*2.42, trebG=0.30+treb*2.10;
+
+    var pts=[],N=160;
+    for(var x=0;x<=N;x++){
+      var t=x/N;
+      var ph=t*Math.PI*4;
+      var dry=Math.sin(ph);
+      // tone stack reshaping: low fundamental + mid harmonic + treble fizz
+      var shaped=dry*(0.5+0.5*bassG/2.2)
+               + 0.35*Math.sin(ph*2)*(midG/2.6)
+               + 0.20*Math.sin(ph*4)*(trebG/2.4);
+      // soft-knee -> hard tanh rail (amp-in-a-box clipper)
+      var soft=shaped*g; soft=soft-(soft*soft*soft)/9;
+      var wet=Math.tanh(soft*0.7)*0.92;
+      var y=39 - wet*amp;
+      pts.push((x*(320/N)).toFixed(1)+","+y.toFixed(2));
+    }
+    waveEl.setAttribute('d','M'+pts.join(' L'));
+    // clip rails tighten as gain climbs
+    var railY=amp*0.92;
+    document.getElementById('railT').setAttribute('y1',(39-railY).toFixed(1));
+    document.getElementById('railT').setAttribute('y2',(39-railY).toFixed(1));
+    document.getElementById('railB').setAttribute('y1',(39+railY).toFixed(1));
+    document.getElementById('railB').setAttribute('y2',(39+railY).toFixed(1));
+  }
+
+  PARAMS.forEach(buildKnob);
+
+  function ready(){ onChange(); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

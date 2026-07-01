@@ -225,7 +225,7 @@
         'stroke-dasharray="0 999" transform="rotate(135 37 37)"/>'+
       '<defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1">'+
         '<stop offset="0" stop-color="#7a86ff"/><stop offset="1" stop-color="#42e6c4"/></linearGradient></defs>'+
-      '<g class="needle"><line x1="37" y1="37" x2="37" y2="14" stroke="#cfe0ff" stroke-width="2.5" stroke-linecap="round"/></g>'+
+      '<g class="needle"><line class="ndl" x1="37" y1="37" x2="37" y2="14" stroke="#cfe0ff" stroke-width="2.5" stroke-linecap="round"/></g>'+
       '<circle cx="37" cy="37" r="4.5" fill="#0d1226" stroke="#42e6c4" stroke-width="1.4"/>'+
       '</svg>';
     var name = document.createElement("div"); name.className="kName"; name.textContent=k.name;
@@ -234,7 +234,7 @@
     knobWrap.appendChild(wrap);
 
     var ring = dial.querySelector(".ring");
-    var needle = dial.querySelector(".needle");
+    var ndl = dial.querySelector(".ndl");
     var C = 2*Math.PI*30;              // circumference
     var SWEEP = 270/360;               // 270deg arc
 
@@ -242,7 +242,11 @@
       var v = state[k.idx];
       var len = C*SWEEP*v;
       ring.setAttribute("stroke-dasharray", len+" 999");
-      needle.setAttribute("transform","rotate("+(-135 + v*270)+" 37 37)");
+      // compute the needle tip directly (avoids CSS transform-origin conflict
+      // that was flinging the pointer off-centre)
+      var th = (-135 + v*270) * Math.PI/180;
+      ndl.setAttribute("x2", (37 + 23*Math.sin(th)).toFixed(2));
+      ndl.setAttribute("y2", (37 - 23*Math.cos(th)).toFixed(2));
       val.textContent = k.fmt(v);
     }
     function set(v){

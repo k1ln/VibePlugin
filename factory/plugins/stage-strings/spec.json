@@ -1,0 +1,19 @@
+{
+  "name": "Stage Strings",
+  "isInstrument": true,
+  "explanation": "A dual string + brass ensemble machine in the lineage of the 70s divide-down stage keyboards. Fully polyphonic: every held note drives two blendable sections that share its pitch — a bright, fast STRINGS section (three detuned saws plus an octave shimmer) and a slower, swelling BRASS section (a reedy pulse + saw pushed through a per-voice low-pass that opens with its own bloom envelope, so notes lean in from dark to bright). The two are mixed by the Strings / Brass levels, shaped by a shared Attack/Release contour, tilted by Tone, then run through a triple-tap ensemble chorus for the lush, wide 70s shimmer. Controls: Strings, Brass, Attack, Release, Ensemble, Tone and Level.",
+  "assembly": "factory/plugins/stage-strings/assembly.ts",
+  "out": "factory/plugins/stage-strings/x.vstai",
+  "publishedAt": 1751000145000,
+  "theme": { "accent": "#ffcf6a", "accent2": "#ff8a6a" },
+  "guiFile": "factory/plugins/stage-strings/gui.html",
+  "params": [
+    { "name": "Strings",  "index": 0, "min": 0, "max": 1, "default": 0.75 },
+    { "name": "Brass",    "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Attack",   "index": 2, "min": 0, "max": 1, "default": 0.28 },
+    { "name": "Release",  "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Ensemble", "index": 4, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Tone",     "index": 5, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level",    "index": 6, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

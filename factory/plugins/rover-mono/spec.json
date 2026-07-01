@@ -1,0 +1,18 @@
+{
+  "name": "Rover Mono",
+  "isInstrument": true,
+  "explanation": "A budget two-oscillator Moog monosynth in the Moog Rogue lineage. Two sawtooth oscillators: osc1 tracks the note while Osc2 Interval tunes the second up to plus or minus an octave for fat detune, unison, fifths or octave stacks, and Osc Mix balances the pair. They run through a warm, resonant four-pole Moog-style ladder low-pass with its own envelope for the classic squelchy Moog bass and lead. Mono, last-note priority. Controls: Cutoff, Resonance, Env Amount, Osc2 Interval, Osc Mix and Level.",
+  "assembly": "factory/plugins/rover-mono/assembly.ts",
+  "out": "factory/plugins/rover-mono/x.vstai",
+  "guiFile": "factory/plugins/rover-mono/gui.html",
+  "publishedAt": 1751312600000,
+  "theme": { "accent": "#e08040", "accent2": "#3a90c0" },
+  "params": [
+    { "name": "Cutoff",        "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance",     "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Env Amount",    "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Osc2 Interval", "index": 3, "min": 0, "max": 1, "default": 0.52 },
+    { "name": "Osc Mix",       "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",         "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

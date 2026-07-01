@@ -1,0 +1,19 @@
+{
+  "name": "Arc Poly",
+  "isInstrument": true,
+  "explanation": "An American-style polyphonic synth voice: a bank of up to 8 independent voices, each with its own VCO (saw + PWM pulse), its own 4-pole resonant low-pass with a decay envelope, and its own amp envelope — so holding a chord sounds every note at its own pitch. A shared SAMPLE & HOLD source samples a new random level at the S&H Rate and wobbles every voice's cutoff by S&H Depth in lock-step, giving the classic stepped-random ARP burble. Pitch tracks each played note in Hz.",
+  "assembly": "factory/plugins/arc-mono/assembly.ts",
+  "out": "factory/plugins/arc-mono/arc-poly.vstai",
+  "guiFile": "factory/plugins/arc-mono/gui.html",
+  "publishedAt": 1751000122000,
+  "theme": { "accent": "#ff8a3d", "accent2": "#5ad0a0" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.42 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "S&H Depth",  "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "S&H Rate",   "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Decay",      "index": 5, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

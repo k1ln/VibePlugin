@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Grit Wave</title>
+<style>
+  :root{ --acc:#ff6a4a; --acc2:#4ad0c0; --bg0:#0f0806; --bg1:#1e0f0b; --ink:#f7e9e4; --dim:#9a7a70; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(120% 90% at 50% -10%,#2c1810 0%,var(--bg1) 46%,var(--bg0) 100%); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#26130d,#0f0806); border:1px solid rgba(255,106,74,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(247,233,228,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4;} 50%{ opacity:1;} }
+  .screen{ height:118px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative; background:linear-gradient(180deg,#180c08,#0e0705); border:1px solid rgba(255,106,74,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.22em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:70px; height:70px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(238,220,214,.13); stroke-width:7; stroke-linecap:round; } .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(255,106,74,.6)); }
+  .pcap{ fill:#160b07; stroke:rgba(255,106,74,.22); stroke-width:1; } .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); } .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(255,106,74,.1); padding:1px 7px; border-radius:7px; border:1px solid rgba(255,106,74,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style></head>
+<body>
+  <div class="unit">
+    <header><span class="logo">GRIT&nbsp;WAVE</span><span class="sub">wavetable poly</span><span class="led"></span></header>
+    <div class="screen"><div class="scrlbl">WAVETABLE&nbsp;SCAN</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){"use strict";
+  var P=[{name:"Cutoff",idx:0,def:0.6},{name:"Reso",idx:1,def:0.3},{name:"Position",idx:2,def:0.3},{name:"Scan",idx:3,def:0.4},{name:"Drive",idx:4,def:0.35},{name:"Level",idx:5,def:0.8}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 80 80"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6a4a"/><stop offset="1" stop-color="#4ad0c0"/></linearGradient></defs><circle class="track" cx="40" cy="40" r="33"></circle><circle class="arc" cx="40" cy="40" r="33" transform="rotate(135 40 40)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="40" cy="40" r="20"></circle><line class="ptr" x1="40" y1="40" x2="40" y2="23"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el); var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString()); var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(40+Math.sin(ang)*16).toFixed(2)); ptr.setAttribute("y2",(40-Math.cos(ang)*16).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
+  // precompute 8 wavetable frames (approx of the DSP frames)
+  var NF=8, FL=128, FR=[];
+  for(var f=0;f<NF;f++){ var ff=f/(NF-1); var nh=1+Math.floor(ff*20); var fc=2+ff*10; var arr=new Float32Array(FL); var pk=1e-4;
+    for(var i=0;i<FL;i++){ var ph=i/FL; var v=0; for(var h=1;h<=nh;h++){ var amp=1/h + 0.5*Math.exp(-((h-fc)*(h-fc))/6); v+=amp*Math.sin(2*Math.PI*h*ph); } arr[i]=v; if(Math.abs(v)>pk)pk=Math.abs(v); }
+    for(var i2=0;i2<FL;i2++) arr[i2]*=0.9/pk; FR.push(arr); }
+  function sampleFrame(fp,ph){ if(fp<0)fp=0; if(fp>NF-1)fp=NF-1; var f0=Math.floor(fp), f1=Math.min(NF-1,f0+1), fr=fp-f0;
+    var x=ph*FL, i0=Math.floor(x)%FL, i1=(i0+1)%FL, xf=x-Math.floor(x);
+    var a=FR[f0][i0]+(FR[f0][i1]-FR[f0][i0])*xf, b=FR[f1][i0]+(FR[f1][i1]-FR[f1][i0])*xf; return a+(b-a)*fr; }
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); } window.addEventListener("resize",resize); resize();
+  function frame(ts){ ctx.clearRect(0,0,W,H); var pos=vals[2], scan=vals[3], drive=vals[4];
+    var lfo=0.5+0.5*Math.sin(ts/1000*(0.3+scan*4));
+    var framePos=pos*(NF-1)+scan*3.5*lfo; if(framePos>NF-1)framePos=NF-1;
+    var mid=H*0.42, amp=H*0.30;
+    // main morphing waveform (2 cycles), drive thickens/grits
+    ctx.beginPath();
+    for(var x=0;x<=W;x+=1.5){ var t=x/W; var ph=(t*2)%1; var v=sampleFrame(framePos,ph); v=Math.tanh(v*(1+drive*5))/(1+drive*1.2);
+      ctx.lineTo(x, mid - v*amp); }
+    var grd=ctx.createLinearGradient(0,0,W,0); grd.addColorStop(0,"#ff6a4a"); grd.addColorStop(1,"#4ad0c0");
+    ctx.strokeStyle=grd; ctx.lineWidth=2; ctx.shadowColor="#ff6a4a"; ctx.shadowBlur=7+drive*6; ctx.stroke(); ctx.shadowBlur=0;
+    // filmstrip of 8 frames at bottom
+    var stripY=H-22, tw=(W-24)/NF;
+    for(var f=0;f<NF;f++){ var x0=12+f*tw; var active=(Math.abs(f-framePos)<0.6);
+      ctx.strokeStyle=active?"#4ad0c0":"rgba(255,106,74,0.3)"; ctx.lineWidth=active?1.4:1; ctx.beginPath();
+      for(var xx=0;xx<tw-3;xx+=2){ var ph2=(xx/(tw-3)); var vv=FR[f][Math.floor(ph2*FL)%FL]; ctx.lineTo(x0+xx, stripY - vv*7); }
+      ctx.stroke(); }
+    // scan playhead over filmstrip
+    var hx=12+(framePos/(NF-1))*(W-24); ctx.strokeStyle="rgba(74,208,192,0.7)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(hx,stripY-12); ctx.lineTo(hx,stripY+12); ctx.stroke();
+    ctx.fillStyle="#4ad0c0"; ctx.beginPath(); ctx.arc(hx,stripY-12,2.5,0,Math.PI*2); ctx.fill();
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script></body></html>

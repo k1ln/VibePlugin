@@ -156,7 +156,8 @@ export function process(n: i32): void {
       const x: f32 = inBuf[base + f];
       const comp: f32 = x * gr * makeup;
       const y: f32 = x * (1.0 - mix) + comp * mix;
-      outBuf[base + f] = f32(y * outTrim);
+      // gentle opto-style soft clip so makeup gain never hard-clips
+      outBuf[base + f] = f32(Mathf.tanh(y * outTrim));
     }
   }
 

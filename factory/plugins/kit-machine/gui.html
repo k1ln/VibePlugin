@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kit Machine</title>
+<style>
+  :root{ --acc:#ff7a3d; --acc2:#ffd24a; --bg0:#0c0805; --bg1:#1a1108; --ink:#ffe8d2; --dim:#a07a58; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#2a1a0c 0%,var(--bg1) 45%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,780px); border-radius:16px; padding:16px 20px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#33220f,#160d06);
+    border:1px solid rgba(255,150,80,.18); box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,210,150,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:14px; position:relative; z-index:2; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .bpm{ margin-left:auto; font-size:11px; letter-spacing:.1em; color:var(--acc2); font-variant-numeric:tabular-nums;
+    background:#1c1207; padding:3px 9px; border-radius:5px; border:1px solid rgba(255,180,90,.25); }
+
+  .pads{ display:grid; grid-template-columns:repeat(8,1fr); gap:7px; margin-bottom:12px; }
+  .pad{ position:relative; border-radius:9px; padding:9px 4px 7px; text-align:center; overflow:hidden;
+    background:linear-gradient(180deg,#241710,#160d07); border:1px solid rgba(255,150,80,.18); }
+  .pad .nm{ font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); position:relative; z-index:2; }
+  .pad .lamp{ position:absolute; inset:0; background:radial-gradient(circle at 50% 35%,var(--acc),transparent 70%); opacity:0; }
+
+  .seq{ display:grid; grid-template-columns:repeat(16,1fr); gap:4px; margin-bottom:14px; }
+  .cell{ height:13px; border-radius:3px; background:#1d130a; border:1px solid rgba(255,150,80,.1); transition:background .05s,box-shadow .05s; }
+  .cell.on{ background:linear-gradient(180deg,var(--acc2),var(--acc)); }
+  .cell.beat{ border-color:rgba(255,180,90,.4); }
+  .cell.play{ box-shadow:0 0 10px var(--acc),0 0 4px #fff inset; }
+
+  .knobs{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 2px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:72px; height:72px; position:relative; }
+  .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(255,180,120,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(255,140,70,.6)); }
+  .pcap{ fill:#1a1108; stroke:rgba(255,150,80,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(255,140,70,.1);
+    padding:1px 8px; border-radius:7px; border:1px solid rgba(255,140,70,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header>
+      <span class="logo">KIT&nbsp;MACHINE</span>
+      <span class="sub">sample drum machine</span>
+      <span class="bpm" id="bpm">110 BPM</span>
+    </header>
+    <div class="pads" id="pads"></div>
+    <div class="seq" id="seq"></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var VOICES=["Kick","Snare","C Hat","O Hat","Clap","Tom","Rim","Cow"];
+  var PARAMS=[
+    {name:"Tune",idx:0,def:0.5,bip:true},
+    {name:"Decay",idx:1,def:0.6},
+    {name:"Snap",idx:2,def:0.4},
+    {name:"Tone",idx:3,def:0.6},
+    {name:"Level",idx:4,def:0.85}
+  ];
+  var vals={}; PARAMS.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null;
+  function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  function fmt(p,v){ if(p.bip){ var st=Math.round((v-0.5)*24); return (st>0?"+":"")+st+" st"; } return Math.round(v*100)+"%"; }
+
+  // ---- pads ----
+  var padWrap=document.getElementById("pads");
+  var lamps=VOICES.map(function(nm){
+    var el=document.createElement("div"); el.className="pad";
+    el.innerHTML='<div class="lamp"></div><div class="nm">'+nm+'</div>';
+    padWrap.appendChild(el);
+    return el.querySelector(".lamp");
+  });
+
+  // ---- 16-step sequencer grid (a classic demo pattern) ----
+  var seqWrap=document.getElementById("seq");
+  // pattern: which voice fires on each of 16 steps (-1 = none); a lively beat
+  var PATTERN=[0,2,4,2, 0,2,4,2, 0,2,4,2, 0,7,4,3];   // shown row, plus kick/hat layer
+  var KICK=[1,0,0,0, 1,0,0,0, 0,0,1,0, 1,0,0,0];
+  var HAT =[1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+  var cells=[];
+  for(var i=0;i<16;i++){
+    var c=document.createElement("div"); c.className="cell"+((i%4===0)?" beat":"");
+    seqWrap.appendChild(c); cells.push(c);
+  }
+
+  // ---- knobs ----
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=PARAMS.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 84 84">'+
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd24a"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient></defs>'+
+      '<circle class="track" cx="42" cy="42" r="33"></circle>'+
+      '<circle class="arc" cx="42" cy="42" r="33" transform="rotate(135 42 42)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="42" cy="42" r="20"></circle>'+
+      '<line class="ptr" x1="42" y1="42" x2="42" y2="25"></line></svg></div>'+
+      '<span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){
+      var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180;
+      ptr.setAttribute("x2",(42+Math.sin(ang)*17).toFixed(2));
+      ptr.setAttribute("y2",(42-Math.cos(ang)*17).toFixed(2));
+      val.textContent=fmt(p,v);
+    }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; });
+    el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+
+  // ---- running sequencer animation ----
+  var step=-1, lastT=0, acc=0;
+  function setStep(s){
+    for(var i=0;i<16;i++){
+      var fire = (PATTERN[i]>=0 && i===s) || (KICK[i] && i===s);
+      cells[i].classList.toggle("play", i===s);
+      cells[i].classList.toggle("on", KICK[i]===1 || PATTERN[i]>=0);
+    }
+    // light pads for whatever fires on this step
+    var fired={};
+    if(KICK[s]) fired[0]=1;
+    if(HAT[s]) fired[2]=1;
+    if(PATTERN[s]>=0) fired[PATTERN[s]]=1;
+    for(var v=0;v<8;v++){ if(fired[v]){ lamps[v].style.opacity="0.95"; } }
+  }
+  function frame(ts){
+    if(!lastT)lastT=ts; var dt=ts-lastT; lastT=ts; acc+=dt;
+    var stepMs=60000/110/4; // 16th notes at 110 BPM
+    if(acc>=stepMs){ acc-=stepMs; step=(step+1)%16; setStep(step); }
+    // fade pad lamps
+    for(var v=0;v<8;v++){ var o=parseFloat(lamps[v].style.opacity||"0"); if(o>0){ lamps[v].style.opacity=Math.max(0,o-dt/260).toFixed(3); } }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function boot(){ host=window.vstai||null; PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

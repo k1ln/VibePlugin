@@ -1,0 +1,18 @@
+{
+  "name": "Crush Comp",
+  "isInstrument": false,
+  "explanation": "An aggressive FET-style compressor with built-in distortion. A fast, stereo-linked peak detector drives a soft-knee, dB-domain gain computer whose ratio steps from a gentle 2:1 up to a slamming NUKE all-in extreme; attack and a program-dependent release shape the punch. A DIST stage layers asymmetric 2nd/3rd-harmonic FET grit that grows as the compressor works, then a dry/wet Mix blends it back. Controls: Threshold, Ratio (gentle to NUKE), Attack, Release, Dist and Mix.",
+  "assembly": "factory/plugins/crush-comp/assembly.ts",
+  "out": "factory/plugins/crush-comp/x.vstai",
+  "publishedAt": 1751000118000,
+  "theme": { "accent": "#ff7a2a", "accent2": "#ffd23d" },
+  "guiFile": "factory/plugins/crush-comp/gui.html",
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Ratio",     "index": 1, "min": 0, "max": 5, "default": 3, "step": 1 },
+    { "name": "Attack",    "index": 2, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Release",   "index": 3, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Dist",      "index": 4, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Mix",       "index": 5, "min": 0, "max": 1, "default": 1 }
+  ]
+}

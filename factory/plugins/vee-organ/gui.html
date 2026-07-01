@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vee Organ</title>
+<style>
+  :root{ --acc:#ff9a3d; --acc2:#5ad0ff; --bg0:#0a0a0c; --bg1:#16151a; --ink:#f1ece4; --dim:#8a8478; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#26222a 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:14px; padding:16px 22px 22px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#22202a,#0c0b10); border:1px solid rgba(255,154,61,.18);
+    box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+  .panel{ font-size:9px; letter-spacing:.24em; color:var(--dim); text-transform:uppercase; margin:8px 2px 12px; }
+  .bars{ display:grid; grid-template-columns:repeat(6,1fr); gap:14px; align-items:end; padding:0 6px; }
+  .bar{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .slot{ width:30px; height:150px; border-radius:6px; position:relative; cursor:ns-resize; touch-action:none;
+    background:linear-gradient(180deg,#0c0b10,#1c1a22); border:1px solid rgba(255,154,61,.18); box-shadow:inset 0 2px 8px rgba(0,0,0,.6); }
+  .drawbar{ position:absolute; left:3px; right:3px; height:30px; border-radius:5px; box-shadow:0 4px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3); }
+  .nm{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  .vv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .bar:hover .nm{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">VEE&nbsp;ORGAN</span><span class="sub">combo organ · drawbars</span><span class="led"></span></header>
+    <div class="panel">— drawbar registration —</div>
+    <div class="bars" id="bars"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  // colored drawbar caps like a classic combo organ
+  var P=[
+    {name:"Low",idx:0,def:0.7,col:"#e8e4dc"},
+    {name:"High",idx:1,def:0.5,col:"#e8e4dc"},
+    {name:"Bright",idx:2,def:0.6,col:"#ff9a3d"},
+    {name:"Vibrato",idx:3,def:0.3,col:"#5ad0ff"},
+    {name:"Click",idx:4,def:0.4,col:"#222"},
+    {name:"Level",idx:5,def:0.8,col:"#ff5a6a"}
+  ];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var bw=document.getElementById("bars");
+  var bars=P.map(function(p){
+    var el=document.createElement("div"); el.className="bar";
+    el.innerHTML='<div class="slot"><div class="drawbar" style="background:linear-gradient(180deg,'+p.col+',rgba(0,0,0,0.35))"></div></div><span class="nm">'+p.name+'</span><span class="vv"></span>';
+    bw.appendChild(el);
+    var slot=el.querySelector(".slot"), db=el.querySelector(".drawbar"), val=el.querySelector(".vv");
+    function render(v){ var h=Math.max(0,Math.min(1,v)); db.style.top=((1-h)*(150-30))+"px"; val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    slot.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; slot.setPointerCapture(e.pointerId); e.preventDefault(); });
+    slot.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/120)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    slot.addEventListener("pointerup",function(){ drag=null; });
+    slot.addEventListener("pointercancel",function(){ drag=null; });
+    slot.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); bars[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "Rack Cell",
+  "isInstrument": true,
+  "explanation": "A crisp 12-bit rack sampler in the Akai S900 / S1000 lineage. It plays a baked, self-authored CC0 sample - a bright mallet/marimba tone with a prominent tuned overtone and a sharp attack click, kept clean at 12-bit for the crisp Akai clarity - pitched across the keyboard with an amp envelope and a resonant low-pass. The Crunch control can re-crush the playback down to lo-fi grit when wanted. 6-voice poly. Controls: Tune, Cutoff, Decay, Crunch, Attack and Level.",
+  "assembly": "factory/plugins/rack-cell/assembly.ts",
+  "out": "factory/plugins/rack-cell/x.vstai",
+  "guiFile": "factory/plugins/rack-cell/gui.html",
+  "publishedAt": 1751309000000,
+  "theme": { "accent": "#40c8b0", "accent2": "#e0e0e8" },
+  "params": [
+    { "name": "Tune",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Cutoff", "index": 1, "min": 0, "max": 1, "default": 0.75 },
+    { "name": "Decay",  "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Crunch", "index": 3, "min": 0, "max": 1, "default": 0.12 },
+    { "name": "Attack", "index": 4, "min": 0, "max": 1, "default": 0.05 },
+    { "name": "Level",  "index": 5, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Mini Volt",
+  "isInstrument": true,
+  "explanation": "A compact, expressive single-oscillator mono synth: one wide-range main oscillator (saw blended with a PWM pulse) plus a square sub an octave down, feeding a 4-pole resonant ladder low-pass with its own snappy filter envelope. Osc Mod adds a small LFO that vibratos the pitch and breathes the pulse width for vocal growl, Glide slides pitch between notes (last-note priority), and Sub thickens the low end. Cutoff and Resonance sing; the whole voice stays mono and bounded.",
+  "assembly": "factory/plugins/mini-volt/assembly.ts",
+  "out": "factory/plugins/mini-volt/x.vstai",
+  "guiFile": "factory/plugins/mini-volt/gui.html",
+  "publishedAt": 1751000151000,
+  "theme": { "accent": "#ff9a3d", "accent2": "#5a8cff" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Osc Mod",    "index": 3, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Sub",        "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Glide",      "index": 5, "min": 0, "max": 1, "default": 0.2 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

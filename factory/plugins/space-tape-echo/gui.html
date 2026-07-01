@@ -384,6 +384,7 @@
   var wowAmt=0.3, toneAmt=0.55, mixAmt=0.45;
 
   function applyMode(v){
+    if(!heads||!heads[0]||!heads[2]) return;
     // SINGLE => only center head active; MULTI => all three
     heads[0].classList.toggle("on", v>=1);
     heads[2].classList.toggle("on", v>=1);

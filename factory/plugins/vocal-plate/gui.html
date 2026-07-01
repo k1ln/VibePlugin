@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocal Plate</title>
+<style>
+  :root{ --acc:#cdd5e2; --acc2:#ffd24a; --bg0:#08090c; --bg1:#13161c; --ink:#eef2ف7; --ink:#eef2f7; --dim:#7c8696; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#1e232c 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#222731,#0a0c10); border:1px solid rgba(205,213,226,.18);
+    box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:20px;
+    background:linear-gradient(90deg,#fff,var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc2); box-shadow:0 0 10px var(--acc2); animation:pulse 2.6s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+  .screen{ height:104px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative;
+    background:linear-gradient(180deg,#1a1e25,#0e1116); border:1px solid rgba(205,213,226,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.5); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.24em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:74px; height:74px; position:relative; }
+  .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(205,213,226,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(205,213,226,.5)); }
+  .pcap{ fill:#12161c; stroke:rgba(205,213,226,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc2)); }
+  .kn{ font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(205,213,226,.08); padding:1px 8px; border-radius:7px; border:1px solid rgba(205,213,226,.18); }
+  .knob:hover .kn{ color:#fff; }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">VOCAL&nbsp;PLATE</span><span class="sub">studio plate reverb</span><span class="led"></span></header>
+    <div class="screen"><div class="scrlbl">PLATE</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var P=[{name:"Mix",idx:0,def:0.35},{name:"Decay",idx:1,def:0.7},{name:"Tone",idx:2,def:0.7},{name:"Pre",idx:3,def:0.06},{name:"Size",idx:4,def:0.6}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 86 86">'+
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ffd24a"/></linearGradient></defs>'+
+      '<circle class="track" cx="43" cy="43" r="33"></circle>'+
+      '<circle class="arc" cx="43" cy="43" r="33" transform="rotate(135 43 43)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="43" cy="43" r="21"></circle>'+
+      '<line class="ptr" x1="43" y1="43" x2="43" y2="26"></line></svg></div>'+
+      '<span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(43+Math.sin(ang)*17).toFixed(2)); ptr.setAttribute("y2",(43-Math.cos(ang)*17).toFixed(2));
+      val.textContent=(p.name==="Pre")?Math.round(v*120)+" ms":Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; });
+    el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+  // vibrating metal plate: concentric shimmer ripples, density ~ Size, brightness ~ Tone
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+  function frame(ts){
+    ctx.clearRect(0,0,W,H); var dec=vals[1], tone=vals[2], size=vals[4];
+    var cx=W*0.5, cy=H*0.55;
+    var rings=8+Math.round(size*10);
+    for(var k=0;k<rings;k++){ var rr=(k/rings); var rad=rr*W*0.6 + 10*Math.sin(ts/600+k);
+      var a=(1-rr)*(0.15+dec*0.35);
+      ctx.beginPath(); ctx.ellipse(cx,cy,rad,rad*0.42,0,0,Math.PI*2);
+      ctx.strokeStyle="rgba("+Math.round(205+tone*50)+","+Math.round(213+tone*40)+",226,"+a+")"; ctx.lineWidth=1; ctx.stroke(); }
+    // shimmer highlights
+    ctx.globalAlpha=0.4+tone*0.4;
+    for(var s=0;s<5;s++){ var px=cx + Math.cos(ts/500+s*1.3)*W*0.3; var py=cy+Math.sin(ts/700+s)*H*0.18;
+      ctx.fillStyle="rgba(255,210,74,0.5)"; ctx.beginPath(); ctx.arc(px,py,1.5,0,Math.PI*2); ctx.fill(); }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

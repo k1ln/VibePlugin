@@ -1,0 +1,18 @@
+{
+  "name": "Halo Ensemble",
+  "isInstrument": true,
+  "explanation": "A lush preset ensemble polysynth in the Korg Lambda / Sigma lineage - a fully-polyphonic string/organ machine. Each of 8 voices runs two detuned oscillators morphed by Tone from bowed strings (saw) toward hollow organ (pulse) through a low-pass, and the whole poly mix passes into the signature Ensemble: a three-tap BBD-style modulated chorus that gives the wide, shimmering string-machine wash. Shimmer widens the per-voice detune. Controls: Tone, Cutoff, Attack, Ensemble (chorus depth), Shimmer (detune) and Level.",
+  "assembly": "factory/plugins/halo-ensemble/assembly.ts",
+  "out": "factory/plugins/halo-ensemble/x.vstai",
+  "guiFile": "factory/plugins/halo-ensemble/gui.html",
+  "publishedAt": 1751309600000,
+  "theme": { "accent": "#6ad0e8", "accent2": "#e8b0d0" },
+  "params": [
+    { "name": "Tone",     "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Cutoff",   "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Attack",   "index": 2, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Ensemble", "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Shimmer",  "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",    "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix Poly</title>
+<style>
+  :root {
+    --accent: #8a7bff;
+    --accent2: #43e0c4;
+    --bg0: #0a0712;
+    --bg1: #150f26;
+    --bg2: #1e1538;
+    --panel: #170f2c;
+    --ink: #e8e2ff;
+    --ink-dim: #9c8fc9;
+    --grid-line: rgba(138, 123, 255, 0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg0);
+  }
+
+  body {
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 18px;
+    background:
+      radial-gradient(1200px 500px at 18% -10%, rgba(138,123,255,0.16), transparent 60%),
+      radial-gradient(900px 480px at 100% 120%, rgba(67,224,196,0.12), transparent 55%),
+      linear-gradient(160deg, var(--bg1), var(--bg0) 70%);
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 880px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0) 18%),
+      linear-gradient(160deg, var(--bg2), var(--panel));
+    border: 1px solid rgba(138,123,255,0.22);
+    border-radius: 18px;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+
+  /* ---- header ---- */
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid rgba(138,123,255,0.16);
+    background: linear-gradient(180deg, rgba(138,123,255,0.07), transparent);
+  }
+
+  .brand { display: flex; align-items: center; gap: 14px; }
+
+  .logo {
+    width: 42px; height: 42px;
+    border-radius: 11px;
+    background: linear-gradient(140deg, var(--accent), var(--accent2));
+    position: relative;
+    box-shadow: 0 0 22px rgba(138,123,255,0.55), inset 0 1px 0 rgba(255,255,255,0.5);
+    overflow: hidden;
+  }
+  .logo::before, .logo::after {
+    content: "";
+    position: absolute;
+    background: rgba(10,7,18,0.55);
+  }
+  .logo::before { left: 0; right: 0; top: 50%; height: 1.5px; }
+  .logo::after { top: 0; bottom: 0; left: 50%; width: 1.5px; }
+
+  .title h1 {
+    margin: 0;
+    font-size: 19px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff, var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .title p {
+    margin: 2px 0 0;
+    font-size: 10.5px;
+    letter-spacing: 2.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .voiceleds { display: flex; gap: 7px; align-items: center; }
+  .vled {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(138,123,255,0.18);
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.6);
+    transition: background 0.08s, box-shadow 0.08s;
+  }
+  .vled.on {
+    background: var(--accent2);
+    box-shadow: 0 0 10px var(--accent2), 0 0 3px #fff inset;
+    animation: ledPulse 1.1s ease-in-out infinite;
+  }
+
+  /* real CSS @keyframes — active voice LEDs breathe, matching the
+     ever-moving matrix-modulated character of the synth */
+  @keyframes ledPulse {
+    0%, 100% {
+      box-shadow: 0 0 8px var(--accent2), 0 0 3px #fff inset;
+      filter: brightness(1);
+    }
+    50% {
+      box-shadow: 0 0 16px var(--accent2), 0 0 5px var(--accent2) inset;
+      filter: brightness(1.45);
+    }
+  }
+
+  /* header logo glow also driven by a real @keyframes animation */
+  .logo { animation: logoGlow 3.2s ease-in-out infinite; }
+  @keyframes logoGlow {
+    0%, 100% { box-shadow: 0 0 22px rgba(138,123,255,0.55), inset 0 1px 0 rgba(255,255,255,0.5); }
+    50%      { box-shadow: 0 0 34px rgba(67,224,196,0.65),  inset 0 1px 0 rgba(255,255,255,0.6); }
+  }
+
+  /* ---- body ---- */
+  .body {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 16px;
+    padding: 18px 20px 16px;
+  }
+  @media (max-width: 720px) {
+    .body { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: linear-gradient(160deg, rgba(255,255,255,0.03), rgba(0,0,0,0.16));
+    border: 1px solid rgba(138,123,255,0.16);
+    border-radius: 13px;
+    padding: 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .panel h2 {
+    margin: 0 0 12px;
+    font-size: 10px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(138,123,255,0.3), transparent);
+  }
+
+  /* ---- mod matrix visual ---- */
+  .viz-wrap { position: relative; }
+  #matrix { display: block; width: 100%; height: auto; border-radius: 9px; }
+
+  .legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .legend span b { color: var(--accent2); font-weight: 700; }
+
+  /* ---- knob grid ---- */
+  .knobs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px 4px;
+  }
+  @media (max-width: 720px) {
+    .knobs { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .knob {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 2px 6px;
+    border-radius: 10px;
+    cursor: ns-resize;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .knob:hover { background: rgba(138,123,255,0.07); }
+
+  .knob svg { display: block; touch-action: none; }
+
+  .knob .label {
+    font-size: 9px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .knob .val {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    letter-spacing: 0.5px;
+  }
+  .knob:hover .label { color: var(--accent2); }
+
+  /* ---- keyboard ---- */
+  .keyboard {
+    margin: 2px 20px 18px;
+    height: 96px;
+    position: relative;
+    border-radius: 9px;
+    background: #0c0818;
+    border: 1px solid rgba(138,123,255,0.18);
+    box-shadow: inset 0 4px 14px rgba(0,0,0,0.5);
+    display: flex;
+    padding: 6px;
+    gap: 0;
+  }
+  .wkey {
+    flex: 1;
+    background: linear-gradient(180deg, #efe9ff, #c9bff0);
+    border-radius: 0 0 5px 5px;
+    margin: 0 1px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: inset 0 -3px 6px rgba(120,100,170,0.35);
+    transition: background 0.05s, transform 0.05s;
+  }
+  .wkey:active, .wkey.down {
+    background: linear-gradient(180deg, var(--accent2), #2bbfa3);
+    transform: translateY(1px);
+  }
+  .bkeys {
+    position: absolute;
+    top: 6px; left: 6px; right: 6px;
+    height: 58px;
+    display: flex;
+    pointer-events: none;
+  }
+  .bcell { flex: 1; position: relative; }
+  .bkey {
+    position: absolute;
+    left: 64%;
+    width: 64%;
+    height: 100%;
+    background: linear-gradient(180deg, #2a2042, #110b22);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(138,123,255,0.3);
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.05s, transform 0.05s;
+  }
+  .bkey:active, .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #5a48c8);
+    transform: translateY(1px);
+  }
+
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px 16px;
+    font-size: 9.5px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .foot .dot { color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="head">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="title">
+          <h1>Matrix Poly</h1>
+          <p>Dual-Filter Modulation Synthesizer</p>
+        </div>
+      </div>
+      <div class="voiceleds" id="voiceLeds"></div>
+    </div>
+
+    <div class="body">
+      <div class="panel">
+        <h2>Modulation Matrix</h2>
+        <div class="viz-wrap">
+          <canvas id="matrix" width="440" height="280"></canvas>
+        </div>
+        <div class="legend">
+          <span>LFO <b>&#8594;</b> Cutoff &middot; Pitch &middot; PWM</span>
+          <span>6 Voices</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Voice &amp; Motion</h2>
+        <div class="knobs" id="knobs"></div>
+      </div>
+    </div>
+
+    <div class="keyboard" id="keyboard">
+      <div class="bkeys" id="bkeys"></div>
+    </div>
+
+    <div class="foot">
+      <span><span class="dot">&#9679;</span> Matrix Poly &mdash; original instrument</span>
+      <span>Drag knobs &middot; double-click to reset</span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter model (indices MUST match assembly.ts) -------------
+  var PARAMS = [
+    { name: "Cutoff",    index: 0, min: 0, max: 1, def: 0.45 },
+    { name: "Reso",      index: 1, min: 0, max: 1, def: 0.35 },
+    { name: "Env Amt",   index: 2, min: 0, max: 1, def: 0.55 },
+    { name: "Mod Depth", index: 3, min: 0, max: 1, def: 0.5  },
+    { name: "Mod Rate",  index: 4, min: 0, max: 1, def: 0.35 },
+    { name: "Attack",    index: 5, min: 0, max: 1, def: 0.25 },
+    { name: "Release",   index: 6, min: 0, max: 1, def: 0.45 },
+    { name: "Level",     index: 7, min: 0, max: 1, def: 0.7  }
+  ];
+
+  var values = PARAMS.map(function (p) { return p.def; });
+
+  // map matrix display + audio to readable param shorthands
+  function P(name) {
+    for (var i = 0; i < PARAMS.length; i++) if (PARAMS[i].name === name) return i;
+    return 0;
+  }
+
+  // ---- host bridge ---------------------------------------------------
+  function pushParam(i) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(PARAMS[i].index, values[i]);
+    }
+  }
+
+  function pushAll() {
+    for (var i = 0; i < PARAMS.length; i++) pushParam(i);
+  }
+
+  // ====================================================================
+  //  KNOBS  (hand-drawn SVG, vertical drag, dbl-click reset, wheel fine)
+  // ====================================================================
+  var knobWrap = document.getElementById("knobs");
+  var knobEls = [];
+
+  function makeKnob(i) {
+    var p = PARAMS[i];
+    var el = document.createElement("div");
+    el.className = "knob";
+
+    var R = 26, CX = 30, CY = 30;
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "60");
+    svg.setAttribute("height", "60");
+    svg.setAttribute("viewBox", "0 0 60 60");
+
+    // track arc (background)
+    var track = arcPath(CX, CY, R, -135, 135);
+    var bg = path(track, "rgba(138,123,255,0.18)", 5);
+    svg.appendChild(bg);
+
+    // value arc
+    var valArc = path("", "url(#kgrad" + i + ")", 5);
+    valArc.setAttribute("stroke-linecap", "round");
+    svg.appendChild(valArc);
+
+    // gradient def
+    var defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    var grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+    grad.setAttribute("id", "kgrad" + i);
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
+    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
+    grad.appendChild(stop("0%", "#8a7bff"));
+    grad.appendChild(stop("100%", "#43e0c4"));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // body
+    var body = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    body.setAttribute("cx", CX); body.setAttribute("cy", CY);
+    body.setAttribute("r", R - 6);
+    body.setAttribute("fill", "#170f2c");
+    body.setAttribute("stroke", "rgba(255,255,255,0.08)");
+    svg.appendChild(body);
+
+    // pointer notch
+    var notch = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    notch.setAttribute("x1", CX); notch.setAttribute("y1", CY);
+    notch.setAttribute("stroke", "#43e0c4");
+    notch.setAttribute("stroke-width", "2.4");
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    el.appendChild(svg);
+
+    var label = document.createElement("div");
+    label.className = "label";
+    label.textContent = p.name;
+    el.appendChild(label);
+
+    var val = document.createElement("div");
+    val.className = "val";
+    el.appendChild(val);
+
+    knobWrap.appendChild(el);
+
+    var ref = { valArc: valArc, notch: notch, val: val, CX: CX, CY: CY, R: R };
+    knobEls.push(ref);
+
+    function render() {
+      var v = values[i];
+      var a = -135 + v * 270;
+      ref.valArc.setAttribute("d", arcPath(CX, CY, R, -135, a));
+      var rad = (a - 90) * Math.PI / 180;
+      var inner = R - 14, outer = R - 7;
+      ref.notch.setAttribute("x1", CX + Math.cos(rad) * inner);
+      ref.notch.setAttribute("y1", CY + Math.sin(rad) * inner);
+      ref.notch.setAttribute("x2", CX + Math.cos(rad) * outer);
+      ref.notch.setAttribute("y2", CY + Math.sin(rad) * outer);
+      ref.val.textContent = fmt(p, v);
+    }
+    ref.render = render;
+    render();
+
+    // ---- interaction ----
+    var dragging = false, startY = 0, startV = 0;
+
+    function onDown(e) {
+      dragging = true;
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = values[i];
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dv = (startY - y) / 180;
+      values[i] = clamp(startV + dv, 0, 1);
+      render();
+      pushParam(i);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    el.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    el.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    el.addEventListener("dblclick", function () {
+      values[i] = p.def;
+      render();
+      pushParam(i);
+    });
+    el.addEventListener("wheel", function (e) {
+      values[i] = clamp(values[i] - Math.sign(e.deltaY) * 0.02, 0, 1);
+      render();
+      pushParam(i);
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  function fmt(p, v) {
+    if (p.name === "Cutoff") return Math.round(70 * Math.pow(200, v)) + " Hz";
+    if (p.name === "Mod Rate") return (0.05 * Math.pow(180, v)).toFixed(2) + " Hz";
+    if (p.name === "Attack") return (0.002 + v * 2.5).toFixed(2) + " s";
+    if (p.name === "Release") return (0.01 + v * 3.0).toFixed(2) + " s";
+    return Math.round(v * 100) + "%";
+  }
+
+  // SVG arc helpers
+  function polar(cx, cy, r, deg) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var s = polar(cx, cy, r, a1);
+    var e = polar(cx, cy, r, a0);
+    var large = (a1 - a0) <= 180 ? 0 : 1;
+    return "M " + s[0] + " " + s[1] + " A " + r + " " + r + " 0 " + large + " 0 " + e[0] + " " + e[1];
+  }
+  function path(d, stroke, w) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    el.setAttribute("d", d);
+    el.setAttribute("fill", "none");
+    el.setAttribute("stroke", stroke);
+    el.setAttribute("stroke-width", w);
+    return el;
+  }
+  function stop(off, col) {
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+    s.setAttribute("offset", off);
+    s.setAttribute("stop-color", col);
+    return s;
+  }
+
+  for (var i = 0; i < PARAMS.length; i++) makeKnob(i);
+
+  // ====================================================================
+  //  VOICE LEDS
+  // ====================================================================
+  var ledEls = [];
+  var ledWrap = document.getElementById("voiceLeds");
+  for (var l = 0; l < 6; l++) {
+    var d = document.createElement("div");
+    d.className = "vled";
+    ledWrap.appendChild(d);
+    ledEls.push(d);
+  }
+  var activeNotes = {};   // midi -> true
+  function activeCount() {
+    var c = 0;
+    for (var k in activeNotes) if (activeNotes[k]) c++;
+    return c;
+  }
+  function refreshLeds() {
+    var c = activeCount();
+    for (var i = 0; i < ledEls.length; i++) {
+      if (i < c) ledEls[i].classList.add("on");
+      else ledEls[i].classList.remove("on");
+    }
+  }
+
+  // ====================================================================
+  //  MOD MATRIX VISUALISER  (rAF — grid cells light as LFO sweeps)
+  // ====================================================================
+  var cv = document.getElementById("matrix");
+  var ctx = cv.getContext("2d");
+  var W = cv.width, H = cv.height;
+
+  var ROWS = ["LFO", "FENV", "PITCH"];     // sources
+  var COLS = ["CUTOFF", "RESO", "PWM", "AMP"]; // destinations
+  var gx0 = 70, gy0 = 26, cellW = (W - gx0 - 18) / COLS.length, cellH = 40;
+
+  var t = 0;
+  var phase = 0;
+
+  // REAL modulation matrix: click a cell to seat / pull a routing. Each
+  // destination COLUMN sums its seated routings and drives a live parameter,
+  // so the patch you see is the patch you hear.
+  var cellOn = [[1,1,0,0],[1,0,0,1],[0,0,0,0]];  // [LFO,FENV,PITCH] x [CUTOFF,RESO,PWM,AMP]
+  function recompute() {
+    var cc = [0,0,0,0];
+    for (var rr=0;rr<ROWS.length;rr++) for (var cc2=0;cc2<COLS.length;cc2++) if (cellOn[rr][cc2]) cc[cc2]++;
+    values[3] = Math.min(1, 0.05 + cc[0]*0.28);   // CUTOFF col -> Mod Depth
+    values[1] = Math.min(1, 0.20 + cc[1]*0.22);   // RESO   col -> Resonance
+    values[4] = Math.min(1, 0.10 + cc[2]*0.28);   // PWM    col -> Mod Rate
+    values[2] = Math.min(1, 0.25 + cc[3]*0.22);   // AMP    col -> Env Amt
+    [1,2,3,4].forEach(function(i){ pushParam(i); if (knobEls[i] && knobEls[i].render) knobEls[i].render(); });
+  }
+  cv.addEventListener("click", function(e){
+    var rect = cv.getBoundingClientRect();
+    var cxp = (e.clientX-rect.left)*(cv.width/rect.width);
+    var cyp = (e.clientY-rect.top)*(cv.height/rect.height);
+    for (var r=0;r<ROWS.length;r++) for (var c=0;c<COLS.length;c++){
+      var x=gx0+c*cellW, y=gy0+r*cellH, w=cellW-6, h=cellH-6;
+      if (cxp>=x && cxp<=x+w && cyp>=y && cyp<=y+h){ cellOn[r][c]=cellOn[r][c]?0:1; recompute(); return; }
+    }
+  });
+  function routeMatrix() {
+    var m=[]; for (var r=0;r<ROWS.length;r++){ m[r]=[]; for (var c=0;c<COLS.length;c++){ m[r][c]= cellOn[r][c] ? 0.9 : 0.0; } } return m;
+  }
+
+  function draw() {
+    if (document.hidden) { rafId = requestAnimationFrame(draw); return; }
+
+    var rate = 0.05 * Math.pow(180, values[P("Mod Rate")]);
+    phase += rate / 60;            // approx 60fps
+    if (phase >= 1) phase -= 1;
+    t += 0.016;
+
+    var lfo = Math.sin(phase * Math.PI * 2);      // -1..1
+    var dep = values[P("Mod Depth")];
+
+    ctx.clearRect(0, 0, W, H);
+
+    // background
+    var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, "#120b24");
+    bgGrad.addColorStop(1, "#0a0714");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    var route = routeMatrix();
+
+    // ---- matrix grid ----
+    ctx.font = "9px ui-sans-serif, system-ui, sans-serif";
+    ctx.textBaseline = "middle";
+
+    // column headers
+    ctx.fillStyle = "#9c8fc9";
+    ctx.textAlign = "center";
+    for (var c = 0; c < COLS.length; c++) {
+      ctx.fillText(COLS[c], gx0 + c * cellW + cellW / 2, gy0 - 12);
+    }
+    // row headers
+    ctx.textAlign = "right";
+    for (var r = 0; r < ROWS.length; r++) {
+      ctx.fillStyle = "#9c8fc9";
+      ctx.fillText(ROWS[r], gx0 - 10, gy0 + r * cellH + cellH / 2);
+    }
+
+    for (var r2 = 0; r2 < ROWS.length; r2++) {
+      for (var c2 = 0; c2 < COLS.length; c2++) {
+        var x = gx0 + c2 * cellW;
+        var y = gy0 + r2 * cellH;
+        var w = cellW - 6, h = cellH - 6;
+        var weight = route[r2][c2];
+
+        // cell well
+        ctx.fillStyle = "rgba(255,255,255,0.025)";
+        roundRect(x, y, w, h, 6);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(138,123,255,0.16)";
+        ctx.lineWidth = 1;
+        roundRect(x, y, w, h, 6);
+        ctx.stroke();
+
+        if (weight > 0.01) {
+          // pulse modulated by lfo for source rows that the LFO drives
+          var live = weight;
+          if (r2 === 0 || r2 === 2) live = weight * (0.45 + 0.55 * (lfo * 0.5 + 0.5));
+          var glow = Math.max(0, Math.min(1, live));
+          // node
+          var nx = x + w / 2, ny = y + h / 2;
+          var rad = 4 + glow * 7;
+          var g = ctx.createRadialGradient(nx, ny, 0, nx, ny, rad + 4);
+          var col = (r2 === 1) ? "138,123,255" : "67,224,196";
+          g.addColorStop(0, "rgba(" + col + "," + (0.9 * glow + 0.1) + ")");
+          g.addColorStop(1, "rgba(" + col + ",0)");
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(nx, ny, rad + 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(" + col + "," + (0.5 + 0.5 * glow) + ")";
+          ctx.beginPath();
+          ctx.arc(nx, ny, Math.max(1.5, glow * 3.2), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // ---- breathing pad waveform + teal mod trace (bottom) ----
+    var wy0 = gy0 + ROWS.length * cellH + 18;
+    var wh = H - wy0 - 14;
+    var wmid = wy0 + wh / 2;
+
+    // frame
+    ctx.strokeStyle = "rgba(138,123,255,0.14)";
+    ctx.lineWidth = 1;
+    roundRect(gx0 - 40, wy0, W - gx0 - 18 + 40, wh, 7);
+    ctx.stroke();
+
+    var cut = values[P("Cutoff")];
+    var reso = values[P("Reso")];
+    var x0 = gx0 - 36, x1 = W - 22;
+
+    // slow-breathing pad wave (cutoff opens the harmonics, lfo sweeps it)
+    ctx.beginPath();
+    for (var px = 0; px <= 120; px++) {
+      var u = px / 120;
+      var sx = x0 + (x1 - x0) * u;
+      var bright = 1 + cut * 6 + dep * 3 * (lfo * 0.5 + 0.5);
+      var base = Math.sin(u * Math.PI * 6 + t * 1.5);
+      var harm = Math.sin(u * Math.PI * 6 * 3 + t * 1.5) * (0.35 * cut);
+      var res = Math.sin(u * Math.PI * 6 * 2 + t * 2.0) * (0.3 * reso);
+      var s = (base + harm + res) / (1.4);
+      var amp = (wh * 0.32) * (0.4 + 0.6 * Math.min(1, bright / 6));
+      var sy = wmid - s * amp;
+      if (px === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.strokeStyle = "rgba(138,123,255,0.85)";
+    ctx.lineWidth = 1.8;
+    ctx.shadowColor = "rgba(138,123,255,0.7)";
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // teal modulation trace (the LFO contour scrolling)
+    ctx.beginPath();
+    for (var qx = 0; qx <= 120; qx++) {
+      var uu = qx / 120;
+      var sx2 = x0 + (x1 - x0) * uu;
+      var ly = Math.sin((uu * 2 + phase) * Math.PI * 2) * dep;
+      var sy2 = wmid - ly * (wh * 0.34);
+      if (qx === 0) ctx.moveTo(sx2, sy2); else ctx.lineTo(sx2, sy2);
+    }
+    ctx.strokeStyle = "rgba(67,224,196,0.7)";
+    ctx.lineWidth = 1.4;
+    ctx.shadowColor = "rgba(67,224,196,0.7)";
+    ctx.shadowBlur = 7;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // moving LFO playhead dot on the trace
+    var hx = x0 + (x1 - x0) * (phase);
+    var hyl = Math.sin((phase * 2 + phase) * Math.PI * 2) * dep;
+    ctx.fillStyle = "#43e0c4";
+    ctx.beginPath();
+    ctx.arc(hx, wmid - hyl * (wh * 0.34), 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    rafId = requestAnimationFrame(draw);
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  var rafId = requestAnimationFrame(draw);
+
+  // ====================================================================
+  //  ON-SCREEN KEYBOARD
+  // ====================================================================
+  var kb = document.getElementById("keyboard");
+  var bkeys = document.getElementById("bkeys");
+  var START = 48;          // C3
+  var WHITE = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+  var BLACK = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10, 7: 13, 8: 15, 10: 18, 11: 20, 12: 22 };
+  var whiteEls = [];
+
+  WHITE.forEach(function (semi, idx) {
+    var key = document.createElement("div");
+    key.className = "wkey";
+    var note = START + semi;
+    key.dataset.note = note;
+    attachKey(key, note);
+    kb.appendChild(key);
+    whiteEls.push(key);
+
+    // black-key overlay positioned over this white cell
+    var cell = document.createElement("div");
+    cell.className = "bcell";
+    if (BLACK.hasOwnProperty(idx)) {
+      var bk = document.createElement("div");
+      bk.className = "bkey";
+      var bnote = START + BLACK[idx];
+      bk.dataset.note = bnote;
+      attachKey(bk, bnote);
+      cell.appendChild(bk);
+    }
+    bkeys.appendChild(cell);
+  });
+
+  function noteOn(note, el) {
+    if (activeNotes[note]) return;
+    activeNotes[note] = true;
+    if (el) el.classList.add("down");
+    if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(note, 0.9);
+    refreshLeds();
+  }
+  function noteOff(note, el) {
+    if (!activeNotes[note]) return;
+    activeNotes[note] = false;
+    if (el) el.classList.remove("down");
+    if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(note);
+    refreshLeds();
+  }
+
+  function attachKey(el, note) {
+    el.addEventListener("mousedown", function (e) { noteOn(note, el); e.preventDefault(); });
+    el.addEventListener("mouseup", function () { noteOff(note, el); });
+    el.addEventListener("mouseleave", function () { noteOff(note, el); });
+    el.addEventListener("touchstart", function (e) { noteOn(note, el); e.preventDefault(); }, { passive: false });
+    el.addEventListener("touchend", function (e) { noteOff(note, el); e.preventDefault(); }, { passive: false });
+  }
+
+  // computer keyboard (a row = white keys)
+  var KEYMAP = { a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12 };
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var k = e.key.toLowerCase();
+    if (KEYMAP.hasOwnProperty(k)) {
+      var note = START + KEYMAP[k];
+      var el = findKeyEl(note);
+      noteOn(note, el);
+    }
+  });
+  window.addEventListener("keyup", function (e) {
+    var k = e.key.toLowerCase();
+    if (KEYMAP.hasOwnProperty(k)) {
+      var note = START + KEYMAP[k];
+      noteOff(note, findKeyEl(note));
+    }
+  });
+  function findKeyEl(note) {
+    var all = document.querySelectorAll("[data-note]");
+    for (var i = 0; i < all.length; i++) {
+      if (+all[i].dataset.note === note) return all[i];
+    }
+    return null;
+  }
+
+  // ====================================================================
+  //  INIT — push defaults once the host is ready
+  // ====================================================================
+  function boot() {
+    pushAll();
+    recompute();   // the seated matrix defines the modulation params
+  }
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

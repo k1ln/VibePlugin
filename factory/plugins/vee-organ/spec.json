@@ -1,0 +1,18 @@
+{
+  "name": "Vee Organ",
+  "isInstrument": true,
+  "explanation": "A bright 'combo' organ in the Vox Continental lineage — hollower and brighter than a reedy Farfisa. Each key sums drawbar-weighted harmonic partials with a key-click transient, a pitch vibrato and a brightness/tone control; fully polyphonic (12 voices). Controls: Low (16'+8' drawbars), High (4'+2'+upper drawbars), Brightness, Vibrato, Click and Level.",
+  "assembly": "factory/plugins/vee-organ/assembly.ts",
+  "out": "factory/plugins/vee-organ/x.vstai",
+  "guiFile": "factory/plugins/vee-organ/gui.html",
+  "publishedAt": 1751000160000,
+  "theme": { "accent": "#ff9a3d", "accent2": "#5ad0ff" },
+  "params": [
+    { "name": "Low",        "index": 0, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "High",       "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Brightness", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Vibrato",    "index": 3, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Click",      "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

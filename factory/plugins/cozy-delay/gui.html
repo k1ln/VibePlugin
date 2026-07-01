@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cozy Delay</title>
+<style>
+  :root{
+    --accent:#ff9a5a;
+    --accent2:#ffd86a;
+    --ink:#3a2418;
+    --shadow:rgba(40,18,8,.55);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+  html,body{height:100%}
+  body{
+    font-family:'Avenir Next','Segoe UI',system-ui,sans-serif;
+    background:radial-gradient(120% 130% at 50% -10%, #2a1c14 0%, #1a110b 55%, #0d0805 100%);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;overflow:hidden;color:#f3e6d8;
+  }
+
+  /* ===== ambient amber room glow ===== */
+  .room-glow{
+    position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(60% 50% at 50% 38%, rgba(255,154,90,.16), transparent 70%);
+    animation:roomBreathe 7s ease-in-out infinite;
+  }
+  @keyframes roomBreathe{0%,100%{opacity:.7}50%{opacity:1}}
+
+  /* ===== the pedal ===== */
+  .pedal{
+    position:relative;
+    width:330px;
+    padding:26px 26px 30px;
+    border-radius:22px;
+    background:
+      linear-gradient(160deg,#ffb878 0%,#ff9a5a 42%,#e87f3e 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,.35) inset,
+      0 -10px 26px rgba(120,50,15,.45) inset,
+      0 26px 50px -10px rgba(0,0,0,.7),
+      0 4px 0 #b85f28;
+    border:1px solid rgba(255,225,190,.4);
+  }
+  /* brushed-metal sheen */
+  .pedal::before{
+    content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,.045) 0 2px, transparent 2px 5px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  /* corner screws */
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff4e6,#9a6a3c 70%,#5e3a18);
+    box-shadow:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.15) inset}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,rgba(60,30,10,.7) 44% 56%,transparent 56%)}
+  .screw.tl{top:10px;left:10px}.screw.tr{top:10px;right:10px}
+  .screw.bl{bottom:10px;left:10px}.screw.br{bottom:10px;right:10px}
+
+  .brand{text-align:center;margin-bottom:14px}
+  .brand h1{
+    font-size:22px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:#fff6ec;
+    text-shadow:0 1px 0 rgba(255,255,255,.4),0 2px 5px rgba(90,40,15,.7);
+  }
+  .brand .sub{
+    font-size:9px;letter-spacing:.42em;text-transform:uppercase;
+    color:rgba(70,38,18,.85);margin-top:4px;font-weight:700;
+  }
+
+  /* ===== echo display window ===== */
+  .window{
+    position:relative;height:96px;border-radius:12px;margin:6px 4px 20px;
+    background:linear-gradient(#180e07,#241509);
+    box-shadow:0 0 0 3px rgba(120,60,25,.6),0 6px 14px rgba(0,0,0,.6) inset;
+    overflow:hidden;
+  }
+  .window .glassglow{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(80% 120% at 18% 50%, rgba(255,154,90,.22), transparent 65%)}
+  svg{display:block;width:100%;height:100%}
+
+  /* ===== knob row ===== */
+  .knobs{display:flex;justify-content:space-between;gap:8px;padding:0 2px}
+  .knob-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+  .knob{
+    --ang:-135deg;
+    position:relative;width:62px;height:62px;border-radius:50%;cursor:grab;
+    background:
+      radial-gradient(circle at 50% 38%, #4a3020, #2a1a0f 72%, #160d07);
+    box-shadow:
+      0 3px 7px rgba(0,0,0,.6),
+      0 1px 0 rgba(255,210,160,.25) inset,
+      0 -3px 8px rgba(0,0,0,.55) inset;
+    transition:transform .08s ease;
+  }
+  .knob:active{cursor:grabbing}
+  .knob:hover{transform:translateY(-1px)}
+  /* tick ring */
+  .knob .ring{
+    position:absolute;inset:-9px;border-radius:50%;pointer-events:none;
+    background:conic-gradient(from -135deg,
+      var(--accent2) 0deg, var(--accent) var(--fill,0deg),
+      rgba(255,255,255,.06) var(--fill,0deg) 270deg, transparent 270deg);
+    -webkit-mask:radial-gradient(circle, transparent 0 28px, #000 28px 31px, transparent 31px);
+    mask:radial-gradient(circle, transparent 0 28px, #000 28px 31px, transparent 31px);
+    filter:drop-shadow(0 0 5px rgba(255,154,90,.5));
+  }
+  .knob .pointer{
+    position:absolute;left:50%;top:50%;width:3px;height:24px;border-radius:2px;
+    background:linear-gradient(var(--accent2),var(--accent));
+    transform-origin:50% 100%;
+    transform:translate(-50%,-100%) rotate(var(--ang));
+    box-shadow:0 0 6px rgba(255,154,90,.8);
+  }
+  .knob .cap{position:absolute;inset:20px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#5a3a24,#241509);
+    box-shadow:0 1px 2px rgba(0,0,0,.6)}
+  .label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(60,32,16,.9);font-weight:800}
+  .val{font-size:11px;font-weight:700;color:#fff3e6;
+    background:rgba(30,16,8,.55);padding:2px 8px;border-radius:7px;
+    min-width:42px;text-align:center;letter-spacing:.04em;
+    box-shadow:0 1px 0 rgba(255,255,255,.15) inset}
+
+  /* ===== footswitch + LED ===== */
+  .footer{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px}
+  .led{width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff0c0, var(--accent) 60%, #b9521f);
+    box-shadow:0 0 10px 2px rgba(255,170,80,.9),0 0 20px rgba(255,154,90,.5);
+    animation:ledPulse 2.4s ease-in-out infinite}
+  @keyframes ledPulse{0%,100%{opacity:.85;box-shadow:0 0 8px 1px rgba(255,170,80,.7)}
+    50%{opacity:1;box-shadow:0 0 16px 4px rgba(255,170,80,1)}}
+  .stomp{width:64px;height:64px;border-radius:50%;
+    background:radial-gradient(circle at 42% 32%,#e9e2d6,#9c948a 65%,#5d564d);
+    box-shadow:0 5px 10px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.5) inset;
+    border:3px solid rgba(40,22,10,.4)}
+</style>
+</head>
+<body>
+<div class="room-glow"></div>
+
+<div class="pedal">
+  <span class="screw tl"></span><span class="screw tr"></span>
+  <span class="screw bl"></span><span class="screw br"></span>
+
+  <div class="brand">
+    <h1>Cozy Delay</h1>
+    <div class="sub">Warm Analog Echo</div>
+  </div>
+
+  <div class="window">
+    <div class="glassglow"></div>
+    <svg id="viz" viewBox="0 0 320 96" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wv" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#ffd86a"/>
+          <stop offset="1" stop-color="#ff9a5a"/>
+        </linearGradient>
+        <radialGradient id="src" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#fff3d0"/>
+          <stop offset="1" stop-color="#ff9a5a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g id="echoes"></g>
+    </svg>
+  </div>
+
+  <div class="knobs" id="knobs"></div>
+
+  <div class="footer">
+    <span class="led"></span>
+    <span class="stomp"></span>
+    <span class="led"></span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- param model ----
+  var PARAMS = [
+    { name:"Time",     index:0, min:0, max:1, def:0.35, fmt:function(v){return Math.round(20+v*v*280)+" ms";} },
+    { name:"Feedback", index:1, min:0, max:1, def:0.45, fmt:function(v){return Math.round(v*100)+" %";} },
+    { name:"Tone",     index:2, min:0, max:1, def:0.4,  fmt:function(v){return Math.round(600+v*v*3600)+" Hz";} },
+    { name:"Mix",      index:3, min:0, max:1, def:0.4,  fmt:function(v){return Math.round(v*100)+" %";} }
+  ];
+  var state = PARAMS.map(function(p){return p.def;});
+
+  function host(){ return (typeof window!=="undefined" && window.vstai) ? window.vstai : null; }
+  function push(i){
+    var h=host();
+    if(h && typeof h.setParam==="function"){ try{ h.setParam(i, state[i]); }catch(e){} }
+  }
+
+  // ---- build knobs ----
+  var knobsEl = document.getElementById("knobs");
+  var widgets = [];
+
+  PARAMS.forEach(function(p, i){
+    var wrap=document.createElement("div"); wrap.className="knob-wrap";
+    var knob=document.createElement("div"); knob.className="knob";
+    knob.innerHTML='<div class="ring"></div><div class="cap"></div><div class="pointer"></div>';
+    var label=document.createElement("div"); label.className="label"; label.textContent=p.name;
+    var val=document.createElement("div"); val.className="val";
+    wrap.appendChild(knob); wrap.appendChild(label); wrap.appendChild(val);
+    knobsEl.appendChild(wrap);
+
+    var w={knob:knob,val:val,p:p,i:i};
+    widgets.push(w);
+
+    function render(){
+      var v=state[i];
+      var deg = -135 + v*270;
+      knob.querySelector(".pointer").style.setProperty("--ang", deg+"deg");
+      knob.querySelector(".ring").style.setProperty("--fill", (v*270)+"deg");
+      val.textContent = p.fmt(v);
+    }
+    w.render=render;
+
+    // drag (vertical)
+    var dragging=false, startY=0, startV=0;
+    function down(e){
+      dragging=true; startY=(e.touches?e.touches[0].clientY:e.clientY); startV=state[i];
+      e.preventDefault();
+      window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false}); window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dv=(startY-y)/180;
+      var nv=Math.max(0,Math.min(1,startV+dv));
+      state[i]=nv; render(); push(i);
+      if(e.cancelable) e.preventDefault();
+    }
+    function up(){
+      dragging=false;
+      window.removeEventListener("mousemove",move); window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move); window.removeEventListener("touchend",up);
+    }
+    knob.addEventListener("mousedown",down);
+    knob.addEventListener("touchstart",down,{passive:false});
+    knob.addEventListener("dblclick",function(){ state[i]=p.def; render(); push(i); });
+
+    render();
+  });
+
+  // ---- echo visualization ----
+  var g=document.getElementById("echoes");
+  var NUM=7;
+  var bars=[];
+  for(var k=0;k<NUM;k++){
+    var el=document.createElementNS("http://www.w3.org/2000/svg","path");
+    el.setAttribute("fill","none");
+    el.setAttribute("stroke","url(#wv)");
+    el.setAttribute("stroke-linecap","round");
+    g.appendChild(el);
+    bars.push(el);
+  }
+  // a bright source blob on the left
+  var src=document.createElementNS("http://www.w3.org/2000/svg","circle");
+  src.setAttribute("cx","18"); src.setAttribute("cy","48"); src.setAttribute("r","14");
+  src.setAttribute("fill","url(#src)");
+  g.appendChild(src);
+
+  var t=0;
+  function frame(){
+    t+=0.045;
+    var time=state[0], fb=state[1], tone=state[2], mix=state[3];
+    // echo spacing grows with time; how many repeats with feedback; darkness with tone
+    var spacing = 24 + time*36;          // px between repeats
+    var alive = 1 + fb*5.5;              // visible repeats
+    for(var k=0;k<NUM;k++){
+      var x = 30 + k*spacing;
+      var decay = Math.pow(0.55+fb*0.42, k);          // amplitude falls per repeat
+      var visible = k < alive ? 1 : 0;
+      var amp = (4 + 26*decay) * (0.55+0.45*mix) * visible;
+      // each later repeat is darker/dimmer + slightly slower wobble (cosy)
+      var dark = Math.pow(0.5+tone*0.5, k*0.7);
+      var op = Math.max(0, decay * (0.35+0.65*mix) * (0.4+0.6*dark) * visible);
+      var wob = (1 - k*0.07*(1-tone));                 // higher repeats lose wiggle
+      // build a little fading sine packet
+      var d="M "+x+" 48";
+      var span = 30;
+      for(var s=1;s<=span;s++){
+        var px = x + s*0.9;
+        if(px>318){ break; }
+        var env = Math.sin((s/span)*Math.PI);          // packet envelope
+        var py = 48 - Math.sin(s*0.6*wob + t - k*0.5)*amp*env;
+        d += " L "+px.toFixed(1)+" "+py.toFixed(1);
+      }
+      bars[k].setAttribute("d",d);
+      bars[k].setAttribute("stroke-width",(0.8+2.4*decay).toFixed(2));
+      bars[k].setAttribute("stroke-opacity",op.toFixed(3));
+    }
+    var pulse=0.85+0.15*Math.sin(t*1.6);
+    src.setAttribute("r",(13*pulse).toFixed(1));
+    src.setAttribute("opacity",(0.7+0.3*mix).toFixed(2));
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- init host ----
+  function init(){
+    for(var i=0;i<PARAMS.length;i++){ push(i); }
+  }
+  var h=host();
+  if(h && typeof h.onReady==="function"){ h.onReady(init); } else { init(); }
+})();
+</script>
+</body>
+</html>

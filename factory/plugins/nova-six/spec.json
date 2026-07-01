@@ -1,0 +1,18 @@
+{
+  "name": "Nova Six",
+  "isInstrument": true,
+  "explanation": "A 6-voice DCO polysynth in the Juno-106 lineage. A single stable DCO (saw + variable pulse with PWM) plus a square sub feeds a resonant low-pass with its own decay envelope, then a non-resonant high-pass that carves the low end (its signature move), into a lush BBD-style chorus. Controls: Cutoff, Resonance, HPF (high-pass), Env Amount, Chorus and Level.",
+  "assembly": "factory/plugins/nova-six/assembly.ts",
+  "out": "factory/plugins/nova-six/x.vstai",
+  "guiFile": "factory/plugins/nova-six/gui.html",
+  "publishedAt": 1751000157000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#ff9a5a" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "HPF",        "index": 2, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Env Amount", "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Chorus",     "index": 4, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

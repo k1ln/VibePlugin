@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seq Bass</title>
+<style>
+  :root {
+    --accent:  #b6ff3d;
+    --accent2: #ff3d8c;
+    --bg0: #0b0d0a;
+    --bg1: #14181a;
+    --silver0: #d7dcdd;
+    --silver1: #9aa1a3;
+    --silver2: #565d5f;
+    --ink: #e9f3df;
+    --panel: #1b201f;
+    --groove: #0a0c0b;
+    --font: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background:
+      radial-gradient(900px 500px at 50% -10%, #1d2421 0%, var(--bg0) 70%),
+      var(--bg0);
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 18px 14px 26px;
+  }
+
+  /* ---- the machine shell: brushed silver with acid trim ---- */
+  .machine {
+    position: relative;
+    border-radius: 16px;
+    padding: 16px 16px 18px;
+    background:
+      linear-gradient(180deg, #2a302f 0%, #1a1f1e 14%, #14181a 100%);
+    border: 1px solid #3a423f;
+    box-shadow:
+      0 1px 0 #4a524f inset,
+      0 -18px 40px rgba(0,0,0,0.5) inset,
+      0 26px 60px rgba(0,0,0,0.6),
+      0 0 0 1px #05070600;
+    overflow: hidden;
+  }
+  .machine::before {
+    /* brushed silver strip down the left edge */
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 10px;
+    background:
+      repeating-linear-gradient(180deg, #cfd5d6 0 1px, #aeb4b5 1px 2px, #c4cacb 2px 3px);
+    opacity: 0.85;
+    box-shadow: 2px 0 6px rgba(0,0,0,0.4);
+  }
+
+  /* ---- header ---- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 2px 4px 14px 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 40px; height: 40px;
+    border-radius: 9px;
+    background:
+      radial-gradient(circle at 32% 28%, #2a322f, #0c100e);
+    border: 1px solid #3c4541;
+    display: grid; place-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 1px 0 #565f5b inset;
+  }
+  .logo svg { display: block; }
+  .titles h1 {
+    margin: 0;
+    font-size: 19px;
+    letter-spacing: 3px;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #f3fbe9, #aeb6a8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .titles .sub {
+    font-size: 9.5px;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: var(--silver1);
+    margin-top: 2px;
+  }
+  .powerdot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent);
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.55; transform: scale(0.85); }
+    50%      { opacity: 1;    transform: scale(1.1); }
+  }
+
+  /* ---- step sequencer row (visual / hypnotic) ---- */
+  .seq {
+    margin: 0 4px 16px 14px;
+    padding: 10px 12px;
+    border-radius: 11px;
+    background:
+      linear-gradient(180deg, #0d100f, #070908);
+    border: 1px solid #2c3431;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5) inset;
+  }
+  .seq-label {
+    font-size: 8.5px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--silver2); margin-bottom: 8px;
+    display: flex; justify-content: space-between;
+  }
+  .seq-label b { color: var(--accent2); font-weight: 700; letter-spacing: 2px; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+  }
+  .step {
+    position: relative;
+    height: 34px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #161b19, #0c100e);
+    border: 1px solid #283230;
+    overflow: hidden;
+  }
+  .step .bar {
+    position: absolute;
+    left: 3px; right: 3px; bottom: 3px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--accent), #6fb01f);
+    box-shadow: 0 0 7px rgba(182,255,61,0.55);
+    transition: height 90ms linear, opacity 120ms ease;
+    opacity: 0.5;
+  }
+  .step.accent .bar {
+    background: linear-gradient(180deg, var(--accent2), #b21f57);
+    box-shadow: 0 0 9px rgba(255,61,140,0.7);
+  }
+  .step.on {
+    border-color: #44524b;
+  }
+  .step.cur {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(182,255,61,0.45), 0 0 0 1px var(--accent) inset;
+  }
+  .step.cur.accent {
+    border-color: var(--accent2);
+    box-shadow: 0 0 11px rgba(255,61,140,0.5), 0 0 0 1px var(--accent2) inset;
+  }
+
+  /* ---- knob grid ---- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px 6px;
+    margin: 0 4px 14px 14px;
+  }
+  @media (max-width: 520px) { .rack { grid-template-columns: repeat(2, 1fr); } }
+
+  .cell {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 4px 8px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #20262450, #12161400);
+  }
+  .knob {
+    position: relative;
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; }
+  .knob .cap {
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.55));
+  }
+  .knob:hover .arc { filter: drop-shadow(0 0 4px var(--accent)); }
+  .knob.hot .arc { filter: drop-shadow(0 0 6px var(--accent2)); }
+
+  .klabel {
+    margin-top: 7px;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--silver1);
+    text-align: center;
+  }
+  .kval {
+    margin-top: 3px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .cell.accentcell .kval { color: var(--accent2); }
+
+  /* ---- rubbery sliding waveform window ---- */
+  .scope {
+    margin: 0 4px 14px 14px;
+    border-radius: 11px;
+    background:
+      linear-gradient(180deg, #0c100f, #060807);
+    border: 1px solid #2a322f;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5) inset;
+    padding: 8px 10px 6px;
+  }
+  .scope-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8.5px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--silver2); margin-bottom: 4px;
+  }
+  .scope-head b { color: var(--accent); font-weight: 700; }
+  #wave { display: block; width: 100%; height: 88px; }
+
+  /* ---- keyboard ---- */
+  .keys-wrap {
+    margin: 0 4px 2px 14px;
+  }
+  .keys-head {
+    font-size: 8.5px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--silver2); margin-bottom: 7px;
+  }
+  .keys {
+    position: relative;
+    display: flex;
+    height: 96px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #2c3431;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    user-select: none;
+    touch-action: none;
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    background: linear-gradient(180deg, #e8edee, #c2c8c9 86%, #aab0b1);
+    border-right: 1px solid #9aa1a3;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    transition: background 70ms ease;
+  }
+  .wkey:last-child { border-right: none; }
+  .wkey.down {
+    background: linear-gradient(180deg, var(--accent), #88c92e 90%);
+    box-shadow: 0 0 14px rgba(182,255,61,0.5) inset;
+  }
+  .bkeys {
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 60px;
+    display: flex;
+    pointer-events: none;
+  }
+  .bk {
+    position: absolute;
+    top: 0;
+    width: 7.2%;
+    height: 100%;
+    background: linear-gradient(180deg, #2a302e, #07090800 60%, #060807);
+    background-color: #11161400;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.6);
+  }
+  .bk.down {
+    background: linear-gradient(180deg, var(--accent2), #9c2050);
+    box-shadow: 0 0 12px rgba(255,61,140,0.6);
+  }
+
+  .foot {
+    margin: 12px 4px 0 14px;
+    font-size: 8.5px;
+    letter-spacing: 1.5px;
+    color: var(--silver2);
+    display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="machine">
+
+      <header>
+        <div class="brand">
+          <div class="logo" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 26 26">
+              <path d="M2 17 Q6 4 10 13 T18 13 Q22 22 24 9"
+                    fill="none" stroke="#b6ff3d" stroke-width="2.2"
+                    stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="titles">
+            <h1>Seq Bass</h1>
+            <div class="sub">Acid Sequencer Mono</div>
+          </div>
+        </div>
+        <div class="powerdot" title="active"></div>
+      </header>
+
+      <!-- hypnotic step row -->
+      <div class="seq">
+        <div class="seq-label"><span>Sequencer</span><b id="seqTempo">128 BPM</b></div>
+        <div class="steps" id="steps"></div>
+      </div>
+
+      <!-- knobs -->
+      <div class="rack" id="rack"></div>
+
+      <!-- rubbery sliding waveform -->
+      <div class="scope">
+        <div class="scope-head"><span>VCO / Filter</span><b id="scopeTag">SQUELCH</b></div>
+        <canvas id="wave" width="640" height="176"></canvas>
+      </div>
+
+      <!-- playable keyboard -->
+      <div class="keys-wrap">
+        <div class="keys-head">Keyboard</div>
+        <div class="keys" id="keys">
+          <div class="bkeys" id="bkeys"></div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span>MONO &middot; LAST-NOTE PRIORITY</span>
+        <span>DRAG KNOBS &middot; DBL-CLICK RESET</span>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+"use strict";
+
+// ---------- host bridge (guard against vstai being briefly undefined) ----------
+function pushParam(index, value) {
+  if (window.vstai && typeof window.vstai.setParam === "function") {
+    window.vstai.setParam(index, value);
+  }
+}
+function hostNoteOn(n, v) {
+  if (window.vstai && typeof window.vstai.noteOn === "function") window.vstai.noteOn(n, v);
+}
+function hostNoteOff(n) {
+  if (window.vstai && typeof window.vstai.noteOff === "function") window.vstai.noteOff(n);
+}
+
+// ---------- parameter model (indices MUST match assembly.ts) ----------
+const PARAMS = [
+  { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.38, accent: false },
+  { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.80, accent: false },
+  { name: "Env Amount", index: 2, min: 0, max: 1, def: 0.72, accent: false },
+  { name: "Accent",     index: 3, min: 0, max: 1, def: 0.55, accent: true  },
+  { name: "Glide",      index: 4, min: 0, max: 1, def: 0.30, accent: false },
+  { name: "Decay",      index: 5, min: 0, max: 1, def: 0.42, accent: false },
+  { name: "Level",      index: 6, min: 0, max: 1, def: 0.80, accent: false }
+];
+
+const state = {};  // index -> current 0..1 value
+
+// ---------- build knobs ----------
+const rack = document.getElementById("rack");
+const knobEls = {};   // index -> { arc, cap, valEl, knobEl }
+
+const A0 = -135;      // sweep start angle (deg)
+const A1 = 135;       // sweep end angle (deg)
+const R  = 30;        // arc radius
+const CX = 39, CY = 39;
+
+function polar(cx, cy, r, deg) {
+  const a = (deg - 90) * Math.PI / 180;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+function arcPath(fromDeg, toDeg) {
+  const [x0, y0] = polar(CX, CY, R, fromDeg);
+  const [x1, y1] = polar(CX, CY, R, toDeg);
+  const large = (toDeg - fromDeg) > 180 ? 1 : 0;
+  return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${R} ${R} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+
+function makeKnob(p) {
+  const cell = document.createElement("div");
+  cell.className = "cell" + (p.accent ? " accentcell" : "");
+
+  const knob = document.createElement("div");
+  knob.className = "knob";
+  knob.setAttribute("role", "slider");
+  knob.setAttribute("aria-label", p.name);
+
+  const stroke = p.accent ? "var(--accent2)" : "var(--accent)";
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 78 78");
+
+  // track
+  const track = document.createElementNS(ns, "path");
+  track.setAttribute("d", arcPath(A0, A1));
+  track.setAttribute("fill", "none");
+  track.setAttribute("stroke", "#2b332f");
+  track.setAttribute("stroke-width", "5");
+  track.setAttribute("stroke-linecap", "round");
+  svg.appendChild(track);
+
+  // value arc
+  const arc = document.createElementNS(ns, "path");
+  arc.setAttribute("class", "arc");
+  arc.setAttribute("fill", "none");
+  arc.setAttribute("stroke", stroke);
+  arc.setAttribute("stroke-width", "5");
+  arc.setAttribute("stroke-linecap", "round");
+  svg.appendChild(arc);
+
+  // body
+  const cap = document.createElementNS(ns, "circle");
+  cap.setAttribute("class", "cap");
+  cap.setAttribute("cx", CX); cap.setAttribute("cy", CY); cap.setAttribute("r", "21");
+  cap.setAttribute("fill", "url(#g" + p.index + ")");
+  cap.setAttribute("stroke", "#0a0d0c");
+  cap.setAttribute("stroke-width", "1");
+
+  const defs = document.createElementNS(ns, "defs");
+  const grad = document.createElementNS(ns, "radialGradient");
+  grad.setAttribute("id", "g" + p.index);
+  grad.setAttribute("cx", "38%"); grad.setAttribute("cy", "30%"); grad.setAttribute("r", "75%");
+  [["0%", "#3a423f"], ["55%", "#1d2321"], ["100%", "#0d100f"]].forEach(([o, c]) => {
+    const s = document.createElementNS(ns, "stop");
+    s.setAttribute("offset", o); s.setAttribute("stop-color", c);
+    grad.appendChild(s);
+  });
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+  svg.appendChild(cap);
+
+  // pointer notch
+  const notch = document.createElementNS(ns, "line");
+  notch.setAttribute("class", "notch");
+  notch.setAttribute("stroke", stroke);
+  notch.setAttribute("stroke-width", "2.6");
+  notch.setAttribute("stroke-linecap", "round");
+  svg.appendChild(notch);
+
+  knob.appendChild(svg);
+
+  const label = document.createElement("div");
+  label.className = "klabel";
+  label.textContent = p.name;
+
+  const val = document.createElement("div");
+  val.className = "kval";
+
+  cell.appendChild(knob);
+  cell.appendChild(label);
+  cell.appendChild(val);
+  rack.appendChild(cell);
+
+  knobEls[p.index] = { arc, notch, valEl: val, knobEl: knob };
+  attachDrag(knob, p);
+  return knob;
+}
+
+function renderKnob(p) {
+  const v = state[p.index];
+  const els = knobEls[p.index];
+  const ang = A0 + (A1 - A0) * v;
+  els.arc.setAttribute("d", arcPath(A0, Math.max(A0 + 0.001, ang)));
+  const [nx, ny] = polar(CX, CY, 12, ang);
+  const [ix, iy] = polar(CX, CY, 20, ang);
+  els.notch.setAttribute("x1", nx.toFixed(2));
+  els.notch.setAttribute("y1", ny.toFixed(2));
+  els.notch.setAttribute("x2", ix.toFixed(2));
+  els.notch.setAttribute("y2", iy.toFixed(2));
+  els.valEl.textContent = Math.round(v * 100);
+}
+
+function setParam(p, v, push) {
+  v = Math.max(0, Math.min(1, v));
+  state[p.index] = v;
+  renderKnob(p);
+  if (push !== false) pushParam(p.index, v);  // real value (0..1 range)
+}
+
+// ---------- drag / wheel / dbl-click ----------
+function attachDrag(knob, p) {
+  let dragging = false, lastY = 0;
+
+  function onMove(e) {
+    if (!dragging) return;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY);
+    const dy = lastY - y;
+    lastY = y;
+    const fine = e.shiftKey ? 0.25 : 1;
+    setParam(p, state[p.index] + dy * 0.005 * fine, true);
+    e.preventDefault();
+  }
+  function onUp() {
+    dragging = false;
+    knob.classList.remove("hot");
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+    window.removeEventListener("touchmove", onMove);
+    window.removeEventListener("touchend", onUp);
+  }
+  function onDown(e) {
+    dragging = true;
+    knob.classList.add("hot");
+    lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    e.preventDefault();
+  }
+
+  knob.addEventListener("mousedown", onDown);
+  knob.addEventListener("touchstart", onDown, { passive: false });
+  knob.addEventListener("dblclick", () => setParam(p, p.def, true));
+  knob.addEventListener("wheel", (e) => {
+    setParam(p, state[p.index] - Math.sign(e.deltaY) * 0.02, true);
+    e.preventDefault();
+  }, { passive: false });
+}
+
+PARAMS.forEach(makeKnob);
+
+// ---------- step sequencer animation (visual, hypnotic) ----------
+const STEP_N = 8;
+const stepsEl = document.getElementById("steps");
+const stepEls = [];
+// a hypnotic acid pattern: heights + accent flags
+const PATTERN = [
+  { h: 0.9, acc: true  },
+  { h: 0.4, acc: false },
+  { h: 0.7, acc: false },
+  { h: 1.0, acc: true  },
+  { h: 0.5, acc: false },
+  { h: 0.85, acc: false },
+  { h: 0.6, acc: true  },
+  { h: 0.45, acc: false }
+];
+for (let i = 0; i < STEP_N; i++) {
+  const d = document.createElement("div");
+  d.className = "step on" + (PATTERN[i].acc ? " accent" : "");
+  const bar = document.createElement("div");
+  bar.className = "bar";
+  bar.style.height = Math.round(PATTERN[i].h * 26 + 4) + "px";
+  d.appendChild(bar);
+  stepsEl.appendChild(d);
+  stepEls.push({ el: d, bar });
+}
+
+let curStep = 0;
+let lastStepT = 0;
+const STEP_MS = 469; // ~128 BPM 16ths-ish feel for the runner light
+
+function advanceStep(t) {
+  if (t - lastStepT < STEP_MS) return;
+  lastStepT = t;
+  stepEls[curStep].el.classList.remove("cur");
+  stepEls[curStep].bar.style.opacity = "0.5";
+  curStep = (curStep + 1) % STEP_N;
+  const s = stepEls[curStep];
+  s.el.classList.add("cur");
+  s.bar.style.opacity = "1";
+}
+
+// ---------- rubbery sliding waveform scope ----------
+const wave = document.getElementById("wave");
+const wctx = wave.getContext("2d");
+
+function drawWave(t) {
+  const W = wave.width, H = wave.height;
+  wctx.clearRect(0, 0, W, H);
+
+  // subtle grid
+  wctx.strokeStyle = "rgba(120,140,120,0.10)";
+  wctx.lineWidth = 1;
+  for (let gx = 0; gx <= W; gx += W / 8) {
+    wctx.beginPath(); wctx.moveTo(gx, 0); wctx.lineTo(gx, H); wctx.stroke();
+  }
+  wctx.beginPath(); wctx.moveTo(0, H / 2); wctx.lineTo(W, H / 2); wctx.stroke();
+
+  const cutoff = state[0], reso = state[1], envA = state[2];
+  const accent = state[3], glide = state[4], decay = state[5];
+
+  // shape morph: more square as cutoff is low + reso high (squelch character)
+  const squareness = Math.min(1, reso * 0.7 + (1 - cutoff) * 0.4);
+  // the "slide" — phase offset that glides, rubbery wobble depends on glide
+  const slide = t * 0.0011;
+  const wobble = glide * 18;
+
+  // resonance ripple amplitude + brightness of the line
+  const ripAmp = reso * 26;
+  const cycles = 2 + Math.round(cutoff * 4);   // brighter cutoff => more wiggles
+  const accentGlow = 6 + accent * 16;
+
+  // base bass wave
+  wctx.lineWidth = 2.4;
+  const grad = wctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, "#b6ff3d");
+  grad.addColorStop(1, accent > 0.5 ? "#ff3d8c" : "#7fd11f");
+  wctx.strokeStyle = grad;
+  wctx.shadowColor = accent > 0.5 ? "rgba(255,61,140,0.6)" : "rgba(182,255,61,0.55)";
+  wctx.shadowBlur = accentGlow;
+
+  wctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const ph = (x / W) * cycles * Math.PI * 2 + slide * 6;
+    // saw<->square morph
+    const saw = ((ph / Math.PI) % 2) - 1;
+    const sq = Math.sin(ph) >= 0 ? 1 : -1;
+    let base = saw * (1 - squareness) + sq * squareness;
+    // resonant ripple riding on the edges, decaying envelope shape
+    const env = Math.exp(-((x / W) % (1 / Math.max(1, cycles))) * (4 + decay * 10) * cycles);
+    const ripple = Math.sin(ph * 7 + slide * 10) * (ripAmp / H) * env;
+    // rubbery vertical slide wobble
+    const rub = Math.sin(x * 0.03 + slide * 9) * (wobble / H);
+    let y = H / 2 - (base * (H * 0.30) + ripple * H * 0.5 + rub * H);
+    y = Math.max(4, Math.min(H - 4, y));
+    if (x === 0) wctx.moveTo(x, y); else wctx.lineTo(x, y);
+  }
+  wctx.stroke();
+  wctx.shadowBlur = 0;
+
+  // sub-octave ghost line (the "fuller voice")
+  wctx.lineWidth = 1.4;
+  wctx.strokeStyle = "rgba(154,225,110,0.30)";
+  wctx.beginPath();
+  for (let x = 0; x <= W; x++) {
+    const ph = (x / W) * (cycles / 2) * Math.PI * 2 + slide * 3;
+    const sub = Math.sin(ph) >= 0 ? 0.55 : -0.55;
+    const y = H / 2 - sub * (H * 0.16);
+    if (x === 0) wctx.moveTo(x, y); else wctx.lineTo(x, y);
+  }
+  wctx.stroke();
+}
+
+const scopeTag = document.getElementById("scopeTag");
+function updateScopeTag() {
+  const reso = state[1], cut = state[0];
+  scopeTag.textContent = reso > 0.7 ? "SQUELCH" : (cut > 0.6 ? "OPEN" : "RUBBERY");
+}
+
+// ---------- master animation loop ----------
+let raf = 0;
+function loop(t) {
+  if (document.hidden) { raf = 0; return; }
+  advanceStep(t);
+  drawWave(t);
+  raf = requestAnimationFrame(loop);
+}
+function startLoop() { if (!raf) raf = requestAnimationFrame(loop); }
+document.addEventListener("visibilitychange", () => { if (!document.hidden) startLoop(); });
+
+// ---------- keyboard ----------
+const keysEl = document.getElementById("keys");
+const bkeysEl = document.getElementById("bkeys");
+const WHITE = [36, 38, 40, 41, 43, 45, 47, 48, 50, 52, 53, 55, 57, 59]; // 2 octaves of C..
+const BLACK = [   37, 39,     42, 44, 46,    49, 51,     54, 56, 58     ];
+const whiteEls = {}, blackEls = {};
+
+WHITE.forEach((n) => {
+  const k = document.createElement("div");
+  k.className = "wkey";
+  k.dataset.note = n;
+  keysEl.appendChild(k);
+  whiteEls[n] = k;
+});
+
+// position black keys between whites
+const blackAfterWhiteIndex = [0, 1, 3, 4, 5, 7, 8, 10, 11, 12]; // which white each sits after
+BLACK.forEach((n, i) => {
+  const b = document.createElement("div");
+  b.className = "bk";
+  b.dataset.note = n;
+  const wIdx = blackAfterWhiteIndex[i];
+  const leftPct = ((wIdx + 1) / WHITE.length) * 100 - 3.6;
+  b.style.left = leftPct + "%";
+  bkeysEl.appendChild(b);
+  blackEls[n] = b;
+});
+
+const held = new Set();
+function noteDown(n) {
+  if (held.has(n)) return;
+  held.add(n);
+  hostNoteOn(n, 0.92);
+  const el = whiteEls[n] || blackEls[n];
+  if (el) el.classList.add("down");
+}
+function noteUp(n) {
+  if (!held.has(n)) return;
+  held.delete(n);
+  hostNoteOff(n);
+  const el = whiteEls[n] || blackEls[n];
+  if (el) el.classList.remove("down");
+}
+
+function noteFromEvent(e) {
+  const t = e.target.closest("[data-note]");
+  return t ? parseInt(t.dataset.note, 10) : null;
+}
+
+let mouseDownKbd = false;
+keysEl.addEventListener("mousedown", (e) => {
+  const n = noteFromEvent(e); if (n == null) return;
+  mouseDownKbd = true; noteDown(n); e.preventDefault();
+});
+keysEl.addEventListener("mouseover", (e) => {
+  if (!mouseDownKbd) return;
+  const n = noteFromEvent(e); if (n != null) noteDown(n);
+});
+keysEl.addEventListener("mouseout", (e) => {
+  if (!mouseDownKbd) return;
+  const n = noteFromEvent(e); if (n != null) noteUp(n);
+});
+window.addEventListener("mouseup", () => {
+  if (mouseDownKbd) { mouseDownKbd = false; held.forEach((n) => noteUp(n)); }
+});
+keysEl.addEventListener("touchstart", (e) => {
+  const n = noteFromEvent(e); if (n != null) { noteDown(n); e.preventDefault(); }
+}, { passive: false });
+keysEl.addEventListener("touchend", (e) => {
+  held.forEach((n) => noteUp(n)); e.preventDefault();
+}, { passive: false });
+
+// computer-keyboard play row (z s x d c v ...) for convenience
+const KEYMAP = { z:36, s:37, x:38, d:39, c:40, v:41, g:42, b:43, h:44, n:45, j:46, m:47, ",":48, l:49, ".":50 };
+window.addEventListener("keydown", (e) => {
+  if (e.repeat) return;
+  const n = KEYMAP[e.key];
+  if (n != null) noteDown(n);
+});
+window.addEventListener("keyup", (e) => {
+  const n = KEYMAP[e.key];
+  if (n != null) noteUp(n);
+});
+
+// ---------- init: defaults + push once ----------
+function initAll() {
+  PARAMS.forEach((p) => setParam(p, p.def, true));
+  updateScopeTag();
+  // refresh scope tag whenever cutoff/reso change
+  ["mousedown", "wheel", "dblclick", "touchstart"].forEach((ev) =>
+    rack.addEventListener(ev, () => setTimeout(updateScopeTag, 0))
+  );
+  stepEls[0].el.classList.add("cur");
+  stepEls[0].bar.style.opacity = "1";
+  startLoop();
+}
+
+if (window.vstai && typeof window.vstai.onReady === "function") {
+  window.vstai.onReady(initAll);
+} else {
+  initAll();
+}
+</script>
+</body>
+</html>

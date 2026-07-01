@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source Mono</title>
+<style>
+  :root{ --acc:#ff3d3d; --acc2:#ffae42; --bg0:#070707; --bg1:#141112; --ink:#f3e9e6; --dim:#90817c; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#241a1a 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(94vw,720px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#1c1718,#0a0808); border:1px solid rgba(255,61,61,.2); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,220,210,.05); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:20px; background:linear-gradient(90deg,#fff,var(--acc)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 2.2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+  .stage{ display:grid; grid-template-columns:150px 1fr; gap:18px; align-items:center; }
+  .wheel{ position:relative; aspect-ratio:1/1; border-radius:50%; background:radial-gradient(circle at 50% 40%,#2a1414,#0c0808); border:1px solid rgba(255,61,61,.25); display:flex; align-items:center; justify-content:center; box-shadow:inset 0 4px 18px rgba(0,0,0,.6); }
+  .wheel canvas{ position:absolute; inset:8px; width:calc(100% - 16px); height:calc(100% - 16px); }
+  .wheel .lbl{ position:absolute; bottom:10px; font-size:8px; letter-spacing:.2em; color:var(--dim); }
+  .knobs{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px 6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:5px; padding:3px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:62px; height:62px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(255,180,170,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(255,61,61,.6)); }
+  .pcap{ fill:#150b0b; stroke:rgba(255,61,61,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:10px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(255,61,61,.1); padding:1px 6px; border-radius:6px; border:1px solid rgba(255,61,61,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">SOURCE&nbsp;MONO</span><span class="sub">two-osc moog mono</span><span class="led"></span></header>
+    <div class="stage">
+      <div class="wheel"><canvas id="cv"></canvas><span class="lbl">OSC</span></div>
+      <div class="knobs" id="knobs"></div>
+    </div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var P=[{name:"Cutoff",idx:0,def:0.5},{name:"Reso",idx:1,def:0.4},{name:"Env",idx:2,def:0.6},{name:"Osc Mix",idx:3,def:0.4},{name:"Detune",idx:4,def:0.25},{name:"Level",idx:5,def:0.8}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=27, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 68 68"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d3d"/><stop offset="1" stop-color="#ffae42"/></linearGradient></defs>'+
+      '<circle class="track" cx="34" cy="34" r="27"></circle><circle class="arc" cx="34" cy="34" r="27" transform="rotate(135 34 34)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="34" cy="34" r="17"></circle><line class="ptr" x1="34" y1="34" x2="34" y2="20"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(34+Math.sin(ang)*13).toFixed(2)); ptr.setAttribute("y2",(34-Math.cos(ang)*13).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/150)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def); return {render:render};
+  });
+  // round osc-scope showing the blended detuned oscillators
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+  function frame(ts){ ctx.clearRect(0,0,W,H); var mix=vals[3], det=vals[4], cut=vals[0]; var cx=W/2, cy=H/2;
+    ctx.beginPath();
+    for(var a=0;a<=120;a++){ var t=a/120; var saw=2*((t*3+ts/700)%1)-1; var p2=(t*3*(1+det*0.04)+ts/700)%1; var pulse=p2<0.5?1:-1;
+      var v=(saw*(1-mix)+pulse*mix)*(0.4+cut*0.5); var ang=t*Math.PI*2; var rad=W*0.32*(1+v*0.35);
+      var x=cx+Math.cos(ang)*rad, y=cy+Math.sin(ang)*rad; if(a===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+    ctx.closePath(); ctx.strokeStyle="rgba(255,80,70,0.95)"; ctx.lineWidth=2; ctx.shadowColor="#ff3d3d"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

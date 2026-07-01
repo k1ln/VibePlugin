@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twin Filter</title>
+<style>
+  :root{
+    --teal:#4ad0c8;
+    --orange:#ff8a5a;
+    --teal-dim:#1f5a56;
+    --orange-dim:#7a3f29;
+    --panel0:#0c1012;
+    --panel1:#161c1f;
+    --panel2:#212a2e;
+    --ink:#070a0b;
+    --txt:#cfe2e0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(130% 100% at 50% -15%,#1a2226 0%,#0c1113 50%,#05080a 100%);
+    color:var(--txt);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    letter-spacing:.02em;
+  }
+
+  /* ===== slim charcoal chassis ===== */
+  .unit{
+    position:relative;
+    width:720px;height:404px;
+    border-radius:14px;
+    padding:16px 20px 18px;
+    background:
+      linear-gradient(180deg,#2b3438 0%,#222b2f 7%,#1a2125 12%,#141a1d 55%,#10161a 92%,#0a0f12 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.12) inset,
+      0 -2px 8px rgba(0,0,0,.6) inset,
+      0 26px 60px rgba(0,0,0,.7),
+      0 2px 0 #05090b;
+    overflow:hidden;
+  }
+  /* fine vertical brushed grain */
+  .unit::before{
+    content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.022) 0 1px,rgba(0,0,0,.05) 1px 3px);
+    mix-blend-mode:overlay;opacity:.6;
+  }
+  /* slow drifting sheen */
+  .unit::after{
+    content:"";position:absolute;top:0;left:-40%;width:30%;height:100%;
+    background:linear-gradient(105deg,transparent,rgba(255,255,255,.06),transparent);
+    transform:skewX(-16deg);pointer-events:none;
+    animation:sheen 11s ease-in-out infinite;
+  }
+  @keyframes sheen{0%,78%{left:-45%}94%{left:135%}100%{left:135%}}
+
+  .screw{position:absolute;width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#5a656a,#2b3236 55%,#13191c 100%);
+    box-shadow:0 1px 1px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.4) inset;}
+  .screw::after{content:"";position:absolute;inset:2.5px;border-radius:1px;
+    background:linear-gradient(90deg,transparent 44%,#0a0f11 44% 56%,transparent 56%);transform:rotate(-22deg)}
+  .screw.tl{top:8px;left:8px}.screw.tr{top:8px;right:8px}
+  .screw.bl{bottom:8px;left:8px}.screw.br{bottom:8px;right:8px}
+
+  /* ===== header ===== */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:1px 4px 11px}
+  .brand{display:flex;flex-direction:column;line-height:1}
+  .brand .sub{font-size:8.5px;letter-spacing:.46em;color:#6f8582;font-weight:700;margin-bottom:6px;text-transform:uppercase}
+  .brand .name{font-size:25px;font-weight:800;letter-spacing:.01em;color:#e8f3f1;
+    text-shadow:0 1px 0 rgba(0,0,0,.6)}
+  .brand .name b{color:var(--teal);text-shadow:0 0 10px rgba(74,208,200,.6)}
+  .brand .name i{font-style:normal;color:var(--orange);text-shadow:0 0 10px rgba(255,138,90,.55)}
+  .tag{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+  .tag .mono{font-size:8px;letter-spacing:.34em;color:#5a6e6b;font-weight:700}
+  .tag .voice{display:flex;gap:5px;align-items:center}
+  .vled{width:7px;height:7px;border-radius:50%;background:#16201f;
+    box-shadow:0 0 0 1px rgba(0,0,0,.5) inset}
+  .vled.on{background:var(--teal);box-shadow:0 0 7px var(--teal),0 0 0 1px rgba(0,0,0,.4) inset}
+
+  /* ===== response scope ===== */
+  .scope{
+    position:relative;width:100%;height:150px;border-radius:10px;
+    background:linear-gradient(180deg,#05100f 0%,#040b0c 60%,#030708 100%);
+    border:1.5px solid #1b2528;
+    box-shadow:0 3px 7px rgba(0,0,0,.7) inset,0 1px 0 rgba(255,255,255,.08);
+    overflow:hidden;margin-bottom:14px;
+  }
+  .scope svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .grid{position:absolute;inset:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,rgba(74,208,200,.05) 0 1px,transparent 1px 19px),
+      repeating-linear-gradient(90deg,rgba(74,208,200,.05) 0 1px,transparent 1px 30px);}
+  .glass{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(130% 80% at 50% -10%,rgba(120,220,210,.10),transparent 60%)}
+  .scan{position:absolute;left:0;right:0;height:34px;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(74,208,200,.06),transparent);
+    animation:scan 5.5s linear infinite}
+  @keyframes scan{0%{top:-34px}100%{top:150px}}
+  .lbl{position:absolute;font-size:8px;font-weight:700;letter-spacing:.16em;pointer-events:none}
+  .lbl.hp{left:9px;top:8px;color:var(--orange);text-shadow:0 0 6px rgba(255,138,90,.7)}
+  .lbl.lp{right:9px;top:8px;color:var(--teal);text-shadow:0 0 6px rgba(74,208,200,.7)}
+  .lbl.band{bottom:7px;left:50%;transform:translateX(-50%);color:#9fdfd9;opacity:.7;letter-spacing:.3em}
+
+  /* ===== controls row ===== */
+  .controls{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:start}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .knob{
+    position:relative;width:62px;height:62px;border-radius:50%;cursor:ns-resize;
+    background:
+      radial-gradient(circle at 50% 38%,#2a3438 0%,#1b2327 55%,#11171a 100%);
+    box-shadow:
+      0 2px 5px rgba(0,0,0,.6),
+      0 1px 0 rgba(255,255,255,.08) inset,
+      0 -3px 6px rgba(0,0,0,.5) inset;
+    touch-action:none;
+  }
+  .knob::before{ /* outer ring tick gauge */
+    content:"";position:absolute;inset:-5px;border-radius:50%;
+    background:conic-gradient(from 220deg,
+      rgba(255,255,255,.04) 0deg,
+      rgba(255,255,255,.04) 280deg,
+      transparent 280deg);
+    -webkit-mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33px,transparent 34px);
+            mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33px,transparent 34px);
+  }
+  .knob .arc{position:absolute;inset:-5px;border-radius:50%;pointer-events:none}
+  .knob .cap{position:absolute;inset:9px;border-radius:50%;
+    background:radial-gradient(circle at 50% 34%,#323d41,#1d2529 60%,#141a1d 100%);
+    box-shadow:0 1px 2px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.07) inset}
+  .knob .ptr{position:absolute;left:50%;top:9px;width:2.4px;height:21px;border-radius:2px;
+    background:linear-gradient(180deg,var(--teal),#bff3ef);
+    transform-origin:50% 22px;transform:translateX(-50%) rotate(0deg);
+    box-shadow:0 0 7px var(--teal)}
+  .knob.orange .ptr{background:linear-gradient(180deg,var(--orange),#ffd2bf);box-shadow:0 0 7px var(--orange)}
+  .knob .dot{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;
+    transform:translate(-50%,-50%);background:#0a0f11;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
+  .cell .nm{font-size:8.5px;letter-spacing:.13em;font-weight:700;color:#9fb2af;text-transform:uppercase}
+  .cell .val{font-size:9.5px;font-weight:700;color:var(--teal);font-variant-numeric:tabular-nums;
+    text-shadow:0 0 6px rgba(74,208,200,.4)}
+  .cell.orange .val{color:var(--orange);text-shadow:0 0 6px rgba(255,138,90,.4)}
+  .knob:hover .cap{filter:brightness(1.12)}
+  .knob:active{cursor:grabbing}
+</style>
+</head>
+<body>
+  <div class="unit">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="head">
+      <div class="brand">
+        <span class="sub">Dual Series Filter · Mono Synth</span>
+        <span class="name"><b>TWIN</b> <i>FILTER</i></span>
+      </div>
+      <div class="tag">
+        <span class="mono">HP → LP · 2-VOICE</span>
+        <span class="voice"><span class="vled" id="v0"></span><span class="vled" id="v1"></span></span>
+      </div>
+    </div>
+
+    <div class="scope">
+      <svg viewBox="0 0 600 150" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="hpFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ff8a5a" stop-opacity=".30"/>
+            <stop offset="1" stop-color="#ff8a5a" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="lpFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4ad0c8" stop-opacity=".30"/>
+            <stop offset="1" stop-color="#4ad0c8" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <path id="hpArea" fill="url(#hpFill)"></path>
+        <path id="lpArea" fill="url(#lpFill)"></path>
+        <path id="bandArea" fill="#bff3ef" fill-opacity=".10"></path>
+        <path id="hpCurve" fill="none" stroke="var(--orange)" stroke-width="2.2" filter="url(#glow)"></path>
+        <path id="lpCurve" fill="none" stroke="var(--teal)" stroke-width="2.2" filter="url(#glow)"></path>
+        <circle id="hpKnee" r="3.4" fill="#fff" stroke="var(--orange)" stroke-width="1.6"></circle>
+        <circle id="lpKnee" r="3.4" fill="#fff" stroke="var(--teal)" stroke-width="1.6"></circle>
+      </svg>
+      <div class="grid"></div>
+      <div class="glass"></div>
+      <div class="scan"></div>
+      <span class="lbl hp">HIGH-PASS</span>
+      <span class="lbl lp">LOW-PASS</span>
+      <span class="lbl band">BAND</span>
+    </div>
+
+    <div class="controls" id="controls"></div>
+  </div>
+
+<script>
+(function(){
+  var host = window.vstai || null;
+  function send(i,v){ if(host && host.setParam) host.setParam(i,v); }
+
+  // param defs: index matches assembly.ts / spec.json
+  var PARAMS = [
+    {i:0, nm:"LP Cutoff",  def:0.62, accent:"teal"},
+    {i:1, nm:"HP Cutoff",  def:0.32, accent:"orange"},
+    {i:2, nm:"Resonance",  def:0.55, accent:"teal"},
+    {i:3, nm:"Env Amount", def:0.60, accent:"orange"},
+    {i:4, nm:"Decay",      def:0.42, accent:"teal"},
+    {i:5, nm:"Detune",     def:0.30, accent:"orange"},
+    {i:6, nm:"Level",      def:0.80, accent:"teal"}
+  ];
+  var state = {};
+  PARAMS.forEach(function(p){ state[p.i] = p.def; });
+
+  var controls = document.getElementById("controls");
+  var els = {};
+
+  function fmt(p){
+    var v = state[p.i];
+    if(p.i===5) return (v*3.5).toFixed(1)+"%";       // detune percent-ish
+    return Math.round(v*100)+"";
+  }
+
+  PARAMS.forEach(function(p){
+    var cell = document.createElement("div");
+    cell.className = "cell" + (p.accent==="orange" ? " orange" : "");
+    var knob = document.createElement("div");
+    knob.className = "knob" + (p.accent==="orange" ? " orange" : "");
+    knob.setAttribute("title","drag · double-click resets");
+    knob.innerHTML =
+      '<svg class="arc" viewBox="0 0 72 72"><path class="arcpath" fill="none" '+
+      'stroke="'+(p.accent==="orange"?"#ff8a5a":"#4ad0c8")+'" stroke-width="2.4" '+
+      'stroke-linecap="round" stroke-opacity=".85"></path></svg>'+
+      '<div class="cap"></div><div class="ptr"></div><div class="dot"></div>';
+    var nm = document.createElement("div"); nm.className="nm"; nm.textContent=p.nm;
+    var val = document.createElement("div"); val.className="val";
+    cell.appendChild(knob); cell.appendChild(nm); cell.appendChild(val);
+    controls.appendChild(cell);
+    els[p.i] = { knob:knob, ptr:knob.querySelector(".ptr"), arc:knob.querySelector(".arcpath"), val:val };
+
+    // ---- interaction: vertical drag ----
+    var dragging=false, startY=0, startV=0;
+    function setV(nv, doSend){
+      nv = Math.max(0, Math.min(1, nv));
+      state[p.i]=nv;
+      paint(p);
+      if(doSend!==false) send(p.i, nv);
+    }
+    knob.addEventListener("pointerdown", function(e){
+      dragging=true; startY=e.clientY; startV=state[p.i];
+      knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener("pointermove", function(e){
+      if(!dragging) return;
+      var dy = startY - e.clientY;
+      setV(startV + dy/180);
+    });
+    knob.addEventListener("pointerup", function(e){ dragging=false; });
+    knob.addEventListener("pointercancel", function(e){ dragging=false; });
+    knob.addEventListener("dblclick", function(e){ setV(p.def); e.preventDefault(); });
+    knob.addEventListener("wheel", function(e){
+      setV(state[p.i] - e.deltaY/2400); e.preventDefault();
+    }, {passive:false});
+  });
+
+  var ARC_LEN = 0; // computed lazily per knob via path
+  function paint(p){
+    var e = els[p.i];
+    var v = state[p.i];
+    // pointer: -135deg .. +135deg (270 deg sweep)
+    var ang = -135 + v*270;
+    e.ptr.style.transform = "translateX(-50%) rotate("+ang+"deg)";
+    // arc gauge (start at 220deg sweeping 280deg of the ring, mapped to value)
+    var R=33, cx=36, cy=36;
+    var a0 = (220)*Math.PI/180;
+    var a1 = (220 + v*280)*Math.PI/180;
+    var x0 = cx + R*Math.cos(a0), y0 = cy + R*Math.sin(a0);
+    var x1 = cx + R*Math.cos(a1), y1 = cy + R*Math.sin(a1);
+    var large = (v*280) > 180 ? 1 : 0;
+    e.arc.setAttribute("d","M "+x0.toFixed(2)+" "+y0.toFixed(2)+
+      " A "+R+" "+R+" 0 "+large+" 1 "+x1.toFixed(2)+" "+y1.toFixed(2));
+    e.val.textContent = fmt(p);
+    drawScope();
+  }
+
+  // ===== response-curve scope =====
+  var W=600, H=150;
+  var hpCurve=document.getElementById("hpCurve"),
+      lpCurve=document.getElementById("lpCurve"),
+      hpArea=document.getElementById("hpArea"),
+      lpArea=document.getElementById("lpArea"),
+      bandArea=document.getElementById("bandArea"),
+      hpKnee=document.getElementById("hpKnee"),
+      lpKnee=document.getElementById("lpKnee");
+
+  function xForCut(norm){ return 30 + norm*540; }   // map 0..1 -> 30..570 px
+
+  function drawScope(){
+    var lp = state[0], hp = state[1], reso = state[2];
+    // knee x positions on the log-ish axis
+    var hpX = xForCut(hp*0.78 + 0.04);   // HP corner travels right as HP rises
+    var lpX = xForCut(lp*0.82 + 0.12);   // LP corner travels right as LP rises
+    var peak = 10 + reso*26;             // resonance bump height
+
+    // HIGH-PASS: low freq attenuated (rises from bottom-left up to flat top),
+    // with a resonant peak at its knee.
+    var hp_d = "M 0 "+H+" ";
+    var hp_top = 34;
+    for(var x=0;x<=W;x+=6){
+      var t=(x-hpX)/55;
+      var s=1/(1+Math.exp(-t));          // sigmoid rise
+      var y = H-10 - s*(H-44);
+      // resonant bump near knee
+      var bump = peak*Math.exp(-Math.pow((x-hpX)/22,2));
+      y -= bump;
+      if(y<hp_top) y=hp_top;
+      hp_d += "L "+x+" "+y.toFixed(1)+" ";
+    }
+    hpCurve.setAttribute("d", hp_d);
+    hpArea.setAttribute("d", hp_d + "L "+W+" "+H+" L 0 "+H+" Z");
+
+    // LOW-PASS: high freq attenuated (flat top then falls), resonant peak at knee.
+    var lp_d = "M 0 34 ";
+    for(var x2=0;x2<=W;x2+=6){
+      var t2=(x2-lpX)/55;
+      var s2=1/(1+Math.exp(t2));          // sigmoid fall
+      var y2 = H-10 - s2*(H-44);
+      var bump2 = peak*Math.exp(-Math.pow((x2-lpX)/22,2));
+      y2 -= bump2;
+      if(y2<34) y2=34;
+      lp_d += "L "+x2+" "+y2.toFixed(1)+" ";
+    }
+    lpCurve.setAttribute("d", lp_d);
+    lpArea.setAttribute("d", lp_d + "L "+W+" "+H+" L 0 "+H+" Z");
+
+    // BAND region between the two knees
+    var lo = Math.min(hpX,lpX), hi=Math.max(hpX,lpX);
+    bandArea.setAttribute("d","M "+lo+" 34 L "+hi+" 34 L "+hi+" "+H+" L "+lo+" "+H+" Z");
+
+    // knee markers
+    hpKnee.setAttribute("cx",hpX); hpKnee.setAttribute("cy", (H-10)-0.5*(H-44)-peak);
+    lpKnee.setAttribute("cx",lpX); lpKnee.setAttribute("cy", (H-10)-0.5*(H-44)-peak);
+  }
+
+  // voice LED shimmer (purely decorative — alternates with the scan)
+  var t=0;
+  function tick(){
+    t+=0.016;
+    var a=document.getElementById("v0"), b=document.getElementById("v1");
+    if(a) a.classList.toggle("on", (Math.sin(t*2.1)>0.4));
+    if(b) b.classList.toggle("on", (Math.sin(t*2.1+1.7)>0.6));
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  function ready(){
+    PARAMS.forEach(function(p){
+      send(p.i, state[p.i]);   // push defaults to host
+      paint(p);
+    });
+    drawScope();
+  }
+  if(host && host.onReady) host.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

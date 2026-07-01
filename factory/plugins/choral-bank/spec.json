@@ -1,0 +1,19 @@
+{
+  "name": "Choral Bank",
+  "isInstrument": true,
+  "explanation": "A fully-polyphonic organ / string-ensemble synthesizer in the lineage of the big paraphonic-string machines. Every key sounds a divide-down full-keyboard source — a stack of octave and fifth partials voiced like an organ's footages — and each note gets its OWN gentle resonant low-pass with a slow attack/release swell, so dense chords each breathe independently. The whole bank pours into a rich four-tap ensemble chorus whose slow quadrature LFOs widen the sound into a vast, shimmering, angelic choir. Controls: Cutoff, Resonance, Attack, Release, Ensemble, Brightness and Level.",
+  "assembly": "factory/plugins/choral-bank/assembly.ts",
+  "out": "factory/plugins/choral-bank/choral-bank.vstai",
+  "publishedAt": 1751000117000,
+  "theme": { "accent": "#7ab0ff", "accent2": "#d0b0ff" },
+  "guiFile": "factory/plugins/choral-bank/gui.html",
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.22 },
+    { "name": "Attack",     "index": 2, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Release",    "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Ensemble",   "index": 4, "min": 0, "max": 1, "default": 0.70 },
+    { "name": "Brightness", "index": 5, "min": 0, "max": 1, "default": 0.50 },
+    { "name": "Level",      "index": 6, "min": 0, "max": 1, "default": 0.55 }
+  ]
+}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room Print</title>
+<style>
+  :root{ --acc:#5ad1c4; --acc2:#7a8cff; --bg0:#070b10; --bg1:#0e1620; --ink:#cfe8ea; --dim:#5d7480; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#13202b 0%,var(--bg1) 40%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%;
+  }
+  .unit{
+    width:min(94vw,760px); border-radius:20px; padding:20px 22px 24px;
+    background:linear-gradient(160deg,rgba(30,46,60,.72),rgba(10,16,22,.86));
+    border:1px solid rgba(120,200,210,.16);
+    box-shadow:0 24px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter:blur(6px); position:relative; overflow:hidden;
+  }
+  .unit::before{ /* aura sweep */
+    content:""; position:absolute; inset:-40% -10%; pointer-events:none;
+    background:radial-gradient(40% 50% at 20% 0%,rgba(90,209,196,.10),transparent 60%),
+               radial-gradient(40% 60% at 100% 30%,rgba(122,140,255,.10),transparent 60%);
+    animation:drift 14s ease-in-out infinite alternate;
+  }
+  @keyframes drift{ from{ transform:translate(-2%,-1%);} to{ transform:translate(3%,2%);} }
+  header{ display:flex; align-items:baseline; gap:12px; margin-bottom:14px; position:relative; z-index:2; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc);
+    box-shadow:0 0 10px var(--acc),0 0 20px var(--acc); animation:pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.45; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+
+  .stage{ display:grid; grid-template-columns:1fr; gap:14px; position:relative; z-index:2; }
+  .room{ position:relative; height:188px; border-radius:14px; overflow:hidden;
+    background:linear-gradient(180deg,#0a131b,#0c1822); border:1px solid rgba(120,200,210,.14);
+    box-shadow:inset 0 2px 24px rgba(0,0,0,.5); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .irlabel{ position:absolute; left:12px; top:9px; font-size:10px; letter-spacing:.24em; color:var(--dim); z-index:3; }
+  .irlabel b{ color:var(--acc); font-weight:600; }
+
+  .knobs{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:4px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:7px; padding:8px 4px 4px; cursor:ns-resize; position:relative; }
+  .dial{ width:78px; height:78px; position:relative; }
+  .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(150,190,200,.14); stroke-width:7; stroke-linecap:round; }
+  .fill{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round;
+    filter:drop-shadow(0 0 5px rgba(90,209,196,.6)); transition:stroke-dashoffset .05s linear; }
+  .cap{ fill:radial-gradient(#16242e,#0a1218); }
+  .pointer{ stroke:var(--acc); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .pcap{ fill:#0c151c; stroke:rgba(120,200,210,.25); stroke-width:1; }
+  .name{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); }
+  .val{ font-size:12px; font-variant-numeric:tabular-nums; color:var(--ink);
+    background:rgba(90,209,196,.08); padding:1px 8px; border-radius:8px; border:1px solid rgba(90,209,196,.18); }
+  .knob:hover .name{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header>
+      <span class="logo">ROOM&nbsp;PRINT</span>
+      <span class="sub">convolution reverb</span>
+      <span class="led"></span>
+    </header>
+    <div class="stage">
+      <div class="room">
+        <div class="irlabel">REAL&nbsp;ROOM&nbsp;IR &nbsp;·&nbsp; <b id="szlbl">tail 65%</b></div>
+        <canvas id="cv"></canvas>
+      </div>
+      <div class="knobs" id="knobs"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var PARAMS=[
+    {name:"Mix",  idx:0, def:0.30},
+    {name:"Size", idx:1, def:0.65},
+    {name:"Pre",  idx:2, def:0.12},
+    {name:"Tone", idx:3, def:0.60},
+    {name:"Width",idx:4, def:0.90}
+  ];
+  var vals=PARAMS.map(function(p){return p.def;});
+  var host=null;
+  function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+
+  // ---- knobs ----
+  var R=34, C=2*Math.PI*R, A0=-135, A1=135;
+  function fmt(p,v){ if(p.name==="Mix"||p.name==="Width") return Math.round(v*100)+"%";
+    if(p.name==="Pre") return Math.round(v*100)+" ms"; if(p.name==="Size") return Math.round(v*100)+"%";
+    return Math.round(v*100)+"%"; }
+  var wrap=document.getElementById("knobs");
+  var knobs=PARAMS.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML=
+      '<div class="dial"><svg viewBox="0 0 90 90">'+
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'+
+      '<stop offset="0" stop-color="#5ad1c4"/><stop offset="1" stop-color="#7a8cff"/></linearGradient></defs>'+
+      '<circle class="track" cx="45" cy="45" r="34"></circle>'+
+      '<circle class="fill" cx="45" cy="45" r="34" transform="rotate(135 45 45)" '+
+      'stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="45" cy="45" r="22"></circle>'+
+      '<line class="pointer" x1="45" y1="45" x2="45" y2="27"></line>'+
+      '</svg></div>'+
+      '<span class="name">'+p.name+'</span><span class="val"></span>';
+    wrap.appendChild(el);
+    var fill=el.querySelector(".fill"), ptr=el.querySelector(".pointer"), val=el.querySelector(".val");
+    function render(v){
+      var sweep=(A1-A0)/360; fill.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180;
+      ptr.setAttribute("x2",(45+Math.sin(ang)*18).toFixed(2));
+      ptr.setAttribute("y2",(45-Math.cos(ang)*18).toFixed(2));
+      val.textContent=fmt(p,v);
+    }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return;
+      var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/180));
+      vals[p.idx]=nv; render(nv); send(p.idx,nv); if(p.idx===1) sizeLbl(nv); });
+    el.addEventListener("pointerup",function(e){ drag=null; });
+    el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); if(p.idx===1) sizeLbl(p.def); });
+    render(p.def);
+    return {render:render};
+  });
+  function sizeLbl(v){ var e=document.getElementById("szlbl"); if(e) e.textContent="tail "+Math.round(v*100)+"%"; }
+
+  // ---- animated room: a source emits rays that reflect off the walls and fade ----
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+
+  var rays=[];
+  function pad(){ return 16 + (1-vals[1])*0; }
+  function emit(){
+    var n=7+Math.round(vals[0]*6);
+    for(var i=0;i<n;i++){
+      var a=Math.random()*Math.PI*2;
+      rays.push({x:W*0.5,y:H*0.56,vx:Math.cos(a),vy:Math.sin(a),life:1,bounces:0});
+    }
+  }
+  var t0=0, acc=0;
+  function frame(ts){
+    if(!t0)t0=ts; var dt=Math.min(50,ts-t0); t0=ts; acc+=dt;
+    // room rect grows a touch with Size
+    var m=14, rw=W-2*m, rh=H-2*m, rx=m, ry=m;
+    var sz=0.6+vals[1]*0.4;
+    var ix=rx+rw*(1-sz)/2, iy=ry+rh*(1-sz)/2, iw=rw*sz, ih=rh*sz;
+    ctx.clearRect(0,0,W,H);
+    // floor grid
+    ctx.save(); ctx.globalAlpha=0.5; ctx.strokeStyle="rgba(90,160,170,0.10)"; ctx.lineWidth=1;
+    for(var gx=0;gx<=8;gx++){ var X=ix+iw*gx/8; ctx.beginPath(); ctx.moveTo(X,iy); ctx.lineTo(X,iy+ih); ctx.stroke(); }
+    for(var gy=0;gy<=5;gy++){ var Y=iy+ih*gy/5; ctx.beginPath(); ctx.moveTo(ix,Y); ctx.lineTo(ix+iw,Y); ctx.stroke(); }
+    ctx.restore();
+    // walls
+    ctx.strokeStyle="rgba(122,140,255,0.45)"; ctx.lineWidth=2;
+    ctx.shadowColor="rgba(122,140,255,0.5)"; ctx.shadowBlur=12; ctx.strokeRect(ix,iy,iw,ih); ctx.shadowBlur=0;
+
+    var speed=0.06+vals[1]*0.06;
+    var preDelay=vals[2];
+    if(acc>(120 - vals[0]*60)){ acc=0; emit(); }
+    var damp=0.55+vals[3]*0.4; // tone -> ray persistence colouring
+    for(var i=rays.length-1;i>=0;i--){
+      var r=rays[i];
+      r.x+=r.vx*speed*dt*2.2; r.y+=r.vy*speed*dt*2.2;
+      // reflect off inner room walls
+      if(r.x<ix){ r.x=ix; r.vx=-r.vx; r.bounces++; r.life*=0.82; }
+      else if(r.x>ix+iw){ r.x=ix+iw; r.vx=-r.vx; r.bounces++; r.life*=0.82; }
+      if(r.y<iy){ r.y=iy; r.vy=-r.vy; r.bounces++; r.life*=0.82; }
+      else if(r.y>iy+ih){ r.y=iy+ih; r.vy=-r.vy; r.bounces++; r.life*=0.82; }
+      r.life-=0.0016*dt*(2-vals[1]);
+      if(r.life<=0){ rays.splice(i,1); continue; }
+      var al=r.life*0.9;
+      var col= r.bounces? (180+ (1-damp)*40) : 200;
+      ctx.beginPath();
+      ctx.fillStyle="rgba("+Math.round(90+ (1-vals[3])*40)+","+Math.round(200*damp+30)+","+Math.round(196)+","+al+")";
+      ctx.arc(r.x,r.y,1.7+r.life*1.4,0,Math.PI*2); ctx.fill();
+    }
+    // source
+    var pulse=0.6+0.4*Math.sin(ts/240);
+    ctx.beginPath(); ctx.fillStyle="rgba(90,209,196,"+(0.5+0.5*pulse)+")";
+    ctx.shadowColor="#5ad1c4"; ctx.shadowBlur=18; ctx.arc(W*0.5,H*0.56,3.4+pulse*2,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    // pre-delay ring
+    if(preDelay>0.02){ ctx.beginPath(); ctx.strokeStyle="rgba(122,140,255,"+(0.25*preDelay+0.1)+")"; ctx.lineWidth=1.5;
+      ctx.arc(W*0.5,H*0.56,8+preDelay*46*(0.5+0.5*Math.sin(ts/500)),0,Math.PI*2); ctx.stroke(); }
+    // IR decay strip (bottom)
+    var by=H-9, bx0=ix, bw=iw;
+    for(var b=0;b<46;b++){
+      var fr=b/46; var env=Math.exp(-fr*(3.4-vals[1]*2.4))*(0.4+0.6*Math.abs(Math.sin(fr*30+ts/300)));
+      var hgt=env*(7+vals[0]*16);
+      ctx.fillStyle="rgba(90,209,196,"+(0.25+env*0.5)+")";
+      ctx.fillRect(bx0+bw*fr, by-hgt, bw/52, hgt);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- host wiring ----
+  function boot(){
+    host=window.vstai||null;
+    PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+  }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } }
+  else boot();
+})();
+</script>
+</body>
+</html>

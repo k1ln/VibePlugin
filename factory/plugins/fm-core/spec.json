@@ -1,0 +1,18 @@
+{
+  "name": "FM Core",
+  "isInstrument": true,
+  "explanation": "A clean two-operator FM synth built on the textbook Chowning algorithm: one modulator phase-modulates one carrier. Ratio sets the modulator:carrier frequency relationship (quantised to musical half-integers), Index sets the FM depth, and the signature Index Env makes that depth decay over each note so the tone starts bright and bell-like then settles. Operator Feedback adds extra harmonics and edge. 8-voice poly. Controls: Ratio, Index, Index Env, Feedback, Decay and Level.",
+  "assembly": "factory/plugins/fm-core/assembly.ts",
+  "out": "factory/plugins/fm-core/x.vstai",
+  "guiFile": "factory/plugins/fm-core/gui.html",
+  "publishedAt": 1751304200000,
+  "theme": { "accent": "#a07cff", "accent2": "#c8ff5a" },
+  "params": [
+    { "name": "Ratio",     "index": 0, "min": 0, "max": 1, "default": 0.28 },
+    { "name": "Index",     "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Index Env", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Feedback",  "index": 3, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Decay",     "index": 4, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level",     "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

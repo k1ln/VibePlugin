@@ -23,6 +23,7 @@ const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS)
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
 
 let sampleRate: f32 = 48000.0;
+let dcX: f32 = 0.0; let dcY: f32 = 0.0;   // DC blocker
 
 // ---- parameter indices (must match spec.json) ----------------------
 const P_BASS:    i32 = 0;  // 0..1  16' flute tab level
@@ -57,6 +58,7 @@ let toneState: f32 = 0.0;
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr > 0.0 ? sr : 48000.0;
+  dcX = 0.0; dcY = 0.0;
   for (let v = 0; v < NUM_VOICES; v++) {
     vNote[v] = -1; vActive[v] = 0; vGate[v] = 0; vAge[v] = 0;
     vFreq[v] = 0.0; vVel[v] = 0.0; vEnv[v] = 0.0;
@@ -233,7 +235,8 @@ export function process(n: i32): void {
 
     // gentle soft clip for transistor-organ glue, keeps peak < 1
     toned = f32(Mathf.tanh(toned * 1.15));
-    const outv: f32 = toned * level;
+    let outv: f32 = toned * level;
+    const dcO: f32 = outv - dcX + 0.9985 * dcY; dcX = outv; dcY = dcO; outv = dcO;
 
     outBuf[f] = outv;
     outBuf[MAX_FRAMES + f] = outv;

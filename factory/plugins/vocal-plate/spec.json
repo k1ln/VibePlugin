@@ -1,0 +1,17 @@
+{
+  "name": "Vocal Plate",
+  "isInstrument": false,
+  "explanation": "A bright, dense studio plate reverb in the EMT 140 lineage — the classic vocal and snare plate, brighter and longer than an algorithmic Dattorro plate. An input diffusion chain (four series allpasses) feeds a lightly-modulated figure-of-eight tank (two allpasses and two long delays with high-frequency damping) for a lush, shimmering metallic-to-smooth tail. Controls: dry/wet Mix, Decay, Tone (brightness), Pre-Delay and plate Size.",
+  "assembly": "factory/plugins/vocal-plate/assembly.ts",
+  "out": "factory/plugins/vocal-plate/x.vstai",
+  "guiFile": "factory/plugins/vocal-plate/gui.html",
+  "publishedAt": 1751000162000,
+  "theme": { "accent": "#cdd5e2", "accent2": "#ffd24a" },
+  "params": [
+    { "name": "Mix",       "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Decay",     "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Tone",      "index": 2, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Pre-Delay", "index": 3, "min": 0, "max": 1, "default": 0.06 },
+    { "name": "Size",      "index": 4, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

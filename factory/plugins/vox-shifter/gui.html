@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vox Shifter</title>
+<style>
+  :root{ --acc:#ff5ab0; --acc2:#5ad0ff; --bg0:#0f060c; --bg1:#1e0c18; --ink:#fae8f3; --dim:#9a708a; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(120% 90% at 50% -10%,#341830 0%,var(--bg1) 46%,var(--bg0) 100%); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,720px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#261024,#0f060c); border:1px solid rgba(255,90,176,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(250,232,243,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 2.0s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4;} 50%{ opacity:1;} }
+  .screen{ height:110px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative; background:linear-gradient(180deg,#180a14,#0e060b); border:1px solid rgba(255,90,176,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.22em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:480px; margin:0 auto; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:76px; height:76px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(238,214,230,.13); stroke-width:7; stroke-linecap:round; } .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(255,90,176,.6)); }
+  .pcap{ fill:#160a12; stroke:rgba(255,90,176,.22); stroke-width:1; } .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); } .kv{ font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(255,90,176,.1); padding:1px 8px; border-radius:7px; border:1px solid rgba(255,90,176,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style></head>
+<body>
+  <div class="unit">
+    <header><span class="logo">VOX&nbsp;SHIFTER</span><span class="sub">formant pitch shift</span><span class="led"></span></header>
+    <div class="screen"><div class="scrlbl">FORMANT&nbsp;/&nbsp;PITCH</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){"use strict";
+  var P=[{name:"Shift",idx:0,def:5,min:-12,max:12,fmt:"st"},{name:"Formant",idx:1,def:0.5},{name:"Mix",idx:2,def:0.6},{name:"Output",idx:3,def:0.7}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob"; var isBip=(p.min!==undefined);
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 86 86"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5ab0"/><stop offset="1" stop-color="#5ad0ff"/></linearGradient></defs><circle class="track" cx="43" cy="43" r="33"></circle><circle class="arc" cx="43" cy="43" r="33" transform="rotate(135 43 43)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="43" cy="43" r="21"></circle><line class="ptr" x1="43" y1="43" x2="43" y2="26"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el); var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function norm(v){ return isBip ? (v-p.min)/(p.max-p.min) : v; }
+    function render(v){ var nv=norm(v); var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*nv)).toString()); var ang=(A0+(A1-A0)*nv)*Math.PI/180; ptr.setAttribute("x2",(43+Math.sin(ang)*17).toFixed(2)); ptr.setAttribute("y2",(43-Math.cos(ang)*17).toFixed(2));
+      val.textContent = isBip ? ((v>0?"+":"")+Math.round(v)+" st") : Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var span=isBip?(p.max-p.min):1; var nv=drag.v+(drag.y-e.clientY)/170*span; nv=Math.max(isBip?p.min:0,Math.min(isBip?p.max:1,nv)); if(isBip)nv=Math.round(nv); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); } window.addEventListener("resize",resize); resize();
+  function frame(ts){ ctx.clearRect(0,0,W,H); var shift=vals[0], form=vals[1], mix=vals[2]; var baseY=H-14, top=16;
+    // formant peak positions (log-ish x across width)
+    var f1=(320+form*520), f2=(900+form*1500); var fx1=Math.log(f1/200)/Math.log(4000/200), fx2=Math.log(f2/200)/Math.log(4000/200);
+    // pitch-shifted harmonic comb (vertical lines), spacing scaled by 2^(shift/12)
+    var ratio=Math.pow(2,shift/12); var nH=26;
+    for(var h=1;h<=nH;h++){ var f=120*h*ratio; if(f>4500)break; var lx=Math.log(f/200)/Math.log(4000/200); if(lx<0||lx>1)continue;
+      // amplitude shaped by the two formants
+      var e1=Math.exp(-((lx-fx1)*(lx-fx1))/0.02), e2=Math.exp(-((lx-fx2)*(lx-fx2))/0.03)*0.85;
+      var amp=(0.12+e1+e2)/(1+h*0.05); var bh=amp*(baseY-top)*0.8; if(bh>baseY-top)bh=baseY-top;
+      var x=12+lx*(W-24);
+      ctx.strokeStyle="rgba(255,90,176,"+(0.3+amp*0.5)+")"; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(x,baseY); ctx.lineTo(x,baseY-bh); ctx.stroke();
+    }
+    // formant envelope curve (cyan)
+    ctx.beginPath();
+    for(var xx=0;xx<=W-24;xx+=3){ var lx=xx/(W-24); var e1=Math.exp(-((lx-fx1)*(lx-fx1))/0.02), e2=Math.exp(-((lx-fx2)*(lx-fx2))/0.03)*0.85; var env=(0.1+e1+e2); var y=baseY-env*(baseY-top)*0.85; if(xx===0)ctx.moveTo(12+xx,y); else ctx.lineTo(12+xx,y); }
+    ctx.strokeStyle="rgba(90,208,255,0.85)"; ctx.lineWidth=1.8; ctx.shadowColor="#5ad0ff"; ctx.shadowBlur=7; ctx.stroke(); ctx.shadowBlur=0;
+    // formant peak markers
+    [ [fx1,"F1"],[fx2,"F2"] ].forEach(function(p2){ var x=12+p2[0]*(W-24); ctx.fillStyle="#5ad0ff"; ctx.beginPath(); ctx.arc(x,top+4,3,0,Math.PI*2); ctx.fill(); ctx.fillStyle="rgba(90,208,255,0.6)"; ctx.font="8px Inter,sans-serif"; ctx.fillText(p2[1],x-5,top-2); });
+    // shift readout
+    ctx.fillStyle="rgba(255,90,176,0.9)"; ctx.font="bold 11px Inter,sans-serif"; ctx.textAlign="right"; ctx.fillText((shift>0?"+":"")+Math.round(shift)+" st", W-14, H-6); ctx.textAlign="left";
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script></body></html>

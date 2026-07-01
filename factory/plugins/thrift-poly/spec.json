@@ -1,0 +1,19 @@
+{
+  "name": "Thrift Poly",
+  "isInstrument": true,
+  "explanation": "A lovable lo-fi eight-voice paraphonic synthesizer in the budget-classic tradition. Each voice is a DCO blending saw and square with a square sub an octave down, but all voices share ONE resonant low-pass filter and ONE envelope — so sweeping the Cutoff makes whole chords gurgle and breathe together, the signature paraphonic behaviour. A built-in stereo chorus adds width and a touch of wobble, while the gritty soft-clipped output keeps things charming rather than hi-fi. Controls: Cutoff, Resonance, Env Amount, Sub, Chorus, Release and Level.",
+  "assembly": "factory/plugins/thrift-poly/assembly.ts",
+  "out": "factory/plugins/thrift-poly/x.vstai",
+  "publishedAt": 1751000116000,
+  "theme": { "accent": "#5ad0a0", "accent2": "#ffd24a" },
+  "guiFile": "factory/plugins/thrift-poly/gui.html",
+  "params": [
+    { "name": "Cutoff",    "index": 0, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "EnvAmount", "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Sub",       "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Chorus",    "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Release",   "index": 5, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Level",     "index": 6, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

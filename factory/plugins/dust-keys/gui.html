@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dust Keys</title>
+<style>
+  :root{ --acc:#b08cff; --acc2:#ffb86a; --bg0:#0a0710; --bg1:#160f1f; --ink:#ece3f5; --dim:#7d6e94; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#241634 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 20px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#26183a,#0c0814);
+    border:1px solid rgba(176,140,255,.18); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(220,200,255,.06); }
+  /* dust speckle */
+  .unit::after{ content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background-image:radial-gradient(rgba(255,184,106,.10) 1px,transparent 1px); background-size:7px 7px; }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; position:relative; z-index:2; }
+  .logo{ font-weight:800; letter-spacing:.15em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .badge{ margin-left:auto; font-size:10px; letter-spacing:.16em; color:var(--acc2); font-variant-numeric:tabular-nums;
+    background:#1c1226; padding:3px 9px; border-radius:5px; border:1px solid rgba(255,184,106,.28); }
+
+  .screen{ height:100px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative;
+    background:linear-gradient(180deg,#120a1e,#0c0714); border:1px solid rgba(176,140,255,.16); box-shadow:inset 0 2px 20px rgba(0,0,0,.55); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.24em; color:var(--dim); z-index:2; }
+
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:66px; height:66px; position:relative; }
+  .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(200,180,240,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(176,140,255,.6)); }
+  .pcap{ fill:#140d20; stroke:rgba(176,140,255,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(176,140,255,.1);
+    padding:1px 7px; border-radius:7px; border:1px solid rgba(176,140,255,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header>
+      <span class="logo">DUST&nbsp;KEYS</span>
+      <span class="sub">lo-fi sampler</span>
+      <span class="badge" id="badge">8-BIT</span>
+    </header>
+    <div class="screen"><div class="scrlbl">SAMPLE</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var PARAMS=[
+    {name:"Cutoff",idx:0,def:0.7},
+    {name:"Reso",  idx:1,def:0.3},
+    {name:"Bits",  idx:2,def:0.45},
+    {name:"Attack",idx:3,def:0.08,ms:true},
+    {name:"Decay", idx:4,def:0.6,ms:true},
+    {name:"Level", idx:5,def:0.8}
+  ];
+  var vals={}; PARAMS.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null;
+  function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  function ms(v){ var m=Math.round(2+v*v*1500); return m>=1000?(m/1000).toFixed(1)+"s":m+"ms"; }
+  function fmt(p,v){ return p.ms?ms(v):Math.round(v*100)+"%"; }
+  var badge=document.getElementById("badge");
+  function setBadge(){ var bits=Math.round(3+vals[2]*10); badge.textContent=bits+"-BIT"; }
+
+  var R=31, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=PARAMS.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 76 76">'+
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b08cff"/><stop offset="1" stop-color="#ffb86a"/></linearGradient></defs>'+
+      '<circle class="track" cx="38" cy="38" r="31"></circle>'+
+      '<circle class="arc" cx="38" cy="38" r="31" transform="rotate(135 38 38)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="38" cy="38" r="19"></circle>'+
+      '<line class="ptr" x1="38" y1="38" x2="38" y2="22"></line></svg></div>'+
+      '<span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){
+      var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180;
+      ptr.setAttribute("x2",(38+Math.sin(ang)*15).toFixed(2));
+      ptr.setAttribute("y2",(38-Math.cos(ang)*15).toFixed(2));
+      val.textContent=fmt(p,v);
+      if(p.idx===2) setBadge();
+    }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; });
+    el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+
+  // ---- quantised sample waveform: gets crunchier (stepped) as Bits drops ----
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+  function frame(ts){
+    ctx.clearRect(0,0,W,H);
+    var bits=vals[2], cut=vals[0];
+    var levels=Math.max(3,Math.round(3+bits*10));     // quantisation steps to draw
+    var decim=1+Math.round((1-bits)*10);              // horizontal blockiness
+    var mid=H*0.55;
+    // baseline
+    ctx.strokeStyle="rgba(176,140,255,0.12)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
+    // build a sample-ish waveform, then quantise both axes for the lo-fi look
+    var step=Math.max(2,decim*2);
+    ctx.beginPath();
+    for(var x=0;x<=W;x+=step){
+      var t=x/W;
+      var raw=Math.sin(t*Math.PI*6+ts/600)*0.6 + 0.3*Math.sin(t*Math.PI*13+ts/400) + 0.15*Math.sin(t*Math.PI*23);
+      raw*=(0.4+cut*0.6);
+      var q=Math.round(raw*levels)/levels;            // bit-quantise vertical
+      var y=mid - q*(H*0.36);
+      if(x===0) ctx.moveTo(x,y); else { ctx.lineTo(x,y); }
+    }
+    ctx.strokeStyle="rgba(176,140,255,0.95)"; ctx.lineWidth=2; ctx.shadowColor="#b08cff"; ctx.shadowBlur=7; ctx.stroke(); ctx.shadowBlur=0;
+    // golden sample-points dots
+    for(var x2=0;x2<=W;x2+=step){
+      var t2=x2/W; var raw2=Math.sin(t2*Math.PI*6+ts/600)*0.6+0.3*Math.sin(t2*Math.PI*13+ts/400)+0.15*Math.sin(t2*Math.PI*23);
+      raw2*=(0.4+cut*0.6); var q2=Math.round(raw2*levels)/levels;
+      ctx.fillStyle="rgba(255,184,106,0.6)"; ctx.fillRect(x2-1, mid - q2*(H*0.36)-1, 2,2);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function boot(){ host=window.vstai||null; setBadge(); PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

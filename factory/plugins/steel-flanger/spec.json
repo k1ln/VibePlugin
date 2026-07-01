@@ -1,0 +1,17 @@
+{
+  "name": "Steel Flanger",
+  "isInstrument": false,
+  "explanation": "An extreme, metallic jet-engine flanger. A swept short delay with strong regeneration drives the comb filter into clangy, almost-pitched stainless resonance. A triangle LFO sweeps a fractional delay around a Manual base position over a very wide range, while bipolar Feedback intensifies the metallic ring (positive) or hollows it out (negative through-zero hiss). A soft saturator inside the feedback path keeps the resonance bounded but aggressive. Controls: Rate, Depth, Manual, Feedback and dry/wet Mix.",
+  "assembly": "factory/plugins/steel-flanger/assembly.ts",
+  "out": "factory/plugins/steel-flanger/x.vstai",
+  "publishedAt": 1751000120000,
+  "theme": { "accent": "#b8c4d0", "accent2": "#5ad0ff" },
+  "guiFile": "factory/plugins/steel-flanger/gui.html",
+  "params": [
+    { "name": "Rate",     "index": 0, "min": 0, "max": 1, "default": 0.22 },
+    { "name": "Depth",    "index": 1, "min": 0, "max": 1, "default": 0.85 },
+    { "name": "Manual",   "index": 2, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Feedback", "index": 3, "min": 0, "max": 1, "default": 0.78 },
+    { "name": "Mix",      "index": 4, "min": 0, "max": 1, "default": 0.55 }
+  ]
+}

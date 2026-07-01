@@ -15,6 +15,16 @@ let ctx, node, meta, wasmBytes;
 let inputNode = null;        // current effect input source feeding `node`
 let analyser = null;         // view-only scope/EQ tap on the output
 
+// remember the chosen effect input (shared across gallery items, per-origin) so
+// switching plugins keeps whatever sample/tone you were auditioning.
+const INPUT_KEY = "vstai.gallery.input";
+function saveInput(kind, file) {
+  try { localStorage.setItem(INPUT_KEY, JSON.stringify({ kind, file: file || "" })); } catch {}
+}
+function loadSavedInput() {
+  try { return JSON.parse(localStorage.getItem(INPUT_KEY) || "null"); } catch { return null; }
+}
+
 function setStatus(t) { $("status").textContent = t; }
 // post a control message down into the sandboxed GUI iframe (arp lifecycle, etc.)
 function postToGui(m) {
@@ -124,7 +134,7 @@ async function start() {
   renderGui();
   $("deck").hidden = false;
   if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); setupMidi(); }
-  else { $("inputBar").hidden = false; await loadSampleList(); setInput("tone"); }
+  else { $("inputBar").hidden = false; await loadSampleList(); restoreInput(); }
 
   // resume now (works inside a click gesture); otherwise resume on the first gesture.
   if (!gestureHooked) {
@@ -208,10 +218,21 @@ async function loadSampleList() {
   sel.innerHTML = '<option value="">Royalty-free sample…</option>';
   try {
     const list = await (await fetch("samples/index.json", { cache: "no-cache" })).json();
-    for (const s of list) {
-      const o = document.createElement("option");
-      o.value = s.file; o.textContent = s.name;
-      sel.appendChild(o);
+    // group the (now long) list under optgroups by kind for a usable dropdown
+    const LABEL = { drums: "Drums", bass: "Bass", melodic: "Melodic", fx: "FX", test: "Test" };
+    const ORDER = ["drums", "bass", "melodic", "fx", "test"];
+    const groups = {};
+    for (const s of list) (groups[s.kind] || (groups[s.kind] = [])).push(s);
+    const kinds = [...new Set([...ORDER, ...Object.keys(groups)])].filter((k) => groups[k]);
+    for (const k of kinds) {
+      const og = document.createElement("optgroup");
+      og.label = LABEL[k] || k;
+      for (const s of groups[k]) {
+        const o = document.createElement("option");
+        o.value = s.file; o.textContent = s.name;
+        og.appendChild(o);
+      }
+      sel.appendChild(og);
     }
   } catch { /* samples are optional */ }
 }
@@ -229,24 +250,40 @@ async function playSample(file) {
   src.buffer = buf; src.loop = true;
   src.connect(node); src.start();
   inputNode = src;
+  $("sampleSel").value = file;     // reflect the active sample in the dropdown
   markActive("sample");
+  saveInput("sample", file);       // remember it across gallery item switches
 }
 
 async function setInput(kind) {
   clearInput();
   markActive(kind);
-  if (kind === "none") return;
+  if (kind === "none") { saveInput("none"); return; }
   if (kind === "tone") {
     const osc = ctx.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = 110;
     const g = ctx.createGain(); g.gain.value = 0.25;
     osc.connect(g).connect(node); osc.start(); inputNode = osc;
+    saveInput("tone");
   } else if (kind === "mic") {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       inputNode = ctx.createMediaStreamSource(stream); inputNode.connect(node);
     } catch (e) { setStatus("Microphone blocked: " + e.message); }
   } else if (kind === "file") {
-    $("inputFile").click();
+    $("inputFile").click();          // user's own file isn't persistable; leave saved input as-is
+  }
+}
+
+// restore the last-used effect input so switching gallery items keeps your sample
+function restoreInput() {
+  const s = loadSavedInput();
+  if (s && s.kind === "sample" && s.file &&
+      $("sampleSel").querySelector(`option[value="${CSS.escape(s.file)}"]`)) {
+    playSample(s.file);
+  } else if (s && s.kind === "none") {
+    setInput("none");
+  } else {
+    setInput("tone");
   }
 }
 

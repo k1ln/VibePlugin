@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Swing Kit</title>
+<style>
+  :root{ --acc:#e05a3a; --acc2:#f0c040; --bg0:#0d0806; --bg1:#1a100b; --ink:#f5e8df; --dim:#9a7a68; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(120% 90% at 50% -10%,#2a1810 0%,var(--bg1) 46%,var(--bg0) 100%); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,780px); border-radius:13px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#221510,#0d0806); border:1px solid rgba(224,90,58,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(245,232,223,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:10px; height:10px; border-radius:3px; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 1.0s steps(2,end) infinite; }
+  @keyframes pulse{ 0%,50%{ opacity:1;} 51%,100%{ opacity:.3;} }
+  .stage{ display:flex; gap:12px; margin-bottom:14px; }
+  .screen{ height:172px; border-radius:9px; overflow:hidden; position:relative; background:linear-gradient(180deg,#160d09,#0c0705); border:1px solid rgba(224,90,58,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
+  .pads{ width:172px; flex:0 0 172px; } .swing{ flex:1; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:10px; top:7px; font-size:8.5px; letter-spacing:.2em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:66px; height:66px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(235,222,213,.13); stroke-width:7; stroke-linecap:round; } .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(224,90,58,.6)); }
+  .pcap{ fill:#160d09; stroke:rgba(224,90,58,.22); stroke-width:1; } .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); } .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(224,90,58,.1); padding:1px 7px; border-radius:6px; border:1px solid rgba(224,90,58,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style></head>
+<body>
+  <div class="unit">
+    <header><span class="logo">SWING&nbsp;KIT</span><span class="sub">mpc drum sampler</span><span class="led"></span></header>
+    <div class="stage">
+      <div class="screen pads"><div class="scrlbl">PADS</div><canvas id="pv"></canvas></div>
+      <div class="screen swing"><div class="scrlbl">SWING&nbsp;GRID</div><canvas id="sv"></canvas></div>
+    </div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){"use strict";
+  var P=[{name:"Tune",idx:0,def:0.5},{name:"Decay",idx:1,def:0.5},{name:"Snap",idx:2,def:0.55},{name:"Swing",idx:3,def:0.5},{name:"Punch",idx:4,def:0.5},{name:"Level",idx:5,def:0.85}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=31, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 76 76"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e05a3a"/><stop offset="1" stop-color="#f0c040"/></linearGradient></defs><circle class="track" cx="38" cy="38" r="31"></circle><circle class="arc" cx="38" cy="38" r="31" transform="rotate(135 38 38)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="38" cy="38" r="19"></circle><line class="ptr" x1="38" y1="38" x2="38" y2="22"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el); var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString()); var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(38+Math.sin(ang)*15).toFixed(2)); ptr.setAttribute("y2",(38-Math.cos(ang)*15).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
+  // any voice hits per step (for pad lighting)
+  var HIT=[1,0,1,1, 1,0,1,0, 0,0,1,1, 1,0,1,1];
+  var flash=new Float32Array(16), lastStep=-1;
+  // set up two canvases
+  function C2(id){ var cv=document.getElementById(id); var ctx=cv.getContext("2d"); var o={cv:cv,ctx:ctx,W:0,H:0,DPR:Math.min(2,window.devicePixelRatio||1)};
+    function rs(){ var r=cv.getBoundingClientRect(); o.W=r.width; o.H=r.height; cv.width=o.W*o.DPR; cv.height=o.H*o.DPR; ctx.setTransform(o.DPR,0,0,o.DPR,0,0); } o.rs=rs; window.addEventListener("resize",rs); rs(); return o; }
+  var pv=C2("pv"), sv=C2("sv");
+  function swungPos(step,swing){ // fractional bar position 0..16 with off-beats delayed
+    var pos=0; for(var k=0;k<step;k++){ pos += (k%2===0)?(1+swing):(1-swing); } return pos; }
+  function frame(ts){
+    var swing=vals[3]*0.62, punch=vals[4];
+    // real-time step following the swing timing (approx): advance a phase
+    var barLen=16; var t=(ts/2000)%1; // 2s per bar
+    // find current step by swung cumulative time
+    var total=0; for(var k=0;k<16;k++) total += (k%2===0)?(1+swing):(1-swing);
+    var target=t*total, acc=0, step=0; for(var k2=0;k2<16;k2++){ var d=(k2%2===0)?(1+swing):(1-swing); if(target<acc+d){step=k2;break;} acc+=d; step=k2; }
+    if(step!==lastStep){ if(HIT[step]) flash[step]=1; lastStep=step; }
+    // PADS 4x4
+    var pc=pv.ctx, W=pv.W, H=pv.H; pc.clearRect(0,0,W,H);
+    var pad=8, top=18, gs=(Math.min(W,H)-pad*2-top)/4 -3;
+    var gx=(W-(gs*4+3*6))/2, gy=top+ (H-top-(gs*4+3*6))/2;
+    for(var r=0;r<4;r++)for(var c=0;c<4;c++){ var idx=(3-r)*4+c; var x=gx+c*(gs+6), y=gy+r*(gs+6); var f=flash[idx]; flash[idx]*=0.85; var hit=HIT[idx];
+      var rr=6; pc.beginPath(); pc.moveTo(x+rr,y); pc.arcTo(x+gs,y,x+gs,y+gs,rr); pc.arcTo(x+gs,y+gs,x,y+gs,rr); pc.arcTo(x,y+gs,x,y,rr); pc.arcTo(x,y,x+gs,y,rr); pc.closePath();
+      var g=pc.createLinearGradient(0,y,0,y+gs); g.addColorStop(0,"rgba(255,255,255,"+(0.05+f*0.25)+")"); g.addColorStop(1,"rgba(0,0,0,0.2)"); pc.fillStyle=g; pc.fill();
+      pc.strokeStyle= hit? "rgba(224,90,58,"+(0.4+f*0.6)+")" : "rgba(150,120,100,0.25)"; pc.lineWidth=1.4; pc.shadowColor="#e05a3a"; pc.shadowBlur=f*14; pc.stroke(); pc.shadowBlur=0;
+    }
+    // SWING GRID timeline
+    var sc=sv.ctx, SW=sv.W, SH=sv.H; sc.clearRect(0,0,SW,SH);
+    var mL=12, mR=12, midY=SH*0.5;
+    sc.strokeStyle="rgba(224,90,58,0.15)"; sc.lineWidth=1; sc.beginPath(); sc.moveTo(mL,midY); sc.lineTo(SW-mR,midY); sc.stroke();
+    for(var k3=0;k3<16;k3++){ var sp=swungPos(k3,swing)/total; var x=mL+sp*(SW-mL-mR); var off=(k3%2===1);
+      var live=(k3===step); var h=off?10:16;
+      sc.strokeStyle= off? "rgba(240,192,64,"+(0.5+ (live?0.5:0))+")" : "rgba(224,90,58,"+(0.6+(live?0.4:0))+")"; sc.lineWidth=live?3:2;
+      sc.shadowColor=off?"#f0c040":"#e05a3a"; sc.shadowBlur=live?10:0;
+      sc.beginPath(); sc.moveTo(x,midY-h); sc.lineTo(x,midY+h); sc.stroke(); sc.shadowBlur=0;
+      if(HIT[k3]){ sc.fillStyle=off?"#f0c040":"#e05a3a"; sc.globalAlpha=0.7; sc.beginPath(); sc.arc(x,midY-h-4,2.2,0,Math.PI*2); sc.fill(); sc.globalAlpha=1; }
+    }
+    sc.fillStyle="rgba(240,192,64,0.8)"; sc.font="9px Inter,sans-serif"; sc.textAlign="right"; sc.fillText("SWING "+Math.round(50+vals[3]*25)+"%", SW-12, SH-8); sc.textAlign="left";
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script></body></html>

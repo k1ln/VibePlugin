@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voyage Mono</title>
+<style>
+  :root{
+    --accent:#5a8cff;        /* primary blue */
+    --accent2:#ff5a8c;       /* pink HP accent */
+    --bg0:#05060a;
+    --bg1:#0b0f1a;
+    --panel:#0e1422;
+    --line:#1d2738;
+    --ink:#cdd7ee;
+    --dim:#5d6a86;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #14203a 0%, var(--bg1) 42%, var(--bg0) 100%);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+    user-select:none;
+  }
+  .shell{
+    width:760px;max-width:100vw;margin:0 auto;
+    padding:22px 26px 26px;
+  }
+  /* ---- top bar / brand ---- */
+  .bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .mark{
+    width:34px;height:34px;border-radius:9px;position:relative;
+    background:linear-gradient(150deg,#1a2a4f,#0a1120);
+    box-shadow:inset 0 1px 0 #2c3e66, 0 0 0 1px #1b2740, 0 6px 16px rgba(0,0,0,.6);
+  }
+  .mark::before{
+    content:"";position:absolute;inset:8px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, var(--accent), #1c3a8a 60%, #0a1530);
+    box-shadow:0 0 14px var(--accent), inset 0 0 6px #001;
+    animation:pulse 3.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 8px var(--accent),inset 0 0 6px #001}
+    50%{box-shadow:0 0 20px var(--accent),inset 0 0 6px #001}}
+  .ttl{line-height:1}
+  .ttl b{font-size:19px;letter-spacing:.12em;font-weight:800;
+    background:linear-gradient(90deg,#fff,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ttl span{display:block;font-size:9.5px;letter-spacing:.42em;color:var(--dim);margin-top:3px;text-transform:uppercase}
+  .badge{font-size:9px;letter-spacing:.3em;color:var(--accent);
+    border:1px solid var(--line);border-radius:20px;padding:6px 12px;text-transform:uppercase;
+    background:linear-gradient(180deg,#101a2e,#0b1120)}
+
+  /* ---- scope card ---- */
+  .scope{
+    position:relative;height:172px;border-radius:16px;overflow:hidden;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#070b14,#0a0f1c);
+    box-shadow:inset 0 0 40px rgba(0,0,0,.7), 0 10px 28px rgba(0,0,0,.5);
+    margin-bottom:18px;
+  }
+  .scope svg{position:absolute;inset:0;width:100%;height:100%}
+  .grid line{stroke:#101a2c;stroke-width:1}
+  .scopelbl{position:absolute;top:10px;left:14px;font-size:9.5px;letter-spacing:.34em;color:var(--dim);text-transform:uppercase}
+  .modepill{position:absolute;top:9px;right:14px;font-size:10px;letter-spacing:.18em;
+    color:var(--accent);font-weight:700}
+  .scan{position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,.022) 0 1px, transparent 1px 4px);
+    animation:scan 6s linear infinite;opacity:.5}
+  @keyframes scan{from{background-position-y:0}to{background-position-y:160px}}
+
+  /* ---- knob row ---- */
+  .rack{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+  .cell{position:relative;display:flex;flex-direction:column;align-items:center;
+    padding:12px 4px 10px;border-radius:13px;
+    background:linear-gradient(180deg,#0f1626,#0a0f1b);
+    border:1px solid var(--line);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 6px 14px rgba(0,0,0,.4);
+  }
+  .knob{width:62px;height:62px;position:relative;cursor:ns-resize;touch-action:none}
+  .knob svg{position:absolute;inset:0;overflow:visible}
+  .dial{
+    fill:url(#metal);stroke:#243250;stroke-width:1;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
+  }
+  .ptr{transform-origin:31px 31px;transition:filter .15s}
+  .knob.act .ptr{filter:drop-shadow(0 0 5px var(--accent))}
+  .knob.act .dial{stroke:var(--accent)}
+  .nm{font-size:9.5px;letter-spacing:.13em;color:var(--dim);margin-top:9px;text-transform:uppercase;text-align:center;height:11px}
+  .val{font-size:12px;font-weight:700;color:var(--ink);margin-top:4px;font-variant-numeric:tabular-nums}
+  .cell:hover .nm{color:var(--accent)}
+  .glow{opacity:0;transition:opacity .2s}
+  .knob.act ~ .glow,.cell:hover .glow{opacity:1}
+  .foot{margin-top:16px;display:flex;justify-content:space-between;align-items:center;
+    font-size:9px;letter-spacing:.26em;color:#33405c;text-transform:uppercase}
+  .foot .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);
+    margin-right:7px;box-shadow:0 0 8px var(--accent);animation:pulse 2.6s ease-in-out infinite;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="bar">
+    <div class="brand">
+      <div class="mark"></div>
+      <div class="ttl"><b>VOYAGE MONO</b><span>Dual&nbsp;Mode&nbsp;Ladder&nbsp;Synthesizer</span></div>
+    </div>
+    <div class="badge">Monophonic</div>
+  </div>
+
+  <div class="scope">
+    <div class="scopelbl">Filter Response &amp; Oscillators</div>
+    <div class="modepill" id="modepill">LOW&nbsp;PASS</div>
+    <svg viewBox="0 0 600 172" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="lpfill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#5a8cff" stop-opacity=".42"/>
+          <stop offset="1" stop-color="#5a8cff" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="hpfill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff5a8c" stop-opacity=".42"/>
+          <stop offset="1" stop-color="#ff5a8c" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="oscg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5a8cff"/>
+          <stop offset="1" stop-color="#ff5a8c"/>
+        </linearGradient>
+      </defs>
+      <g class="grid">
+        <line x1="0" y1="43" x2="600" y2="43"/>
+        <line x1="0" y1="86" x2="600" y2="86"/>
+        <line x1="0" y1="129" x2="600" y2="129"/>
+        <line x1="150" y1="0" x2="150" y2="172"/>
+        <line x1="300" y1="0" x2="300" y2="172"/>
+        <line x1="450" y1="0" x2="450" y2="172"/>
+      </g>
+      <!-- filter curve fill + line -->
+      <path id="curvefill" d="" fill="url(#lpfill)"/>
+      <path id="curve" d="" fill="none" stroke="var(--accent)" stroke-width="2.4"
+            stroke-linejoin="round" filter="drop-shadow(0 0 6px var(--accent))"/>
+      <!-- three stacked detuned saws -->
+      <path id="osc1" d="" fill="none" stroke="#36507f" stroke-width="1.3" opacity=".8"/>
+      <path id="osc2" d="" fill="none" stroke="#7d6bb0" stroke-width="1.3" opacity=".8"/>
+      <path id="osc3" d="" fill="none" stroke="url(#oscg)" stroke-width="1.8" opacity=".95"
+            filter="drop-shadow(0 0 4px rgba(122,120,200,.6))"/>
+    </svg>
+    <div class="scan"></div>
+  </div>
+
+  <div class="rack" id="rack"></div>
+
+  <div class="foot">
+    <span><span class="dot"></span>Voyage&nbsp;Mono&nbsp;Engine</span>
+    <span id="readout">Cutoff&nbsp;55%</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var PARAMS=[
+    {name:"Cutoff",      index:0, min:0, max:1, def:0.55, unit:"%"},
+    {name:"Resonance",   index:1, min:0, max:1, def:0.45, unit:"%"},
+    {name:"Filter Mode", index:2, min:0, max:1, def:0.20, unit:"mode"},
+    {name:"Env Amount",  index:3, min:0, max:1, def:0.70, unit:"%"},
+    {name:"Detune",      index:4, min:0, max:1, def:0.30, unit:"%"},
+    {name:"Glide",       index:5, min:0, max:1, def:0.15, unit:"%"},
+    {name:"Level",       index:6, min:0, max:1, def:0.70, unit:"%"}
+  ];
+  var SWEEP=270, START=-135;
+  var ctrls=[];
+
+  function fmt(p,v){
+    if(p.unit==="mode"){
+      if(v<0.34) return "LP "+Math.round((1-v/0.5)*100>100?100:(1-v/0.5)*100)+"%";
+      if(v>0.66) return "HP "+Math.round(((v-0.5)/0.5)*100)+"%";
+      return "BAND";
+    }
+    return Math.round(v*100)+"%";
+  }
+
+  function makeKnob(p){
+    var cell=document.createElement("div");
+    cell.className="cell";
+    cell.innerHTML=
+      '<div class="knob">'+
+        '<svg viewBox="0 0 62 62">'+
+          '<defs>'+
+            '<radialGradient id="metal'+p.index+'" cx="38%" cy="32%" r="75%">'+
+              '<stop offset="0" stop-color="#28344f"/>'+
+              '<stop offset="0.55" stop-color="#161e30"/>'+
+              '<stop offset="1" stop-color="#0a0f1a"/>'+
+            '</radialGradient>'+
+          '</defs>'+
+          '<circle class="track" cx="31" cy="31" r="27" fill="none" stroke="#172033" stroke-width="4"'+
+            ' stroke-dasharray="0 999" pathLength="360" transform="rotate(135 31 31)"/>'+
+          '<circle class="fill" cx="31" cy="31" r="27" fill="none" stroke="var(--accent)" stroke-width="4"'+
+            ' stroke-linecap="round" pathLength="360" transform="rotate(135 31 31)"'+
+            ' style="filter:drop-shadow(0 0 4px var(--accent))"/>'+
+          '<circle class="dial" cx="31" cy="31" r="20" fill="url(#metal'+p.index+')"/>'+
+          '<line class="ptr" x1="31" y1="31" x2="31" y2="14" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round"/>'+
+        '</svg>'+
+      '</div>'+
+      '<div class="nm">'+p.name+'</div>'+
+      '<div class="val"></div>';
+
+    var knob=cell.querySelector(".knob"),
+        fill=cell.querySelector(".fill"),
+        ptr=cell.querySelector(".ptr"),
+        out=cell.querySelector(".val");
+
+    var val=p.def;
+    function norm(){ return (val-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var nn=norm();
+      // dasharray over pathLength 360, only 270 of it visible window
+      fill.setAttribute("stroke-dasharray",(SWEEP*nn)+" 999");
+      ptr.style.transform="rotate("+(START+SWEEP*nn)+"deg)";
+      out.textContent=fmt(p,val);
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,val);
+    }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); val=p.min+(p.max-p.min)*nn; paint(); }
+
+    knob.addEventListener("pointerdown",function(e){
+      knob._d=1; knob._y=e.clientY; knob._n=norm(); knob.classList.add("act");
+      try{knob.setPointerCapture(e.pointerId);}catch(_){}
+      e.preventDefault();
+    });
+    knob.addEventListener("pointermove",function(e){
+      if(!knob._d)return;
+      var spd=e.shiftKey?640:200;
+      setN(knob._n+(knob._y-e.clientY)/spd);
+    });
+    function end(){ knob._d=0; knob.classList.remove("act"); }
+    knob.addEventListener("pointerup",end);
+    knob.addEventListener("pointercancel",end);
+    knob.addEventListener("dblclick",function(){ val=p.def; paint(); });
+    knob.addEventListener("wheel",function(e){
+      e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02));
+    },{passive:false});
+
+    paint();
+    ctrls[p.index]={get:norm,raw:function(){return val;},def:p.def};
+    return cell;
+  }
+
+  function build(){
+    var rack=document.getElementById("rack");
+    PARAMS.forEach(function(p){ rack.appendChild(makeKnob(p)); });
+    startScope();
+  }
+
+  // ---- live animated filter-response + oscillator scope --------------
+  var curve=document.getElementById("curve"),
+      curvefill=document.getElementById("curvefill"),
+      osc1=document.getElementById("osc1"),
+      osc2=document.getElementById("osc2"),
+      osc3=document.getElementById("osc3"),
+      modepill=document.getElementById("modepill"),
+      readout=document.getElementById("readout");
+
+  function v(i){ var c=ctrls[i]; return c?c.raw():PARAMS[i].def; }
+  var W=600,t=0;
+
+  function startScope(){
+    function frame(){
+      t+=0.03;
+      var cut=v(0), res=v(1), mode=v(2), envA=v(3), det=v(4), glide=v(5), lv=v(6);
+      // breathing env modulation so the curve feels alive
+      var breath=0.5+0.5*Math.sin(t*0.9);
+      var effCut=Math.min(1, cut + envA*breath*0.35);
+
+      // ---------- filter response curve (top portion 6..150) ----------
+      // x is log-ish frequency 0..1 across the screen. We compose a LP knee
+      // and an HP knee, blended by mode, with a resonant bump at the corner.
+      var fcLP=0.08+effCut*0.86;             // LP corner position (0..1)
+      var fcHP=0.05+mode*0.55;               // HP corner climbs with mode
+      var q=1+res*9;
+      var topY=150, baseY=14;                 // curve drawn in upper band
+      var span=topY-baseY;
+      var pts=[], fpts=["M0 "+topY];
+      for(var x=0;x<=W;x+=6){
+        var u=x/W;
+        // low-pass magnitude (rolls off above fcLP)
+        var lp=1/Math.sqrt(1+Math.pow(u/Math.max(0.02,fcLP),6));
+        // high-pass magnitude (rolls off below fcHP)
+        var hp=1/Math.sqrt(1+Math.pow(Math.max(0.02,fcHP)/Math.max(0.02,u),6));
+        var mag=lp*(1-mode)+hp*mode;
+        // resonant peak at the active corner
+        var corner=fcLP*(1-mode)+fcHP*mode;
+        mag*= 1+(q-1)*0.5*Math.exp(-Math.pow((u-corner)/0.05,2));
+        mag=Math.min(1.35,mag);
+        var y=topY - mag/1.35*span;
+        pts.push((x?"L":"M")+x+" "+y.toFixed(1));
+        fpts.push("L"+x+" "+y.toFixed(1));
+      }
+      fpts.push("L"+W+" "+topY+" Z");
+      curve.setAttribute("d",pts.join(" "));
+      curvefill.setAttribute("d",fpts.join(" "));
+      // recolor by mode (LP blue -> HP pink)
+      var blue="#5a8cff", pink="#ff5a8c";
+      curve.setAttribute("stroke", mode<0.5?blue:pink);
+      curve.style.filter="drop-shadow(0 0 6px "+(mode<0.5?blue:pink)+")";
+      curvefill.setAttribute("fill", mode<0.5?"url(#lpfill)":"url(#hpfill)");
+      modepill.textContent = mode<0.34?"LOW PASS":(mode>0.66?"HIGH PASS":"DUAL BAND");
+      modepill.style.color = mode<0.34?blue:(mode>0.66?pink:"#b07ad0");
+
+      // ---------- three stacked detuned saws (lower band 150..172 area
+      // overlaid as moving traces across full width) ----------
+      var cyc=2.4+det*1.2;                    // cycles across screen
+      var d2=0.014+det*0.05;                  // detune spread
+      var amp=8+lv*14;
+      var midA=120, midB=138, midC=156;       // baselines for 3 osc traces (hidden behind curve fill bottom)
+      function sawTrace(base,phase,detuneR){
+        var s=[];
+        for(var x=0;x<=W;x+=8){
+          var u=x/W;
+          var ph=(u*cyc*detuneR + phase)%1;
+          var saw=2*(ph)-1;                     // raw saw
+          // soft to mimic ladder rounding
+          saw=Math.tanh(saw*1.3)/Math.tanh(1.3);
+          s.push((x?"L":"M")+x+" "+(base - saw*amp*0.5).toFixed(1));
+        }
+        return s.join(" ");
+      }
+      osc1.setAttribute("d",sawTrace(midA, t*0.25,        1-d2));
+      osc2.setAttribute("d",sawTrace(midB, t*0.25+0.33,   1));
+      osc3.setAttribute("d",sawTrace(midC, t*0.25+0.66,   1+d2));
+
+      readout.textContent="Cutoff "+Math.round(cut*100)+"%  ·  Res "+Math.round(res*100)+"%";
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(build); else build();
+})();
+</script>
+</body>
+</html>

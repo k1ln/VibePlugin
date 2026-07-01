@@ -1,0 +1,19 @@
+{
+  "name": "Voyage Mono",
+  "isInstrument": true,
+  "explanation": "A modern, hi-fi monophonic synthesizer in the modern transistor-ladder mono lead/bass tradition. Three fat oscillators (each a continuously variable saw-to-pulse blend) are spread by a Detune control for thick, beating unison, then run into a 4-pole transistor-ladder filter wrapped in a dual-mode blend: the Filter Mode knob morphs the response from a warm low-pass, through a spaced band-pass-like middle, toward an airy high-pass. A snappy per-note filter and amplitude envelope with bipolar Env Amount, portamento Glide and a clean soft-limited output stage complete the voice. Controls: Cutoff, Resonance, Filter Mode, Env Amount, Detune, Glide, Level.",
+  "assembly": "factory/plugins/voyage-mono/assembly.ts",
+  "out": "factory/plugins/voyage-mono/x.vstai",
+  "publishedAt": 1751000138000,
+  "theme": { "accent": "#5a8cff", "accent2": "#ff5a8c" },
+  "guiFile": "factory/plugins/voyage-mono/gui.html",
+  "params": [
+    { "name": "Cutoff",      "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance",   "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Filter Mode", "index": 2, "min": 0, "max": 1, "default": 0.2 },
+    { "name": "Env Amount",  "index": 3, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Detune",      "index": 4, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Glide",       "index": 5, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Level",       "index": 6, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Warm Flanger",
+  "isInstrument": false,
+  "explanation": "A lush, warm analog-voiced flanger in the bucket-brigade tradition. A short fractional delay line is swept by a slow triangle LFO around a parked centre set by Manual; Width sets how far the comb sweeps, Rate the speed, and Regen the feedback. The feedback path is gently low-passed and softly saturated so heavy Regen thickens and resonates creamily instead of turning clangy. A small stereo LFO offset gives a gentle moving image. Controls: Manual, Width, Rate, Regen and dry/wet Mix.",
+  "assembly": "factory/plugins/warm-flanger/assembly.ts",
+  "out": "factory/plugins/warm-flanger/x.vstai",
+  "publishedAt": 1751000134000,
+  "theme": { "accent": "#ffb86a", "accent2": "#6ad0ff" },
+  "guiFile": "factory/plugins/warm-flanger/gui.html",
+  "params": [
+    { "name": "Manual", "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Width",  "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Rate",   "index": 2, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Regen",  "index": 3, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mix",    "index": 4, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

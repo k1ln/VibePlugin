@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hex Drums</title>
+<style>
+  :root{ --acc:#ff3d5a; --acc2:#3d8cff; --bg0:#060608; --bg1:#101218; --ink:#e8ecf4; --dim:#6a7388; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#1a1d28 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#181b24,#08090d); border:1px solid rgba(255,61,90,.18);
+    box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.05); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+  .pads{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:16px; padding:0 4px; }
+  .pad{ position:relative; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; }
+  .hex{ position:absolute; inset:0; clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+    background:linear-gradient(180deg,#1c2230,#10141d); border:0; box-shadow:inset 0 0 0 1px rgba(255,61,90,.25); transition:filter .08s; }
+  .glow{ position:absolute; inset:0; clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+    background:radial-gradient(circle at 50% 45%,var(--acc),transparent 65%); opacity:0; }
+  .pl{ position:relative; z-index:2; font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:66px; height:66px; position:relative; }
+  .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(180,190,210,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(255,61,90,.6)); }
+  .pcap{ fill:#10141d; stroke:rgba(255,61,90,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(255,61,90,.1); padding:1px 7px; border-radius:7px; border:1px solid rgba(255,61,90,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">HEX&nbsp;DRUMS</span><span class="sub">analog e-drums</span><span class="led"></span></header>
+    <div class="pads" id="pads"></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var VOICES=["Kick","Snare","Tom Hi","Tom Mid","Tom Lo","Hat"];
+  var P=[{name:"Pitch",idx:0,def:0.5},{name:"Sweep",idx:1,def:0.6},{name:"Decay",idx:2,def:0.5},{name:"Noise",idx:3,def:0.4},{name:"Tone",idx:4,def:0.6},{name:"Level",idx:5,def:0.85}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var padWrap=document.getElementById("pads");
+  var glows=VOICES.map(function(nm){
+    var el=document.createElement("div"); el.className="pad";
+    el.innerHTML='<div class="hex"></div><div class="glow"></div><span class="pl">'+nm+'</span>';
+    padWrap.appendChild(el); return el.querySelector(".glow");
+  });
+  var R=31, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 76 76">'+
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d5a"/><stop offset="1" stop-color="#3d8cff"/></linearGradient></defs>'+
+      '<circle class="track" cx="38" cy="38" r="31"></circle>'+
+      '<circle class="arc" cx="38" cy="38" r="31" transform="rotate(135 38 38)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="38" cy="38" r="19"></circle>'+
+      '<line class="ptr" x1="38" y1="38" x2="38" y2="22"></line></svg></div>'+
+      '<span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(38+Math.sin(ang)*15).toFixed(2)); ptr.setAttribute("y2",(38-Math.cos(ang)*15).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; });
+    el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+  // demo pattern lighting the hex pads in time
+  var PAT=[0,5,2,5, 1,5,3,5, 0,5,4,5, 1,5,2,3];
+  var step=-1, last=0, acc=0;
+  function frame(ts){
+    if(!last)last=ts; var dt=ts-last; last=ts; acc+=dt;
+    var stepMs=60000/104/4;
+    if(acc>=stepMs){ acc-=stepMs; step=(step+1)%16; var v=PAT[step]; if(v>=0&&glows[v]) glows[v].style.opacity="0.95"; }
+    for(var i=0;i<6;i++){ var o=parseFloat(glows[i].style.opacity||"0"); if(o>0) glows[i].style.opacity=Math.max(0,o-dt/200).toFixed(3); }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

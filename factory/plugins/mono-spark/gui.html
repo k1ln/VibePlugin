@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mono Spark</title>
+<style>
+  :root {
+    --accent: #ff5a4d;
+    --accent2: #3da0ff;
+    --panel: #c9cdd2;
+    --panel-dark: #a7acb2;
+    --ink: #23262b;
+    --slot: #1b1d21;
+    --led-off: #4a1714;
+    --led-on: #ff5a4d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background:
+      radial-gradient(120% 120% at 50% -10%, #2c3036 0%, #16181b 55%, #0c0d0f 100%);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 18px 14px 30px;
+  }
+
+  /* ------- the ribbon-strip body ------- */
+  .unit {
+    position: relative;
+    border-radius: 14px;
+    padding: 0;
+    background:
+      linear-gradient(180deg, #e7e9ec 0%, #c9cdd2 6%, #b7bcc2 50%, #a4a9af 94%, #c4c8cd 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.7) inset,
+      0 -3px 8px rgba(0,0,0,0.25) inset,
+      0 22px 48px rgba(0,0,0,0.55),
+      0 2px 0 rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+
+  /* brushed-metal sheen overlay */
+  .unit::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,0.035) 0px,
+        rgba(255,255,255,0.035) 1px,
+        rgba(0,0,0,0.02) 2px,
+        rgba(0,0,0,0.02) 3px);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  /* red top rail */
+  .rail {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background:
+      linear-gradient(180deg, var(--accent) 0%, #e23e33 60%, #b62c23 100%);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.4) inset;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand .logo {
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: 20px;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+  }
+  .brand .model {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    padding: 2px 7px;
+    border: 1px solid rgba(255,255,255,0.45);
+    border-radius: 4px;
+  }
+  .rail .tag {
+    font-size: 9.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+
+  /* main body grid */
+  .body {
+    position: relative;
+    display: grid;
+    grid-template-columns: 224px 1fr;
+    gap: 16px;
+    padding: 18px;
+  }
+  @media (max-width: 720px) {
+    .body { grid-template-columns: 1fr; }
+  }
+
+  /* ------- left: big filter knob + scope ------- */
+  .filter-bay {
+    background:
+      linear-gradient(180deg, #9da2a8, #babfc5);
+    border-radius: 10px;
+    padding: 14px 12px 12px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 -2px 6px rgba(0,0,0,0.2) inset,
+      0 2px 5px rgba(0,0,0,0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .bay-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #3a3e44;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .bigknob-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    cursor: ns-resize;
+    user-select: none;
+  }
+  .bigknob-wrap svg { display: block; width: 100%; height: 100%; }
+
+  .knob-cap {
+    transition: filter 0.18s ease;
+  }
+  .bigknob-wrap:hover .knob-cap,
+  .bigknob-wrap.drag .knob-cap {
+    filter: drop-shadow(0 0 9px var(--accent));
+  }
+
+  .bigval {
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 0.5px;
+  }
+  .bigval span { color: var(--accent); }
+
+  /* sub/saw scope */
+  .scope {
+    margin-top: 12px;
+    width: 100%;
+    height: 64px;
+    border-radius: 7px;
+    background:
+      linear-gradient(180deg, #0f1114, #1b1f24);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.5) inset,
+      0 2px 4px rgba(0,0,0,0.4) inset;
+    display: block;
+  }
+
+  /* ------- right: knob row, sub fader, LED seq, keys ------- */
+  .right {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .knob-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    background:
+      linear-gradient(180deg, #9da2a8, #b6bbc1);
+    border-radius: 10px;
+    padding: 12px 10px 10px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 -2px 6px rgba(0,0,0,0.2) inset,
+      0 2px 5px rgba(0,0,0,0.18);
+  }
+  @media (max-width: 540px) {
+    .knob-strip { grid-template-columns: repeat(3, 1fr); row-gap: 14px; }
+  }
+
+  .ctl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .ctl .knob {
+    width: 58px;
+    height: 58px;
+    cursor: ns-resize;
+    user-select: none;
+  }
+  .ctl .knob svg { display: block; width: 100%; height: 100%; }
+  .ctl .knob:hover .miniarc,
+  .ctl .knob.drag .miniarc { filter: drop-shadow(0 0 5px var(--accent)); }
+
+  .ctl .lbl {
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #3a3e44;
+    font-weight: 700;
+  }
+  .ctl .val {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: #56307a00; /* hidden until needed; we show on hover via .show */
+    color: #2c2f34;
+    opacity: 0.55;
+  }
+
+  /* LED sequencer strip (decorative + animated pulse meter) */
+  .seq {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background:
+      linear-gradient(180deg, #2a2d31, #17191c);
+    border-radius: 9px;
+    padding: 10px 12px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 2px 5px rgba(0,0,0,0.4);
+  }
+  .seq .seq-lbl {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8b9097;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .leds {
+    display: flex;
+    gap: 7px;
+    flex: 1;
+  }
+  .led {
+    flex: 1;
+    height: 14px;
+    border-radius: 3px;
+    background: var(--led-off);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5) inset;
+    transition: background 0.06s linear, box-shadow 0.06s linear;
+  }
+  .led.on {
+    background: var(--led-on);
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.4) inset,
+      0 0 10px var(--accent),
+      0 0 4px var(--accent);
+  }
+
+  /* power dot */
+  .power {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffd5cf, var(--accent) 60%, #8e231b);
+    box-shadow: 0 0 8px var(--accent);
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.55; box-shadow: 0 0 4px var(--accent); }
+    50%      { opacity: 1;    box-shadow: 0 0 12px var(--accent); }
+  }
+
+  /* ------- keyboard ------- */
+  .keys {
+    position: relative;
+    height: 96px;
+    background:
+      linear-gradient(180deg, #2a2d31, #17191c);
+    border-radius: 9px;
+    padding: 8px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 2px 6px rgba(0,0,0,0.45);
+  }
+  .kbd {
+    position: relative;
+    height: 100%;
+    display: flex;
+  }
+  .wkey {
+    position: relative;
+    flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #f4f5f6, #d9dbde 88%, #c2c5c8);
+    box-shadow: 0 2px 3px rgba(0,0,0,0.4), 0 -1px 0 rgba(255,255,255,0.6) inset;
+    cursor: pointer;
+    transition: background 0.05s ease, transform 0.04s ease;
+  }
+  .wkey.down {
+    background: linear-gradient(180deg, #ffc9c3, var(--accent) 90%);
+    transform: translateY(2px);
+  }
+  .bkey {
+    position: absolute;
+    top: 0;
+    width: 56%;
+    height: 60%;
+    margin-left: -28%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #34373b, #15171a 90%);
+    box-shadow: 0 3px 4px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,255,255,0.12) inset;
+    cursor: pointer;
+    z-index: 3;
+    transition: background 0.05s ease, transform 0.04s ease;
+  }
+  .bkey.down {
+    background: linear-gradient(180deg, var(--accent), #8e231b 95%);
+    transform: translateY(2px);
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #777b81;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="unit">
+      <div class="rail">
+        <div class="brand">
+          <span class="logo">MONO&nbsp;SPARK</span>
+          <span class="model">SUB SYNTHESIZER</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="tag">MONO &middot; LAST-NOTE</span>
+          <span class="power" title="powered"></span>
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- left filter bay -->
+        <div class="filter-bay">
+          <div class="bay-label">VCF&nbsp;&middot;&nbsp;CUTOFF</div>
+          <div class="bigknob-wrap" id="cutoffKnob" title="Cutoff — drag, double-click to reset">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <defs>
+                <radialGradient id="capGrad" cx="38%" cy="32%" r="75%">
+                  <stop offset="0%" stop-color="#4a4e54"/>
+                  <stop offset="55%" stop-color="#2b2e33"/>
+                  <stop offset="100%" stop-color="#141619"/>
+                </radialGradient>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#e9ebed"/>
+                  <stop offset="100%" stop-color="#9aa0a6"/>
+                </linearGradient>
+              </defs>
+              <!-- bezel -->
+              <circle cx="50" cy="50" r="46" fill="url(#ringGrad)"/>
+              <circle cx="50" cy="50" r="42" fill="#1a1c1f"/>
+              <!-- value arc track -->
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#000" stroke-width="4" opacity="0.5"/>
+              <path id="cutoffArc" d="" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+              <!-- cap -->
+              <g class="knob-cap">
+                <circle cx="50" cy="50" r="30" fill="url(#capGrad)"
+                        stroke="#0c0d0f" stroke-width="1"/>
+                <g id="cutoffPtr">
+                  <rect x="48.6" y="22" width="2.8" height="20" rx="1.4" fill="var(--accent)"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div class="bigval"><span id="cutoffHz">—</span></div>
+          <canvas class="scope" id="scope" width="200" height="64"></canvas>
+        </div>
+
+        <!-- right column -->
+        <div class="right">
+          <!-- small knobs -->
+          <div class="knob-strip" id="knobStrip"></div>
+
+          <!-- LED sequencer / pulse meter -->
+          <div class="seq">
+            <span class="seq-lbl">Step&nbsp;Pulse</span>
+            <div class="leds" id="leds"></div>
+          </div>
+
+          <!-- keyboard -->
+          <div class="keys">
+            <div class="kbd" id="kbd"></div>
+          </div>
+          <div class="hint">Play with mouse &middot; rows A–K and W–U &middot; drag knobs, double-click to reset</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (indices MUST match assembly.ts) ----
+  var PARAMS = [
+    { name: "Cutoff",     index: 0, min: 0, max: 1, def: 0.40 },
+    { name: "Resonance",  index: 1, min: 0, max: 1, def: 0.55 },
+    { name: "Env Amount", index: 2, min: 0, max: 1, def: 0.70 },
+    { name: "Sub",        index: 3, min: 0, max: 1, def: 0.65 },
+    { name: "PWM",        index: 4, min: 0, max: 1, def: 0.35 },
+    { name: "Decay",      index: 5, min: 0, max: 1, def: 0.35 },
+    { name: "Level",      index: 6, min: 0, max: 1, def: 0.80 }
+  ];
+  var state = {};
+  PARAMS.forEach(function (p) { state[p.index] = p.def; });
+
+  // ---- host bridge ----
+  function pushParam(index, value) {
+    if (window.vstai && window.vstai.setParam) {
+      try { window.vstai.setParam(index, value); } catch (e) {}
+    }
+  }
+  function sendAll() {
+    PARAMS.forEach(function (p) { pushParam(p.index, state[p.index]); });
+  }
+
+  // ---------- big CUTOFF knob ----------
+  var POLAR = function (cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  function arcPath(cx, cy, r, startDeg, endDeg) {
+    var s = POLAR(cx, cy, r, endDeg);
+    var e = POLAR(cx, cy, r, startDeg);
+    var large = (endDeg - startDeg) <= 180 ? 0 : 1;
+    return "M " + s[0].toFixed(2) + " " + s[1].toFixed(2) +
+           " A " + r + " " + r + " 0 " + large + " 0 " +
+           e[0].toFixed(2) + " " + e[1].toFixed(2);
+  }
+  var SWEEP = 270; // degrees of travel
+  var START = -135;
+
+  var cutEl = document.getElementById("cutoffKnob");
+  var cutArc = document.getElementById("cutoffArc");
+  var cutPtr = document.getElementById("cutoffPtr");
+  var cutHz = document.getElementById("cutoffHz");
+
+  function hzFromNorm(n) {
+    // mirrors assembly: 70 * e^(n*4.96)
+    var hz = 70 * Math.exp(n * 4.96);
+    if (hz >= 1000) return (hz / 1000).toFixed(2) + " kHz";
+    return Math.round(hz) + " Hz";
+  }
+
+  function renderCutoff() {
+    var n = state[0];
+    var deg = START + n * SWEEP;
+    cutArc.setAttribute("d", arcPath(50, 50, 38, START, deg));
+    cutPtr.setAttribute("transform", "rotate(" + deg + " 50 50)");
+    cutHz.textContent = hzFromNorm(n);
+  }
+
+  // ---------- small knobs ----------
+  var strip = document.getElementById("knobStrip");
+  var miniRefs = {}; // index -> {arc, ptr, val}
+
+  PARAMS.filter(function (p) { return p.index !== 0; }).forEach(function (p) {
+    var ctl = document.createElement("div");
+    ctl.className = "ctl";
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.title = p.name + " — drag, double-click to reset";
+    knob.innerHTML =
+      '<svg viewBox="0 0 100 100">' +
+        '<circle cx="50" cy="50" r="44" fill="#1a1c1f" stroke="#7d8288" stroke-width="3"/>' +
+        '<circle cx="50" cy="50" r="34" fill="none" stroke="#000" stroke-width="5" opacity="0.5"/>' +
+        '<path class="miniarc" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>' +
+        '<g class="miniptr"><rect x="48" y="16" width="4" height="20" rx="2" fill="#e7e9ec"/></g>' +
+      '</svg>';
+
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = p.name;
+
+    var val = document.createElement("div");
+    val.className = "val";
+
+    ctl.appendChild(knob);
+    ctl.appendChild(lbl);
+    ctl.appendChild(val);
+    strip.appendChild(ctl);
+
+    var svg = knob.querySelector("svg");
+    miniRefs[p.index] = {
+      knob: knob,
+      arc: svg.querySelector(".miniarc"),
+      ptr: svg.querySelector(".miniptr"),
+      val: val
+    };
+
+    attachDrag(knob, p);
+  });
+
+  function renderMini(p) {
+    var r = miniRefs[p.index];
+    if (!r) return;
+    var n = state[p.index];
+    var deg = START + n * SWEEP;
+    r.arc.setAttribute("d", arcPath(50, 50, 34, START, deg));
+    r.ptr.setAttribute("transform", "rotate(" + deg + " 50 50)");
+    r.val.textContent = Math.round(n * 100) + "%";
+  }
+
+  // ---------- shared drag behaviour ----------
+  function attachDrag(el, p) {
+    var dragging = false;
+    var lastY = 0;
+
+    function setNorm(n) {
+      n = Math.max(0, Math.min(1, n));
+      state[p.index] = n;
+      pushParam(p.index, n);
+      if (p.index === 0) renderCutoff(); else renderMini(p);
+    }
+
+    el.addEventListener("mousedown", function (e) {
+      dragging = true;
+      lastY = e.clientY;
+      el.classList.add("drag");
+      e.preventDefault();
+    });
+    window.addEventListener("mousemove", function (e) {
+      if (!dragging) return;
+      var dy = lastY - e.clientY;
+      lastY = e.clientY;
+      var speed = e.shiftKey ? 0.0012 : 0.005; // shift = fine
+      setNorm(state[p.index] + dy * speed);
+    });
+    window.addEventListener("mouseup", function () {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove("drag");
+    });
+    el.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      setNorm(state[p.index] - Math.sign(e.deltaY) * 0.02);
+    }, { passive: false });
+    el.addEventListener("dblclick", function () {
+      setNorm(p.def);
+    });
+
+    // touch
+    el.addEventListener("touchstart", function (e) {
+      dragging = true; lastY = e.touches[0].clientY; el.classList.add("drag");
+    }, { passive: true });
+    el.addEventListener("touchmove", function (e) {
+      if (!dragging) return;
+      var dy = lastY - e.touches[0].clientY;
+      lastY = e.touches[0].clientY;
+      setNorm(state[p.index] + dy * 0.005);
+      e.preventDefault();
+    }, { passive: false });
+    el.addEventListener("touchend", function () { dragging = false; el.classList.remove("drag"); });
+  }
+
+  attachDrag(cutEl, PARAMS[0]);
+
+  // ---------- LED sequencer / pulse meter ----------
+  var leds = document.getElementById("leds");
+  var ledEls = [];
+  var NLED = 16;
+  for (var i = 0; i < NLED; i++) {
+    var d = document.createElement("div");
+    d.className = "led";
+    leds.appendChild(d);
+    ledEls.push(d);
+  }
+
+  // ---------- keyboard ----------
+  var kbd = document.getElementById("kbd");
+  // C3..C5, two octaves
+  var KEYS = [];
+  var BASE = 48; // C3
+  var WHITE_OFFS = [0, 2, 4, 5, 7, 9, 11];
+  var BLACK_OFFS = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10 };
+  var OCTAVES = 2;
+  var whiteCount = WHITE_OFFS.length * OCTAVES + 1;
+
+  var whiteEls = [];
+  var keyByNote = {};
+
+  for (var oct = 0; oct < OCTAVES; oct++) {
+    for (var wi = 0; wi < WHITE_OFFS.length; wi++) {
+      var note = BASE + oct * 12 + WHITE_OFFS[wi];
+      var w = document.createElement("div");
+      w.className = "wkey";
+      w.dataset.note = note;
+      kbd.appendChild(w);
+      whiteEls.push(w);
+      keyByNote[note] = w;
+    }
+  }
+  // top C
+  var topC = BASE + OCTAVES * 12;
+  var wTop = document.createElement("div");
+  wTop.className = "wkey";
+  wTop.dataset.note = topC;
+  kbd.appendChild(wTop);
+  whiteEls.push(wTop);
+  keyByNote[topC] = wTop;
+
+  // position black keys after layout
+  function placeBlacks() {
+    // remove old blacks
+    Array.prototype.slice.call(kbd.querySelectorAll(".bkey")).forEach(function (b) { b.remove(); });
+    var kbRect = kbd.getBoundingClientRect();
+    var wWidth = whiteEls[0].getBoundingClientRect().width;
+    var idx = 0;
+    for (var oct = 0; oct < OCTAVES; oct++) {
+      for (var wi = 0; wi < WHITE_OFFS.length; wi++) {
+        if (BLACK_OFFS.hasOwnProperty(wi)) {
+          var note = BASE + oct * 12 + BLACK_OFFS[wi];
+          var leftWhite = whiteEls[oct * WHITE_OFFS.length + wi];
+          var lr = leftWhite.getBoundingClientRect();
+          var b = document.createElement("div");
+          b.className = "bkey";
+          b.dataset.note = note;
+          b.style.left = (lr.left - kbRect.left + wWidth) + "px";
+          b.style.width = (wWidth * 0.6) + "px";
+          b.style.marginLeft = (-wWidth * 0.3) + "px";
+          kbd.appendChild(b);
+          keyByNote[note] = b;
+        }
+        idx++;
+      }
+    }
+  }
+
+  var activeNotes = {};
+  function noteOn(note) {
+    if (activeNotes[note]) return;
+    activeNotes[note] = true;
+    if (window.vstai && window.vstai.noteOn) {
+      try { window.vstai.noteOn(note, 0.9); } catch (e) {}
+    }
+    var el = keyByNote[note];
+    if (el) el.classList.add("down");
+  }
+  function noteOff(note) {
+    if (!activeNotes[note]) return;
+    delete activeNotes[note];
+    if (window.vstai && window.vstai.noteOff) {
+      try { window.vstai.noteOff(note); } catch (e) {}
+    }
+    var el = keyByNote[note];
+    if (el) el.classList.remove("down");
+  }
+
+  var mouseHeld = null;
+  function noteFromEvent(e) {
+    var t = e.target;
+    if (t && t.dataset && t.dataset.note) return parseInt(t.dataset.note, 10);
+    return null;
+  }
+  kbd.addEventListener("mousedown", function (e) {
+    var n = noteFromEvent(e);
+    if (n != null) { mouseHeld = n; noteOn(n); e.preventDefault(); }
+  });
+  kbd.addEventListener("mouseover", function (e) {
+    if (mouseHeld == null) return;
+    var n = noteFromEvent(e);
+    if (n != null && n !== mouseHeld) { noteOff(mouseHeld); mouseHeld = n; noteOn(n); }
+  });
+  window.addEventListener("mouseup", function () {
+    if (mouseHeld != null) { noteOff(mouseHeld); mouseHeld = null; }
+  });
+
+  // computer keyboard
+  var KEYMAP = {
+    "a": 48, "w": 49, "s": 50, "e": 51, "d": 52, "f": 53, "t": 54,
+    "g": 55, "y": 56, "h": 57, "u": 58, "j": 59, "k": 60, "o": 61,
+    "l": 62
+  };
+  window.addEventListener("keydown", function (e) {
+    if (e.repeat) return;
+    var n = KEYMAP[e.key.toLowerCase()];
+    if (n != null) noteOn(n);
+  });
+  window.addEventListener("keyup", function (e) {
+    var n = KEYMAP[e.key.toLowerCase()];
+    if (n != null) noteOff(n);
+  });
+
+  // ---------- animated scope + LED pulse ----------
+  var scope = document.getElementById("scope");
+  var sctx = scope.getContext("2d");
+  var t0 = performance.now();
+  var ledPhase = 0;
+
+  function draw(now) {
+    if (document.hidden) { requestAnimationFrame(draw); return; }
+    var t = (now - t0) / 1000;
+    var W = scope.width, H = scope.height;
+    sctx.clearRect(0, 0, W, H);
+
+    var anyNote = Object.keys(activeNotes).length > 0;
+    var amp = anyNote ? 1.0 : 0.35;
+    var pwm = state[4];           // pulse width
+    var subLvl = state[3];        // sub influence on lower trace
+    var speed = 1.6 + state[0] * 2.5; // cutoff brightens / quickens visual
+
+    // ---- saw trace (top, accent) ----
+    sctx.lineWidth = 2;
+    sctx.strokeStyle = getComputedStyle(document.documentElement)
+      .getPropertyValue("--accent").trim() || "#ff5a4d";
+    sctx.beginPath();
+    for (var x = 0; x <= W; x++) {
+      var ph = (x / W) * 4 + t * speed;
+      var fr = ph - Math.floor(ph);
+      var saw = (fr * 2 - 1);
+      var y = H * 0.32 + saw * H * 0.18 * amp;
+      if (x === 0) sctx.moveTo(x, y); else sctx.lineTo(x, y);
+    }
+    sctx.stroke();
+
+    // ---- SUB square trace (bottom, blue, thumping wider/slower) ----
+    sctx.lineWidth = 2.5;
+    sctx.strokeStyle = getComputedStyle(document.documentElement)
+      .getPropertyValue("--accent2").trim() || "#3da0ff";
+    sctx.globalAlpha = 0.55 + subLvl * 0.45;
+    sctx.beginPath();
+    var thump = 1 + 0.25 * Math.sin(t * 6.0) * subLvl; // weighty pulsing
+    for (var x2 = 0; x2 <= W; x2++) {
+      var ph2 = (x2 / W) * 2 + t * speed * 0.5; // one octave down
+      var fr2 = ph2 - Math.floor(ph2);
+      var sq = fr2 < (0.5) ? 1 : -1;
+      var y2 = H * 0.74 + sq * H * 0.16 * amp * thump * (0.4 + subLvl);
+      if (x2 === 0) sctx.moveTo(x2, y2); else sctx.lineTo(x2, y2);
+    }
+    sctx.stroke();
+    sctx.globalAlpha = 1;
+
+    // ---- LED chaser, faster with decay/cutoff, lights up while playing ----
+    ledPhase += (0.04 + state[5] * 0.10) * (anyNote ? 1.8 : 0.5);
+    var head = Math.floor(ledPhase) % NLED;
+    for (var i = 0; i < NLED; i++) {
+      var lit = (i === head) || (anyNote && i === (head + NLED - 1) % NLED);
+      if (lit) ledEls[i].classList.add("on"); else ledEls[i].classList.remove("on");
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+
+  // ---------- init ----------
+  function init() {
+    renderCutoff();
+    PARAMS.filter(function (p) { return p.index !== 0; }).forEach(renderMini);
+    placeBlacks();
+    sendAll();
+  }
+
+  window.addEventListener("resize", placeBlacks);
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(init);
+  } else {
+    // poll briefly in case vstai injects late, then run regardless
+    var tries = 0;
+    (function wait() {
+      if (window.vstai || tries > 40) { init(); return; }
+      tries++;
+      setTimeout(wait, 25);
+    })();
+  }
+})();
+</script>
+</body>
+</html>

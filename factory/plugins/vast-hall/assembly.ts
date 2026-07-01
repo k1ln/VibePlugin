@@ -122,7 +122,7 @@ export function process(n: i32): void {
   // damping coefficient (one-pole LP in feedback); higher damping = darker tail
   const dcoef: f32 = clampf(0.05 + damping * 0.9, 0.0, 0.98);
 
-  const outScale: f32 = 0.30;
+  const outScale: f32 = 0.21;
 
   for (let f = 0; f < n; f++) {
     const l: f32 = inBuf[f];
@@ -175,7 +175,10 @@ export function process(n: i32): void {
     const sideL: f32 = (wetL - mid) * width + mid;
     const sideR: f32 = (wetR - mid) * width + mid;
 
-    outBuf[f] = dryL * (1.0 - mix) + sideL * mix;
-    outBuf[MAX_FRAMES + f] = dryR * (1.0 - mix) + sideR * mix;
+    let oL: f32 = dryL * (1.0 - mix) + sideL * mix;
+    let oR: f32 = dryR * (1.0 - mix) + sideR * mix;
+    if (oL > 1.0) oL = 1.0; else if (oL < -1.0) oL = -1.0;
+    if (oR > 1.0) oR = 1.0; else if (oR < -1.0) oR = -1.0;
+    outBuf[f] = oL; outBuf[MAX_FRAMES + f] = oR;
   }
 }

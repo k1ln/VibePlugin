@@ -563,6 +563,7 @@
   var lastChorusOn = chorusParam.def;   // remembered amount when toggled back on
 
   function syncChorus(v) {
+    if(!chorusBtn) return;
     var on = v > 0.001;
     chorusBtn.classList.toggle("on", on);
     chorusTxt.textContent = on ? "On" : "Off";

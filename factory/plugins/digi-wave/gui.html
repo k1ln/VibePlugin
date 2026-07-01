@@ -1,0 +1,435 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Digi Wave</title>
+<style>
+  :root {
+    --ac: #43e0c4;     /* teal */
+    --ac2: #7a86ff;    /* indigo */
+    --panel: #232529;
+    --panel2: #1a1c20;
+    --ink: #cdd6dd;
+    --lcd: #0a1f17;
+    --lcdink: #57f6b8;
+    --metal: #3a3d43;
+  }
+  * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font: 12px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%, #2c2f35 0%, #15161a 60%, #0c0d10 100%);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .unit {
+    width: 720px;
+    border-radius: 14px;
+    padding: 18px 20px 22px;
+    background:
+      linear-gradient(180deg, #2b2e33 0%, #212327 8%, #1d1f23 100%);
+    box-shadow:
+      0 24px 60px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(255,255,255,.05),
+      inset 0 -2px 6px rgba(0,0,0,.5);
+    border: 1px solid #0c0d10;
+    position: relative;
+  }
+  /* brushed-metal hairlines */
+  .unit::before {
+    content: ""; position: absolute; inset: 0; border-radius: 14px; pointer-events: none;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 2px, transparent 2px 4px);
+    opacity: .6;
+  }
+
+  .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand .logo {
+    font-weight: 800; letter-spacing: 2px; font-size: 19px;
+    color: #eef3f6; text-shadow: 0 1px 0 #000;
+  }
+  .brand .logo b { color: var(--ac); }
+  .brand .sub {
+    font-size: 9px; letter-spacing: 3px; color: #7d848c; text-transform: uppercase;
+  }
+  .poly-leds { display: flex; gap: 5px; }
+  .pled {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #16181b; box-shadow: inset 0 0 2px #000;
+    transition: background .08s, box-shadow .08s;
+  }
+  .pled.on { background: var(--ac); box-shadow: 0 0 7px var(--ac), inset 0 0 2px #073; }
+
+  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 18px; }
+
+  /* ---------- LCD + wave readout ---------- */
+  .lcd {
+    background:
+      linear-gradient(180deg, #0c2a1f 0%, #08201700 30%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 4px),
+      var(--lcd);
+    border-radius: 7px;
+    border: 2px solid #05130d;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.85), inset 0 0 0 1px #143b2c, 0 0 18px rgba(67,224,196,.08);
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .lcd::after { /* scan glow sweep */
+    content:""; position:absolute; left:-30%; top:0; width:30%; height:100%;
+    background: linear-gradient(90deg, transparent, rgba(87,246,184,.07), transparent);
+    animation: scan 5.5s linear infinite;
+  }
+  @keyframes scan { 0% { left:-30%; } 100% { left:120%; } }
+
+  .lcd-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .lcd-title { color: var(--lcdink); font: 700 11px ui-monospace, monospace; letter-spacing:2px; text-shadow:0 0 6px rgba(87,246,184,.6); }
+  .lcd-wn { color: var(--lcdink); font: 700 11px ui-monospace, monospace; opacity:.85; text-shadow:0 0 6px rgba(87,246,184,.5); }
+
+  svg.scope { display:block; width:100%; height:96px; }
+  .scope .grid-line { stroke: rgba(87,246,184,.10); stroke-width:1; }
+  .scope .wave { fill:none; stroke: var(--lcdink); stroke-width:2.2;
+    filter: drop-shadow(0 0 4px rgba(87,246,184,.75));
+    stroke-linejoin:round; stroke-linecap:round; }
+  .scope .ghost { fill:none; stroke: rgba(87,246,184,.18); stroke-width:6; }
+
+  .lcd-foot { margin-top:6px; display:flex; justify-content:space-between;
+    color: rgba(87,246,184,.6); font: 700 9px ui-monospace, monospace; letter-spacing:1px; }
+  .blink { animation: blink 1.1s steps(2,start) infinite; }
+  @keyframes blink { 50% { opacity:.25; } }
+
+  /* ---------- membrane wave buttons ---------- */
+  .waves { margin-top:14px; }
+  .waves .lbl { font-size:9px; letter-spacing:2px; color:#8a929a; text-transform:uppercase; margin-bottom:6px; }
+  .wgrid { display:grid; grid-template-columns: repeat(4, 1fr); gap:7px; }
+  .wbtn {
+    height:38px; border-radius:5px; cursor:pointer; position:relative;
+    background: linear-gradient(180deg, #34373d, #232529);
+    border: 1px solid #0e0f12;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 3px rgba(0,0,0,.4);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    transition: transform .05s, box-shadow .12s, background .12s;
+    color:#9aa2aa;
+  }
+  .wbtn .num { font:700 8px ui-monospace,monospace; opacity:.6; }
+  .wbtn .nm { font:700 9px ui-sans-serif,system-ui,sans-serif; letter-spacing:.5px; }
+  .wbtn:hover { background: linear-gradient(180deg, #3b3f46, #26282d); color:#c6ced5; }
+  .wbtn:active { transform: translateY(1px); }
+  .wbtn.sel {
+    color:#04130d;
+    background: linear-gradient(180deg, var(--ac), #28b79c);
+    border-color: #0c5a4c;
+    box-shadow: 0 0 14px rgba(67,224,196,.5), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .wbtn.sel .num { opacity:.55; }
+
+  /* ---------- right: dials ---------- */
+  .dials {
+    display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px 6px;
+    align-content:start;
+  }
+  .dial { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .knob {
+    --ang: -135deg;
+    width:62px; height:62px; border-radius:50%; position:relative; cursor:ns-resize;
+    background:
+      radial-gradient(60% 60% at 38% 32%, #4a4e55 0%, #2c2f34 55%, #202226 100%);
+    box-shadow:
+      0 4px 8px rgba(0,0,0,.55),
+      inset 0 1px 0 rgba(255,255,255,.10),
+      inset 0 -3px 6px rgba(0,0,0,.5);
+    border: 1px solid #0d0e11;
+    touch-action:none;
+  }
+  /* teal glow ring driven by --p (0..1) via conic-gradient */
+  .knob .ring {
+    position:absolute; inset:-5px; border-radius:50%; pointer-events:none;
+    background: conic-gradient(from 225deg,
+      var(--ac) calc(var(--p, .5) * 270deg), rgba(255,255,255,.05) 0 270deg, transparent 270deg);
+    -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 80%);
+    mask: radial-gradient(closest-side, transparent 78%, #000 80%);
+    filter: drop-shadow(0 0 5px rgba(67,224,196,.45));
+    transition: filter .15s;
+  }
+  .knob.big { width:88px; height:88px; }
+  .knob.big .ring { background: conic-gradient(from 225deg,
+      var(--ac) calc(var(--p,.5)*270deg), var(--ac2) calc(var(--p,.5)*270deg) calc(var(--p,.5)*270deg + 1deg), rgba(255,255,255,.05) 0 270deg, transparent 270deg);
+      filter: drop-shadow(0 0 9px rgba(67,224,196,.55)); }
+  .knob .pointer {
+    position:absolute; left:50%; top:50%; width:3px; height:42%;
+    background: linear-gradient(180deg, var(--ac), #1c8f7c);
+    border-radius:2px; transform-origin:50% 100%;
+    transform: translate(-50%,-100%) rotate(var(--ang));
+    box-shadow:0 0 6px rgba(67,224,196,.7);
+  }
+  .knob.big .pointer { height:44%; }
+  .knob:active { cursor:grabbing; }
+  .knob .cap { position:absolute; inset:30%; border-radius:50%;
+    background: radial-gradient(50% 50% at 40% 35%, #41454c, #25282d);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+
+  .dial .nm { font-size:9px; letter-spacing:1px; color:#9aa2aa; text-transform:uppercase; }
+  .dial .val { font:700 10px ui-monospace,monospace; color:var(--ac); text-shadow:0 0 6px rgba(67,224,196,.35); }
+  .dial.big { grid-column: span 2; }
+
+  .filt-head { grid-column:1/-1; display:flex; align-items:center; gap:8px; margin:2px 0 -2px; }
+  .filt-head .t { font-size:9px; letter-spacing:3px; color:#7d848c; text-transform:uppercase; }
+  .filt-head .ln { flex:1; height:1px; background:linear-gradient(90deg, #3a3d43, transparent); }
+
+  .hint { margin-top:14px; text-align:center; font-size:9px; color:#5f666d; letter-spacing:.5px; }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">DIGI <b>WAVE</b></div>
+        <div class="sub">Digital&nbsp;Wave&nbsp;·&nbsp;Analog&nbsp;Filter</div>
+      </div>
+      <div class="poly-leds" id="leds"></div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: LCD + membrane wave bank -->
+      <div class="left">
+        <div class="lcd">
+          <div class="lcd-head">
+            <div class="lcd-title">DWGS</div>
+            <div class="lcd-wn" id="lcdWn">W0</div>
+          </div>
+          <svg class="scope" viewBox="0 0 260 96" preserveAspectRatio="none">
+            <line class="grid-line" x1="0" y1="48" x2="260" y2="48"/>
+            <line class="grid-line" x1="65" y1="0" x2="65" y2="96"/>
+            <line class="grid-line" x1="130" y1="0" x2="130" y2="96"/>
+            <line class="grid-line" x1="195" y1="0" x2="195" y2="96"/>
+            <path class="ghost" id="ghost" d=""/>
+            <path class="wave" id="wave" d=""/>
+          </svg>
+          <div class="lcd-foot">
+            <span id="lcdName">ORGAN</span>
+            <span class="blink">▮ READY</span>
+          </div>
+        </div>
+
+        <div class="waves">
+          <div class="lbl">Digital Waveform</div>
+          <div class="wgrid" id="wgrid"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: dials -->
+      <div class="dials" id="dials"></div>
+    </div>
+
+    <div class="hint">drag dials vertically · double-click to reset · click pads to select wave</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- host bridge -------------------------------------------------
+  function send(index, value) {
+    if (window.vstai && typeof window.vstai.setParam === "function") {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  // ---- param model -------------------------------------------------
+  // indices must match spec.json / assembly.ts
+  var DIALS = [
+    { i:1, nm:"Cutoff",    def:0.55, big:true,  fmt:hzFmt },
+    { i:2, nm:"Reso",      def:0.30, fmt:pctFmt },
+    { i:3, nm:"Env Amt",   def:0.55, fmt:pctFmt },
+    { i:4, nm:"Attack",    def:0.04, fmt:msFmt(1.8) },
+    { i:5, nm:"Release",   def:0.35, fmt:msFmt(2.5) },
+    { i:6, nm:"Delay",     def:0.30, fmt:pctFmt },
+    { i:7, nm:"Level",     def:0.60, fmt:pctFmt }
+  ];
+
+  var WAVES = [
+    { nm:"ORGAN",  spec:[1,.5,.35,.25,0,.18,0,.12] },
+    { nm:"REED",   spec:[1,0,.33,0,.85,0,.45,0] },
+    { nm:"SQUARE", spec:[1,0,.33,0,.2,0,.14,0] },
+    { nm:"PIANO",  spec:[1,.83,.9,.78,.45,.3,.21,.14] },
+    { nm:"SAW",    spec:[1,.5,.33,.25,.2,.16,.14,.12] },
+    { nm:"PULSE",  spec:[1,0,.33,0,0,0,.14,0] },
+    { nm:"BELL",   spec:[.7,0,0,.5,0,0,.6,0] },
+    { nm:"BUZZ",   spec:[.2,.5,.8,1,.8,.5,.2,.08] }
+  ];
+
+  function pctFmt(v){ return Math.round(v*100) + "%"; }
+  function hzFmt(v){ var hz = 60*Math.pow(256, v); return hz>=1000 ? (hz/1000).toFixed(1)+"k" : Math.round(hz)+"Hz"; }
+  function msFmt(max){ return function(v){ var s=0.005+v*max; return s<1 ? Math.round(s*1000)+"ms" : s.toFixed(2)+"s"; }; }
+
+  var state = {}; // index -> value
+  var waveIdx = 0;
+
+  // ---- build dials -------------------------------------------------
+  var dialsEl = document.getElementById("dials");
+  var filtHead = document.createElement("div");
+  filtHead.className = "filt-head";
+  filtHead.innerHTML = '<span class="t">Analog Filter</span><span class="ln"></span>';
+  dialsEl.appendChild(filtHead);
+
+  var dialNodes = {};
+  DIALS.forEach(function (d, idx) {
+    if (idx === 5) {
+      var h2 = document.createElement("div");
+      h2.className = "filt-head";
+      h2.innerHTML = '<span class="t">Output</span><span class="ln"></span>';
+      dialsEl.appendChild(h2);
+    }
+    var cell = document.createElement("div");
+    cell.className = "dial" + (d.big ? " big" : "");
+    var knob = document.createElement("div");
+    knob.className = "knob" + (d.big ? " big" : "");
+    knob.innerHTML = '<div class="ring"></div><div class="cap"></div><div class="pointer"></div>';
+    var nm = document.createElement("div"); nm.className = "nm"; nm.textContent = d.nm;
+    var val = document.createElement("div"); val.className = "val";
+    cell.appendChild(knob); cell.appendChild(nm); cell.appendChild(val);
+    dialsEl.appendChild(cell);
+    dialNodes[d.i] = { knob: knob, val: val, d: d };
+    attachKnob(knob, d, val);
+    setDial(d.i, d.def, false);
+  });
+
+  function setDial(index, v, push) {
+    v = Math.max(0, Math.min(1, v));
+    state[index] = v;
+    var node = dialNodes[index];
+    var ang = -135 + v * 270;
+    node.knob.style.setProperty("--p", v);
+    node.knob.style.setProperty("--ang", ang + "deg");
+    node.val.textContent = node.d.fmt(v);
+    if (push) send(index, v);
+  }
+
+  function attachKnob(knob, d, val) {
+    var dragging = false, startY = 0, startV = 0;
+    function down(e) {
+      dragging = true;
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startV = state[d.i];
+      e.preventDefault();
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+      window.addEventListener("touchmove", move, { passive:false });
+      window.addEventListener("touchend", up);
+    }
+    function move(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dv = (startY - y) / 200;            // 200px = full travel
+      if (e.shiftKey) dv *= 0.25;             // fine
+      setDial(d.i, startV + dv, true);
+      e.preventDefault();
+    }
+    function up() {
+      dragging = false;
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    }
+    knob.addEventListener("mousedown", down);
+    knob.addEventListener("touchstart", down, { passive:false });
+    knob.addEventListener("dblclick", function () { setDial(d.i, d.def, true); });
+    knob.addEventListener("wheel", function (e) {
+      setDial(d.i, state[d.i] - e.deltaY / 1500, true);
+      e.preventDefault();
+    }, { passive:false });
+  }
+
+  // ---- wave bank buttons ------------------------------------------
+  var wgrid = document.getElementById("wgrid");
+  var wbtns = [];
+  WAVES.forEach(function (w, i) {
+    var b = document.createElement("div");
+    b.className = "wbtn";
+    b.innerHTML = '<span class="num">'+i+'</span><span class="nm">'+w.nm+'</span>';
+    b.addEventListener("click", function () { selectWave(i, true); });
+    wgrid.appendChild(b);
+    wbtns.push(b);
+  });
+
+  function selectWave(i, push) {
+    waveIdx = i;
+    for (var k = 0; k < wbtns.length; k++) wbtns[k].classList.toggle("sel", k === i);
+    document.getElementById("lcdWn").textContent = "W" + i;
+    document.getElementById("lcdName").textContent = WAVES[i].nm;
+    drawWave(i);
+    if (push) send(0, i); // P_WAVE
+  }
+
+  // ---- LCD waveform render (additive from harmonic spec) ----------
+  var wavePath = document.getElementById("wave");
+  var ghostPath = document.getElementById("ghost");
+  function buildWaveSamples(i) {
+    var spec = WAVES[i].spec, N = 130, out = new Array(N), peak = 1e-4;
+    for (var x = 0; x < N; x++) {
+      var ph = 2 * Math.PI * x / N, s = 0;
+      for (var h = 0; h < spec.length; h++) {
+        if (spec[h]) s += spec[h] * Math.sin(ph * (h + 1));
+      }
+      out[x] = s; var a = Math.abs(s); if (a > peak) peak = a;
+    }
+    for (var x2 = 0; x2 < N; x2++) out[x2] /= peak;
+    return out;
+  }
+  function pathFor(samples) {
+    // draw two cycles across width 260, centered at y=48, amp 38
+    var N = samples.length, W = 260, cyc = 2, d = "";
+    for (var x = 0; x <= W; x++) {
+      var t = (x / W) * cyc * N;
+      var i0 = Math.floor(t) % N, i1 = (i0 + 1) % N, fr = t - Math.floor(t);
+      var s = samples[i0] + (samples[i1] - samples[i0]) * fr;
+      var y = 48 - s * 38;
+      d += (x === 0 ? "M" : "L") + x + " " + y.toFixed(1) + " ";
+    }
+    return d;
+  }
+  function drawWave(i) {
+    var d = pathFor(buildWaveSamples(i));
+    wavePath.setAttribute("d", d);
+    ghostPath.setAttribute("d", d);
+  }
+
+  // ---- poly LEDs (decorative + reactive to noteOn if host calls) ---
+  var ledsEl = document.getElementById("leds");
+  var leds = [];
+  for (var L = 0; L < 8; L++) {
+    var el = document.createElement("div"); el.className = "pled";
+    ledsEl.appendChild(el); leds.push(el);
+  }
+  var ledI = 0;
+  // gentle idle chase so the panel feels alive
+  setInterval(function () {
+    for (var k = 0; k < 8; k++) leds[k].classList.remove("on");
+    leds[ledI % 8].classList.add("on");
+    leds[(ledI + 4) % 8].classList.add("on");
+    ledI++;
+  }, 420);
+
+  // ---- push everything to host on ready ---------------------------
+  function pushAll() {
+    selectWave(0, true);
+    DIALS.forEach(function (d) { setDial(d.i, state[d.i], true); });
+  }
+
+  // init visuals immediately (no host)
+  selectWave(0, false);
+
+  if (window.vstai && typeof window.vstai.onReady === "function") {
+    window.vstai.onReady(pushAll);
+  } else {
+    pushAll();
+  }
+})();
+</script>
+</body>
+</html>

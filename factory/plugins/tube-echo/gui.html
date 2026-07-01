@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tube Echo</title>
+<style>
+  :root{
+    --accent:#ff9a3d;
+    --accent2:#ffd86a;
+    --tan:#caa472;
+    --tan-d:#a07b48;
+    --cream:#efe3c6;
+    --panel:#1c1611;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;}
+  html,body{height:100%;}
+  body{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    background:radial-gradient(120% 120% at 50% 0%,#2a201a 0%,#100b07 70%);
+    color:#f4e9d2;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+
+  /* ---------------- chassis ---------------- */
+  .unit{
+    position:relative;
+    width:560px;
+    border-radius:18px;
+    padding:22px 26px 26px;
+    background:
+      linear-gradient(180deg,#d8b886 0%,#c19a64 45%,#a87f4b 100%);
+    box-shadow:
+      0 30px 60px rgba(0,0,0,.6),
+      inset 0 2px 0 rgba(255,255,255,.35),
+      inset 0 -4px 12px rgba(0,0,0,.4);
+    border:1px solid #7d5c34;
+  }
+  /* brushed-metal sheen overlay */
+  .unit:before{
+    content:"";position:absolute;inset:0;border-radius:18px;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 2px,rgba(0,0,0,.03) 2px 4px);
+    pointer-events:none;mix-blend-mode:overlay;
+  }
+  /* corner screws */
+  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#f3e6c8,#8b6c3e 70%,#5c4426);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.3),0 1px 1px rgba(0,0,0,.4);}
+  .screw:after{content:"";position:absolute;inset:3px;border-top:2px solid rgba(60,40,15,.7);transform:rotate(35deg);}
+  .screw.tl{top:9px;left:9px}.screw.tr{top:9px;right:9px}
+  .screw.bl{bottom:9px;left:9px}.screw.br{bottom:9px;right:9px}
+
+  .brand{
+    display:flex;align-items:baseline;gap:10px;margin:2px 4px 16px;
+  }
+  .brand h1{
+    font-size:21px;letter-spacing:3px;font-weight:800;
+    color:#3a2a16;text-transform:uppercase;
+    text-shadow:0 1px 0 rgba(255,255,255,.45);
+  }
+  .brand .sub{
+    font-size:9px;letter-spacing:4px;color:#5e4524;text-transform:uppercase;
+    border:1px solid rgba(60,40,15,.4);padding:2px 7px;border-radius:4px;
+  }
+
+  /* ---------------- top deck: reel + tube + VU ---------------- */
+  .deck{
+    display:flex;gap:18px;align-items:stretch;
+    background:linear-gradient(180deg,#241b12,#15100b);
+    border-radius:12px;padding:16px;
+    box-shadow:inset 0 3px 10px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.15);
+    border:1px solid #5c4326;
+  }
+
+  /* spinning reel */
+  .reel-wrap{position:relative;width:150px;height:150px;flex:0 0 auto;}
+  .reel{
+    width:150px;height:150px;
+    animation:spin 4s linear infinite;
+    transform-origin:50% 50%;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* glowing tube */
+  .tube-col{flex:0 0 70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+  .tube{
+    position:relative;width:46px;height:96px;border-radius:23px 23px 10px 10px;
+    background:linear-gradient(180deg,rgba(255,230,180,.18),rgba(120,80,30,.25));
+    border:1px solid rgba(255,210,150,.35);
+    overflow:hidden;
+    box-shadow:0 0 18px rgba(255,150,60,.25), inset 0 0 20px rgba(0,0,0,.4);
+  }
+  .filament{
+    position:absolute;left:50%;bottom:10px;width:6px;height:60px;
+    transform:translateX(-50%);
+    background:linear-gradient(180deg,#fff2c0,#ff8a2a);
+    border-radius:3px;
+    filter:blur(1px);
+    box-shadow:0 0 14px 4px rgba(255,140,40,.9);
+    animation:flick 2.6s ease-in-out infinite;
+  }
+  .glowpool{
+    position:absolute;inset:0;border-radius:inherit;
+    background:radial-gradient(circle at 50% 78%,rgba(255,150,50,.55),transparent 65%);
+    animation:flick 2.6s ease-in-out infinite;
+  }
+  @keyframes flick{0%,100%{opacity:.78}45%{opacity:1}60%{opacity:.86}}
+  .tube-base{width:34px;height:12px;border-radius:0 0 6px 6px;background:linear-gradient(#3a2c1a,#1d150c);box-shadow:inset 0 1px 1px rgba(255,255,255,.15);}
+
+  /* VU + transport (right of deck) */
+  .meta{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0;}
+  .vu{
+    position:relative;height:64px;border-radius:8px;
+    background:radial-gradient(120% 160% at 50% 0%,#f3e6c2,#d7c191);
+    border:1px solid #8a6c3e;overflow:hidden;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.35);
+  }
+  .vu-glow{
+    position:absolute;inset:0;
+    background:radial-gradient(60% 120% at var(--vux,50%) 110%,rgba(255,140,40,.65),transparent 60%);
+    transition:none;
+  }
+  .needle{
+    position:absolute;left:50%;bottom:6px;width:2px;height:50px;
+    background:linear-gradient(#3a2a14,#b5421f);transform-origin:50% 100%;
+    transform:rotate(0deg);
+    box-shadow:0 0 4px rgba(0,0,0,.4);
+  }
+  .vu-arc{position:absolute;inset:0;}
+  .vu-label{position:absolute;top:5px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:3px;color:#6a4f28;}
+
+  /* playback head slider track */
+  .headtrack{
+    position:relative;height:26px;border-radius:6px;
+    background:linear-gradient(#15100a,#241a10);
+    border:1px solid #5c4326;overflow:hidden;
+  }
+  .tapeline{position:absolute;top:50%;left:6px;right:6px;height:6px;transform:translateY(-50%);
+    background:linear-gradient(90deg,#3a2c1d,#5a4327,#3a2c1d);border-radius:3px;
+    box-shadow:inset 0 1px 1px rgba(0,0,0,.5);}
+  .tapeline:after{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(90deg,rgba(255,200,140,.12) 0 8px,transparent 8px 16px);
+    animation:tapescroll 1.1s linear infinite;}
+  @keyframes tapescroll{to{background-position:32px 0;}}
+  .phead{
+    position:absolute;top:1px;bottom:1px;width:16px;border-radius:3px;
+    background:linear-gradient(180deg,#d9d9df,#7d7d86 60%,#42424a);
+    box-shadow:0 0 8px rgba(255,154,61,.6),inset 0 1px 1px rgba(255,255,255,.5);
+    left:30%;transform:translateX(-50%);
+  }
+  .phead:after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;transform:translateX(-50%);
+    background:#2a2a30;border-radius:1px;}
+
+  /* ---------------- knob row ---------------- */
+  .controls{
+    display:flex;justify-content:space-between;gap:10px;margin-top:18px;
+    padding:14px 8px 6px;
+  }
+  .ctrl{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;}
+  .knob{
+    position:relative;width:74px;height:74px;border-radius:50%;
+    cursor:grab;
+    background:
+      radial-gradient(circle at 38% 32%,#4a4038,#241c14 65%,#120c07);
+    box-shadow:
+      0 6px 14px rgba(0,0,0,.55),
+      inset 0 2px 3px rgba(255,255,255,.18),
+      inset 0 -4px 8px rgba(0,0,0,.6);
+    border:1px solid #6a4f2c;
+  }
+  .knob:active{cursor:grabbing;}
+  .knob .cap{
+    position:absolute;inset:11px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#3b322a,#1a130c);
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.12);
+  }
+  /* indicator notch (rotates) */
+  .knob .ind{
+    position:absolute;left:50%;top:6px;width:4px;height:20px;border-radius:2px;
+    transform-origin:50% 31px;
+    background:linear-gradient(var(--accent2),var(--accent));
+    box-shadow:0 0 8px rgba(255,154,61,.85);
+    transform:translateX(-50%) rotate(0deg);
+  }
+  /* tick ring */
+  .knob .ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;}
+  .lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#2d2012;font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.35);}
+  .val{font-size:11px;font-variant-numeric:tabular-nums;color:#3a2a14;
+    background:rgba(255,245,220,.55);border-radius:4px;padding:1px 7px;min-width:54px;text-align:center;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.2);}
+
+  .footnote{margin:14px 4px 0;font-size:8px;letter-spacing:2px;color:#5e4524;text-align:center;text-transform:uppercase;}
+</style>
+</head>
+<body>
+  <div class="unit" id="unit">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="brand">
+      <h1>Tube&nbsp;Echo</h1>
+      <span class="sub">Tape Delay · Tube Preamp</span>
+    </div>
+
+    <div class="deck">
+      <!-- spinning reel -->
+      <div class="reel-wrap">
+        <svg class="reel" id="reelSvg" viewBox="0 0 150 150" aria-hidden="true">
+          <defs>
+            <radialGradient id="tapeGrad" cx="50%" cy="42%" r="60%">
+              <stop offset="0%" stop-color="#5a4226"/>
+              <stop offset="55%" stop-color="#36281a"/>
+              <stop offset="100%" stop-color="#1d150d"/>
+            </radialGradient>
+            <radialGradient id="hubGrad" cx="40%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#f2e7c8"/>
+              <stop offset="60%" stop-color="#c7a268"/>
+              <stop offset="100%" stop-color="#7d5c34"/>
+            </radialGradient>
+          </defs>
+          <!-- tape pack -->
+          <circle cx="75" cy="75" r="70" fill="url(#tapeGrad)"/>
+          <!-- tape striations -->
+          <g stroke="rgba(255,210,150,.07)" stroke-width="1" fill="none">
+            <circle cx="75" cy="75" r="62"/><circle cx="75" cy="75" r="54"/>
+            <circle cx="75" cy="75" r="46"/><circle cx="75" cy="75" r="38"/>
+          </g>
+          <!-- flange / hub -->
+          <circle cx="75" cy="75" r="34" fill="url(#hubGrad)" stroke="#5c4326" stroke-width="1.5"/>
+          <!-- spokes (3 holes) -->
+          <g fill="#1d150d">
+            <circle cx="75" cy="50" r="7"/>
+            <circle cx="96" cy="87" r="7"/>
+            <circle cx="54" cy="87" r="7"/>
+          </g>
+          <circle cx="75" cy="75" r="8" fill="#2a1f12" stroke="#8a6c3e" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <!-- glowing tube -->
+      <div class="tube-col">
+        <div class="tube">
+          <div class="glowpool"></div>
+          <div class="filament"></div>
+        </div>
+        <div class="tube-base"></div>
+      </div>
+
+      <!-- VU + transport -->
+      <div class="meta">
+        <div class="vu">
+          <div class="vu-glow" id="vuGlow"></div>
+          <div class="vu-label">REC LEVEL</div>
+          <svg class="vu-arc" viewBox="0 0 240 70" preserveAspectRatio="none">
+            <path d="M20 64 A110 110 0 0 1 220 64" fill="none" stroke="rgba(90,66,32,.5)" stroke-width="1.5"/>
+            <path d="M150 14 A150 150 0 0 1 222 60" fill="none" stroke="rgba(180,66,31,.6)" stroke-width="2"/>
+          </svg>
+          <div class="needle" id="vuNeedle"></div>
+        </div>
+        <div class="headtrack">
+          <div class="tapeline"></div>
+          <div class="phead" id="phead"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls" id="controls"></div>
+
+    <div class="footnote">Single-Head Tape · Wow &amp; Flutter · Bounded Self-Oscillation</div>
+  </div>
+
+<script>
+(function(){
+  // ---- host bridge --------------------------------------------------
+  var host = (typeof window!=="undefined" && window.vstai) ? window.vstai : null;
+  function setParam(i,v){ if(host && host.setParam) host.setParam(i,v); }
+
+  // ---- param model --------------------------------------------------
+  // map 0..1 -> display string
+  var PARAMS = [
+    { name:"Time",     def:0.35, fmt:function(v){ return (40+v*860).toFixed(0)+" ms"; } },
+    { name:"Feedback", def:0.40, fmt:function(v){ return (v*100).toFixed(0)+" %"; } },
+    { name:"Drive",    def:0.40, fmt:function(v){ return (v*100).toFixed(0)+" %"; } },
+    { name:"Tone",     def:0.50, fmt:function(v){ return v<0.5 ? "dark "+((0.5-v)*200).toFixed(0) : "bright "+((v-0.5)*200).toFixed(0); } },
+    { name:"Mix",      def:0.40, fmt:function(v){ return (v*100).toFixed(0)+" %"; } }
+  ];
+  var state = PARAMS.map(function(p){ return p.def; });
+
+  var controls = document.getElementById("controls");
+  var knobs = [];
+
+  // angle sweep -135..+135 deg
+  function angleFor(v){ return -135 + v*270; }
+
+  function buildTicks(svgNS){
+    // returns SVG tick ring as innerHTML
+    var html = '<svg class="ring" viewBox="0 0 100 100">';
+    for(var i=0;i<=10;i++){
+      var a = (-135 + i*27) * Math.PI/180;
+      var x1 = 50 + Math.sin(a)*46, y1 = 50 - Math.cos(a)*46;
+      var x2 = 50 + Math.sin(a)*41, y2 = 50 - Math.cos(a)*41;
+      var maj = (i%5===0);
+      html += '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+
+              '" stroke="'+(maj?'rgba(255,154,61,.8)':'rgba(120,90,50,.55)')+'" stroke-width="'+(maj?2:1.2)+'" stroke-linecap="round"/>';
+    }
+    html += '</svg>';
+    return html;
+  }
+
+  PARAMS.forEach(function(p, idx){
+    var ctrl = document.createElement("div"); ctrl.className="ctrl";
+    var knob = document.createElement("div"); knob.className="knob";
+    knob.innerHTML = buildTicks() +
+      '<div class="cap"></div>' +
+      '<div class="ind"></div>';
+    var lbl = document.createElement("div"); lbl.className="lbl"; lbl.textContent = p.name;
+    var val = document.createElement("div"); val.className="val";
+    ctrl.appendChild(knob); ctrl.appendChild(lbl); ctrl.appendChild(val);
+    controls.appendChild(ctrl);
+
+    var ind = knob.querySelector(".ind");
+    var rec = { knob:knob, ind:ind, val:val, p:p, idx:idx };
+    knobs.push(rec);
+
+    function render(){
+      var v = state[idx];
+      ind.style.transform = "translateX(-50%) rotate("+angleFor(v)+"deg)";
+      val.textContent = p.fmt(v);
+    }
+    rec.render = render;
+
+    // ---- drag interaction ----
+    var dragging=false, startY=0, startV=0;
+    function onDown(e){
+      dragging=true;
+      startY = (e.touches?e.touches[0].clientY:e.clientY);
+      startV = state[idx];
+      e.preventDefault();
+      window.addEventListener("mousemove",onMove);
+      window.addEventListener("mouseup",onUp);
+      window.addEventListener("touchmove",onMove,{passive:false});
+      window.addEventListener("touchend",onUp);
+    }
+    function onMove(e){
+      if(!dragging) return;
+      var y = (e.touches?e.touches[0].clientY:e.clientY);
+      var dy = startY - y;
+      var nv = startV + dy/200;
+      if(nv<0)nv=0; if(nv>1)nv=1;
+      state[idx]=nv; render(); setParam(idx,nv); reflectMacros();
+      e.preventDefault();
+    }
+    function onUp(){
+      dragging=false;
+      window.removeEventListener("mousemove",onMove);
+      window.removeEventListener("mouseup",onUp);
+      window.removeEventListener("touchmove",onMove);
+      window.removeEventListener("touchend",onUp);
+    }
+    knob.addEventListener("mousedown",onDown);
+    knob.addEventListener("touchstart",onDown,{passive:false});
+    knob.addEventListener("wheel",function(e){
+      var nv = state[idx] - Math.sign(e.deltaY)*0.03;
+      if(nv<0)nv=0; if(nv>1)nv=1;
+      state[idx]=nv; render(); setParam(idx,nv); reflectMacros();
+      e.preventDefault();
+    },{passive:false});
+    knob.addEventListener("dblclick",function(){
+      state[idx]=p.def; render(); setParam(idx,p.def); reflectMacros();
+    });
+
+    render();
+  });
+
+  // ---- animated meta reflects Time / Drive / Feedback ----
+  var reel = document.getElementById("reelSvg");
+  var vuGlow = document.getElementById("vuGlow");
+  var vuNeedle = document.getElementById("vuNeedle");
+  var phead = document.getElementById("phead");
+  var tube = document.querySelector(".tube");
+
+  function reflectMacros(){
+    var time = state[0], fb = state[1], drive = state[2];
+    // reel speed: slower time = faster transport (more reps/sec); 1.2s..6s
+    var dur = (1.4 + time*5.0).toFixed(2);
+    reel.style.animationDuration = dur + "s";
+    // playback head position tracks Time across the track
+    phead.style.left = (8 + time*84) + "%";
+    // VU driven by Drive (preamp warmth)
+    var lvl = drive*0.8 + fb*0.2;
+    vuGlow.style.setProperty("--vux", (20 + lvl*60) + "%");
+    vuNeedle.style.transform = "rotate(" + (-50 + lvl*100) + "deg)";
+    // tube glow intensity from drive
+    tube.style.boxShadow = "0 0 "+(14+drive*26)+"px rgba(255,150,60,"+(0.2+drive*0.5)+"), inset 0 0 20px rgba(0,0,0,.4)";
+  }
+
+  // gentle idle VU shimmer
+  var t=0;
+  setInterval(function(){
+    t+=0.08;
+    var base = state[2]*0.8 + state[1]*0.2;
+    var shimmer = base + Math.sin(t)*0.05*(0.3+base);
+    if(shimmer<0)shimmer=0; if(shimmer>1)shimmer=1;
+    vuGlow.style.setProperty("--vux",(20+shimmer*60)+"%");
+    vuNeedle.style.transform="rotate("+(-50+shimmer*100)+"deg)";
+  },60);
+
+  function initAll(){
+    state.forEach(function(v,i){ setParam(i,v); });
+    knobs.forEach(function(k){ k.render(); });
+    reflectMacros();
+  }
+
+  if(host && host.onReady){ host.onReady(initAll); }
+  else { initAll(); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Multi Mono</title>
+<style>
+  :root{ --acc:#f08a3c; --acc2:#5ad0e0; --bg0:#0c0905; --bg1:#1a130a; --ink:#f6efe6; --dim:#9a8468; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(120% 90% at 50% -10%,#2a1f10 0%,var(--bg1) 46%,var(--bg0) 100%); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:15px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#241a0e,#0c0805); border:1px solid rgba(240,138,60,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,235,210,.06); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 1.9s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.4;} 50%{ opacity:1;} }
+  .screen{ height:96px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative; background:linear-gradient(180deg,#160f07,#0b0805); border:1px solid rgba(240,138,60,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.22em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:70px; height:70px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(235,220,200,.13); stroke-width:7; stroke-linecap:round; } .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(240,138,60,.6)); }
+  .pcap{ fill:#140d06; stroke:rgba(240,138,60,.22); stroke-width:1; } .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); } .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(240,138,60,.1); padding:1px 7px; border-radius:7px; border:1px solid rgba(240,138,60,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style></head>
+<body>
+  <div class="unit">
+    <header><span class="logo">MULTI&nbsp;MONO</span><span class="sub">expressive vco mono</span><span class="led"></span></header>
+    <div class="screen"><div class="scrlbl">OSC&nbsp;MOD</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){"use strict";
+  var P=[{name:"Cutoff",idx:0,def:0.5},{name:"Reso",idx:1,def:0.4},{name:"Env",idx:2,def:0.6},{name:"Osc Mod",idx:3,def:0.3},{name:"Sub",idx:4,def:0.4},{name:"Level",idx:5,def:0.8}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 80 80"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f08a3c"/><stop offset="1" stop-color="#5ad0e0"/></linearGradient></defs><circle class="track" cx="40" cy="40" r="33"></circle><circle class="arc" cx="40" cy="40" r="33" transform="rotate(135 40 40)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="40" cy="40" r="20"></circle><line class="ptr" x1="40" y1="40" x2="40" y2="23"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el); var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString()); var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(40+Math.sin(ang)*16).toFixed(2)); ptr.setAttribute("y2",(40-Math.cos(ang)*16).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); } window.addEventListener("resize",resize); resize();
+  function frame(ts){ ctx.clearRect(0,0,W,H); var cut=vals[0], mod=vals[3], sub=vals[4]; var mid=H*0.54;
+    var lfo=Math.sin(ts/430); var vib=mod*0.5*lfo; var pw=0.5+mod*0.35*lfo;
+    // single VCO trace: saw+pulse, pitch wobbled by vibrato, with the sub underneath
+    ctx.beginPath();
+    for(var x=0;x<=W;x+=2){ var t=x/W; var ph=(t*3.4*(1+vib*0.12)+ts/900)%1;
+      var saw=(2*ph-1)*0.6; var pulse=(ph<pw?1:-1)*0.4; var v=(saw+pulse)*(0.45+cut*0.5);
+      ctx.lineTo(x, mid - v*(H*0.30)); }
+    ctx.strokeStyle="rgba(240,138,60,0.92)"; ctx.lineWidth=2; ctx.shadowColor="#f08a3c"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    if(sub>0.02){ ctx.beginPath(); for(var x2=0;x2<=W;x2+=3){ var t2=x2/W; var sph=(t2*1.7+ts/900)%1; var sv=(sph<0.5?0.7:-0.7)*sub*(H*0.16);
+      ctx.lineTo(x2, mid - sv); } ctx.strokeStyle="rgba(90,208,224,0.45)"; ctx.lineWidth=1.4; ctx.stroke(); }
+    // LFO orbit (top-right): a dot circling, radius = mod depth
+    var ox=W-26, oy=22, rr=4+mod*11; ctx.strokeStyle="rgba(90,208,224,0.25)"; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(ox,oy,rr,0,Math.PI*2); ctx.stroke();
+    var a=ts/430; ctx.fillStyle="#5ad0e0"; ctx.beginPath(); ctx.arc(ox+Math.cos(a)*rr, oy+Math.sin(a)*rr, 2.6, 0, Math.PI*2); ctx.fill();
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script></body></html>

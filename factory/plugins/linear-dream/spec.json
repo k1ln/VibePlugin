@@ -1,0 +1,18 @@
+{
+  "name": "Linear Dream",
+  "isInstrument": true,
+  "explanation": "An LA-synthesis voice in the late-80s digital lineage. Each note layers a short PCM attack transient (selectable: mallet, blown or pluck) over a synthesised sustain body — a sawtooth through a per-voice resonant low-pass with a decaying filter envelope — then through a lush built-in chorus. 8-voice polyphonic. Controls: Attack (transient type), Cutoff, Resonance, Env Amount (filter envelope), Chorus and Level. The attack samples are original, self-authored CC0 content synthesised offline (no third-party samples).",
+  "assembly": "factory/plugins/linear-dream/assembly.ts",
+  "out": "factory/plugins/linear-dream/x.vstai",
+  "guiFile": "factory/plugins/linear-dream/gui.html",
+  "publishedAt": 1751000156000,
+  "theme": { "accent": "#5ad0c4", "accent2": "#b08cff" },
+  "params": [
+    { "name": "Attack",     "index": 0, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Cutoff",     "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance",  "index": 2, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Env Amount", "index": 3, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Chorus",     "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

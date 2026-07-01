@@ -1,0 +1,18 @@
+{
+  "name": "Hex Glow",
+  "isInstrument": true,
+  "explanation": "A 6-voice single-VCO polysynth in the Korg Polysix lineage. One VCO (saw) plus a square sub per voice, a resonant low-pass with its own envelope and an amp envelope; the whole poly mix runs through the Polysix's signature effects section — here a 4-stage modulated allpass phaser (the distinct hook versus the factory's chorus polys). Controls: Cutoff, Resonance, Env Amount, Sub, Phaser and Level.",
+  "assembly": "factory/plugins/hex-glow/assembly.ts",
+  "out": "factory/plugins/hex-glow/x.vstai",
+  "guiFile": "factory/plugins/hex-glow/gui.html",
+  "publishedAt": 1751000170000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#b0b8c4" },
+  "params": [
+    { "name": "Cutoff",     "index": 0, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Resonance",  "index": 1, "min": 0, "max": 1, "default": 0.32 },
+    { "name": "Env Amount", "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Sub",        "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Phaser",     "index": 4, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Level",      "index": 5, "min": 0, "max": 1, "default": 0.8 }
+  ]
+}

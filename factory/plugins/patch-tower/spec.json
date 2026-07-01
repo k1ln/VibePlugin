@@ -1,0 +1,20 @@
+{
+  "name": "Patch Tower",
+  "isInstrument": true,
+  "explanation": "A colossal three-oscillator semi-modular monophonic synthesizer in the great modular-tower lineage. Three big detuned oscillators (band-limited saw, pulse and triangle) blend thick, joined by a dedicated white-noise channel and hard oscillator SYNC for metallic sweeps. Everything pours into a fat 4-pole transistor-ladder low-pass with tanh saturation in its feedback loop and its own sweeping filter envelope, with last-note-priority glide. Controls: Cutoff, Resonance, Env Amount, Detune (3-osc spread), Sync, Noise, Glide and master Level. Regal, towering and modular.",
+  "assembly": "factory/plugins/patch-tower/assembly.ts",
+  "out": "factory/plugins/patch-tower/x.vstai",
+  "publishedAt": 1751000142000,
+  "theme": { "accent": "#ffae42", "accent2": "#9a6aff" },
+  "guiFile": "factory/plugins/patch-tower/gui.html",
+  "params": [
+    { "name": "Cutoff",    "index": 0, "min": 0, "max": 1, "default": 0.42 },
+    { "name": "Resonance", "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "EnvAmount", "index": 2, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Detune",    "index": 3, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Sync",      "index": 4, "min": 0, "max": 1, "default": 0.25 },
+    { "name": "Noise",     "index": 5, "min": 0, "max": 1, "default": 0.15 },
+    { "name": "Glide",     "index": 6, "min": 0, "max": 1, "default": 0.2 },
+    { "name": "Level",     "index": 7, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

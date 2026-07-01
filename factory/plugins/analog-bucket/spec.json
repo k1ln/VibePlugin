@@ -1,0 +1,17 @@
+{
+  "name": "Analog Bucket",
+  "isInstrument": false,
+  "explanation": "A generic bucket-brigade (BBD) model: a short, dark, companded delay that doubles as a chorus/vibrato. A modulated BBD delay line with progressively darker repeats and gentle compander grit — at short times with high Mod it's a lush chorus, at longer times a warm analog echo. Controls: Time, Feedback, Mod (chorus depth), Tone (BBD darkness) and Mix.",
+  "assembly": "factory/plugins/analog-bucket/assembly.ts",
+  "out": "factory/plugins/analog-bucket/x.vstai",
+  "guiFile": "factory/plugins/analog-bucket/gui.html",
+  "publishedAt": 1751000174000,
+  "theme": { "accent": "#5ad0c4", "accent2": "#7a86ff" },
+  "params": [
+    { "name": "Time",     "index": 0, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Feedback", "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Mod",      "index": 2, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Tone",     "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",      "index": 4, "min": 0, "max": 1, "default": 0.4 }
+  ]
+}

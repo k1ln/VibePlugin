@@ -1,0 +1,16 @@
+{
+  "name": "Quad Dimension",
+  "isInstrument": false,
+  "explanation": "A clean, hi-fi dimensional stereo chorus with four fixed mode buttons instead of rate and depth knobs. Each mode (1 = subtle to 4 = widest) preselects a dimensional size that builds an anti-phase side signal from a pair of short, gently de-tuned delay taps per channel, widening and thickening the stereo image with almost no audible pitch wobble. The modulation is kept very slow and shallow so it shimmers rather than warbles; the mono sum stays stable. Controls: Mode (1..4), Width (stereo spread), Tone (dark to bright sparkle) and dry/wet Mix.",
+  "assembly": "factory/plugins/quad-dimension/assembly.ts",
+  "out": "factory/plugins/quad-dimension/x.vstai",
+  "publishedAt": 1751000133000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#c8a0ff" },
+  "guiFile": "factory/plugins/quad-dimension/gui.html",
+  "params": [
+    { "name": "Mode",  "index": 0, "min": 0, "max": 3, "default": 0, "step": 1 },
+    { "name": "Width", "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Tone",  "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",   "index": 3, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

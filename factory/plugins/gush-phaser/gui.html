@@ -1,0 +1,282 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gush Phaser</title>
+<style>
+:root{
+  --cy:#5ad0ff; --mg:#ff5ad0;
+  --face1:#0b2c4a; --face2:#06192e;
+  --ink:#dff3ff;
+}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%}
+body{
+  font:13px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:radial-gradient(120% 90% at 50% -10%,#0a3357 0%,#04101e 60%,#020812 100%);
+  display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:hidden;
+}
+/* ===== PEDAL ===== */
+.pedal{
+  position:relative;width:340px;border-radius:26px;padding:22px 22px 26px;
+  background:
+    linear-gradient(160deg,#10416c 0%,#0a2c4c 38%,#072037 100%);
+  box-shadow:
+    0 30px 60px -18px rgba(0,0,0,.75),
+    0 2px 0 rgba(255,255,255,.10) inset,
+    0 -22px 50px -28px rgba(90,208,255,.5) inset;
+  border:1px solid rgba(120,210,255,.18);
+  overflow:hidden;
+}
+/* phthalo gloss sheen */
+.pedal::before{
+  content:"";position:absolute;inset:0;border-radius:26px;pointer-events:none;
+  background:
+    radial-gradient(70% 40% at 25% 8%,rgba(255,255,255,.22),transparent 60%),
+    radial-gradient(60% 50% at 90% 100%,rgba(255,90,208,.10),transparent 60%);
+  mix-blend-mode:screen;
+}
+/* corner bolts */
+.bolt{position:absolute;width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#cfe9ff,#3a6f94 60%,#173247);
+  box-shadow:0 1px 2px rgba(0,0,0,.6),0 0 0 1px rgba(0,0,0,.3)}
+.bolt.tl{top:10px;left:10px}.bolt.tr{top:10px;right:10px}
+.bolt.bl{bottom:10px;left:10px}.bolt.br{bottom:10px;right:10px}
+
+.brand{display:flex;align-items:baseline;gap:8px;justify-content:center;margin:2px 0 14px}
+.brand b{
+  font-size:22px;letter-spacing:.16em;font-weight:800;
+  background:linear-gradient(90deg,var(--cy),#bfe9ff 45%,var(--mg));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 18px rgba(90,208,255,.25);
+}
+.brand span{font-size:9px;letter-spacing:.34em;color:#7fb6d8;text-transform:uppercase}
+
+/* ===== SPECTRUM / NOTCH WAVES ===== */
+.scope{
+  position:relative;height:96px;border-radius:14px;margin:0 2px 18px;
+  background:linear-gradient(180deg,#031322,#01070f);
+  border:1px solid rgba(90,208,255,.22);
+  box-shadow:0 0 22px rgba(90,208,255,.12) inset,0 2px 6px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.scope svg{display:block;width:100%;height:100%}
+.grid line{stroke:rgba(120,200,255,.07);stroke-width:1}
+.notch{filter:drop-shadow(0 0 4px rgba(90,208,255,.6))}
+
+/* ===== KNOB ROW ===== */
+.knobs{display:flex;justify-content:space-around;align-items:flex-start;margin:4px 0 6px}
+.kc{display:flex;flex-direction:column;align-items:center;width:88px}
+.knob{
+  position:relative;width:70px;height:70px;border-radius:50%;cursor:ns-resize;touch-action:none;
+  background:
+    radial-gradient(circle at 38% 30%,#1d557f,#0c2c47 55%,#06182a);
+  box-shadow:
+    0 6px 14px rgba(0,0,0,.55),
+    0 1px 0 rgba(255,255,255,.18) inset,
+    0 -8px 16px -8px rgba(90,208,255,.5) inset;
+  border:1px solid rgba(120,210,255,.22);
+  transition:box-shadow .15s, transform .08s;
+}
+.knob:hover{box-shadow:0 6px 18px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.22) inset,0 0 24px rgba(90,208,255,.4)}
+.knob:active{transform:translateY(1px)}
+.knob .dial{position:absolute;inset:0;border-radius:50%}
+.knob .ind{
+  position:absolute;left:50%;top:7px;width:3px;height:24px;border-radius:2px;margin-left:-1.5px;
+  background:linear-gradient(180deg,#eaffff,var(--cy));
+  box-shadow:0 0 8px var(--cy);transform-origin:50% 28px;
+}
+.ring{position:absolute;inset:-7px;border-radius:50%;pointer-events:none}
+.kc label{margin-top:9px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9ed0ec}
+.kc .val{margin-top:2px;font-size:11px;font-variant-numeric:tabular-nums;color:var(--cy);text-shadow:0 0 8px rgba(90,208,255,.4)}
+
+/* big rate knob emphasis */
+.kc.big .knob{width:88px;height:88px}
+.kc.big{width:108px}
+.kc.big .ind{top:8px;height:30px;transform-origin:50% 36px}
+
+/* ===== COLOR SWITCH ===== */
+.colorbox{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px}
+.csw{
+  position:relative;width:104px;height:40px;border-radius:22px;cursor:pointer;touch-action:none;
+  background:linear-gradient(180deg,#0a2138,#04101d);
+  border:1px solid rgba(255,90,208,.35);
+  box-shadow:0 2px 8px rgba(0,0,0,.5) inset;overflow:hidden;
+}
+.csw .fill{position:absolute;left:0;top:0;bottom:0;width:50%;
+  background:linear-gradient(90deg,rgba(90,208,255,.25),rgba(255,90,208,.55));
+  box-shadow:0 0 24px rgba(255,90,208,.6);transition:filter .2s}
+.csw .cap{
+  position:absolute;top:3px;left:3px;width:34px;height:34px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#ffb8e8 40%,#ff5ad0 75%,#b3267e);
+  box-shadow:0 2px 6px rgba(0,0,0,.5),0 0 18px rgba(255,90,208,.7);
+}
+.csw .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:12px;font-size:9px;letter-spacing:.2em;color:#ffd2f0;text-transform:uppercase;pointer-events:none}
+.colorbox .name{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#ffb3e6}
+.colorbox .v{font-size:11px;color:var(--mg);font-variant-numeric:tabular-nums;text-shadow:0 0 8px rgba(255,90,208,.5)}
+
+/* gushy idle pulse on the whole face */
+@keyframes breathe{0%,100%{filter:saturate(1)}50%{filter:saturate(1.12)}}
+.pedal{animation:breathe 6s ease-in-out infinite}
+.hint{text-align:center;font-size:9px;color:#5f93b6;margin-top:14px;letter-spacing:.08em}
+</style></head>
+<body>
+<div class="pedal">
+  <i class="bolt tl"></i><i class="bolt tr"></i><i class="bolt bl"></i><i class="bolt br"></i>
+  <div class="brand"><b>GUSH</b><span>Phaser</span></div>
+
+  <div class="scope">
+    <svg id="scope" viewBox="0 0 320 96" preserveAspectRatio="none">
+      <g class="grid" id="grid"></g>
+      <path id="wave2" class="notch" fill="none" stroke="#ff5ad0" stroke-width="2" opacity=".55"/>
+      <path id="wave1" class="notch" fill="none" stroke="#5ad0ff" stroke-width="2.2"/>
+    </svg>
+  </div>
+
+  <div class="knobs">
+    <div class="kc big" id="kc-0">
+      <div class="knob"><div class="ring"></div><div class="dial"><div class="ind"></div></div></div>
+      <label>Rate</label><div class="val">—</div>
+    </div>
+    <div class="kc" id="kc-1">
+      <div class="knob"><div class="ring"></div><div class="dial"><div class="ind"></div></div></div>
+      <label>Depth</label><div class="val">—</div>
+    </div>
+    <div class="kc" id="kc-3">
+      <div class="knob"><div class="ring"></div><div class="dial"><div class="ind"></div></div></div>
+      <label>Mix</label><div class="val">—</div>
+    </div>
+  </div>
+
+  <div class="colorbox">
+    <div class="csw" id="csw"><div class="fill" id="cfill"></div><div class="cap" id="ccap"></div><span class="lbl">Color</span></div>
+    <div class="name">Color · Feedback</div>
+    <div class="v" id="cval">—</div>
+  </div>
+
+  <div class="hint">drag knobs · drag Color switch · double-click to reset</div>
+</div>
+
+<script>
+(function(){
+  // ---- host bridge ----
+  var V = window.vstai || null;
+  function setParam(i,v){ if(V && V.setParam) V.setParam(i, v); }
+
+  var DEF = {0:0.35, 1:0.7, 2:0.5, 3:0.5};
+  var state = {0:DEF[0], 1:DEF[1], 2:DEF[2], 3:DEF[3]};
+
+  // ---- knobs (Rate, Depth, Mix) ----
+  var KNOBS = [0,1,3];
+  function fmt(i){
+    if(i===0){ var hz=(0.03*Math.exp(state[0]*5.7)); return hz<1? hz.toFixed(2)+" Hz" : hz.toFixed(1)+" Hz"; }
+    return Math.round(state[i]*100)+"%";
+  }
+  function drawKnob(i){
+    var el=document.getElementById('kc-'+i);
+    var ind=el.querySelector('.ind');
+    var ang=-135 + state[i]*270;
+    ind.style.transform='rotate('+ang+'deg)';
+    var ring=el.querySelector('.ring');
+    var deg = state[i]*270;
+    var ac = i===3 ? 'var(--mg)' : 'var(--cy)';
+    ring.style.background='conic-gradient(from -135deg, '+ac+' '+deg+'deg, rgba(120,200,255,.10) 0)';
+    ring.style.webkitMaskImage='radial-gradient(circle, transparent 60%, #000 61%)';
+    ring.style.maskImage='radial-gradient(circle, transparent 60%, #000 61%)';
+    el.querySelector('.val').textContent=fmt(i);
+  }
+  KNOBS.forEach(function(i){
+    var el=document.getElementById('kc-'+i);
+    var knob=el.querySelector('.knob');
+    var dragging=false, sy=0, sv=0;
+    knob.addEventListener('pointerdown',function(e){dragging=true;sy=e.clientY;sv=state[i];knob.setPointerCapture(e.pointerId);e.preventDefault();});
+    knob.addEventListener('pointermove',function(e){
+      if(!dragging)return;
+      var dv=(sy-e.clientY)/180;
+      state[i]=Math.max(0,Math.min(1,sv+dv));
+      setParam(i,state[i]); drawKnob(i);
+    });
+    function up(){dragging=false;}
+    knob.addEventListener('pointerup',up);knob.addEventListener('pointercancel',up);
+    knob.addEventListener('dblclick',function(){state[i]=DEF[i];setParam(i,state[i]);drawKnob(i);});
+  });
+
+  // ---- Color switch (param 2) ----
+  var csw=document.getElementById('csw'), cfill=document.getElementById('cfill'),
+      ccap=document.getElementById('ccap'), cval=document.getElementById('cval');
+  function drawColor(){
+    var v=state[2];
+    cfill.style.width=(v*100)+'%';
+    cfill.style.filter='brightness('+(0.8+v*0.9)+')';
+    var x=3 + v*(104-3-34);
+    ccap.style.left=x+'px';
+    ccap.style.boxShadow='0 2px 6px rgba(0,0,0,.5),0 0 '+(8+v*26)+'px rgba(255,90,208,'+(0.4+v*0.5)+')';
+    cval.textContent=Math.round(v*100)+'%';
+  }
+  (function(){
+    var dragging=false;
+    function pos(e){
+      var r=csw.getBoundingClientRect();
+      var v=(e.clientX-r.left-17)/(r.width-34);
+      state[2]=Math.max(0,Math.min(1,v)); setParam(2,state[2]); drawColor();
+    }
+    csw.addEventListener('pointerdown',function(e){dragging=true;csw.setPointerCapture(e.pointerId);pos(e);e.preventDefault();});
+    csw.addEventListener('pointermove',function(e){if(dragging)pos(e);});
+    function up(){dragging=false;}
+    csw.addEventListener('pointerup',up);csw.addEventListener('pointercancel',up);
+    csw.addEventListener('dblclick',function(){state[2]=DEF[2];setParam(2,state[2]);drawColor();});
+  })();
+
+  // ---- spectrum grid ----
+  (function(){
+    var g=document.getElementById('grid'),s='';
+    for(var i=1;i<8;i++){var x=i*40;s+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="96"/>';}
+    for(var j=1;j<4;j++){var y=j*24;s+='<line x1="0" y1="'+y+'" x2="320" y2="'+y+'"/>';}
+    g.innerHTML=s;
+  })();
+
+  // ---- animated notch waves ----
+  var w1=document.getElementById('wave1'), w2=document.getElementById('wave2');
+  var t=0;
+  function frame(){
+    var rate=0.03*Math.exp(state[0]*5.7);
+    t += rate*0.05 + 0.004;
+    var depth=state[1], color=state[2];
+    // notch sweep center 0..1 across spectrum (triangle)
+    var ph=(t%1); var tri=ph<0.5? ph*2 : 2-ph*2;
+    var center=0.12 + tri*(0.18+depth*0.6);
+    var width=0.05 + (1-color)*0.16;        // color sharpens
+    var dip=0.55 + color*0.42;               // color deepens
+    function build(off,amp){
+      var d='', N=80;
+      for(var k=0;k<=N;k++){
+        var fx=k/N;                 // 0..1
+        var x=fx*320;
+        // base wavy spectrum
+        var base=0.5 + 0.12*Math.sin(fx*22 + t*2 + off);
+        // 4 stacked notches (4-stage) around center harmonics
+        var notch=0;
+        for(var s=0;s<4;s++){
+          var c2=center*(1+s*0.6); if(c2>1)c2-=1;
+          var dd=(fx-c2)/width;
+          notch += dip*Math.exp(-dd*dd);
+        }
+        var y=base + Math.sin(fx*40+t*3+off)*0.04*amp - notch*0.34;
+        y=Math.max(0.04,Math.min(0.96,y));
+        d+=(k?'L':'M')+x.toFixed(1)+' '+(y*96).toFixed(1)+' ';
+      }
+      return d;
+    }
+    w1.setAttribute('d',build(0,1));
+    w2.setAttribute('d',build(1.6,0.7));
+    requestAnimationFrame(frame);
+  }
+
+  function boot(){
+    KNOBS.forEach(function(i){ setParam(i,state[i]); drawKnob(i); });
+    setParam(2,state[2]); drawColor();
+    requestAnimationFrame(frame);
+  }
+  if(V && V.onReady) V.onReady(boot); else boot();
+})();
+</script>
+</body></html>

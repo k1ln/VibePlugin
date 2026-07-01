@@ -28,6 +28,7 @@ const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS)
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
 
 let sampleRate: f32 = 48000.0;
+let dcX: f32 = 0.0; let dcY: f32 = 0.0;   // DC blocker
 
 // ---- parameter indices (must match spec.json) -----------------------
 const P_SHAPE:   i32 = 0;  // 0..1  sine <-> bright (saw/square/resonant blend)
@@ -61,6 +62,7 @@ let ageCounter: i32 = 0;
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr > 0.0 ? sr : 48000.0;
+  dcX = 0.0; dcY = 0.0;
   for (let v = 0; v < NUM_VOICES; v++) {
     vNote[v] = -1; vActive[v] = 0; vGate[v] = 0; vAge[v] = 0;
     vFreq[v] = 0.0; vVel[v] = 0.0;
@@ -257,6 +259,7 @@ export function process(n: i32): void {
     // ---- sum + gentle soft-saturate for digital glue ------------
     let mix: f32 = outL * voiceScale * level;
     mix = f32(Mathf.tanh(mix * 1.1));
+    const dcO: f32 = mix - dcX + 0.9985 * dcY; dcX = mix; dcY = dcO; mix = dcO;
 
     outBuf[f] = mix;
     outBuf[MAX_FRAMES + f] = mix;

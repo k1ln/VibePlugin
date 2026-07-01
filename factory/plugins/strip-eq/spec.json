@@ -1,0 +1,20 @@
+{
+  "name": "Strip EQ",
+  "isInstrument": false,
+  "explanation": "A four-band British console channel-strip equaliser. A low shelf and high shelf bookend two fully swept parametric mid bells (low-mid and high-mid, each with its own gain and frequency), and a sweepable high-pass filter cleans the bottom end before the EQ. Clean, surgical and punchy in the mixing-desk tradition. Controls: Low, Lo-Mid, Lo-Mid Freq, Hi-Mid, Hi-Mid Freq, High, HP and Output.",
+  "assembly": "factory/plugins/strip-eq/assembly.ts",
+  "out": "factory/plugins/strip-eq/x.vstai",
+  "publishedAt": 1751000126000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#ff5a5a" },
+  "guiFile": "factory/plugins/strip-eq/gui.html",
+  "params": [
+    { "name": "Low",          "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Lo-Mid",       "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Lo-Mid Freq",  "index": 2, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Hi-Mid",       "index": 3, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Hi-Mid Freq",  "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "High",         "index": 5, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "HP",           "index": 6, "min": 0, "max": 1, "default": 0 },
+    { "name": "Output",       "index": 7, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

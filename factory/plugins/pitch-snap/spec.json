@@ -1,0 +1,17 @@
+{
+  "name": "Pitch Snap",
+  "isInstrument": false,
+  "explanation": "A real-time pitch corrector in the Antares Auto-Tune lineage. It detects the input's pitch by autocorrelation, snaps it to the nearest note of the chosen scale, and shifts the audio to that pitch with a crossfaded two-grain delay-line shifter. Fast retune gives the robotic 'T-Pain' snap; slow gives natural correction. Controls: Speed (retune time), Amount (correction strength), Key (chromatic / major / minor / fifths), Mix and Output. Works best on monophonic, pitched input.",
+  "assembly": "factory/plugins/pitch-snap/assembly.ts",
+  "out": "factory/plugins/pitch-snap/x.vstai",
+  "guiFile": "factory/plugins/pitch-snap/gui.html",
+  "publishedAt": 1751000176000,
+  "theme": { "accent": "#43e0c4", "accent2": "#ff5a8c" },
+  "params": [
+    { "name": "Speed",  "index": 0, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Amount", "index": 1, "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Key",    "index": 2, "min": 0, "max": 1, "default": 0.0 },
+    { "name": "Mix",    "index": 3, "min": 0, "max": 1, "default": 1.0 },
+    { "name": "Output", "index": 4, "min": 0, "max": 1, "default": 0.7 }
+  ]
+}

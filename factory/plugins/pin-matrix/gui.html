@@ -534,7 +534,7 @@
   var pins = []; // { circle, glow, on, row, col, base }
 
   // pre-seated pins (the patch that matches the default sound)
-  var seeded = { "0-0": 1, "1-0": 1, "3-1": 1, "5-1": 1, "5-3": 1, "5-4": 1, "2-1": 1 };
+  var seeded = { "0-0": 1, "1-0": 1, "3-1": 1, "0-2": 1, "5-2": 1, "5-3": 1, "4-3": 1, "0-4": 1, "2-4": 1 };
 
   // column labels
   COLS.forEach(function (c, j) {
@@ -570,9 +570,28 @@
       pin.addEventListener("click", function () {
         rec.on = !rec.on;
         pin.setAttribute("fill", rec.on ? rec.fill : "var(--pin-off)");
+        recomputeMatrix();
       });
     });
   });
+
+  // The matrix is a REAL patch router: each destination COLUMN sums the
+  // sources seated into it and drives a live parameter, so seating / pulling
+  // pins genuinely reshapes the sound (not just a light show).
+  function recomputeMatrix() {
+    var c0 = 0, c1 = 0, c2 = 0, c3 = 0, o1 = false, o2 = false, o3 = false;
+    for (var q = 0; q < pins.length; q++) {
+      var r = pins[q]; if (!r.on) continue;
+      if (r.col === 0) c0++; else if (r.col === 1) c1++;
+      else if (r.col === 2) c2++; else if (r.col === 3) c3++;
+      else if (r.col === 4) { if (r.row === 0) o1 = true; else if (r.row === 1) o2 = true; else if (r.row === 2) o3 = true; }
+    }
+    pushParam(1, Math.min(1, 0.05 + c0 * 0.30));   // RING column -> Ring Mod
+    pushParam(3, Math.min(1, 0.30 + c1 * 0.18));   // FILT column -> Resonance
+    pushParam(4, Math.min(1, 0.15 + c2 * 0.28));   // ENV  column -> Env Amount
+    pushParam(6, Math.min(1, 0.35 + c3 * 0.22));   // AMP  column -> Level
+    pushParam(0, Math.max(0, Math.min(1, 0.5 + (o3 ? 0.30 : 0) - (o1 ? 0.30 : 0) - (o2 ? 0.15 : 0)))); // OUT -> Osc Mix
+  }
 
   // ===================================================================
   //  JOYSTICK  -> Cutoff (X) + Ring Mod (Y)
@@ -755,6 +774,7 @@
   // ===================================================================
   function initParams() {
     PARAMS.forEach(function (p) { pushParam(p.index, p.def); });
+    recomputeMatrix();   // the seated patch defines the mapped params
     placeStick();
   }
   if (window.vstai && window.vstai.onReady) {

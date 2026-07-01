@@ -1,0 +1,16 @@
+{
+  "name": "Amber Crunch",
+  "isInstrument": false,
+  "explanation": "A compressed germanium hard-clip distortion in the two-knob vintage lineage. A single high-gain stage drives a pair of soft germanium/LED clipping diodes to ground, giving a smooth-yet-fuzzy, round and slightly dark distortion. Distortion sweeps from light grit to a thick compressed wall; a gentle post Tone tilt and an Output level finish it, with a dry/wet Mix. Controls: Distortion, Output, Tone and Mix.",
+  "assembly": "factory/plugins/amber-crunch/assembly.ts",
+  "out": "factory/plugins/amber-crunch/x.vstai",
+  "publishedAt": 1751000128000,
+  "theme": { "accent": "#ffb02a", "accent2": "#ff5a2a" },
+  "guiFile": "factory/plugins/amber-crunch/gui.html",
+  "params": [
+    { "name": "Distortion", "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Output",     "index": 1, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Tone",       "index": 2, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Mix",        "index": 3, "min": 0, "max": 1, "default": 1 }
+  ]
+}

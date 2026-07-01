@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Valve Rotary</title>
+<style>
+  :root{
+    --accent:#ffb347;
+    --accent2:#a0764a;
+    --wood1:#5a3a23;
+    --wood2:#3a2415;
+    --wood3:#71492c;
+    --grille:#1a120b;
+    --glow:#ffb347;
+    --spin:1.7s;        /* horn rotation period, driven by Speed */
+    --drive:0.45;       /* tube glow intensity */
+    --depth:0.7;        /* wobble amount */
+  }
+  *{box-sizing:border-box;-webkit-user-select:none;user-select:none;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #2a1d12 0%, #16100a 60%, #0c0805 100%);
+    color:#f3e0c4;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100%;padding:18px;overflow:hidden;
+  }
+  .unit{
+    width:560px;border-radius:18px;position:relative;
+    padding:18px 20px 20px;
+    background:
+      linear-gradient(180deg,#23160d,#160d07);
+    box-shadow:0 30px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,200,140,.08);
+    border:1px solid rgba(0,0,0,.6);
+  }
+  /* ---- header / nameplate ---- */
+  .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .brand{display:flex;flex-direction:column;line-height:1;}
+  .brand .nm{
+    font-weight:800;font-size:22px;letter-spacing:.14em;
+    color:#fff;text-shadow:0 0 14px rgba(255,179,71,.45);
+  }
+  .brand .nm b{color:var(--accent);}
+  .brand .sub{font-size:9.5px;letter-spacing:.32em;color:#b58e63;margin-top:5px;text-transform:uppercase;}
+  .plate{
+    font-size:10px;letter-spacing:.2em;color:#1a120b;
+    background:linear-gradient(180deg,#e8c98e,#b78a4f);
+    padding:5px 11px;border-radius:5px;font-weight:800;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 5px rgba(0,0,0,.5);
+  }
+
+  /* ===== the cabinet ===== */
+  .cab{
+    position:relative;height:236px;border-radius:14px;overflow:hidden;
+    background:
+      repeating-linear-gradient(96deg,
+        var(--wood2) 0px, var(--wood3) 7px, var(--wood1) 13px, var(--wood2) 20px),
+      linear-gradient(180deg,#6b4427,#3a2415);
+    box-shadow:inset 0 0 36px rgba(0,0,0,.7), 0 4px 14px rgba(0,0,0,.5);
+    border:3px solid #2a1809;
+    padding:14px;
+    display:flex;gap:14px;
+  }
+  .cab::after{ /* lacquer sheen */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,rgba(255,235,200,.10) 0%,transparent 28%,transparent 72%,rgba(0,0,0,.22) 100%);
+  }
+
+  /* upper louvre = horn rotor compartment / lower = bass drum */
+  .bay{
+    position:relative;flex:1;border-radius:9px;overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 42%, #2c2114, #120c06 75%);
+    box-shadow:inset 0 0 22px rgba(0,0,0,.85), inset 0 0 0 2px rgba(0,0,0,.5);
+  }
+  /* horizontal grille slats */
+  .grille{
+    position:absolute;inset:0;pointer-events:none;z-index:6;
+    background:repeating-linear-gradient(0deg,
+      rgba(0,0,0,.0) 0px, rgba(0,0,0,.0) 5px,
+      rgba(10,7,4,.78) 5px, rgba(10,7,4,.78) 8px);
+  }
+  .grille::before{ /* cloth weave */
+    content:"";position:absolute;inset:0;opacity:.4;
+    background:
+      repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 1px,transparent 1px 3px);
+  }
+
+  /* ---- spinning HORN rotor (top bay) ---- */
+  .horn-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;}
+  .horn-rot{
+    width:150px;height:150px;position:relative;
+    transform-style:preserve-3d;
+    animation:spin var(--spin) linear infinite;
+  }
+  /* the dual horn — two trumpets back to back */
+  .horn{
+    position:absolute;top:50%;left:50%;width:78px;height:30px;
+    transform-origin:left center;
+    border-radius:0 60% 60% 0 / 0 50% 50% 0;
+    background:linear-gradient(180deg,#ffce8a,#c98a3f 55%,#7c4f23);
+    box-shadow:0 0 16px rgba(255,179,71,.55), inset 0 2px 4px rgba(255,255,255,.4), inset 0 -3px 6px rgba(0,0,0,.4);
+  }
+  .horn.a{transform:translate(-2px,-50%) rotate(0deg) scaleX(1);}
+  .horn.b{transform:translate(-2px,-50%) rotate(180deg) scaleX(1);}
+  .horn-hub{
+    position:absolute;top:50%;left:50%;width:22px;height:22px;
+    transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff2d8,#9c6a32 70%,#3a2412);
+    box-shadow:0 0 10px rgba(255,179,71,.6),inset 0 -2px 3px rgba(0,0,0,.5);
+    z-index:2;
+  }
+  /* motion-blur swirl behind the horn */
+  .swirl{
+    position:absolute;top:50%;left:50%;width:168px;height:168px;
+    transform:translate(-50%,-50%);border-radius:50%;
+    background:conic-gradient(from 0deg,
+      rgba(255,179,71,.0),rgba(255,179,71,.30),rgba(255,179,71,.0) 40%,
+      rgba(255,179,71,.22),rgba(255,179,71,.0) 80%);
+    filter:blur(7px);opacity:.85;z-index:1;
+    animation:spin calc(var(--spin) * .85) linear infinite;
+  }
+
+  /* ---- spinning BASS rotor (bottom bay) ---- */
+  .drum-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;}
+  .drum-rot{
+    width:188px;height:118px;position:relative;
+    animation:spin calc(var(--spin) * 1.16) linear infinite reverse;
+  }
+  .drum{
+    position:absolute;top:50%;left:50%;width:182px;height:62px;
+    transform:translate(-50%,-50%);border-radius:50%;
+    background:
+      linear-gradient(90deg,#1c130a 0%,#5a3c20 18%,#caa066 50%,#5a3c20 82%,#1c130a 100%);
+    box-shadow:inset 0 4px 10px rgba(255,220,170,.25),inset 0 -6px 12px rgba(0,0,0,.6),0 0 18px rgba(0,0,0,.5);
+  }
+  .drum-port{ /* the scoop opening */
+    position:absolute;top:50%;left:14px;width:54px;height:40px;
+    transform:translateY(-50%);border-radius:50% 8px 8px 50%;
+    background:radial-gradient(circle at 70% 50%,#3a2614,#0d0804);
+    box-shadow:inset 0 0 12px rgba(0,0,0,.9);
+  }
+
+  /* ---- glowing overdriven TUBE behind the grille (top bay) ---- */
+  .tube{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    width:30px;height:96px;border-radius:14px;z-index:2;
+    background:linear-gradient(180deg,rgba(60,40,24,.5),rgba(20,12,6,.6));
+    border:1px solid rgba(255,200,140,.18);
+    box-shadow:inset 0 0 14px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .tube .filament{
+    position:absolute;left:50%;top:14px;bottom:14px;width:5px;
+    transform:translateX(-50%);border-radius:3px;
+    background:linear-gradient(180deg,#fff,var(--accent),#ff7a1e);
+    box-shadow:0 0 calc(8px + var(--drive)*26px) calc(2px + var(--drive)*9px) rgba(255,150,50,calc(.35 + var(--drive)*.6));
+    opacity:calc(.4 + var(--drive)*.6);
+    animation:flicker calc(.18s + (1 - var(--drive))*.5s) ease-in-out infinite alternate;
+  }
+  .tube .heat{
+    position:absolute;inset:0;border-radius:14px;
+    background:radial-gradient(circle at 50% 50%,rgba(255,140,40,calc(var(--drive)*.55)),transparent 70%);
+  }
+
+  /* ---- mic + status dot ---- */
+  .badge{
+    position:absolute;left:10px;bottom:8px;z-index:7;font-size:8px;letter-spacing:.18em;
+    color:rgba(255,210,160,.55);text-transform:uppercase;
+  }
+
+  /* ===== control deck ===== */
+  .deck{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:16px;
+  }
+  .pot{display:flex;flex-direction:column;align-items:center;gap:7px;
+    opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;animation-delay:var(--d);}
+  .knob{
+    width:74px;height:74px;border-radius:50%;position:relative;cursor:grab;outline:none;
+    touch-action:none;
+    transition:transform .12s ease;
+  }
+  .knob:active{cursor:grabbing;}
+  .knob.act{transform:scale(1.06);}
+  .knob .skirt{
+    position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(circle at 38% 32%,#4a3320,#241509 70%);
+    box-shadow:0 6px 14px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,210,150,.18);
+  }
+  .knob .arc{
+    position:absolute;inset:-6px;border-radius:50%;
+    background:conic-gradient(from 130deg,
+      var(--accent) 0turn,
+      var(--accent2) calc(var(--n)*0.72turn),
+      rgba(255,255,255,.06) calc(var(--n)*0.72turn),
+      rgba(255,255,255,.06) 0.72turn,
+      transparent 0.72turn);
+    -webkit-mask:radial-gradient(circle, transparent 33px, #000 34px, #000 38px, transparent 39px);
+    mask:radial-gradient(circle, transparent 33px, #000 34px, #000 38px, transparent 39px);
+    filter:drop-shadow(0 0 5px rgba(255,179,71,.5));
+  }
+  .knob .cap{
+    position:absolute;inset:13px;border-radius:50%;
+    background:
+      radial-gradient(circle at 40% 30%,#7a542e,#3a2412 72%);
+    box-shadow:inset 0 2px 4px rgba(255,220,170,.25),inset 0 -4px 8px rgba(0,0,0,.6);
+  }
+  .knob .ptr{
+    position:absolute;left:50%;top:50%;width:3px;height:24px;border-radius:2px;
+    background:linear-gradient(180deg,var(--accent),#fff);
+    transform-origin:50% 100%;
+    transform:translate(-50%,-100%) rotate(calc((var(--n)*260deg) - 130deg));
+    box-shadow:0 0 7px rgba(255,179,71,.8);
+  }
+  .pname{font-size:10px;letter-spacing:.22em;color:#d9b483;text-transform:uppercase;}
+  .pval{font-size:11px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;
+    text-shadow:0 0 8px rgba(255,179,71,.4);}
+
+  /* speed rocker — visual chorale/tremolo indicator */
+  .foot{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;font-size:9px;letter-spacing:.2em;color:#8d6a45;text-transform:uppercase;}
+  .foot .lamp{width:9px;height:9px;border-radius:50%;background:#3a2614;box-shadow:inset 0 0 3px #000;}
+  .foot .lamp.on{background:var(--accent);box-shadow:0 0 9px var(--accent);}
+
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .horn-rot{animation-name:spin;}
+  @keyframes rise{to{opacity:1;transform:none;}}
+  @keyframes flicker{
+    0%{opacity:calc(.35 + var(--drive)*.55);}
+    100%{opacity:calc(.55 + var(--drive)*.45);}
+  }
+  /* subtle whole-cab wobble scales with Depth */
+  .cab{animation:wob calc(var(--spin)*1) ease-in-out infinite;}
+  @keyframes wob{
+    0%,100%{transform:translateX(calc(var(--depth)*-1.5px));}
+    50%{transform:translateX(calc(var(--depth)*1.5px));}
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <div class="head">
+      <div class="brand">
+        <div class="nm">VALVE <b>ROTARY</b></div>
+        <div class="sub">Tube Preamp · Rotating Speaker</div>
+      </div>
+      <div class="plate">147&nbsp;·&nbsp;TWIN&nbsp;ROTOR</div>
+    </div>
+
+    <div class="cab">
+      <!-- TOP bay: horn rotor + glowing tube -->
+      <div class="bay">
+        <div class="horn-stage">
+          <div class="swirl"></div>
+          <div class="horn-rot">
+            <span class="horn a"></span>
+            <span class="horn b"></span>
+            <span class="horn-hub"></span>
+          </div>
+        </div>
+        <div class="tube"><span class="filament"></span><span class="heat"></span></div>
+        <div class="grille"></div>
+        <div class="badge">Horn 800Hz↑</div>
+      </div>
+      <!-- BOTTOM-style bay rendered to the right: bass drum -->
+      <div class="bay">
+        <div class="drum-stage">
+          <div class="drum-rot">
+            <span class="drum"></span>
+            <span class="drum-port"></span>
+          </div>
+        </div>
+        <div class="grille"></div>
+        <div class="badge">Bass Rotor</div>
+      </div>
+    </div>
+
+    <div class="deck" id="deck"></div>
+
+    <div class="foot">
+      <span class="lamp" id="lampSlow"></span> Chorale
+      <span style="opacity:.4">— ramp —</span>
+      Tremolo <span class="lamp" id="lampFast"></span>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Speed",index:0,min:0,max:1,def:0.85},
+    {name:"Drive",index:1,min:0,max:1,def:0.45},
+    {name:"Depth",index:2,min:0,max:1,def:0.7},
+    {name:"Tone", index:3,min:0,max:1,def:0.55},
+    {name:"Mix",  index:4,min:0,max:1,def:1}
+  ];
+  var state={};
+  var root=document.documentElement.style;
+  var deck=document.getElementById('deck');
+  var lampSlow=document.getElementById('lampSlow');
+  var lampFast=document.getElementById('lampFast');
+
+  function pct(v){ return Math.round(v*100)+"%"; }
+
+  function applyVisuals(){
+    var speed=state[0]!=null?state[0]:0.85;
+    var drive=state[1]!=null?state[1]:0.45;
+    var depth=state[2]!=null?state[2]:0.7;
+    // rotor period: slow ~2.6s (chorale) -> fast ~0.45s (tremolo)
+    var period=2.6 - speed*2.15;
+    root.setProperty('--spin', period.toFixed(3)+'s');
+    root.setProperty('--drive', drive.toFixed(3));
+    root.setProperty('--depth', depth.toFixed(3));
+    lampSlow.classList.toggle('on', speed<0.4);
+    lampFast.classList.toggle('on', speed>0.6);
+  }
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*70)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0" role="slider" aria-label="'+p.name+'">'+
+        '<i class="skirt"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var n=norm();
+      knob.style.setProperty('--n',n);
+      val.textContent=pct(n);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      applyVisuals();
+    }
+    function setNorm(n){
+      n=n<0?0:n>1?1:n;
+      v=p.min+(p.max-p.min)*n;
+      paint();
+    }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true;startY=e.clientY;startN=norm();
+      knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?600:200;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){ drag=false;knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def;paint(); });
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault();setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  PARAMS.forEach(buildKnob);
+
+  function ready(){ applyVisuals(); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

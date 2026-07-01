@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compander</title>
+<style>
+  :root{ --acc:#7aa0d0; --acc2:#c0c8d4; --bg0:#080a0d; --bg1:#12161c; --ink:#e7edf4; --dim:#71808f; }
+  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#1c232c 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(94vw,720px); border-radius:14px; padding:16px 22px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#1e242c,#0a0d12); border:1px solid rgba(122,160,208,.2); box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05); }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .logo{ font-weight:800; letter-spacing:.16em; font-size:20px; background:linear-gradient(90deg,var(--acc2),var(--acc)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .dd{ margin-left:auto; display:flex; gap:3px; } .dd b{ width:13px; height:13px; border:2px solid var(--acc); border-radius:3px 8px 8px 3px; display:block; opacity:.6; }
+  .screen{ height:96px; border-radius:10px; overflow:hidden; margin-bottom:14px; position:relative; background:linear-gradient(180deg,#0c1218,#0a0e13); border:1px solid rgba(122,160,208,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.5); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.22em; color:var(--dim); z-index:2; }
+  .knobs{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:74px; height:74px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(190,205,225,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(122,160,208,.5)); }
+  .pcap{ fill:#0c1218; stroke:rgba(122,160,208,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(122,160,208,.1); padding:1px 8px; border-radius:7px; border:1px solid rgba(122,160,208,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header><span class="logo">COMPANDER</span><span class="sub">tape NR character</span><span class="dd"><b></b><b></b></span></header>
+    <div class="screen"><div class="scrlbl">COMPAND CURVE</div><canvas id="cv"></canvas></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var P=[{name:"Squeeze",idx:0,def:0.5},{name:"HF",idx:1,def:0.5},{name:"Tone",idx:2,def:0.5},{name:"Output",idx:3,def:0.6},{name:"Mix",idx:4,def:1.0}];
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var R=33, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=P.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 86 86"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c0c8d4"/><stop offset="1" stop-color="#7aa0d0"/></linearGradient></defs>'+
+      '<circle class="track" cx="43" cy="43" r="33"></circle><circle class="arc" cx="43" cy="43" r="33" transform="rotate(135 43 43)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="43" cy="43" r="21"></circle><line class="ptr" x1="43" y1="43" x2="43" y2="26"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){ var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180; ptr.setAttribute("x2",(43+Math.sin(ang)*17).toFixed(2)); ptr.setAttribute("y2",(43-Math.cos(ang)*17).toFixed(2)); val.textContent=Math.round(v*100)+"%"; }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def); return {render:render};
+  });
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+  function frame(ts){ ctx.clearRect(0,0,W,H); var sq=vals[0], hf=vals[1]; var pad=14;
+    // diagonal reference + compand transfer curve (input->output)
+    ctx.strokeStyle="rgba(122,160,208,0.18)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,pad); ctx.stroke();
+    ctx.beginPath();
+    for(var i=0;i<=60;i++){ var x=i/60; var y=Math.pow(x,1-sq*0.6); // compand bend
+      var px=pad+x*(W-2*pad); var py=(H-pad)-y*(H-2*pad); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.strokeStyle="rgba(122,160,208,0.95)"; ctx.lineWidth=2.4; ctx.shadowColor="#7aa0d0"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    // HF sheen sparkles
+    ctx.globalAlpha=0.3+hf*0.5;
+    for(var s=0;s<5;s++){ var sx=pad+((ts/300+s*60)%(W-2*pad)); ctx.fillStyle="rgba(192,200,212,0.6)"; ctx.fillRect(sx,pad+4,1.4,8); }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Volt</title>
+<style>
+  :root {
+    --accent: #ff9a3d;
+    --accent2: #5a8cff;
+    --panel: #141210;
+    --panel2: #1d1a16;
+    --metal: #2a2520;
+    --ink: #e9e2d6;
+    --dim: #8a8175;
+    --line: #3a342c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a241d 0%, #0d0b09 60%, #070605 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 14px 14px 18px;
+  }
+
+  /* ---- the hardware panel ---- */
+  .panel {
+    position: relative;
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    background:
+      linear-gradient(180deg, #211d18 0%, #16130f 70%, #100d0a 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 -2px 0 rgba(0,0,0,0.6) inset,
+      0 18px 40px rgba(0,0,0,0.55),
+      0 2px 0 #000;
+    border: 1px solid #000;
+    overflow: hidden;
+  }
+  /* subtle brushed-metal sheen + bolt corners */
+  .panel::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 2px, rgba(0,0,0,0.02) 2px 4px);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .bolt {
+    position: absolute;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6b6253, #1a1712 70%);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.7), 0 0 0 1px #000;
+  }
+  .bolt.tl { top: 9px; left: 9px; }
+  .bolt.tr { top: 9px; right: 9px; }
+  .bolt.bl { bottom: 9px; left: 9px; }
+  .bolt.br { bottom: 9px; right: 9px; }
+
+  /* ---- header ---- */
+  .head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 2px 6px 12px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .badge {
+    width: 38px; height: 38px; border-radius: 9px;
+    background: linear-gradient(150deg, var(--accent), #c45c12);
+    display: grid; place-items: center;
+    box-shadow: 0 0 16px rgba(255,154,61,0.45), 0 2px 4px rgba(0,0,0,0.6);
+    flex: 0 0 auto;
+    animation: pulse 3.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255,154,61,0.35), 0 2px 4px rgba(0,0,0,0.6); }
+    50%      { box-shadow: 0 0 22px rgba(255,154,61,0.6), 0 2px 4px rgba(0,0,0,0.6); }
+  }
+  .badge svg { width: 22px; height: 22px; display: block; }
+  .titles { line-height: 1; }
+  .titles h1 {
+    margin: 0; font-size: 21px; letter-spacing: 2px; font-weight: 800;
+    text-transform: uppercase;
+  }
+  .titles h1 .v { color: var(--accent); }
+  .titles .sub {
+    margin-top: 4px; font-size: 9.5px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--dim);
+  }
+  .pwr {
+    margin-left: auto; font-size: 8.5px; letter-spacing: 2px;
+    color: var(--dim); text-align: right; line-height: 1.5;
+  }
+  .pwr b { color: var(--accent2); }
+
+  /* ---- scope ---- */
+  .scope {
+    position: relative;
+    border-radius: 10px;
+    background:
+      radial-gradient(120% 140% at 50% 0%, #14110d 0%, #0a0807 100%);
+    border: 1px solid #000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5) inset, 0 1px 0 rgba(255,255,255,0.04);
+    height: 92px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .scope canvas { width: 100%; height: 100%; display: block; }
+  .scope .tag {
+    position: absolute; top: 6px; left: 9px;
+    font-size: 8px; letter-spacing: 2px; color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  /* ---- main layout: big knob + small knobs ---- */
+  .controls {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .bigwrap {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .smallgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 6px;
+  }
+
+  /* ---- knob ---- */
+  .knob {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    user-select: none;
+  }
+  .knob .dial {
+    cursor: ns-resize; touch-action: none;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.55));
+  }
+  .knob .dial:hover .ring { stroke: var(--accent); }
+  .knob .lab {
+    font-size: 8.5px; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--dim);
+  }
+  .knob .val {
+    font-size: 9.5px; color: var(--accent); font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px; min-height: 11px;
+  }
+  .knob.big .lab { font-size: 10px; color: var(--ink); letter-spacing: 2px; }
+  .knob.big .val { font-size: 12px; }
+
+  /* ---- ribbon strip ---- */
+  .ribbon-wrap {
+    margin-top: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ribbon-lab {
+    font-size: 8.5px; letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--dim); width: 54px; line-height: 1.3; flex: 0 0 auto;
+  }
+  .ribbon {
+    position: relative; flex: 1;
+    height: 26px; border-radius: 13px;
+    background: linear-gradient(180deg, #0a0807, #16120d);
+    border: 1px solid #000;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6) inset;
+    cursor: ew-resize; touch-action: none;
+    overflow: hidden;
+  }
+  .ribbon .fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(90,140,255,0.25), var(--accent2));
+    box-shadow: 0 0 14px rgba(90,140,255,0.5);
+    width: 30%;
+  }
+  .ribbon .grip {
+    position: absolute; top: 50%; width: 14px; height: 20px;
+    margin-left: -7px; transform: translateY(-50%);
+    border-radius: 5px;
+    background: linear-gradient(180deg, #efe7da, #9a9082);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 8px rgba(255,154,61,0.4);
+    left: 30%;
+  }
+  .ribbon .ticks {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0 18px, rgba(255,255,255,0.06) 18px 19px);
+    pointer-events: none;
+  }
+  .ribbon .rval {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-size: 9px; color: var(--accent2); font-variant-numeric: tabular-nums;
+    pointer-events: none;
+  }
+
+  /* ---- keyboard ---- */
+  .kbd {
+    margin-top: 16px;
+    position: relative;
+    height: 74px;
+    border-radius: 8px;
+    background: #000;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6) inset;
+    display: flex;
+    overflow: hidden;
+  }
+  .key {
+    position: relative; flex: 1;
+    margin: 0 1px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(180deg, #f4efe6 0%, #ddd4c4 100%);
+    box-shadow: 0 -1px 0 rgba(0,0,0,0.2) inset, 0 3px 4px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  .key.active {
+    background: linear-gradient(180deg, var(--accent) 0%, #d96f1d 100%);
+    box-shadow: 0 0 14px rgba(255,154,61,0.6) inset;
+  }
+  .key .blk {
+    position: absolute; top: -6px; left: 64%;
+    width: 62%; height: 60%;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(180deg, #2a2520, #0c0a08);
+    box-shadow: 0 3px 4px rgba(0,0,0,0.6);
+    z-index: 3;
+  }
+  .key .blk.active {
+    background: linear-gradient(180deg, var(--accent2), #29407a);
+    box-shadow: 0 0 12px rgba(90,140,255,0.7);
+  }
+  .kbd-hint {
+    text-align: center; font-size: 8px; letter-spacing: 2px;
+    color: var(--dim); margin-top: 8px; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <span class="bolt tl"></span><span class="bolt tr"></span>
+    <span class="bolt bl"></span><span class="bolt br"></span>
+
+    <div class="head">
+      <div class="badge">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#1a1410"/>
+        </svg>
+      </div>
+      <div class="titles">
+        <h1>MINI <span class="v">VOLT</span></h1>
+        <div class="sub">Compact Mono Synthesizer</div>
+      </div>
+      <div class="pwr">VCO · LADDER<br><b>● LIVE</b></div>
+    </div>
+
+    <div class="scope">
+      <span class="tag">Voice</span>
+      <canvas id="scope"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="bigwrap">
+        <div class="knob big" data-idx="0" data-def="0.45" data-fmt="hz">
+          <svg class="dial" width="118" height="118" viewBox="0 0 118 118"></svg>
+          <div class="lab">Cutoff</div>
+          <div class="val"></div>
+        </div>
+      </div>
+
+      <div class="smallgrid">
+        <div class="knob" data-idx="1" data-def="0.32" data-fmt="pct">
+          <svg class="dial" width="64" height="64" viewBox="0 0 64 64"></svg>
+          <div class="lab">Reso</div><div class="val"></div>
+        </div>
+        <div class="knob" data-idx="2" data-def="0.6" data-fmt="pct">
+          <svg class="dial" width="64" height="64" viewBox="0 0 64 64"></svg>
+          <div class="lab">Env Amt</div><div class="val"></div>
+        </div>
+        <div class="knob" data-idx="4" data-def="0.5" data-fmt="pct">
+          <svg class="dial" width="64" height="64" viewBox="0 0 64 64"></svg>
+          <div class="lab">Sub</div><div class="val"></div>
+        </div>
+        <div class="knob" data-idx="3" data-def="0.25" data-fmt="pct">
+          <svg class="dial" width="64" height="64" viewBox="0 0 64 64"></svg>
+          <div class="lab">Osc Mod</div><div class="val"></div>
+        </div>
+        <div class="knob" data-idx="5" data-def="0.2" data-fmt="ms">
+          <svg class="dial" width="64" height="64" viewBox="0 0 64 64"></svg>
+          <div class="lab">Glide</div><div class="val"></div>
+        </div>
+        <div class="knob" data-idx="6" data-def="0.8" data-fmt="pct">
+          <svg class="dial" width="64" height="64" viewBox="0 0 64 64"></svg>
+          <div class="lab">Level</div><div class="val"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ribbon-wrap">
+      <div class="ribbon-lab">Mod Ribbon</div>
+      <div class="ribbon" id="ribbon" data-idx="3">
+        <div class="fill" id="ribFill"></div>
+        <div class="ticks"></div>
+        <div class="grip" id="ribGrip"></div>
+        <div class="rval" id="ribVal"></div>
+      </div>
+    </div>
+
+    <div class="kbd" id="kbd"></div>
+    <div class="kbd-hint">Drag knobs · double-click to reset · play the keys</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ACCENT = "#ff9a3d";
+  var ACCENT2 = "#5a8cff";
+
+  // ---- host bridge (guard against vstai being briefly undefined) ----
+  function setParam(i, v) {
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+
+  // shared param store (0..1 normalized), keyed by index
+  var values = {};
+
+  // ---- formatting helpers ----
+  function fmtHz(v) {
+    var hz = 70 * Math.exp(v * 4.96); // mirror the DSP cutoff curve
+    if (hz >= 1000) return (hz / 1000).toFixed(2) + " kHz";
+    return Math.round(hz) + " Hz";
+  }
+  function fmtPct(v) { return Math.round(v * 100) + "%"; }
+  function fmtMs(v) { return Math.round(v * 140) + " ms"; }
+  function fmtFor(kind, v) {
+    if (kind === "hz") return fmtHz(v);
+    if (kind === "ms") return fmtMs(v);
+    return fmtPct(v);
+  }
+
+  // ===================================================================
+  //  KNOBS  (SVG, drag vertical, double-click reset, wheel fine-tune)
+  // ===================================================================
+  var SWEEP = 270;            // degrees of travel
+  var START = 135;            // start angle (from +x, clockwise gap at bottom)
+
+  function makeKnob(el) {
+    var idx = parseInt(el.getAttribute("data-idx"), 10);
+    var def = parseFloat(el.getAttribute("data-def"));
+    var kind = el.getAttribute("data-fmt") || "pct";
+    var svg = el.querySelector(".dial");
+    var valEl = el.querySelector(".val");
+    var big = el.classList.contains("big");
+    var R = big ? 59 : 32;
+    var rArc = R - (big ? 11 : 7);
+    var ns = "http://www.w3.org/2000/svg";
+
+    // body
+    var bodyR = R - (big ? 6 : 4);
+    var defs = document.createElementNS(ns, "defs");
+    var grad = document.createElementNS(ns, "radialGradient");
+    var gid = "kg" + idx;
+    grad.setAttribute("id", gid);
+    grad.setAttribute("cx", "38%"); grad.setAttribute("cy", "32%");
+    grad.innerHTML =
+      '<stop offset="0%" stop-color="#3a342c"/>' +
+      '<stop offset="62%" stop-color="#211d18"/>' +
+      '<stop offset="100%" stop-color="#0d0b09"/>';
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    // track arc (dim)
+    var track = document.createElementNS(ns, "path");
+    track.setAttribute("fill", "none");
+    track.setAttribute("stroke", "#322c25");
+    track.setAttribute("stroke-width", big ? 6 : 4);
+    track.setAttribute("stroke-linecap", "round");
+    svg.appendChild(track);
+
+    // value arc (accent)
+    var arc = document.createElementNS(ns, "path");
+    arc.setAttribute("class", "ring");
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", big ? ACCENT : ACCENT2);
+    arc.setAttribute("stroke-width", big ? 6 : 4);
+    arc.setAttribute("stroke-linecap", "round");
+    arc.style.transition = "stroke 0.15s";
+    svg.appendChild(arc);
+
+    // knob body
+    var body = document.createElementNS(ns, "circle");
+    body.setAttribute("cx", R + (big ? 0 : 0));
+    var cx = (svg.getAttribute("width") / 2) | 0;
+    body.setAttribute("cx", cx); body.setAttribute("cy", cx);
+    body.setAttribute("r", bodyR);
+    body.setAttribute("fill", "url(#" + gid + ")");
+    body.setAttribute("stroke", "#000");
+    body.setAttribute("stroke-width", "1");
+    svg.appendChild(body);
+
+    // top highlight
+    var hl = document.createElementNS(ns, "ellipse");
+    hl.setAttribute("cx", cx); hl.setAttribute("cy", cx - bodyR * 0.4);
+    hl.setAttribute("rx", bodyR * 0.55); hl.setAttribute("ry", bodyR * 0.28);
+    hl.setAttribute("fill", "rgba(255,255,255,0.06)");
+    svg.appendChild(hl);
+
+    // pointer notch
+    var notch = document.createElementNS(ns, "line");
+    notch.setAttribute("stroke", big ? ACCENT : "#efe7da");
+    notch.setAttribute("stroke-width", big ? 3 : 2.4);
+    notch.setAttribute("stroke-linecap", "round");
+    svg.appendChild(notch);
+
+    function polar(cxx, cyy, r, deg) {
+      var a = (deg - 90) * Math.PI / 180;
+      return [cxx + r * Math.cos(a), cyy + r * Math.sin(a)];
+    }
+    function arcPath(cxx, cyy, r, a0, a1) {
+      var p0 = polar(cxx, cyy, r, a0);
+      var p1 = polar(cxx, cyy, r, a1);
+      var large = (a1 - a0) > 180 ? 1 : 0;
+      return "M" + p0[0] + " " + p0[1] +
+             " A" + r + " " + r + " 0 " + large + " 1 " + p1[0] + " " + p1[1];
+    }
+
+    function draw(v) {
+      var a0 = START;
+      var a1 = START + SWEEP * v;
+      track.setAttribute("d", arcPath(cx, cx, rArc, START, START + SWEEP));
+      arc.setAttribute("d", arcPath(cx, cx, rArc, a0, a1 <= a0 + 0.01 ? a0 + 0.01 : a1));
+      var np = polar(cx, cx, bodyR - (big ? 8 : 5), a1);
+      var ni = polar(cx, cx, bodyR * 0.35, a1);
+      notch.setAttribute("x1", ni[0]); notch.setAttribute("y1", ni[1]);
+      notch.setAttribute("x2", np[0]); notch.setAttribute("y2", np[1]);
+      valEl.textContent = fmtFor(kind, v);
+    }
+
+    function commit(v) {
+      v = Math.max(0, Math.min(1, v));
+      values[idx] = v;
+      draw(v);
+      setParam(idx, v);
+      // keep the ribbon (also idx 3) in sync
+      if (idx === 3 && window._syncRibbon) window._syncRibbon(v);
+    }
+
+    // dragging
+    var dragging = false, startY = 0, startV = 0;
+    svg.addEventListener("pointerdown", function (e) {
+      dragging = true; startY = e.clientY; startV = values[idx];
+      svg.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    svg.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var dy = startY - e.clientY;
+      commit(startV + dy / 200);
+    });
+    svg.addEventListener("pointerup", function (e) {
+      dragging = false;
+      try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+    });
+    svg.addEventListener("dblclick", function () { commit(def); });
+    svg.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      commit(values[idx] - Math.sign(e.deltaY) * 0.02);
+    }, { passive: false });
+
+    // init
+    values[idx] = def;
+    draw(def);
+
+    return { commit: commit, draw: draw, idx: idx };
+  }
+
+  var knobs = {};
+  var knobEls = document.querySelectorAll(".knob");
+  for (var i = 0; i < knobEls.length; i++) {
+    var k = makeKnob(knobEls[i]);
+    knobs[k.idx] = k;
+  }
+
+  // ===================================================================
+  //  RIBBON  (horizontal expression strip, mirrors Osc Mod / idx 3)
+  // ===================================================================
+  (function () {
+    var ribbon = document.getElementById("ribbon");
+    var fill = document.getElementById("ribFill");
+    var grip = document.getElementById("ribGrip");
+    var rval = document.getElementById("ribVal");
+    var idx = parseInt(ribbon.getAttribute("data-idx"), 10);
+
+    function paint(v) {
+      var pct = (v * 100);
+      fill.style.width = pct + "%";
+      grip.style.left = pct + "%";
+      rval.textContent = Math.round(v * 100) + "%";
+    }
+    window._syncRibbon = paint;
+
+    function fromEvent(e) {
+      var r = ribbon.getBoundingClientRect();
+      var v = (e.clientX - r.left) / r.width;
+      v = Math.max(0, Math.min(1, v));
+      values[idx] = v;
+      paint(v);
+      setParam(idx, v);
+      if (knobs[idx]) knobs[idx].draw(v);
+    }
+    var dragging = false;
+    ribbon.addEventListener("pointerdown", function (e) {
+      dragging = true; ribbon.setPointerCapture(e.pointerId); fromEvent(e);
+    });
+    ribbon.addEventListener("pointermove", function (e) { if (dragging) fromEvent(e); });
+    ribbon.addEventListener("pointerup", function (e) {
+      dragging = false;
+      try { ribbon.releasePointerCapture(e.pointerId); } catch (_) {}
+    });
+    ribbon.addEventListener("dblclick", function () {
+      values[idx] = 0.25; paint(0.25); setParam(idx, 0.25);
+      if (knobs[idx]) knobs[idx].draw(0.25);
+    });
+
+    paint(values[idx] !== undefined ? values[idx] : 0.25);
+  })();
+
+  // ===================================================================
+  //  KEYBOARD
+  // ===================================================================
+  (function () {
+    var kbd = document.getElementById("kbd");
+    // one octave + a bit, starting at C3 (MIDI 48)
+    var layout = [
+      { n: 48, blk: 49 }, { n: 50, blk: 51 }, { n: 52, blk: null },
+      { n: 53, blk: 54 }, { n: 55, blk: 56 }, { n: 57, blk: 58 },
+      { n: 59, blk: null }, { n: 60, blk: 61 }, { n: 62, blk: 63 },
+      { n: 64, blk: null }
+    ];
+    var down = {};
+    function noteOn(m, el) {
+      if (down[m]) return;
+      down[m] = el;
+      if (el) el.classList.add("active");
+      if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(m, 0.9);
+    }
+    function noteOff(m) {
+      var el = down[m];
+      if (!el && el !== null) return;
+      if (down[m] !== undefined) {
+        if (down[m]) down[m].classList.remove("active");
+        delete down[m];
+        if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(m);
+      }
+    }
+
+    layout.forEach(function (def) {
+      var key = document.createElement("div");
+      key.className = "key";
+      kbd.appendChild(key);
+      key.addEventListener("pointerdown", function (e) {
+        e.preventDefault(); key.setPointerCapture(e.pointerId);
+        noteOn(def.n, key);
+      });
+      key.addEventListener("pointerup", function () { noteOff(def.n); });
+      key.addEventListener("pointerleave", function () { noteOff(def.n); });
+
+      if (def.blk !== null) {
+        var blk = document.createElement("div");
+        blk.className = "blk";
+        key.appendChild(blk);
+        blk.addEventListener("pointerdown", function (e) {
+          e.preventDefault(); e.stopPropagation();
+          blk.setPointerCapture(e.pointerId);
+          blk.classList.add("active");
+          if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(def.blk, 0.9);
+          blk._on = true;
+        });
+        var blkOff = function () {
+          if (blk._on) {
+            blk._on = false; blk.classList.remove("active");
+            if (window.vstai && window.vstai.noteOff) window.vstai.noteOff(def.blk);
+          }
+        };
+        blk.addEventListener("pointerup", blkOff);
+        blk.addEventListener("pointerleave", blkOff);
+      }
+    });
+  })();
+
+  // ===================================================================
+  //  SCOPE  — single waveform with a gentle vibrato wobble (animated)
+  // ===================================================================
+  (function () {
+    var canvas = document.getElementById("scope");
+    var ctx = canvas.getContext("2d");
+    var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      var r = canvas.getBoundingClientRect();
+      W = Math.max(1, r.width); H = Math.max(1, r.height);
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    var t = 0;
+    function frame() {
+      if (document.hidden) { requestAnimationFrame(frame); return; }
+      t += 0.016;
+      ctx.clearRect(0, 0, W, H);
+
+      // faint grid
+      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+      ctx.lineWidth = 1;
+      for (var gx = 0; gx < W; gx += 26) {
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+
+      // params shape the wave: cutoff -> brightness/harmonics,
+      // osc mod -> vibrato wobble depth/rate, sub -> low bump, level -> amplitude
+      var cutoff = values[0] !== undefined ? values[0] : 0.45;
+      var mod = values[3] !== undefined ? values[3] : 0.25;
+      var sub = values[4] !== undefined ? values[4] : 0.5;
+      var level = values[6] !== undefined ? values[6] : 0.8;
+
+      var amp = (0.22 + level * 0.55) * (H * 0.5);
+      var harm = 1 + Math.round(cutoff * 5);     // more cutoff -> brighter
+      var vib = mod * 0.9;                        // wobble depth
+      var vibRate = 4 + mod * 4;
+
+      // wobble in phase = vibrato
+      var wob = Math.sin(t * vibRate) * vib;
+
+      ctx.lineWidth = 2.2;
+      var grad = ctx.createLinearGradient(0, 0, W, 0);
+      grad.addColorStop(0, ACCENT2);
+      grad.addColorStop(0.5, ACCENT);
+      grad.addColorStop(1, ACCENT2);
+      ctx.strokeStyle = grad;
+      ctx.shadowColor = ACCENT;
+      ctx.shadowBlur = 8;
+
+      ctx.beginPath();
+      for (var x = 0; x <= W; x++) {
+        var ph = (x / W) * Math.PI * 2 * 2;       // ~2 cycles across
+        ph += wob;                                // vibrato wobble
+        var y = Math.sin(ph);
+        // add a couple of harmonics for the bright saw-ish character
+        for (var hI = 2; hI <= harm; hI++) {
+          y += Math.sin(ph * hI) / hI;
+        }
+        // sub octave thickening
+        y += Math.sin(ph * 0.5) * sub * 0.5;
+        y /= (1.6 + sub * 0.5);
+        var py = H / 2 - y * amp;
+        if (x === 0) ctx.moveTo(x, py); else ctx.lineTo(x, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  // ===================================================================
+  //  push all defaults to the engine on ready
+  // ===================================================================
+  function pushAll() {
+    for (var key in values) {
+      if (values.hasOwnProperty(key)) setParam(parseInt(key, 10), values[key]);
+    }
+  }
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(pushAll);
+  } else {
+    pushAll();
+  }
+})();
+</script>
+</body>
+</html>

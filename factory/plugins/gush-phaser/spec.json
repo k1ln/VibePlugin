@@ -1,0 +1,16 @@
+{
+  "name": "Gush Phaser",
+  "isInstrument": false,
+  "explanation": "A 4-stage OTA phaser with a gushy, watery, deep sweep. Four cascaded allpass filters are swept by a triangle LFO so the notches glide up and down the spectrum (Rate sets the speed, Depth the span). A Color control feeds part of the chain output back into its input, adding bounded resonant feedback that sharpens the sweep into a vocal, gushing whoosh. Controls: Rate, Depth, Color and dry/wet Mix.",
+  "assembly": "factory/plugins/gush-phaser/assembly.ts",
+  "out": "factory/plugins/gush-phaser/x.vstai",
+  "publishedAt": 1751000111000,
+  "theme": { "accent": "#5ad0ff", "accent2": "#ff5ad0" },
+  "guiFile": "factory/plugins/gush-phaser/gui.html",
+  "params": [
+    { "name": "Rate",  "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Depth", "index": 1, "min": 0, "max": 1, "default": 0.7 },
+    { "name": "Color", "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mix",   "index": 3, "min": 0, "max": 1, "default": 0.5 }
+  ]
+}

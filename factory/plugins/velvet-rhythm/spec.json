@@ -1,0 +1,18 @@
+{
+  "name": "Velvet Rhythm",
+  "isInstrument": true,
+  "explanation": "A warm boutique preset-rhythm box in the Roland CR-78 CompuRhythm lineage. Unlike a pad-per-drum kit, this is a preset PATTERN player: hold a note and it starts an internal 16-step groove layering a warm rounded bass drum, a soft tonal snare, a sizzly metallic hi-hat, the signature inharmonic twin-square metallic beat, a woody conga and a papery maraca, all synthesised in real time; release to stop and let the tails ring. Controls: Tone (drum pitch), Decay, Snap (snare noise vs body), Metal (metallic-beat / hat brightness and ring), Accent and Level.",
+  "assembly": "factory/plugins/velvet-rhythm/assembly.ts",
+  "out": "factory/plugins/velvet-rhythm/x.vstai",
+  "guiFile": "factory/plugins/velvet-rhythm/gui.html",
+  "publishedAt": 1751300600000,
+  "theme": { "accent": "#c8607a", "accent2": "#e0b060" },
+  "params": [
+    { "name": "Tone",   "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Decay",  "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Snap",   "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Metal",  "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Accent", "index": 4, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Level",  "index": 5, "min": 0, "max": 1, "default": 0.85 }
+  ]
+}

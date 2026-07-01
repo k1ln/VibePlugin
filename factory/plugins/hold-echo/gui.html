@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hold Echo</title>
+<style>
+  :root {
+    --accent: #3de0c4;
+    --accent2: #7a86ff;
+    --bg0: #0a1413;
+    --bg1: #0f1d1c;
+    --panel: #122625;
+    --panel-hi: #18302e;
+    --ink: #cdeee6;
+    --ink-dim: #6f928c;
+    --well: #08100f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg0);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+    min-height: 100vh;
+  }
+
+  .unit {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 16px;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #1a3633 0%, transparent 60%),
+      linear-gradient(180deg, #14302d 0%, var(--bg1) 55%, var(--bg0) 100%);
+    border: 1px solid #1f3e3a;
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(120,220,200,0.12),
+      inset 0 -2px 8px rgba(0,0,0,0.5);
+    padding: 18px 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* faint brushed-metal sheen sweeping across the top */
+  .unit::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 70px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent);
+    pointer-events: none;
+  }
+
+  /* rack screws */
+  .screw {
+    position: absolute;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #2c4b47, #0c1817 70%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.6);
+  }
+  .screw::after {
+    content: "";
+    position: absolute; inset: 3px;
+    border-top: 1px solid rgba(0,0,0,0.55);
+    transform: rotate(35deg);
+  }
+  .screw.tl { top: 10px; left: 10px; }
+  .screw.tr { top: 10px; right: 10px; }
+  .screw.bl { bottom: 10px; left: 10px; }
+  .screw.br { bottom: 10px; right: 10px; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 14px 14px;
+  }
+
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand .mark {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .brand h1 {
+    font-size: 21px;
+    letter-spacing: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #eafff9, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 18px rgba(61,224,196,0.25);
+  }
+  .sub {
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+
+  /* ---- the glowing time / status display ---- */
+  .display {
+    position: relative;
+    border-radius: 10px;
+    background:
+      linear-gradient(180deg, #06100f, #040a09);
+    border: 1px solid #1c3b37;
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.4);
+    padding: 14px 16px 10px;
+    margin: 0 0 18px;
+    overflow: hidden;
+  }
+  /* scanline texture on the display */
+  .display::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.0) 0 2px, rgba(0,0,0,0.18) 2px 3px);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+
+  .readout {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .readout .time {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    text-shadow: 0 0 14px rgba(61,224,196,0.55);
+  }
+  .readout .time .u { font-size: 14px; color: var(--ink-dim); margin-left: 4px; text-shadow: none; }
+  .readout .lbl { font-size: 10px; letter-spacing: 2px; color: var(--ink-dim); text-transform: uppercase; }
+
+  .hold-led {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-dim);
+  }
+  .hold-led .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #213c39;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.7);
+    transition: background 0.18s, box-shadow 0.18s;
+  }
+  .hold-led.on .dot {
+    background: var(--accent2);
+    box-shadow: 0 0 10px var(--accent2), 0 0 4px #fff;
+    animation: pulse 1.1s ease-in-out infinite;
+  }
+  .hold-led.on { color: var(--accent2); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  .scope {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 92px;
+    display: block;
+    border-radius: 6px;
+  }
+
+  /* ---- controls ---- */
+  .rack {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 10px;
+    padding: 0 4px;
+  }
+  @media (max-width: 460px) { .rack { grid-template-columns: repeat(2, 1fr); } }
+
+  .cell {
+    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+    border: 1px solid #1d3a36;
+    border-radius: 12px;
+    padding: 12px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: inset 0 1px 0 rgba(120,220,200,0.08), 0 6px 14px rgba(0,0,0,0.35);
+  }
+  .cell .name {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 9px;
+  }
+  .knob {
+    position: relative;
+    width: 78px; height: 78px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .knob .val {
+    margin-top: 7px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    color: var(--ink);
+    letter-spacing: 0.5px;
+  }
+  .cell.hold-cell { box-shadow: inset 0 1px 0 rgba(122,134,255,0.12), 0 6px 14px rgba(0,0,0,0.35); }
+  .footnote {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <header>
+      <div class="brand">
+        <span class="mark">VIBE</span>
+        <h1>Hold Echo</h1>
+      </div>
+      <div class="sub">Digital Delay · Modulation · Hold</div>
+    </header>
+
+    <div class="display">
+      <div class="readout">
+        <div>
+          <div class="lbl">Delay Time</div>
+          <div class="time"><span id="timeVal">315</span><span class="u">ms</span></div>
+        </div>
+        <div class="hold-led" id="holdLed"><span class="dot"></span><span>Hold</span></div>
+      </div>
+      <canvas class="scope" id="scope"></canvas>
+    </div>
+
+    <div class="rack" id="rack"></div>
+    <div class="footnote">Drag knobs vertically · double-click to reset</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- parameter map (must match assembly.ts indices) ----
+  var PARAMS = [
+    { name: "Time",       index: 0, min: 0, max: 1, def: 0.35 },
+    { name: "Feedback",   index: 1, min: 0, max: 1, def: 0.45 },
+    { name: "Modulation", index: 2, min: 0, max: 1, def: 0.30 },
+    { name: "Tone",       index: 3, min: 0, max: 1, def: 0.50 },
+    { name: "Hold",       index: 4, min: 0, max: 1, def: 0.00, hold: true },
+    { name: "Mix",        index: 5, min: 0, max: 1, def: 0.50 }
+  ];
+
+  var state = {}; // index -> normalized value
+  PARAMS.forEach(function (p) { state[p.index] = p.def; });
+
+  function pushParam(index, norm) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(index, norm);
+    }
+  }
+
+  // ---- formatting helpers ----
+  function fmtTime(norm) { return Math.round(30 + norm * 870); }      // ms
+  function fmtPct(norm) { return Math.round(norm * 100) + "%"; }
+
+  function knobValueText(p, norm) {
+    if (p.name === "Time") return fmtTime(norm) + " ms";
+    return fmtPct(norm);
+  }
+
+  // ---- build knobs ----
+  var rack = document.getElementById("rack");
+  var knobs = {}; // index -> { setArc, valEl }
+
+  PARAMS.forEach(function (p) {
+    var cell = document.createElement("div");
+    cell.className = "cell" + (p.hold ? " hold-cell" : "");
+
+    var name = document.createElement("div");
+    name.className = "name";
+    name.textContent = p.name;
+    cell.appendChild(name);
+
+    var knob = document.createElement("div");
+    knob.className = "knob";
+    knob.setAttribute("role", "slider");
+    knob.setAttribute("tabindex", "0");
+    knob.setAttribute("aria-label", p.name);
+
+    var stroke = p.hold ? "var(--accent2)" : "var(--accent)";
+    var R = 32, CX = 39, CY = 39;
+    // arc spans 270deg from 135deg to 405deg
+    var START = 135, SWEEP = 270;
+    var circ = 2 * Math.PI * R;
+
+    knob.innerHTML =
+      '<svg viewBox="0 0 78 78">' +
+        '<defs>' +
+          '<radialGradient id="body' + p.index + '" cx="38%" cy="32%" r="75%">' +
+            '<stop offset="0%" stop-color="#20413d"/>' +
+            '<stop offset="60%" stop-color="#152e2b"/>' +
+            '<stop offset="100%" stop-color="#0c1c1a"/>' +
+          '</radialGradient>' +
+          '<filter id="gl' + p.index + '" x="-60%" y="-60%" width="220%" height="220%">' +
+            '<feGaussianBlur stdDeviation="2.4" result="b"/>' +
+            '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+          '</filter>' +
+        '</defs>' +
+        // track
+        '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" fill="none" ' +
+          'stroke="#0a1817" stroke-width="6" stroke-linecap="round" ' +
+          'transform="rotate(' + START + ' ' + CX + ' ' + CY + ')" ' +
+          'stroke-dasharray="' + (circ * SWEEP / 360) + ' ' + circ + '"/>' +
+        // value arc
+        '<circle class="arc" cx="' + CX + '" cy="' + CY + '" r="' + R + '" fill="none" ' +
+          'stroke="' + stroke + '" stroke-width="6" stroke-linecap="round" ' +
+          'transform="rotate(' + START + ' ' + CX + ' ' + CY + ')" ' +
+          'filter="url(#gl' + p.index + ')" ' +
+          'stroke-dasharray="0 ' + circ + '"/>' +
+        // knob body
+        '<circle cx="' + CX + '" cy="' + CY + '" r="23" fill="url(#body' + p.index + ')" ' +
+          'stroke="#2a4d48" stroke-width="1"/>' +
+        '<circle cx="' + CX + '" cy="' + CY + '" r="23" fill="none" ' +
+          'stroke="rgba(255,255,255,0.06)" stroke-width="1"/>' +
+        // pointer
+        '<line class="ptr" x1="' + CX + '" y1="' + CY + '" x2="' + CX + '" y2="' + (CY - 18) + '" ' +
+          'stroke="' + stroke + '" stroke-width="3" stroke-linecap="round" ' +
+          'filter="url(#gl' + p.index + ')"/>' +
+      '</svg>';
+
+    var valEl = document.createElement("div");
+    valEl.className = "val";
+    cell.appendChild(knob);
+    cell.appendChild(valEl);
+    rack.appendChild(cell);
+
+    var arc = knob.querySelector(".arc");
+    var ptr = knob.querySelector(".ptr");
+
+    function render(norm) {
+      var len = circ * SWEEP / 360 * norm;
+      arc.setAttribute("stroke-dasharray", len + " " + circ);
+      var ang = START + SWEEP * norm; // degrees
+      ptr.setAttribute("transform", "rotate(" + ang + " " + CX + " " + CY + ")");
+      valEl.textContent = knobValueText(p, norm);
+    }
+
+    knobs[p.index] = { render: render, knob: knob };
+
+    // ---- interaction ----
+    function setNorm(norm, push) {
+      norm = Math.max(0, Math.min(1, norm));
+      state[p.index] = norm;
+      render(norm);
+      if (push !== false) pushParam(p.index, norm);
+      if (p.name === "Time") document.getElementById("timeVal").textContent = fmtTime(norm);
+      if (p.hold) updateHoldLed(norm);
+    }
+
+    var dragging = false, lastY = 0;
+
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      knob.style.cursor = "ns-resize";
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) return;
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var speed = (e.shiftKey ? 0.0008 : 0.004);
+      setNorm(state[p.index] + dy * speed, true);
+      e.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    knob.addEventListener("touchmove", onMove, { passive: false });
+    knob.addEventListener("touchend", onUp);
+
+    knob.addEventListener("wheel", function (e) {
+      setNorm(state[p.index] - e.deltaY * 0.0006, true);
+      e.preventDefault();
+    }, { passive: false });
+
+    knob.addEventListener("dblclick", function () { setNorm(p.def, true); });
+
+    knob.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowUp" || e.key === "ArrowRight") { setNorm(state[p.index] + 0.02, true); e.preventDefault(); }
+      else if (e.key === "ArrowDown" || e.key === "ArrowLeft") { setNorm(state[p.index] - 0.02, true); e.preventDefault(); }
+    });
+
+    p._setNorm = setNorm;
+  });
+
+  // ---- hold LED ----
+  var holdLed = document.getElementById("holdLed");
+  function updateHoldLed(norm) {
+    if (norm > 0.55) holdLed.classList.add("on");
+    else holdLed.classList.remove("on");
+  }
+
+  // =========================================================
+  //  Scope — a looping delay-repeats waveform that ripples
+  //  with modulation and FREEZES when HOLD engages.
+  // =========================================================
+  var canvas = document.getElementById("scope");
+  var ctx = canvas.getContext("2d");
+  var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+  function resize() {
+    var r = canvas.getBoundingClientRect();
+    canvas.width = Math.max(2, Math.floor(r.width * dpr));
+    canvas.height = Math.max(2, Math.floor(r.height * dpr));
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  // a short captured "buffer" of impulse positions; we draw decaying echoes
+  var t = 0;
+  var rafId = null;
+
+  function draw() {
+    rafId = requestAnimationFrame(draw);
+    if (document.hidden) return;
+
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    var fb = state[1];        // feedback -> echo count / decay
+    var mod = state[2];       // modulation -> ripple amplitude
+    var tone = state[3];      // tone -> brightness / line color
+    var hold = state[4];      // hold -> freeze
+    var mix = state[5];       // mix -> overall amplitude
+    var timeN = state[0];
+
+    var frozen = hold > 0.55;
+    if (!frozen) t += 0.016 * (0.4 + timeN * 1.4);
+
+    var mid = H * 0.5;
+    var baseAmp = H * 0.32 * (0.35 + mix * 0.65);
+
+    // grid baseline
+    ctx.strokeStyle = "rgba(61,224,196,0.10)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, mid);
+    ctx.lineTo(W, mid);
+    ctx.stroke();
+
+    // number of visible repeats grows with feedback
+    var taps = frozen ? 7 : Math.max(2, Math.round(2 + fb * 6));
+    var spacing = W / (taps + 0.5);
+
+    // color blends accent -> accent2 with tone
+    function lerpColor(a, b, x) {
+      return [
+        Math.round(a[0] + (b[0] - a[0]) * x),
+        Math.round(a[1] + (b[1] - a[1]) * x),
+        Math.round(a[2] + (b[2] - a[2]) * x)
+      ];
+    }
+    var teal = [61, 224, 196], indigo = [122, 134, 255];
+
+    for (var k = 0; k < taps; k++) {
+      var decay = frozen ? 1.0 : Math.pow(fb * 0.92 + 0.05, k);
+      var amp = baseAmp * decay;
+      if (amp < 0.5) continue;
+
+      var cx = spacing * (k + 0.6);
+      // pulse phase: when frozen the whole pattern holds still
+      var phase = frozen ? 0.0 : (t - k * 0.5);
+
+      // each repeat is a damped sine burst; modulation wobbles its frequency
+      var wob = mod * Math.sin((t * 0.9) + k * 0.7) * 0.6;
+      var freq = 0.14 + 0.05 * k + wob * 0.05;
+
+      var c = lerpColor(teal, indigo, Math.min(1, hold * 0.8 + tone * 0.2));
+      var alpha = frozen ? 0.95 : (0.85 * decay + 0.1);
+
+      ctx.beginPath();
+      var span = spacing * 0.9;
+      for (var i = -span; i <= span; i += 2 * dpr) {
+        var env = Math.exp(-Math.abs(i) / (span * 0.42));
+        // modulation ripple: a slow vertical shimmer along the burst
+        var ripple = 1 + mod * 0.5 * Math.sin(i * 0.05 + phase * 2.0);
+        var y = mid - Math.sin((i / dpr) * freq + phase) * amp * env * ripple;
+        if (i === -span) ctx.moveTo(cx + i, y);
+        else ctx.lineTo(cx + i, y);
+      }
+      ctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + alpha + ")";
+      ctx.lineWidth = (frozen ? 2.4 : 2.0) * dpr;
+      ctx.shadowColor = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.5 * alpha) + ")";
+      ctx.shadowBlur = (frozen ? 12 : 7) * dpr;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // frozen overlay: a steady scan bar to signal the loop is held
+    if (frozen) {
+      var bx = ((Math.sin(t * 0.6) * 0.5 + 0.5)) * W;
+      var grad = ctx.createLinearGradient(bx - 30 * dpr, 0, bx + 30 * dpr, 0);
+      grad.addColorStop(0, "rgba(122,134,255,0)");
+      grad.addColorStop(0.5, "rgba(122,134,255,0.18)");
+      grad.addColorStop(1, "rgba(122,134,255,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  // ---- init & host wiring ----
+  function initAll() {
+    PARAMS.forEach(function (p) {
+      knobs[p.index].render(state[p.index]);
+      p._setNorm(state[p.index], true); // push default to engine
+    });
+    document.getElementById("timeVal").textContent = fmtTime(state[0]);
+    updateHoldLed(state[4]);
+    draw();
+  }
+
+  function boot() {
+    if (window.vstai && window.vstai.onReady) {
+      window.vstai.onReady(initAll);
+    } else {
+      initAll();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

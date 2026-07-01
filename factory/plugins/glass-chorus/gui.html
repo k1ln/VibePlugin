@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glass Chorus</title>
+<style>
+  :root{
+    --cyan:#7ae0ff;
+    --lilac:#c0b0ff;
+    --bg0:#080b14;
+    --bg1:#0e1626;
+    --glass:rgba(122,224,255,.06);
+    --ink:#dceaf6;
+    --ink-dim:#7f93ab;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    background:
+      radial-gradient(120% 80% at 20% -10%, rgba(122,224,255,.16), transparent 55%),
+      radial-gradient(120% 90% at 90% 110%, rgba(192,176,255,.18), transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg0));
+    color:var(--ink);
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .rack{
+    position:relative;
+    width:660px;max-width:96vw;
+    border-radius:22px;
+    padding:22px 24px 26px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01) 30%, rgba(0,0,0,.18)),
+      linear-gradient(160deg, #11203a, #0a1120);
+    border:1px solid rgba(122,224,255,.22);
+    box-shadow:
+      0 30px 80px rgba(0,0,0,.6),
+      0 0 0 1px rgba(0,0,0,.4),
+      inset 0 1px 0 rgba(255,255,255,.10),
+      inset 0 -30px 60px rgba(0,0,0,.4);
+  }
+  /* glass sheen sweeping across the rack */
+  .rack::before{
+    content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.10) 47%,rgba(255,255,255,.02) 53%,transparent 70%);
+    background-size:300% 100%;
+    animation:sheen 9s linear infinite;
+    mix-blend-mode:screen;opacity:.7;
+  }
+  @keyframes sheen{0%{background-position:160% 0}100%{background-position:-160% 0}}
+
+  /* rack screws */
+  .screw{position:absolute;width:9px;height:9px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#cfe6f2,#5b7184 60%,#2a3543);
+    box-shadow:inset 0 0 2px rgba(0,0,0,.6),0 1px 1px rgba(0,0,0,.5)}
+  .screw.a{top:11px;left:11px}.screw.b{top:11px;right:11px}
+  .screw.c{bottom:11px;left:11px}.screw.d{bottom:11px;right:11px}
+
+  header{display:flex;align-items:flex-end;justify-content:space-between;margin:0 6px 14px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .logo{width:30px;height:30px;flex:none}
+  .title h1{
+    font-size:19px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    background:linear-gradient(90deg,var(--cyan),var(--lilac));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 18px rgba(122,224,255,.25);
+  }
+  .title .sub{font-size:9.5px;letter-spacing:.36em;color:var(--ink-dim);text-transform:uppercase;margin-top:2px}
+  .pwr{display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.22em;color:var(--ink-dim);text-transform:uppercase}
+  .led{width:8px;height:8px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#dffaff,var(--cyan));
+    box-shadow:0 0 8px var(--cyan),0 0 16px rgba(122,224,255,.6);
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.1)}}
+
+  /* ---- visualizer: dual crystalline stereo waveforms ---- */
+  .scope{
+    position:relative;height:158px;border-radius:14px;overflow:hidden;
+    background:
+      radial-gradient(120% 140% at 50% 0%, rgba(122,224,255,.10), transparent 60%),
+      linear-gradient(180deg,#060a12,#0a1322);
+    border:1px solid rgba(122,224,255,.18);
+    box-shadow:inset 0 0 40px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .scope svg{display:block;width:100%;height:100%}
+  .grid line{stroke:rgba(122,224,255,.07);stroke-width:1}
+  .chTag{position:absolute;font-size:9px;letter-spacing:.2em;color:var(--ink-dim);font-weight:600}
+  .chTag.l{top:8px;left:12px;color:var(--cyan)}
+  .chTag.r{bottom:8px;left:12px;color:var(--lilac)}
+  .mtag{position:absolute;top:8px;right:12px;font-size:9px;letter-spacing:.18em;color:var(--ink-dim);text-transform:uppercase}
+  .mtag b{color:var(--cyan)}
+
+  /* ---- morph slider ---- */
+  .morph{margin:16px 4px 4px}
+  .morph .row{display:flex;justify-content:space-between;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:7px}
+  .morph .row b{color:var(--ink)}
+  .mtrack{
+    position:relative;height:26px;border-radius:14px;cursor:ew-resize;
+    background:linear-gradient(90deg,rgba(122,224,255,.16),rgba(192,176,255,.16));
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .mfill{position:absolute;top:0;left:0;bottom:0;border-radius:14px;
+    background:linear-gradient(90deg,rgba(122,224,255,.45),rgba(192,176,255,.55));
+    box-shadow:0 0 14px rgba(150,200,255,.4)}
+  .mknob{position:absolute;top:50%;width:30px;height:30px;border-radius:50%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 38% 32%,#ffffff,#bfe9ff 38%,#7aa6d8 75%,#3b5a82);
+    box-shadow:0 3px 8px rgba(0,0,0,.55),0 0 16px rgba(122,224,255,.6),inset 0 1px 1px rgba(255,255,255,.8);
+    cursor:grab}
+  .mknob:active{cursor:grabbing}
+
+  /* ---- knob row ---- */
+  .knobs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:18px}
+  .knob{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .dial{position:relative;width:70px;height:70px;cursor:ns-resize}
+  .dial svg{display:block;width:100%;height:100%;overflow:visible}
+  .dial .cap{transition:filter .15s}
+  .dial:hover .cap{filter:drop-shadow(0 0 7px rgba(122,224,255,.55))}
+  .klabel{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim)}
+  .kval{font-size:11px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums}
+  .knob:nth-child(2) .kval,.knob:nth-child(4) .kval{color:var(--lilac)}
+  .hint{text-align:center;margin-top:14px;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(127,147,171,.5)}
+</style>
+</head>
+<body>
+  <div class="rack">
+    <span class="screw a"></span><span class="screw b"></span>
+    <span class="screw c"></span><span class="screw d"></span>
+
+    <header>
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 40 40" fill="none">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="40" y2="40">
+              <stop offset="0" stop-color="#7ae0ff"/><stop offset="1" stop-color="#c0b0ff"/>
+            </linearGradient>
+          </defs>
+          <path d="M20 3 L34 12 L34 28 L20 37 L6 28 L6 12 Z" stroke="url(#lg)" stroke-width="2" fill="rgba(122,224,255,.06)"/>
+          <path d="M20 3 L20 37 M6 12 L34 28 M34 12 L6 28" stroke="url(#lg)" stroke-width="1" opacity=".5"/>
+        </svg>
+        <div class="title">
+          <h1>Glass Chorus</h1>
+          <div class="sub">Stereo Modulation</div>
+        </div>
+      </div>
+      <div class="pwr"><span class="led"></span>Active</div>
+    </header>
+
+    <div class="scope">
+      <span class="chTag l">L</span>
+      <span class="chTag r">R</span>
+      <span class="mtag" id="mtag">CHORUS</span>
+      <svg viewBox="0 0 600 158" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wlC" x1="0" y1="0" x2="600" y2="0">
+            <stop offset="0" stop-color="#7ae0ff" stop-opacity=".2"/>
+            <stop offset=".5" stop-color="#7ae0ff"/>
+            <stop offset="1" stop-color="#7ae0ff" stop-opacity=".2"/>
+          </linearGradient>
+          <linearGradient id="wlR" x1="0" y1="0" x2="600" y2="0">
+            <stop offset="0" stop-color="#c0b0ff" stop-opacity=".2"/>
+            <stop offset=".5" stop-color="#c0b0ff"/>
+            <stop offset="1" stop-color="#c0b0ff" stop-opacity=".2"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g class="grid">
+          <line x1="0" y1="39.5" x2="600" y2="39.5"/>
+          <line x1="0" y1="79.5" x2="600" y2="79.5"/>
+          <line x1="0" y1="118.5" x2="600" y2="118.5"/>
+        </g>
+        <path id="waveL" fill="none" stroke="url(#wlC)" stroke-width="2.2" filter="url(#glow)"/>
+        <path id="waveR" fill="none" stroke="url(#wlR)" stroke-width="2.2" filter="url(#glow)"/>
+        <path id="waveLg" fill="none" stroke="#7ae0ff" stroke-opacity=".14" stroke-width="6"/>
+        <path id="waveRg" fill="none" stroke="#c0b0ff" stroke-opacity=".14" stroke-width="6"/>
+      </svg>
+    </div>
+
+    <div class="morph">
+      <div class="row"><span>Chorus</span><span>Mode &nbsp;<b id="modeReadout">25%</b></span><span>Flanger</span></div>
+      <div class="mtrack" id="mtrack">
+        <div class="mfill" id="mfill"></div>
+        <div class="mknob" id="mknob"></div>
+      </div>
+    </div>
+
+    <div class="knobs" id="knobs"></div>
+    <div class="hint">Drag knobs &middot; double-click to reset</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // param model — index MUST match assembly.ts
+  var PARAMS = [
+    { name:"Rate",     index:0, min:0, max:1, def:0.30 },
+    { name:"Depth",    index:1, min:0, max:1, def:0.55 },
+    { name:"Feedback", index:3, min:0, max:1, def:0.40 },
+    { name:"Width",    index:4, min:0, max:1, def:0.70 },
+    { name:"Mix",      index:5, min:0, max:1, def:0.50 }
+  ];
+  var MODE = { name:"Mode", index:2, min:0, max:1, def:0.25 };
+
+  var values = {}; // index -> 0..1
+  function send(idx,v){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(idx, v); }
+  function setVal(idx,v){ v = v<0?0:(v>1?1:v); values[idx]=v; send(idx,v); }
+
+  // ---------- knob construction ----------
+  var R=30, CX=35, CY=35, A0=135, A1=405; // arc 135°..405° (270° sweep)
+  function polar(cx,cy,r,deg){ var a=(deg-90)*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; }
+  function arcPath(cx,cy,r,from,to){
+    var p0=polar(cx,cy,r,from), p1=polar(cx,cy,r,to);
+    var large=(to-from)<=180?0:1;
+    return "M"+p0[0].toFixed(2)+" "+p0[1].toFixed(2)+" A"+r+" "+r+" 0 "+large+" 1 "+p1[0].toFixed(2)+" "+p1[1].toFixed(2);
+  }
+
+  var knobsEl = document.getElementById("knobs");
+  var dials = {};
+
+  PARAMS.forEach(function(p){
+    var wrap=document.createElement("div"); wrap.className="knob";
+    var dial=document.createElement("div"); dial.className="dial"; dial.tabIndex=0;
+    dial.innerHTML =
+      '<svg viewBox="0 0 70 70">'+
+        '<path d="'+arcPath(CX,CY,R,A0,A1)+'" fill="none" stroke="rgba(122,224,255,.12)" stroke-width="4" stroke-linecap="round"/>'+
+        '<path class="fill" d="" fill="none" stroke="url(#dg)" stroke-width="4" stroke-linecap="round"/>'+
+        '<defs><linearGradient id="dg" x1="0" y1="0" x2="70" y2="70">'+
+          '<stop offset="0" stop-color="#7ae0ff"/><stop offset="1" stop-color="#c0b0ff"/></linearGradient></defs>'+
+        '<circle class="cap" cx="35" cy="35" r="20" fill="url(#capg'+p.index+')" stroke="rgba(255,255,255,.18)"/>'+
+        '<defs><radialGradient id="capg'+p.index+'" cx="38%" cy="32%" r="75%">'+
+          '<stop offset="0" stop-color="#22364f"/><stop offset="1" stop-color="#0c1626"/></radialGradient></defs>'+
+        '<line class="ind" x1="35" y1="35" x2="35" y2="19" stroke="#dffaff" stroke-width="2.4" stroke-linecap="round"/>'+
+      '</svg>';
+    var label=document.createElement("div"); label.className="klabel"; label.textContent=p.name;
+    var val=document.createElement("div"); val.className="kval";
+    wrap.appendChild(dial); wrap.appendChild(label); wrap.appendChild(val);
+    knobsEl.appendChild(wrap);
+
+    var fill=dial.querySelector(".fill"), ind=dial.querySelector(".ind");
+    dials[p.index]={fill:fill,ind:ind,val:val,p:p};
+    attachKnob(dial,p);
+  });
+
+  function renderKnob(idx){
+    var d=dials[idx], v=values[idx];
+    var ang=A0+(A1-A0)*v;
+    d.fill.setAttribute("d", arcPath(CX,CY,R-0,A0,ang));
+    var rad=(ang-90)*Math.PI/180;
+    var x2=35+16*Math.cos(rad), y2=35+16*Math.sin(rad);
+    d.ind.setAttribute("x2",x2.toFixed(2)); d.ind.setAttribute("y2",y2.toFixed(2));
+    var disp = idx===0 ? rateHz(v) : Math.round(v*100)+"%";
+    d.val.textContent = disp;
+  }
+  function rateHz(v){ return (0.05*Math.pow(120,v)).toFixed(2)+"Hz"; }
+
+  function attachKnob(dial,p){
+    var dragging=false, startY=0, startV=0;
+    function down(e){ dragging=true; startY=(e.touches?e.touches[0].clientY:e.clientY); startV=values[p.index];
+      e.preventDefault(); window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false}); window.addEventListener("touchend",up); }
+    function move(e){ if(!dragging)return; var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dv=(startY-y)/220; setVal(p.index, startV+dv); renderKnob(p.index); e.preventDefault(); }
+    function up(){ dragging=false; window.removeEventListener("mousemove",move); window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move); window.removeEventListener("touchend",up); }
+    dial.addEventListener("mousedown",down);
+    dial.addEventListener("touchstart",down,{passive:false});
+    dial.addEventListener("dblclick",function(){ setVal(p.index,p.def); renderKnob(p.index); });
+    dial.addEventListener("wheel",function(e){ setVal(p.index, values[p.index]-e.deltaY*0.0012); renderKnob(p.index); e.preventDefault(); },{passive:false});
+  }
+
+  // ---------- morph slider ----------
+  var mtrack=document.getElementById("mtrack"),
+      mfill=document.getElementById("mfill"),
+      mknob=document.getElementById("mknob"),
+      mreadout=document.getElementById("modeReadout"),
+      mtag=document.getElementById("mtag");
+
+  function renderMorph(){
+    var v=values[MODE.index];
+    var pct=(v*100);
+    mfill.style.width=pct+"%";
+    mknob.style.left=pct+"%";
+    mreadout.textContent=Math.round(pct)+"%";
+    mtag.innerHTML = v<0.4 ? "<b>CHORUS</b>" : (v>0.6 ? "<b>FLANGER</b>" : "MORPH");
+  }
+  function morphFromX(clientX){
+    var r=mtrack.getBoundingClientRect();
+    var v=(clientX-r.left)/r.width;
+    setVal(MODE.index,v); renderMorph();
+  }
+  (function(){
+    var dragging=false;
+    function down(e){ dragging=true; morphFromX(e.touches?e.touches[0].clientX:e.clientX);
+      window.addEventListener("mousemove",move); window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false}); window.addEventListener("touchend",up); e.preventDefault(); }
+    function move(e){ if(!dragging)return; morphFromX(e.touches?e.touches[0].clientX:e.clientX); e.preventDefault(); }
+    function up(){ dragging=false; window.removeEventListener("mousemove",move); window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move); window.removeEventListener("touchend",up); }
+    mtrack.addEventListener("mousedown",down);
+    mtrack.addEventListener("touchstart",down,{passive:false});
+    mtrack.addEventListener("dblclick",function(){ setVal(MODE.index,MODE.def); renderMorph(); });
+  })();
+
+  // ---------- animated stereo waveforms ----------
+  var waveL=document.getElementById("waveL"), waveR=document.getElementById("waveR"),
+      waveLg=document.getElementById("waveLg"), waveRg=document.getElementById("waveRg");
+  var W=600, t=0;
+  function buildWave(yc, phaseOff, amp, freq, modeV){
+    var pts=[], N=72;
+    // mode bends the carrier: chorus -> smooth wide; flanger -> tighter comb ripple
+    var combo = 1 + modeV*3;
+    for(var i=0;i<=N;i++){
+      var x=i/N*W;
+      var base=Math.sin((i/N)*Math.PI*2*freq + t + phaseOff);
+      var ripple=Math.sin((i/N)*Math.PI*2*freq*combo + t*1.7 + phaseOff)*modeV*0.45;
+      var shimmer=Math.sin((i/N)*Math.PI*9 - t*2.3)*0.06;
+      var y=yc + (base*(1-modeV*0.3) + ripple + shimmer)*amp;
+      pts.push(x.toFixed(1)+" "+y.toFixed(1));
+    }
+    return "M"+pts.join(" L");
+  }
+  function frame(){
+    var rate=values[0], depth=values[1], modeV=values[2], width=values[4], mix=values[5];
+    var spd=0.02 + rate*0.16;
+    t += spd;
+    var amp = (6 + depth*22) * (0.3 + mix*0.7);
+    var freq = 1.4 + depth*1.2;
+    // width pushes the two waves apart in phase
+    var ph = 0.4 + width*2.6;
+    var d1=buildWave(48, 0, amp, freq, modeV);
+    var d2=buildWave(110, ph, amp, freq, modeV);
+    waveL.setAttribute("d",d1); waveLg.setAttribute("d",d1);
+    waveR.setAttribute("d",d2); waveRg.setAttribute("d",d2);
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- init ----------
+  function ready(){
+    PARAMS.forEach(function(p){ setVal(p.index,p.def); renderKnob(p.index); });
+    setVal(MODE.index, MODE.def); renderMorph();
+    requestAnimationFrame(frame);
+  }
+  if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

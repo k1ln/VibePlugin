@@ -133,8 +133,9 @@ export function process(n: i32): void {
     // ---- apply: VCA gain = makeup * 10^(-gr/20) ----
     const g: f32 = makeup * db2lin(-gr);
 
-    outBuf[baseL + f] = xL * g;
-    if (stereo) outBuf[baseR + f] = xR * g;
+    // soft-clip so makeup gain glues instead of hard-clipping over 0 dBFS
+    outBuf[baseL + f] = f32(Mathf.tanh(xL * g));
+    if (stereo) outBuf[baseR + f] = f32(Mathf.tanh(xR * g));
   }
 
   rmsState = rms;

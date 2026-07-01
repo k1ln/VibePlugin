@@ -1,0 +1,127 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Vee Organ — test bench</title><style>
+  :root{--ac:#ff9a3d}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#e7eef6;
+    background:radial-gradient(130% 100% at 50% -20%,#171f2d,#070a0f 72%);display:flex;flex-direction:column;align-items:center;gap:13px;padding:18px}
+  .top{display:flex;align-items:center;gap:11px;width:100%;max-width:620px}
+  .top .led{width:9px;height:9px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+  .top b{font-size:15px;letter-spacing:.05em;color:var(--ac)}
+  .top .sub{font-size:11px;color:#7c8aa3;margin-left:auto}
+  iframe{width:100%;max-width:620px;height:400px;border:0;background:transparent}
+  .bar{width:100%;max-width:620px;display:flex;flex-direction:column;gap:11px;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:14px 16px;
+    box-shadow:0 16px 40px rgba(0,0,0,.4)}
+  canvas{width:100%;height:74px;display:block;border-radius:10px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.06)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  button{font:inherit;color:#06080c;background:var(--ac);border:0;border-radius:10px;padding:9px 17px;font-weight:800;cursor:pointer;transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.off{background:#28313f;color:#e7eef6}
+  select,input[type=file]{font:inherit;color:#e7eef6;background:#10151e;border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:7px 9px}
+  label{display:flex;gap:8px;align-items:center;color:#aeb9cc}
+  .st{font-size:12px;color:#8da0bd;min-height:16px}
+  .krow{display:flex;gap:8px;align-items:center;color:#aeb9cc;font-size:12px}
+  .krow .klabel{font-weight:600;letter-spacing:.03em}
+  .krow .oct{padding:4px 13px;font-size:16px;line-height:1;background:#28313f;color:#e7eef6;border-radius:8px}
+  .krow .octval{min-width:22px;text-align:center;font-weight:800;color:var(--ac);font-variant-numeric:tabular-nums}
+  .krow .khint{margin-left:4px;color:#7c8aa3;font-size:11px}
+  .kb{display:flex;gap:3px;flex-wrap:wrap}
+  .kb .key{width:30px;height:80px;border-radius:0 0 7px 7px;background:linear-gradient(#f4f7fb,#cdd5e0);
+    border:1px solid #2a3344;cursor:pointer;color:#1a2230;font-size:9px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;transition:.08s}
+  .kb .key.bk{background:linear-gradient(#2b3340,#10151d);color:#9fb0c8;height:52px;width:22px;margin:0 -12px;z-index:2}
+  .kb .key.dn{background:linear-gradient(var(--ac),#fff);color:#06080c;transform:translateY(2px)}
+  </style></head><body>
+  <div class="top"><span class="led"></span><b>Vee Organ</b><span class="sub">live test bench — turn the knobs, play audio</span></div>
+  <iframe id="gui"></iframe>
+  <div class="bar">
+    <canvas id="scope" width="620" height="74"></canvas>
+    <div class="row"><button id="go" class="off">▶ Start audio</button><span class="st" id="st">click Start (browsers need a gesture to begin audio)</span></div>
+    <div class="krow"><span class="klabel">Octave</span><button id="octdn" class="oct" type="button">−</button><span id="octval" class="octval">4</span><button id="octup" class="oct" type="button">+</button><span class="khint">or Z / X keys</span></div>
+       <div class="kb" id="kb"></div>
+  </div>
+  <script>
+  var WB="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", IS_SYNTH=true;
+  document.getElementById('gui').srcdoc="<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Vee Organ<\/title>\n<style>\n  :root{ --acc:#ff9a3d; --acc2:#5ad0ff; --bg0:#0a0a0c; --bg1:#16151a; --ink:#f1ece4; --dim:#8a8478; }\n  *{ box-sizing:border-box; margin:0; padding:0; }\n  html,body{ height:100%; }\n  body{ font-family:\"Inter\",system-ui,-apple-system,\"Segoe UI\",sans-serif;\n    background:radial-gradient(120% 90% at 50% -10%,#26222a 0%,var(--bg1) 44%,var(--bg0) 100%);\n    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;\n    display:flex; align-items:center; justify-content:center; min-height:100%; }\n  .unit{ width:min(95vw,760px); border-radius:14px; padding:16px 22px 22px; position:relative; overflow:hidden;\n    background:linear-gradient(160deg,#22202a,#0c0b10); border:1px solid rgba(255,154,61,.18);\n    box-shadow:0 22px 64px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05); }\n  header{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }\n  .logo{ font-weight:800; letter-spacing:.16em; font-size:21px;\n    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }\n  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }\n  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 2.4s ease-in-out infinite; }\n  @keyframes pulse{ 0%,100%{ opacity:.4; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }\n  .panel{ font-size:9px; letter-spacing:.24em; color:var(--dim); text-transform:uppercase; margin:8px 2px 12px; }\n  .bars{ display:grid; grid-template-columns:repeat(6,1fr); gap:14px; align-items:end; padding:0 6px; }\n  .bar{ display:flex; flex-direction:column; align-items:center; gap:8px; }\n  .slot{ width:30px; height:150px; border-radius:6px; position:relative; cursor:ns-resize; touch-action:none;\n    background:linear-gradient(180deg,#0c0b10,#1c1a22); border:1px solid rgba(255,154,61,.18); box-shadow:inset 0 2px 8px rgba(0,0,0,.6); }\n  .drawbar{ position:absolute; left:3px; right:3px; height:30px; border-radius:5px; box-shadow:0 4px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3); }\n  .nm{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }\n  .vv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); }\n  .bar:hover .nm{ color:var(--acc); }\n<\/style>\n<script>window.vstai={onReady:function(f){f()},setParam:function(i,v){parent.postMessage({t:\"p\",i:i,v:v},\"*\")},noteOn:function(n,v){parent.postMessage({t:\"on\",id:n,v:v},\"*\")},noteOff:function(id){parent.postMessage({t:\"off\",id:id},\"*\")}};<\/script><\/head>\n<body>\n  <div class=\"unit\">\n    <header><span class=\"logo\">VEE&nbsp;ORGAN<\/span><span class=\"sub\">combo organ · drawbars<\/span><span class=\"led\"><\/span><\/header>\n    <div class=\"panel\">— drawbar registration —<\/div>\n    <div class=\"bars\" id=\"bars\"><\/div>\n  <\/div>\n<script>\n(function(){\n  \"use strict\";\n  // colored drawbar caps like a classic combo organ\n  var P=[\n    {name:\"Low\",idx:0,def:0.7,col:\"#e8e4dc\"},\n    {name:\"High\",idx:1,def:0.5,col:\"#e8e4dc\"},\n    {name:\"Bright\",idx:2,def:0.6,col:\"#ff9a3d\"},\n    {name:\"Vibrato\",idx:3,def:0.3,col:\"#5ad0ff\"},\n    {name:\"Click\",idx:4,def:0.4,col:\"#222\"},\n    {name:\"Level\",idx:5,def:0.8,col:\"#ff5a6a\"}\n  ];\n  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });\n  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }\n  var bw=document.getElementById(\"bars\");\n  var bars=P.map(function(p){\n    var el=document.createElement(\"div\"); el.className=\"bar\";\n    el.innerHTML='<div class=\"slot\"><div class=\"drawbar\" style=\"background:linear-gradient(180deg,'+p.col+',rgba(0,0,0,0.35))\"><\/div><\/div><span class=\"nm\">'+p.name+'<\/span><span class=\"vv\"><\/span>';\n    bw.appendChild(el);\n    var slot=el.querySelector(\".slot\"), db=el.querySelector(\".drawbar\"), val=el.querySelector(\".vv\");\n    function render(v){ var h=Math.max(0,Math.min(1,v)); db.style.top=((1-h)*(150-30))+\"px\"; val.textContent=Math.round(v*100)+\"%\"; }\n    var drag=null;\n    slot.addEventListener(\"pointerdown\",function(e){ drag={y:e.clientY,v:vals[p.idx]}; slot.setPointerCapture(e.pointerId); e.preventDefault(); });\n    slot.addEventListener(\"pointermove\",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/120)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });\n    slot.addEventListener(\"pointerup\",function(){ drag=null; });\n    slot.addEventListener(\"pointercancel\",function(){ drag=null; });\n    slot.addEventListener(\"dblclick\",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });\n    render(p.def);\n    return {render:render};\n  });\n  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); bars[i].render(vals[p.idx]); }); }\n  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();\n})();\n<\/script>\n<\/body>\n<\/html>\n";
+  var ctx,node,src,analyser,wav,ex,inPtr,outPtr,parPtr,STRIDE=8192,started=false,running=false;
+  var pcache=new Float32Array(64);
+  function memF(){return new Float32Array(ex.memory.buffer);}
+  window.addEventListener('message',function(e){var d=e.data||{};
+    if(d.t==='p'){pcache[d.i]=d.v; if(ex) memF()[parPtr+d.i]=d.v;}
+    else if(d.t==='on'&&ex&&ex.noteOn) ex.noteOn(d.id,440*Math.pow(2,(d.id-69)/12),d.v==null?0.9:d.v);
+    else if(d.t==='off'&&ex&&ex.noteOff) ex.noteOff(d.id);});
+  function st(m){document.getElementById('st').textContent=m;}
+  var cv=document.getElementById('scope'), g=cv.getContext('2d');
+  var ACC=getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#ffb454';
+  function draw(){
+    requestAnimationFrame(draw);
+    var W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
+    g.strokeStyle='rgba(255,255,255,.07)'; g.lineWidth=1; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke();
+    if(!analyser){ return; }
+    analyser.getFloatTimeDomainData(wav);
+    g.lineWidth=2; g.strokeStyle=ACC; g.shadowBlur=10; g.shadowColor=ACC; g.beginPath();
+    for(var i=0;i<wav.length;i++){ var x=i/(wav.length-1)*W, y=H/2 - wav[i]*H*0.46; if(i===0)g.moveTo(x,y); else g.lineTo(x,y); }
+    g.stroke(); g.shadowBlur=0;
+  }
+  draw();
+  function makeRiff(){
+    var sr=ctx.sampleRate, len=Math.floor(sr*3.2), b=ctx.createBuffer(2,len,sr), d=b.getChannelData(0);
+    var riff=[45,52,57,60,64,57,52,48], nl=Math.floor(sr*0.4);
+    for(var i=0;i<len;i++){var idx=Math.floor(i/nl),lt=(i-idx*nl)/sr,hz=440*Math.pow(2,(riff[idx%riff.length]-69)/12),
+      ph=2*Math.PI*hz*(i/sr),env=Math.exp(-lt*5);
+      d[i]=env*(Math.sin(ph)+0.5*Math.sin(2*ph)+0.3*Math.sin(3*ph))*0.18;}
+    b.copyToChannel(d,1); return b;
+  }
+  async function ensure(){
+    if(started)return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    var bytes=Uint8Array.from(atob(WB),function(c){return c.charCodeAt(0);});
+    var inst=await WebAssembly.instantiate(await WebAssembly.compile(bytes),{env:{abort:function(){},seed:function(){return 0;}}});
+    ex=inst.exports; ex.init(ctx.sampleRate,STRIDE,2);
+    inPtr=ex.getInputPtr()>>>2; outPtr=ex.getOutputPtr()>>>2; parPtr=ex.getParamsPtr()>>>2;
+    var m=memF(); for(var i=0;i<64;i++) m[parPtr+i]=pcache[i];
+    node=ctx.createScriptProcessor(1024,2,2);
+    node.onaudioprocess=function(e){var n=e.outputBuffer.length,m=memF(),
+      iL=e.inputBuffer.getChannelData(0),iR=e.inputBuffer.numberOfChannels>1?e.inputBuffer.getChannelData(1):e.inputBuffer.getChannelData(0);
+      for(var i=0;i<n;i++){m[inPtr+i]=iL[i];m[inPtr+STRIDE+i]=iR[i];}
+      ex.process(n);
+      var oL=e.outputBuffer.getChannelData(0),oR=e.outputBuffer.getChannelData(1);
+      for(var i=0;i<n;i++){oL[i]=m[outPtr+i];oR[i]=m[outPtr+STRIDE+i];}};
+    analyser=ctx.createAnalyser(); analyser.fftSize=1024; wav=new Float32Array(analyser.fftSize);
+    node.connect(analyser); node.connect(ctx.destination); started=true;
+  }
+  function disconnectSrc(){ if(src){try{src.disconnect();}catch(e){}; src=null;} }
+  function setSource(kind){
+    disconnectSrc();
+    if(kind==='riff'){ src=ctx.createBufferSource(); src.buffer=makeRiff(); src.loop=true; src.connect(node); src.start(); st('playing musical riff through the plugin'); }
+    else if(kind==='mic'){ navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){ src=ctx.createMediaStreamSource(s); src.connect(node); st('microphone → plugin'); }).catch(function(){ st('mic blocked'); }); }
+  }
+  document.getElementById('go').addEventListener('click',async function(){
+    await ensure();
+    if(ctx.state==='suspended') await ctx.resume();
+    if(!running){ running=true; this.textContent='⏸ Stop'; this.className='';
+      if(!IS_SYNTH){ setSource(document.getElementById('src').value); } else { st('press the keys (or computer keys A–K) to play'); }
+    } else { running=false; this.textContent='▶ Start audio'; this.className='off'; disconnectSrc(); st('stopped'); }
+  });
+  
+  var KB=document.getElementById('kb'), KEYS=[['C',60,0],['C#',61,1],['D',62,0],['D#',63,1],['E',64,0],['F',65,0],['F#',66,1],['G',67,0],['G#',68,1],['A',69,0],['A#',70,1],['B',71,0],['C',72,0]];
+  var KMAP={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
+  var oct=0;                                              // octave offset (−4..+4), applied at note-on
+  function hz(m){return 440*Math.pow(2,(m-69)/12);}
+  function setOct(o){ oct=o<-4?-4:(o>4?4:o); var ov=document.getElementById('octval'); if(ov)ov.textContent=(4+oct); }
+  function down(m,el){ ensure().then(function(){ if(ctx.state==='suspended')ctx.resume(); if(ex&&ex.noteOn) ex.noteOn(m,hz(m),0.9); }); if(el)el.classList.add('dn'); }
+  function up(m,el){ if(ex&&ex.noteOff) ex.noteOff(m); if(el)el.classList.remove('dn'); }
+  KEYS.forEach(function(k){ var el=document.createElement('div'); el.className='key'+(k[2]?' bk':''); el.textContent=k[0];
+    el.addEventListener('pointerdown',function(e){e.preventDefault();el._n=k[1]+oct*12;down(el._n,el);});
+    el.addEventListener('pointerup',function(){up(el._n,el);}); el.addEventListener('pointerleave',function(){if(el.classList.contains('dn'))up(el._n,el);});
+    KB.appendChild(el); });
+  document.getElementById('octdn').addEventListener('click',function(){setOct(oct-1);});
+  document.getElementById('octup').addEventListener('click',function(){setOct(oct+1);});
+  var held={};                                            // base note -> actual note played (so releases survive an octave change)
+  window.addEventListener('keydown',function(e){ if(e.repeat)return;
+    if(e.key==='z'||e.key==='Z'){setOct(oct-1);return;} if(e.key==='x'||e.key==='X'){setOct(oct+1);return;}
+    var b=KMAP[e.key]; if(b&&!held[b]){var m=b+oct*12;held[b]=m;down(m,null);} });
+  window.addEventListener('keyup',function(e){ var b=KMAP[e.key]; if(b&&held[b]!=null){up(held[b],null);held[b]=null;} });
+  setOct(0);
+  
+  </script></body></html>

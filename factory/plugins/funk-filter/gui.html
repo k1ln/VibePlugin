@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Funk Filter</title>
+<style>
+  :root{
+    --gold:#ffcf3d;
+    --purple:#9a3dff;
+    --plate:#2a1742;
+    --plate2:#1a0d2b;
+    --ink:#f6e9c8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #3a1b5e 0%, #1a0d2b 55%, #0c0617 100%);
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:22px;
+    overflow:hidden;
+    user-select:none;-webkit-user-select:none;
+  }
+
+  /* ---- the pedal face ---- */
+  .pedal{
+    position:relative;
+    width:430px;
+    border-radius:26px;
+    padding:22px 24px 26px;
+    background:
+      linear-gradient(160deg, #3c225f 0%, #2a1742 38%, #20102f 100%);
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.6),
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 -30px 60px rgba(154,61,255,.10) inset;
+    border:1px solid rgba(255,207,61,.18);
+  }
+  /* corner screws */
+  .screw{
+    position:absolute;width:14px;height:14px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff6d6, #b78a1f 60%, #5a3e08);
+    box-shadow:0 1px 2px rgba(0,0,0,.6);
+  }
+  .screw::after{
+    content:"";position:absolute;inset:3px;border-radius:50%;
+    background:linear-gradient(45deg,transparent 44%,rgba(0,0,0,.45) 46%,rgba(0,0,0,.45) 54%,transparent 56%);
+  }
+  .screw.tl{top:12px;left:12px;} .screw.tr{top:12px;right:12px;}
+  .screw.bl{bottom:12px;left:12px;} .screw.br{bottom:12px;right:12px;}
+
+  .brandrow{display:flex;align-items:baseline;justify-content:space-between;padding:2px 8px 10px;}
+  .brand{
+    font-weight:800;letter-spacing:.14em;font-size:23px;
+    background:linear-gradient(90deg,var(--gold),#fff1bf 40%,var(--purple));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 1px 0 rgba(0,0,0,.3);
+  }
+  .sub{font-size:10px;letter-spacing:.34em;color:rgba(255,207,61,.65);text-transform:uppercase;}
+
+  /* ---- spectrum window ---- */
+  .window{
+    position:relative;height:148px;border-radius:14px;overflow:hidden;
+    background:linear-gradient(180deg,#120822 0%,#1c0d33 100%);
+    border:1px solid rgba(255,207,61,.22);
+    box-shadow:0 6px 18px rgba(0,0,0,.5) inset, 0 0 0 4px rgba(0,0,0,.25) inset;
+  }
+  .window svg{display:block;width:100%;height:100%;}
+  .winlabel{
+    position:absolute;top:7px;left:11px;font-size:9px;letter-spacing:.22em;
+    color:rgba(255,207,61,.55);text-transform:uppercase;pointer-events:none;
+  }
+  .winmode{
+    position:absolute;top:7px;right:11px;font-size:9px;letter-spacing:.18em;
+    color:rgba(255,255,255,.55);text-transform:uppercase;pointer-events:none;
+  }
+
+  /* ---- big sensitivity knob ---- */
+  .topgrid{display:flex;gap:16px;margin-top:16px;align-items:flex-start;}
+  .bigknob{flex:0 0 150px;text-align:center;}
+  .knobwrap{position:relative;width:150px;height:150px;margin:0 auto;cursor:grab;}
+  .knobwrap.drag{cursor:grabbing;}
+  .knobwrap svg{display:block;}
+  .smallcol{flex:1;display:flex;flex-direction:column;gap:13px;padding-top:4px;}
+
+  .miniknob{display:flex;align-items:center;gap:12px;}
+  .miniknob .kw{width:62px;height:62px;cursor:grab;flex:0 0 62px;}
+  .miniknob .kw.drag{cursor:grabbing;}
+  .miniknob .meta{flex:1;}
+  .kname{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(246,233,200,.85);}
+  .kval{font-size:13px;font-weight:700;color:var(--gold);margin-top:2px;font-variant-numeric:tabular-nums;}
+  .bigknob .kname{margin-top:6px;}
+  .bigknob .kval{font-size:16px;}
+
+  /* ---- 3-position toggles ---- */
+  .toggles{display:flex;gap:14px;margin-top:18px;}
+  .tg{
+    flex:1;border-radius:12px;padding:10px 10px 9px;
+    background:linear-gradient(180deg,#1d0f30,#150a24);
+    border:1px solid rgba(255,207,61,.16);
+  }
+  .tgname{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,207,61,.7);text-align:center;margin-bottom:8px;}
+  .tgrow{display:flex;gap:6px;}
+  .opt{
+    flex:1;text-align:center;font-size:11px;font-weight:700;letter-spacing:.06em;
+    padding:8px 4px;border-radius:8px;cursor:pointer;
+    color:rgba(246,233,200,.55);
+    background:linear-gradient(180deg,#241236,#190c29);
+    border:1px solid rgba(0,0,0,.4);
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+    transition:color .15s, box-shadow .2s, background .2s, transform .08s;
+  }
+  .opt:hover{color:rgba(246,233,200,.85);}
+  .opt:active{transform:translateY(1px);}
+  .opt.on{
+    color:#1a0d2b;
+    background:linear-gradient(180deg,var(--gold),#e3a91e);
+    box-shadow:0 0 16px rgba(255,207,61,.55), 0 1px 0 rgba(255,255,255,.5) inset;
+  }
+  .opt.on.pv{
+    background:linear-gradient(180deg,var(--purple),#6e23c2);
+    color:#fff;
+    box-shadow:0 0 18px rgba(154,61,255,.6), 0 1px 0 rgba(255,255,255,.35) inset;
+  }
+
+  .foot{margin-top:16px;text-align:center;font-size:9px;letter-spacing:.16em;color:rgba(246,233,200,.35);text-transform:uppercase;}
+
+  /* glowing status lamp by the brand */
+  .lamp{
+    width:12px;height:12px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--gold));
+    box-shadow:0 0 10px var(--gold), 0 0 22px rgba(255,207,61,.6);
+    animation:pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.5;transform:scale(.9);}50%{opacity:1;transform:scale(1.1);}}
+</style>
+</head>
+<body>
+  <div class="pedal">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+
+    <div class="brandrow">
+      <div>
+        <div class="brand">FUNK FILTER</div>
+        <div class="sub">Envelope&nbsp;Auto-Wah</div>
+      </div>
+      <div class="lamp" id="lamp"></div>
+    </div>
+
+    <!-- spectrum window: a resonant peak swoops across the band -->
+    <div class="window">
+      <span class="winlabel">Spectrum</span>
+      <span class="winmode" id="winmode">Band-Pass · Up</span>
+      <svg id="spec" viewBox="0 0 400 148" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffcf3d" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="#9a3dff" stop-opacity="0.04"/>
+          </linearGradient>
+          <linearGradient id="curveStroke" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#9a3dff"/>
+            <stop offset="0.5" stop-color="#ffcf3d"/>
+            <stop offset="1" stop-color="#9a3dff"/>
+          </linearGradient>
+          <radialGradient id="peakGlow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#ffcf3d" stop-opacity="0.9"/>
+            <stop offset="1" stop-color="#ffcf3d" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- faint grid -->
+        <g stroke="rgba(255,207,61,0.07)" stroke-width="1">
+          <line x1="80" y1="0" x2="80" y2="148"/>
+          <line x1="160" y1="0" x2="160" y2="148"/>
+          <line x1="240" y1="0" x2="240" y2="148"/>
+          <line x1="320" y1="0" x2="320" y2="148"/>
+        </g>
+        <path id="fill" d="" fill="url(#curveFill)"/>
+        <path id="curve" d="" fill="none" stroke="url(#curveStroke)" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle id="peakDot" cx="200" cy="74" r="22" fill="url(#peakGlow)"/>
+        <circle id="peakCore" cx="200" cy="74" r="4" fill="#fff7df"/>
+      </svg>
+    </div>
+
+    <div class="topgrid">
+      <div class="bigknob">
+        <div class="knobwrap" id="kw-sens">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <defs>
+              <radialGradient id="bgCap" cx="0.38" cy="0.34" r="0.75">
+                <stop offset="0" stop-color="#5a2f8c"/>
+                <stop offset="0.6" stop-color="#341d52"/>
+                <stop offset="1" stop-color="#1a0d2b"/>
+              </radialGradient>
+            </defs>
+            <circle cx="75" cy="75" r="64" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="10"/>
+            <circle id="arc-sens" cx="75" cy="75" r="64" fill="none" stroke="var(--gold)"
+                    stroke-width="6" stroke-linecap="round"
+                    stroke-dasharray="0 999" transform="rotate(135 75 75)"/>
+            <circle cx="75" cy="75" r="50" fill="url(#bgCap)" stroke="rgba(255,207,61,0.3)" stroke-width="1.5"/>
+            <g id="ptr-sens">
+              <line x1="75" y1="75" x2="75" y2="32" stroke="#ffcf3d" stroke-width="4" stroke-linecap="round"/>
+              <circle cx="75" cy="36" r="3" fill="#fff7df"/>
+            </g>
+            <circle cx="75" cy="75" r="9" fill="#241236" stroke="rgba(255,207,61,0.4)" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="kname">Sensitivity</div>
+        <div class="kval" id="v-sens">60%</div>
+      </div>
+
+      <div class="smallcol">
+        <div class="miniknob">
+          <div class="kw" id="kw-res">
+            <svg width="62" height="62" viewBox="0 0 62 62">
+              <circle cx="31" cy="31" r="26" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="6"/>
+              <circle id="arc-res" cx="31" cy="31" r="26" fill="none" stroke="var(--purple)"
+                      stroke-width="4" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(135 31 31)"/>
+              <circle cx="31" cy="31" r="19" fill="url(#bgCap)" stroke="rgba(154,61,255,0.35)" stroke-width="1.2"/>
+              <g id="ptr-res"><line x1="31" y1="31" x2="31" y2="14" stroke="#c98bff" stroke-width="3" stroke-linecap="round"/></g>
+            </svg>
+          </div>
+          <div class="meta"><div class="kname">Resonance</div><div class="kval" id="v-res">60%</div></div>
+        </div>
+
+        <div class="miniknob">
+          <div class="kw" id="kw-range">
+            <svg width="62" height="62" viewBox="0 0 62 62">
+              <circle cx="31" cy="31" r="26" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="6"/>
+              <circle id="arc-range" cx="31" cy="31" r="26" fill="none" stroke="var(--gold)"
+                      stroke-width="4" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(135 31 31)"/>
+              <circle cx="31" cy="31" r="19" fill="url(#bgCap)" stroke="rgba(255,207,61,0.35)" stroke-width="1.2"/>
+              <g id="ptr-range"><line x1="31" y1="31" x2="31" y2="14" stroke="#ffcf3d" stroke-width="3" stroke-linecap="round"/></g>
+            </svg>
+          </div>
+          <div class="meta"><div class="kname">Range</div><div class="kval" id="v-range">70%</div></div>
+        </div>
+
+        <div class="miniknob">
+          <div class="kw" id="kw-mix">
+            <svg width="62" height="62" viewBox="0 0 62 62">
+              <circle cx="31" cy="31" r="26" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="6"/>
+              <circle id="arc-mix" cx="31" cy="31" r="26" fill="none" stroke="var(--purple)"
+                      stroke-width="4" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(135 31 31)"/>
+              <circle cx="31" cy="31" r="19" fill="url(#bgCap)" stroke="rgba(154,61,255,0.35)" stroke-width="1.2"/>
+              <g id="ptr-mix"><line x1="31" y1="31" x2="31" y2="14" stroke="#c98bff" stroke-width="3" stroke-linecap="round"/></g>
+            </svg>
+          </div>
+          <div class="meta"><div class="kname">Mix</div><div class="kval" id="v-mix">100%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toggles">
+      <div class="tg">
+        <div class="tgname">Direction</div>
+        <div class="tgrow" id="tg-dir">
+          <div class="opt on" data-v="0">UP</div>
+          <div class="opt pv" data-v="1">DOWN</div>
+        </div>
+      </div>
+      <div class="tg">
+        <div class="tgname">Mode</div>
+        <div class="tgrow" id="tg-mode">
+          <div class="opt" data-v="0">LOW-PASS</div>
+          <div class="opt pv on" data-v="1">BAND-PASS</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">Drag knobs · Double-click to reset · Play louder to sweep</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- host bridge -------------------------------------------------
+  function send(i,v){
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v);
+  }
+
+  function clamp(x,lo,hi){return x<lo?lo:(x>hi?hi:x);}
+
+  // ---- param model -------------------------------------------------
+  var P = {
+    SENS:  {idx:0, def:0.6, val:0.6},
+    RES:   {idx:1, def:0.6, val:0.6},
+    RANGE: {idx:2, def:0.7, val:0.7},
+    DIR:   {idx:3, def:0,   val:0},   // 0 up, 1 down (stepped)
+    MODE:  {idx:4, def:1,   val:1},   // 0 LP, 1 BP (stepped)
+    MIX:   {idx:5, def:1,   val:1}
+  };
+
+  // ---- knob factory (norm 0..1 over a 270deg arc) ------------------
+  // wrapId: the .knobwrap/.kw element; arc + ptr ids; value formatter.
+  function makeKnob(wrapId, arcId, ptrId, p, valEl, cx, cy, arcCircEl){
+    var wrap=document.getElementById(wrapId);
+    var arc=document.getElementById(arcId);
+    var ptr=document.getElementById(ptrId);
+    var arcR=parseFloat(arc.getAttribute("r"));
+    var circ=2*Math.PI*arcR;
+    var SWEEP=270; // degrees
+
+    function render(){
+      var ang=-135 + p.val*SWEEP;            // -135..+135
+      ptr.setAttribute("transform","rotate("+ang+" "+cx+" "+cy+")");
+      var len=(p.val*SWEEP/360)*circ;
+      arc.setAttribute("stroke-dasharray", len+" "+(circ*2));
+      if(valEl) valEl.textContent=Math.round(p.val*100)+"%";
+    }
+    function commit(){ send(p.idx, p.val); render(); }
+
+    var dragging=false, lastY=0;
+    function down(e){
+      dragging=true; lastY=(e.touches?e.touches[0].clientY:e.clientY);
+      wrap.classList.add("drag");
+      e.preventDefault();
+      window.addEventListener("mousemove",move);
+      window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false});
+      window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging)return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dy=lastY-y; lastY=y;
+      p.val=clamp(p.val + dy*0.005, 0, 1);
+      commit();
+      e.preventDefault();
+    }
+    function up(){
+      dragging=false; wrap.classList.remove("drag");
+      window.removeEventListener("mousemove",move);
+      window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move);
+      window.removeEventListener("touchend",up);
+    }
+    wrap.addEventListener("mousedown",down);
+    wrap.addEventListener("touchstart",down,{passive:false});
+    wrap.addEventListener("dblclick",function(){ p.val=p.def; commit(); });
+    wrap.addEventListener("wheel",function(e){
+      p.val=clamp(p.val - Math.sign(e.deltaY)*0.02, 0, 1); commit(); e.preventDefault();
+    },{passive:false});
+
+    return {render:render, commit:commit, p:p};
+  }
+
+  var kSens =makeKnob("kw-sens","arc-sens","ptr-sens",P.SENS, document.getElementById("v-sens"),75,75);
+  var kRes  =makeKnob("kw-res","arc-res","ptr-res",P.RES, document.getElementById("v-res"),31,31);
+  var kRange=makeKnob("kw-range","arc-range","ptr-range",P.RANGE, document.getElementById("v-range"),31,31);
+  var kMix  =makeKnob("kw-mix","arc-mix","ptr-mix",P.MIX, document.getElementById("v-mix"),31,31);
+
+  // ---- toggles (stepped) ------------------------------------------
+  function setupToggle(rowId, p, onChange){
+    var row=document.getElementById(rowId);
+    var opts=row.querySelectorAll(".opt");
+    function paint(){
+      opts.forEach(function(o){
+        var on=parseInt(o.getAttribute("data-v"),10)===p.val;
+        o.classList.toggle("on", on);
+      });
+      if(onChange) onChange();
+    }
+    opts.forEach(function(o){
+      o.addEventListener("click",function(){
+        p.val=parseInt(o.getAttribute("data-v"),10);
+        send(p.idx, p.val);
+        paint();
+      });
+    });
+    return {paint:paint};
+  }
+
+  var winmode=document.getElementById("winmode");
+  function updateWinLabel(){
+    var m = P.MODE.val===1 ? "Band-Pass" : "Low-Pass";
+    var d = P.DIR.val===1 ? "Down" : "Up";
+    winmode.textContent = m+" · "+d;
+  }
+  var tgDir =setupToggle("tg-dir", P.DIR, updateWinLabel);
+  var tgMode=setupToggle("tg-mode", P.MODE, updateWinLabel);
+
+  // ---- animated spectrum window -----------------------------------
+  // A resonant peak swoops across the band, driven by a synthetic
+  // envelope so the GUI breathes like it's tracking a funky riff.
+  var curve=document.getElementById("curve");
+  var fill=document.getElementById("fill");
+  var peakDot=document.getElementById("peakDot");
+  var peakCore=document.getElementById("peakCore");
+  var W=400, H=148;
+  var env=0, t=0;
+
+  function frame(){
+    t+=0.016;
+    // synthetic "playing" envelope: rhythmic plucks with decay
+    var beat = (t % 0.55) / 0.55;
+    var hit = Math.exp(-beat*5) * (0.55 + 0.45*Math.sin(t*1.7));
+    env += (hit - env)*0.25;
+    var e = clamp(env*(0.4 + P.SENS.val*1.4), 0, 1);
+
+    // map env -> peak position, honouring Direction + Range
+    var sweep = P.DIR.val===1 ? (1-e) : e;
+    var base = 0.10, span = 0.18 + P.RANGE.val*0.72;
+    var pos = clamp(base + sweep*span, 0.04, 0.96);   // 0..1 across band
+    var px = pos*W;
+
+    // resonance -> peak height + sharpness
+    var q = 0.5 + P.RES.val*P.RES.val*0.5;          // 0.5..1
+    var height = 30 + q*92;
+    var width = (P.MODE.val===1) ? (10 + (1-q)*34) : (28 + (1-q)*60); // BP narrower
+
+    // build the response curve
+    var d="M0 "+H, df="M0 "+H;
+    for(var x=0;x<=W;x+=8){
+      var dist=(x-px)/width;
+      var bell=Math.exp(-dist*dist*0.5);
+      var y;
+      if(P.MODE.val===1){
+        // band-pass: bell only
+        y=H - 14 - bell*height;
+      }else{
+        // low-pass: shelf up to cutoff then roll off, with resonant bump
+        var shelf = 1/(1+Math.pow(Math.max(x-px,0)/ (width*1.1+1), 2.2));
+        y=H - 14 - (shelf*0.7 + bell*0.55)*height;
+      }
+      d+=" L"+x+" "+y.toFixed(1);
+      df+=" L"+x+" "+y.toFixed(1);
+    }
+    df+=" L"+W+" "+H+" Z";
+    curve.setAttribute("d", d);
+    fill.setAttribute("d", df);
+
+    var peakY = H - 14 - height;
+    peakDot.setAttribute("cx", px);
+    peakDot.setAttribute("cy", peakY);
+    peakDot.setAttribute("r", 14 + e*14);
+    peakDot.setAttribute("opacity", 0.5 + e*0.5);
+    peakCore.setAttribute("cx", px);
+    peakCore.setAttribute("cy", peakY);
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- init: push every default to the engine ----------------------
+  function pushDefaults(){
+    kSens.commit(); kRes.commit(); kRange.commit(); kMix.commit();
+    send(P.DIR.idx, P.DIR.val); tgDir.paint();
+    send(P.MODE.idx, P.MODE.val); tgMode.paint();
+    updateWinLabel();
+  }
+
+  if(window.vstai && window.vstai.onReady){
+    window.vstai.onReady(pushDefaults);
+  }else{
+    pushDefaults();
+  }
+})();
+</script>
+</body>
+</html>

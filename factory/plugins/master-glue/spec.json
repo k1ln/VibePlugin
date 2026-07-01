@@ -1,0 +1,18 @@
+{
+  "name": "Master Glue",
+  "isInstrument": false,
+  "explanation": "A classic British console-style mix-bus 'glue' compressor for gelling a whole mix into one cohesive, punchy whole. A feed-forward, stereo-LINKED VCA detector watches the summed program and drives a single soft-knee gain-reduction element computed in the dB domain, so the same reduction hits both channels and the stereo image stays rock-solid. Ratio is stepped between the classic 2:1, 4:1 and 10:1 settings, Attack is stepped, and Release offers four fixed times plus an AUTO position whose program-dependent dual time-constant 'breathes' with the music — fast on transients, slow under sustained loudness. Makeup restores level, Mix blends parallel dry for New-York glue, and a soft output stage keeps the bus bounded. Controls: Threshold, Ratio, Attack, Release, Makeup and Mix.",
+  "assembly": "factory/plugins/master-glue/assembly.ts",
+  "out": "factory/plugins/master-glue/x.vstai",
+  "publishedAt": 1751000132000,
+  "theme": { "accent": "#9aa6b2", "accent2": "#5ad0ff" },
+  "guiFile": "factory/plugins/master-glue/gui.html",
+  "params": [
+    { "name": "Threshold", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Ratio",     "index": 1, "min": 0, "max": 2, "default": 1, "step": 1 },
+    { "name": "Attack",    "index": 2, "min": 0, "max": 3, "default": 1, "step": 1 },
+    { "name": "Release",   "index": 3, "min": 0, "max": 4, "default": 4, "step": 1 },
+    { "name": "Makeup",    "index": 4, "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Mix",       "index": 5, "min": 0, "max": 1, "default": 1 }
+  ]
+}

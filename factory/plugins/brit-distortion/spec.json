@@ -1,0 +1,17 @@
+{
+  "name": "Brit Distortion",
+  "isInstrument": false,
+  "explanation": "An amp-in-a-box British distortion. A tightening high-pass feeds a hot gain stage into a soft-knee/hard-rail clipper (the diode + op-amp behaviour of a cranked British amp), which then drives an interactive passive 3-band tone stack: a low shelf (Bass), a peaking bell around 650 Hz (Mid) and a high shelf (Treble). The bands load each other like a real passive network, so you can dial scooped 'crunch' or mid-forward 'roar'. Controls: Gain, Bass, Mid, Treble and Level.",
+  "assembly": "factory/plugins/brit-distortion/assembly.ts",
+  "out": "factory/plugins/brit-distortion/x.vstai",
+  "publishedAt": 1751000113000,
+  "theme": { "accent": "#ffcf3d", "accent2": "#d94a2a" },
+  "guiFile": "factory/plugins/brit-distortion/gui.html",
+  "params": [
+    { "name": "Gain",   "index": 0, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Bass",   "index": 1, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Mid",    "index": 2, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Treble", "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Level",  "index": 4, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

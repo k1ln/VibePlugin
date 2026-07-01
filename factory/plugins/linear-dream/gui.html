@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linear Dream</title>
+<style>
+  :root{ --acc:#5ad0c4; --acc2:#b08cff; --bg0:#05100f; --bg1:#0b1a20; --ink:#dff3f0; --dim:#5f8086; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    background:radial-gradient(120% 90% at 50% -10%,#10282c 0%,var(--bg1) 44%,var(--bg0) 100%);
+    color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none;
+    display:flex; align-items:center; justify-content:center; min-height:100%; }
+  .unit{ width:min(95vw,760px); border-radius:16px; padding:16px 20px 20px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,#123034,#06140f);
+    border:1px solid rgba(90,208,196,.18); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(200,255,245,.06); }
+  .unit::before{ content:""; position:absolute; inset:-40% -10%; pointer-events:none;
+    background:radial-gradient(40% 50% at 18% 0%,rgba(90,208,196,.10),transparent 60%),radial-gradient(40% 60% at 100% 20%,rgba(176,140,255,.12),transparent 60%);
+    animation:drift 16s ease-in-out infinite alternate; }
+  @keyframes drift{ from{ transform:translate(-2%,-1%);} to{ transform:translate(3%,2%);} }
+  header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; position:relative; z-index:2; }
+  .logo{ font-weight:800; letter-spacing:.15em; font-size:21px;
+    background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
+  .led{ margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--acc2);
+    box-shadow:0 0 10px var(--acc2),0 0 20px var(--acc2); animation:pulse 2.6s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:.45; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.2);} }
+
+  .screen{ height:96px; border-radius:10px; overflow:hidden; margin-bottom:12px; position:relative;
+    background:linear-gradient(180deg,#08201d,#06140f); border:1px solid rgba(90,208,196,.15); box-shadow:inset 0 2px 20px rgba(0,0,0,.55); }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .scrlbl{ position:absolute; left:12px; top:8px; font-size:9px; letter-spacing:.22em; color:var(--dim); z-index:2; }
+  .leg{ position:absolute; right:12px; top:8px; font-size:9px; letter-spacing:.06em; z-index:2; }
+  .leg b{ color:var(--acc); } .leg i{ color:var(--acc2); font-style:normal; }
+
+  .asel{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+  .abtn{ text-align:center; padding:8px 4px; border-radius:9px; cursor:pointer; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    background:#0c1c1f; border:1px solid rgba(90,208,196,.2); color:var(--dim); transition:all .12s; }
+  .abtn.sel{ color:#04140f; background:linear-gradient(180deg,var(--acc),#39b0a4); box-shadow:0 0 16px rgba(90,208,196,.5); font-weight:700; }
+
+  .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
+  .dial{ width:66px; height:66px; position:relative; }
+  .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
+  .track{ fill:none; stroke:rgba(180,230,225,.14); stroke-width:7; stroke-linecap:round; }
+  .arc{ fill:none; stroke:url(#g); stroke-width:7; stroke-linecap:round; filter:drop-shadow(0 0 5px rgba(90,208,196,.6)); }
+  .pcap{ fill:#0a1a18; stroke:rgba(90,208,196,.22); stroke-width:1; }
+  .ptr{ stroke:var(--acc2); stroke-width:3; stroke-linecap:round; filter:drop-shadow(0 0 4px var(--acc)); }
+  .kn{ font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  .kv{ font-size:10.5px; font-variant-numeric:tabular-nums; color:var(--ink); background:rgba(90,208,196,.1);
+    padding:1px 7px; border-radius:7px; border:1px solid rgba(90,208,196,.2); }
+  .knob:hover .kn{ color:var(--acc); }
+</style>
+</head>
+<body>
+  <div class="unit">
+    <header>
+      <span class="logo">LINEAR&nbsp;DREAM</span>
+      <span class="sub">LA synthesis</span>
+      <span class="led"></span>
+    </header>
+    <div class="screen"><div class="scrlbl">ATTACK + BODY</div><div class="leg"><b>■ attack</b> &nbsp; <i>■ body</i></div><canvas id="cv"></canvas></div>
+    <div class="asel" id="asel"></div>
+    <div class="knobs" id="knobs"></div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var ATKS=["Mallet","Blown","Pluck"];
+  var PARAMS=[
+    {name:"Cutoff",idx:1,def:0.55},
+    {name:"Reso",  idx:2,def:0.35},
+    {name:"Env",   idx:3,def:0.6},
+    {name:"Chorus",idx:4,def:0.5},
+    {name:"Level", idx:5,def:0.8}
+  ];
+  var vals={1:0.55,2:0.35,3:0.6,4:0.5,5:0.8};
+  var atkV=0.0; // param 0
+  var host=null;
+  function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  function selFromV(v){ var s=Math.floor(v*2.999); return s<0?0:(s>2?2:s); }
+
+  var asel=document.getElementById("asel");
+  var abtns=ATKS.map(function(nm,i){
+    var b=document.createElement("div"); b.className="abtn"; b.textContent=nm; asel.appendChild(b);
+    b.addEventListener("click",function(){ atkV=(i+0.5)/3; setAtkUI(); send(0,atkV); });
+    return b;
+  });
+  function setAtkUI(){ var s=selFromV(atkV); for(var i=0;i<3;i++) abtns[i].classList.toggle("sel",i===s); }
+
+  var R=31, C=2*Math.PI*R, A0=-135, A1=135;
+  var kw=document.getElementById("knobs");
+  var knobs=PARAMS.map(function(p){
+    var el=document.createElement("div"); el.className="knob";
+    el.innerHTML='<div class="dial"><svg viewBox="0 0 76 76">'+
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ad0c4"/><stop offset="1" stop-color="#b08cff"/></linearGradient></defs>'+
+      '<circle class="track" cx="38" cy="38" r="31"></circle>'+
+      '<circle class="arc" cx="38" cy="38" r="31" transform="rotate(135 38 38)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle>'+
+      '<circle class="pcap" cx="38" cy="38" r="19"></circle>'+
+      '<line class="ptr" x1="38" y1="38" x2="38" y2="22"></line></svg></div>'+
+      '<span class="kn">'+p.name+'</span><span class="kv"></span>';
+    kw.appendChild(el);
+    var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
+    function render(v){
+      var sweep=(A1-A0)/360; arc.setAttribute("stroke-dashoffset",(C*(1-sweep*v)).toString());
+      var ang=(A0+(A1-A0)*v)*Math.PI/180;
+      ptr.setAttribute("x2",(38+Math.sin(ang)*15).toFixed(2));
+      ptr.setAttribute("y2",(38-Math.cos(ang)*15).toFixed(2));
+      val.textContent=Math.round(v*100)+"%";
+    }
+    var drag=null;
+    el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
+    el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
+    el.addEventListener("pointerup",function(){ drag=null; });
+    el.addEventListener("pointercancel",function(){ drag=null; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    render(p.def);
+    return {render:render};
+  });
+
+  // ---- LA layering visualization: a sharp attack spike + a sustained body envelope ----
+  var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
+  function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener("resize",resize); resize();
+  function frame(ts){
+    ctx.clearRect(0,0,W,H);
+    var atkType=selFromV(atkV), env=vals[3], cut=vals[1];
+    var base=H-14, pulse=0.5+0.5*Math.sin(ts/700);
+    ctx.strokeStyle="rgba(90,208,196,0.10)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,base); ctx.lineTo(W,base); ctx.stroke();
+    // BODY envelope (purple): rises then sustains, filter env affects the curve
+    ctx.beginPath();
+    for(var x=0;x<=W;x++){ var t=x/W; var a=Math.min(1,t/0.08); var dec=0.5+0.5*Math.exp(-t*(1+env*3)); var y=base-(a*dec)*(H*0.6)*(0.5+cut*0.5); ctx.lineTo(x,y); }
+    ctx.strokeStyle="rgba(176,140,255,0.85)"; ctx.lineWidth=2; ctx.shadowColor="#b08cff"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    // ATTACK transient (teal): a sharp spike whose shape depends on type
+    ctx.beginPath();
+    for(var x2=0;x2<=W;x2++){ var t2=x2/W; var spike;
+      if(atkType===0) spike=Math.exp(-t2*40)*Math.abs(Math.sin(t2*120));        // mallet: ringy
+      else if(atkType===1) spike=Math.exp(-t2*16)*(0.4+0.6*Math.abs(Math.sin(t2*60)));  // blown: softer chiff
+      else spike=Math.exp(-t2*55);                                            // pluck: sharp
+      var y2=base - spike*(H*0.66)*pulse;
+      if(x2===0) ctx.moveTo(x2,y2); else ctx.lineTo(x2,y2); }
+    ctx.strokeStyle="rgba(90,208,196,0.95)"; ctx.lineWidth=2; ctx.shadowColor="#5ad0c4"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  function boot(){ host=window.vstai||null; send(0,atkV); setAtkUI(); PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
+})();
+</script>
+</body>
+</html>

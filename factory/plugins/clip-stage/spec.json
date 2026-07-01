@@ -1,0 +1,17 @@
+{
+  "name": "Clip Stage",
+  "isInstrument": false,
+  "explanation": "A clean, transparent soft-clip saturator and drive stage — built for warmth, glue and gentle level control rather than grind. A makeup-compensated Drive feeds a selectable transfer curve: DIODE gives a symmetric soft knee with odd harmonics, while TUBE adds a small bias for asymmetric, even-harmonic warmth (an internal DC blocker removes the resulting offset). A subtle Tone tilt opens or darkens the top, an output Trim sets level, and a parallel Mix blends the saturated signal back against the dry. Controls: Drive, Curve (diode/tube), Tone, Trim and Mix.",
+  "assembly": "factory/plugins/clip-stage/assembly.ts",
+  "out": "factory/plugins/clip-stage/x.vstai",
+  "publishedAt": 1751000141000,
+  "theme": { "accent": "#ffd86a", "accent2": "#ff9a5a" },
+  "guiFile": "factory/plugins/clip-stage/gui.html",
+  "params": [
+    { "name": "Drive", "index": 0, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Curve", "index": 1, "min": 0, "max": 1, "step": 1, "default": 0 },
+    { "name": "Tone",  "index": 2, "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Trim",  "index": 3, "min": 0, "max": 1, "default": 0.65 },
+    { "name": "Mix",   "index": 4, "min": 0, "max": 1, "default": 1 }
+  ]
+}

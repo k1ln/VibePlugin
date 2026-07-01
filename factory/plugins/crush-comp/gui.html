@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crush Comp</title>
+<style>
+  :root {
+    --accent: #ff7a2a;
+    --accent2: #ffd23d;
+    --bg0: #14100d;
+    --bg1: #1d1712;
+    --panel: #241b14;
+    --panel2: #2c211a;
+    --ink: #f3e6d6;
+    --dim: #9a8674;
+    --line: #3a2c20;
+    --red: #ff3b30;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg0);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .rack {
+    width: 100%;
+    max-width: 640px;
+    border-radius: 16px;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a2018 0%, var(--bg1) 55%, var(--bg0) 100%);
+    border: 1px solid #4a382a;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(255,210,160,.08),
+      inset 0 -2px 8px rgba(0,0,0,.5);
+    padding: 20px 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* brushed-metal texture overlay */
+  .rack::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 2px, rgba(0,0,0,.02) 2px 4px);
+    mix-blend-mode: overlay;
+  }
+
+  /* rack ears / screws */
+  .screw {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6a543f, #2a1f16 70%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.6);
+  }
+  .screw::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-top: 1.5px solid rgba(0,0,0,.5);
+    transform: rotate(35deg);
+  }
+  .screw.tl { top: 10px; left: 10px; }
+  .screw.tr { top: 10px; right: 10px; }
+  .screw.bl { bottom: 10px; left: 10px; }
+  .screw.br { bottom: 10px; right: 10px; }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px 14px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    z-index: 1;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 0 rgba(0,0,0,.3);
+  }
+  .brand .sub {
+    font-size: 9.5px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .power {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .led {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(255,122,42,.6);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--accent), 0 0 16px rgba(255,122,42,.6); }
+    50% { opacity: .55; box-shadow: 0 0 4px var(--accent); }
+  }
+
+  /* ---- gain reduction meter ---- */
+  .meter-wrap {
+    position: relative;
+    z-index: 1;
+    margin: 18px 14px 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #0d0a07, #161009);
+    border: 1px solid #000;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,150,60,.05);
+  }
+  .meter-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .meter-label {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .gr-val {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: .5px;
+  }
+  .bar {
+    position: relative;
+    height: 16px;
+    border-radius: 4px;
+    background: #060403;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.9);
+  }
+  /* the GR fill grows from the RIGHT (gain pulled down) */
+  .bar-fill {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent) 60%, var(--red));
+    box-shadow: 0 0 12px rgba(255,122,42,.7);
+    transition: width .04s linear;
+  }
+  .bar-ticks {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    pointer-events: none;
+  }
+  .bar-ticks span {
+    flex: 1;
+    border-right: 1px solid rgba(255,255,255,.06);
+  }
+
+  /* ---- controls grid ---- */
+  .controls {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 10px;
+    margin: 18px 8px 4px;
+  }
+
+  .cell {
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 1px 0 rgba(255,210,160,.06), 0 4px 10px rgba(0,0,0,.35);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .cell:hover {
+    border-color: #5a4330;
+  }
+  .cell.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 1px 0 rgba(255,210,160,.06), 0 0 18px rgba(255,122,42,.25);
+  }
+
+  .knob {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  .knob svg { display: block; width: 100%; height: 100%; }
+
+  .clabel {
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+  .cval {
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: .3px;
+    min-height: 14px;
+  }
+
+  /* ---- stepped ratio selector ---- */
+  .ratio-cell {
+    grid-column: span 1;
+    align-items: stretch;
+  }
+  .ratio-dial {
+    position: relative;
+    width: 100%;
+    cursor: ns-resize;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 2px;
+  }
+  .rstep {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    color: var(--dim);
+    background: rgba(0,0,0,.25);
+    border: 1px solid transparent;
+    transition: all .12s;
+  }
+  .rstep .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4a382a;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.6);
+  }
+  .rstep.on {
+    color: #1a120a;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    border-color: var(--accent2);
+    box-shadow: 0 0 12px rgba(255,122,42,.6);
+  }
+  .rstep.on .dot {
+    background: #1a120a;
+    box-shadow: none;
+  }
+  .rstep.nuke.on {
+    background: linear-gradient(180deg, #ff6a3a, var(--red));
+    border-color: #ff5a4a;
+    box-shadow: 0 0 18px rgba(255,59,48,.8);
+    animation: nukeflash .5s steps(2) infinite;
+  }
+  @keyframes nukeflash {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.35); }
+    100% { filter: brightness(1); }
+  }
+
+  /* ---- DIST harmonic readout ---- */
+  .dist-cell {
+    grid-column: span 2;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+  }
+  .dist-knob-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .harm {
+    flex: 1;
+    height: 64px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #0d0a07, #161009);
+    border: 1px solid #000;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,.7);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .harm .h {
+    flex: 1;
+    max-width: 22px;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, var(--accent2), var(--accent));
+    box-shadow: 0 0 10px rgba(255,122,42,.5);
+    height: 6%;
+    transition: height .08s ease-out, opacity .08s;
+    align-self: flex-end;
+  }
+  .harm-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 8.5px;
+    letter-spacing: 3px;
+    color: #6b574402;
+    color: var(--dim);
+    text-transform: uppercase;
+    opacity: .6;
+  }
+</style>
+</head>
+<body>
+  <div class="rack">
+    <div class="screw tl"></div><div class="screw tr"></div>
+    <div class="screw bl"></div><div class="screw br"></div>
+
+    <header>
+      <div class="brand">
+        <h1>Crush Comp</h1>
+        <span class="sub">FET Slam &middot; Drive</span>
+      </div>
+      <div class="power"><span class="led"></span> On Air</div>
+    </header>
+
+    <div class="meter-wrap">
+      <div class="meter-top">
+        <span class="meter-label">Gain Reduction</span>
+        <span class="gr-val" id="grVal">0.0 dB</span>
+      </div>
+      <div class="bar">
+        <div class="bar-fill" id="grFill"></div>
+        <div class="bar-ticks" id="grTicks"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <!-- Threshold -->
+      <div class="cell" data-cell="0">
+        <div class="knob" data-param="0"></div>
+        <div class="clabel">Threshold</div>
+        <div class="cval" id="v0">—</div>
+      </div>
+
+      <!-- Ratio stepped selector -->
+      <div class="cell ratio-cell" data-cell="1">
+        <div class="clabel">Ratio</div>
+        <div class="ratio-dial" data-param="1" id="ratioDial"></div>
+        <div class="cval" id="v1">—</div>
+      </div>
+
+      <!-- Attack -->
+      <div class="cell" data-cell="2">
+        <div class="knob" data-param="2"></div>
+        <div class="clabel">Attack</div>
+        <div class="cval" id="v2">—</div>
+      </div>
+
+      <!-- Release -->
+      <div class="cell" data-cell="3">
+        <div class="knob" data-param="3"></div>
+        <div class="clabel">Release</div>
+        <div class="cval" id="v3">—</div>
+      </div>
+
+      <!-- Dist + harmonic readout -->
+      <div class="cell dist-cell active" data-cell="4">
+        <div class="dist-knob-wrap">
+          <div class="knob" data-param="4"></div>
+          <div class="clabel">Dist</div>
+          <div class="cval" id="v4">—</div>
+        </div>
+        <span class="harm-label">Harmonics</span>
+        <div class="harm" id="harm">
+          <div class="h"></div><div class="h"></div><div class="h"></div>
+          <div class="h"></div><div class="h"></div><div class="h"></div>
+        </div>
+      </div>
+
+      <!-- Mix -->
+      <div class="cell" data-cell="5">
+        <div class="knob" data-param="5"></div>
+        <div class="clabel">Mix</div>
+        <div class="cval" id="v5">—</div>
+      </div>
+    </div>
+
+    <footer>Crush Comp &middot; Aggressive Dynamics</footer>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ACCENT = "#ff7a2a";
+  var ACCENT2 = "#ffd23d";
+
+  // param definitions (index, default, formatter)
+  var RATIO_LABELS = ["2:1", "4:1", "6:1", "10:1", "20:1", "NUKE"];
+
+  var PARAMS = {
+    0: { def: 0.30, min: 0, max: 1, fmt: function (v) { return (-40 + v * 40).toFixed(1) + " dB"; } },
+    1: { def: 3,    min: 0, max: 5, step: 1, fmt: function (v) { return RATIO_LABELS[Math.round(v)]; } },
+    2: { def: 0.15, min: 0, max: 1, fmt: function (v) { return (0.05 + v * v * 29.95).toFixed(2) + " ms"; } },
+    3: { def: 0.30, min: 0, max: 1, fmt: function (v) { return Math.round(30 + v * v * 770) + " ms"; } },
+    4: { def: 0.35, min: 0, max: 1, fmt: function (v) { return Math.round(v * 100) + " %"; } },
+    5: { def: 1.0,  min: 0, max: 1, fmt: function (v) { return Math.round(v * 100) + " %"; } }
+  };
+
+  var state = {};
+  for (var k in PARAMS) { state[k] = PARAMS[k].def; }
+
+  function push(index, value) {
+    if (window.vstai && window.vstai.setParam) {
+      window.vstai.setParam(index, value);
+    }
+  }
+
+  function setVal(index, value, fromUser) {
+    var p = PARAMS[index];
+    var v = Math.max(p.min, Math.min(p.max, value));
+    if (p.step) { v = Math.round(v); }
+    state[index] = v;
+    push(index, v);
+    var el = document.getElementById("v" + index);
+    if (el) { el.textContent = p.fmt(v); }
+    if (index === 1) { renderRatio(); }
+    renderKnob(index);
+  }
+
+  // ===== KNOB rendering (SVG arc) =====
+  var SWEEP = 270;       // total degrees
+  var START = 135;       // start angle (deg), clockwise from +x
+
+  function knobSvg() {
+    return ''
+      + '<svg viewBox="0 0 100 100">'
+      + '  <defs>'
+      + '    <linearGradient id="kbody" x1="0" y1="0" x2="0" y2="1">'
+      + '      <stop offset="0" stop-color="#3a2c20"/>'
+      + '      <stop offset="1" stop-color="#1a120c"/>'
+      + '    </linearGradient>'
+      + '    <radialGradient id="ktop" cx="0.4" cy="0.32" r="0.8">'
+      + '      <stop offset="0" stop-color="#46342500"/>'
+      + '      <stop offset="0" stop-color="#4a3727"/>'
+      + '      <stop offset="1" stop-color="#241a12"/>'
+      + '    </radialGradient>'
+      + '  </defs>'
+      + '  <circle cx="50" cy="50" r="44" fill="none" stroke="#0a0705" stroke-width="7"/>'
+      + '  <path class="arc-bg" d="" fill="none" stroke="#3a2c20" stroke-width="6" stroke-linecap="round"/>'
+      + '  <path class="arc-fg" d="" fill="none" stroke="' + ACCENT + '" stroke-width="6" stroke-linecap="round"/>'
+      + '  <circle cx="50" cy="50" r="33" fill="url(#kbody)" stroke="#000" stroke-width="1"/>'
+      + '  <circle cx="50" cy="50" r="30" fill="url(#ktop)"/>'
+      + '  <line class="pointer" x1="50" y1="50" x2="50" y2="22" stroke="' + ACCENT2 + '" stroke-width="3.5" stroke-linecap="round"/>'
+      + '  <circle cx="50" cy="50" r="3" fill="#1a120c" stroke="#000"/>'
+      + '</svg>';
+  }
+
+  function polar(cx, cy, r, deg) {
+    var a = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function arcPath(cx, cy, r, a0, a1) {
+    var p0 = polar(cx, cy, r, a0);
+    var p1 = polar(cx, cy, r, a1);
+    var large = (a1 - a0) % 360 > 180 ? 1 : 0;
+    return "M " + p0[0].toFixed(2) + " " + p0[1].toFixed(2)
+      + " A " + r + " " + r + " 0 " + large + " 1 "
+      + p1[0].toFixed(2) + " " + p1[1].toFixed(2);
+  }
+
+  function renderKnob(index) {
+    var knob = document.querySelector('.knob[data-param="' + index + '"]');
+    if (!knob) { return; }
+    var p = PARAMS[index];
+    var norm = (state[index] - p.min) / (p.max - p.min);
+    var a0 = START;
+    var aFull = START + SWEEP;
+    var aVal = START + SWEEP * norm;
+
+    var bg = knob.querySelector(".arc-bg");
+    var fg = knob.querySelector(".arc-fg");
+    var ptr = knob.querySelector(".pointer");
+    if (bg) { bg.setAttribute("d", arcPath(50, 50, 40, a0, aFull)); }
+    if (fg) { fg.setAttribute("d", norm > 0.001 ? arcPath(50, 50, 40, a0, aVal) : ""); }
+    if (ptr) {
+      var rot = -135 + 270 * norm;
+      ptr.setAttribute("transform", "rotate(" + rot + " 50 50)");
+    }
+  }
+
+  function attachKnob(knob) {
+    var index = +knob.getAttribute("data-param");
+    knob.innerHTML = knobSvg();
+    var cell = knob.closest(".cell");
+
+    var dragging = false;
+    var lastY = 0;
+
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      if (cell) { cell.classList.add("active"); }
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) { return; }
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      var dy = lastY - y;
+      lastY = y;
+      var p = PARAMS[index];
+      var range = p.max - p.min;
+      var sensitivity = e.shiftKey ? 600 : 180;
+      setVal(index, state[index] + (dy / sensitivity) * range, true);
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      if (cell && index !== 4) { cell.classList.remove("active"); }
+    }
+
+    knob.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    knob.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+
+    knob.addEventListener("dblclick", function () {
+      setVal(index, PARAMS[index].def, true);
+    });
+    knob.addEventListener("wheel", function (e) {
+      var p = PARAMS[index];
+      var range = p.max - p.min;
+      setVal(index, state[index] - (e.deltaY > 0 ? 1 : -1) * range * 0.02, true);
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  // ===== RATIO stepped selector =====
+  function buildRatio() {
+    var dial = document.getElementById("ratioDial");
+    var html = "";
+    for (var i = RATIO_LABELS.length - 1; i >= 0; i--) {
+      var nuke = (i === 5) ? " nuke" : "";
+      html += '<div class="rstep' + nuke + '" data-step="' + i + '">'
+        + '<span>' + RATIO_LABELS[i] + '</span><span class="dot"></span></div>';
+    }
+    dial.innerHTML = html;
+
+    Array.prototype.forEach.call(dial.querySelectorAll(".rstep"), function (el) {
+      el.addEventListener("click", function () {
+        setVal(1, +el.getAttribute("data-step"), true);
+      });
+    });
+
+    var dragging = false, lastY = 0;
+    function onDown(e) {
+      dragging = true;
+      lastY = (e.touches ? e.touches[0].clientY : e.clientY);
+      var cell = dial.closest(".cell");
+      if (cell) { cell.classList.add("active"); }
+      e.preventDefault();
+    }
+    function onMove(e) {
+      if (!dragging) { return; }
+      var y = (e.touches ? e.touches[0].clientY : e.clientY);
+      if (Math.abs(lastY - y) >= 22) {
+        var dir = lastY - y > 0 ? 1 : -1;
+        setVal(1, state[1] + dir, true);
+        lastY = y;
+      }
+      e.preventDefault();
+    }
+    function onUp() {
+      dragging = false;
+      var cell = dial.closest(".cell");
+      if (cell) { cell.classList.remove("active"); }
+    }
+    dial.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    dial.addEventListener("touchstart", onDown, { passive: false });
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
+    dial.addEventListener("dblclick", function () { setVal(1, PARAMS[1].def, true); });
+    dial.addEventListener("wheel", function (e) {
+      setVal(1, state[1] + (e.deltaY > 0 ? -1 : 1), true);
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  function renderRatio() {
+    var sel = Math.round(state[1]);
+    Array.prototype.forEach.call(document.querySelectorAll(".rstep"), function (el) {
+      var s = +el.getAttribute("data-step");
+      el.classList.toggle("on", s === sel);
+    });
+  }
+
+  // ===== animated meter + harmonic readout =====
+  var grFill = document.getElementById("grFill");
+  var grVal = document.getElementById("grVal");
+  var harmBars = document.querySelectorAll("#harm .h");
+
+  // simulated, eased gain-reduction display (driven by Threshold+Ratio)
+  var grDisp = 0;
+  var grTarget = 0;
+  var pumpPhase = 0;
+
+  function buildTicks() {
+    var t = document.getElementById("grTicks");
+    var h = "";
+    for (var i = 0; i < 10; i++) { h += "<span></span>"; }
+    t.innerHTML = h;
+  }
+
+  function frame() {
+    if (!document.hidden) {
+      // estimate how hard the comp slams from Threshold + Ratio steps
+      var thr = state[0];               // 0=low thresh (more GR), 1=high
+      var ratioStep = Math.round(state[1]);
+      var ratioK = [0.35, 0.55, 0.7, 0.85, 0.95, 1.0][ratioStep];
+      var depth = (1 - thr) * ratioK;   // 0..1
+
+      // a pumping motion so the bar feels alive (fast slam, slower recover)
+      pumpPhase += 0.045 + state[2] * 0.04;
+      var pump = 0.5 + 0.5 * Math.sin(pumpPhase) * Math.sin(pumpPhase * 0.5);
+      grTarget = depth * (0.45 + 0.55 * pump) * 20; // up to ~20 dB
+
+      // fast attack toward target, slower release away (program feel)
+      var rate = grTarget > grDisp ? 0.6 : 0.06 + (1 - state[3]) * 0.12;
+      grDisp += (grTarget - grDisp) * rate;
+
+      var pct = Math.min(100, (grDisp / 20) * 100);
+      grFill.style.width = pct.toFixed(1) + "%";
+      grVal.textContent = "-" + grDisp.toFixed(1) + " dB";
+
+      // harmonic bars: DIST + current GR feed a decaying harmonic series
+      var dist = state[4];
+      var work = dist * (0.4 + grDisp / 20 * 0.6);
+      for (var i = 0; i < harmBars.length; i++) {
+        var decay = Math.pow(0.72, i);
+        var jitter = 0.85 + 0.15 * Math.sin(pumpPhase * (1.3 + i * 0.4));
+        var hh = Math.min(1, work * decay * jitter * 1.6);
+        harmBars[i].style.height = (6 + hh * 90).toFixed(0) + "%";
+        harmBars[i].style.opacity = (0.35 + hh * 0.65).toFixed(2);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ===== init =====
+  function init() {
+    buildTicks();
+    buildRatio();
+    Array.prototype.forEach.call(document.querySelectorAll(".knob"), attachKnob);
+    for (var i = 0; i <= 5; i++) {
+      setVal(i, PARAMS[i].def, false);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (window.vstai && window.vstai.onReady) {
+    window.vstai.onReady(init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

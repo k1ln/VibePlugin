@@ -1,0 +1,16 @@
+{
+  "name": "Cozy Delay",
+  "isInstrument": false,
+  "explanation": "A warm, dark, short bucket-brigade-style analog delay. A compact interpolated delay line (~20-300 ms) feeds a bounded feedback path; each repeat is made progressively darker and softer by a cascaded low-pass inside the loop plus gentle per-pass saturation, so a string of echoes melts from a present slapback into a soft, intimate shadow. A faint wow drift adds vintage warmth. Controls: Time, Feedback, Tone and dry/wet Mix.",
+  "assembly": "factory/plugins/cozy-delay/assembly.ts",
+  "out": "factory/plugins/cozy-delay/x.vstai",
+  "guiFile": "factory/plugins/cozy-delay/gui.html",
+  "publishedAt": 1751000136000,
+  "theme": { "accent": "#ff9a5a", "accent2": "#ffd86a" },
+  "params": [
+    { "name": "Time",     "index": 0, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Feedback", "index": 1, "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Tone",     "index": 2, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Mix",      "index": 3, "min": 0, "max": 1, "default": 0.4 }
+  ]
+}

@@ -25,7 +25,7 @@ const ARGS = [
   "--noAssert",
   "--runtime", "minimal",
   "--bindings", "raw",
-  "--initialMemory", "4",
+  "--initialMemory", "16",
   // Cap at 4096 pages = 256 MiB. Memory only grows to what a module actually
   // touches, so plain effects/synths still use a few pages; this headroom is
   // what lets a sampler/granular module allocate the optional sample buffer

@@ -1,0 +1,20 @@
+{
+  "name": "Digi Wave",
+  "isInstrument": true,
+  "explanation": "A hybrid digital/analog polyphonic synthesizer with up to eight voices. Each voice plays a selectable single-cycle digital waveform from a bank of eight harmonically-distinct tables (organ, reed, hollow square, piano-ish, buzzy saw, pulse, bell and sync-buzz) built at startup, then runs it through a warm resonant analog-style 4-pole low-pass with its own attack/release contour. A built-in stereo delay/chorus adds the signature shimmer. Controls: Wave select, Cutoff, Resonance, Env Amount, Attack, Release, Delay mix and Level. Digital edge meets analog warmth.",
+  "assembly": "factory/plugins/digi-wave/assembly.ts",
+  "out": "factory/plugins/digi-wave/x.vstai",
+  "publishedAt": 1751000135000,
+  "theme": { "accent": "#43e0c4", "accent2": "#7a86ff" },
+  "guiFile": "factory/plugins/digi-wave/gui.html",
+  "params": [
+    { "name": "Wave",      "index": 0, "min": 0, "max": 7, "default": 0, "step": 1 },
+    { "name": "Cutoff",    "index": 1, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Resonance", "index": 2, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "EnvAmount", "index": 3, "min": 0, "max": 1, "default": 0.55 },
+    { "name": "Attack",    "index": 4, "min": 0, "max": 1, "default": 0.04 },
+    { "name": "Release",   "index": 5, "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Delay",     "index": 6, "min": 0, "max": 1, "default": 0.30 },
+    { "name": "Level",     "index": 7, "min": 0, "max": 1, "default": 0.6 }
+  ]
+}

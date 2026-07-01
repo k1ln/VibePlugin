@@ -135,7 +135,6 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 93 | Vocoder (channel, EMS-style) (channel vocoder) | **Robot Voice** | ✅ PASS |
 | 97 | BBE Sonic Maximizer (psychoacoustic phase + clarity enhancer) | **Sonic Max** | ✅ PASS |
 | 20 | TC Electronic 2290 (pristine digital delay) | **Studio Delay** | ✅ PASS |
-| 62 | SSL bus compressor (VCA bus compressor) | **Bus Glue** | ✅ PASS |
 | 70 | Multiband compressor (multiband compressor) | **Multiband** | ✅ PASS |
 | 75 | API 550A (discrete proportional-Q console EQ) | **Discrete EQ** | ✅ PASS |
 | 56 | Transformer/iron saturation (transformer/iron saturation) | **Iron Drive** | ✅ PASS |
@@ -150,6 +149,36 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 88 | Eventide H3000 (micro-pitch detune doubler) | **Micro Shift** | ✅ PASS |
 | 41 | Demeter Tremulator (optical multi-shape stereo tremolo) | **Opto Trem** | ✅ PASS |
 | 6 | Fender outboard spring tank (Accutronics) (drippy outboard spring reverb) | **Drip Tank** | ✅ PASS |
+| 28 | Electro-Harmonix Small Stone (4-stage OTA phaser with feedback) | **Gush Phaser** | ✅ PASS |
+| 16 | Maestro Echoplex EP-3 (tape echo with preamp warmth) | **Tube Echo** | ✅ PASS |
+| 52 | Marshall Guv'nor (amp-in-a-box distortion with tone stack) | **Brit Distortion** | ✅ PASS |
+| 48 | Tone Bender MkII (gated germanium fuzz) | **Bender Fuzz** | ✅ PASS |
+| 65 | Empirical Labs Distressor (aggressive FET comp with distortion) | **Crush Comp** | ✅ PASS |
+| 21 | Lexicon PCM42 (modulated digital delay with infinite hold) | **Hold Echo** | ✅ PASS |
+| 34 | A/DA Flanger (extreme metallic flanger) | **Steel Flanger** | ✅ PASS |
+| 49 | Boss SD-1 (asymmetric soft-clip overdrive) | **Sweet Drive** | ✅ PASS |
+| 14 | Convolution reverb (real measured room IR, CC BY 4.0) | **Room Print** | ✅ PASS |
+| 83 | Mu-Tron III (envelope-follower filter) | **Funk Filter** | ✅ PASS |
+| 76 | SSL 4000 channel EQ (4-band console channel EQ) | **Strip EQ** | ✅ PASS |
+| 51 | MXR Distortion+ (germanium hard-clip distortion) | **Amber Crunch** | ✅ PASS |
+| 30 | Boss CE-1 Chorus Ensemble (BBD stereo chorus ensemble + vibrato) | **Wide Ensemble** | ✅ PASS |
+| 5 | AKG BX20 (long bright studio spring reverb) | **Tower Spring** | ✅ PASS |
+| 62 | SSL bus compressor (SSL-style glue bus compressor) | **Master Glue** | ✅ PASS |
+| 38 | Boss DC-2 Dimension C (button-mode dimensional chorus) | **Quad Dimension** | ✅ PASS |
+| 35 | MXR Flanger (warm analog flanger) | **Warm Flanger** | ✅ PASS |
+| 19 | Boss DM-2 (warm short BBD analog delay) | **Cozy Delay** | ✅ PASS |
+| 99 | Leslie + tube preamp combo (organ chain) (rotary speaker through overdriven tube preamp) | **Valve Rotary** | ✅ PASS |
+| 13 | Quantec QRS (natural digital ambience room reverb) | **Atrium** | ✅ PASS |
+| 54 | Diode/tube clipping stage (generic VA) (transparent soft-clip saturator) | **Clip Stage** | ✅ PASS |
+| 32 | TC Electronic SCF (pristine stereo chorus/flanger combo) | **Glass Chorus** | ✅ PASS |
+| 22 | Roland SDE-3000 (clean rack digital delay with doubler modulation) | **Rack Echo** | ✅ PASS |
+| 24 | Tape delay physical model (wow/flutter) | **Flutter Echo** | ✅ PASS |
+| 25 | Korg SDD-3000 (bright preamp digital delay) | **Edge Echo** | ✅ PASS |
+| 3 | EMT 140 (bright dense studio plate reverb) | **Vocal Plate** | ✅ PASS |
+| 98 | Dolby A/SR + HX (companding NR character) | **Compander** | ✅ PASS |
+| 68 | Optical compressor (generic opto leveler) | **Soft Opto** | ✅ PASS |
+| 23 | BBD bucket-brigade model (generic BBD delay/chorus) | **Analog Bucket** | ✅ PASS |
+| 89 | Antares Auto-Tune (real-time pitch correction) | **Pitch Snap** | ✅ PASS |
 
 ### Synths
 | # | Original | → New name | Status |
@@ -191,5 +220,70 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 23 | Roland Alpha Juno (DCO poly with PWM "hoover" pad) | **Storm Juno** | ✅ PASS |
 | 97 | Access Virus (hypersaw virtual-analog poly) | **Hyper VA** | ✅ PASS |
 | 35 | Oberheim SEM (multimode state-variable-filter mono/duo synth) | **Sem Voice** | ✅ PASS |
+| 60 | Casio VL-1 (lo-fi mini digital synth) | **Pocket Tone** | ✅ PASS |
+| 36 | Oberheim Matrix-12 (heavily-modulated dual-filter poly) | **Matrix Poly** | ✅ PASS |
+| 50 | Elka Synthex (bright punchy analog poly) | **Vivid Poly** | ✅ PASS |
+| 55 | Yamaha CS-15 / CS-10 (dual HP+LP series-filter mono) | **Twin Filter** | ✅ PASS |
+| 19 | Roland SH-101 (punchy sub-oscillator mono synth) | **Mono Spark** | ✅ PASS |
+| 67 | Korg Poly-800 (single-filter paraphonic DCO poly) | **Thrift Poly** | ✅ PASS |
+| 71 | Korg PS-3200 (fully-polyphonic organ/string ensemble) | **Choral Bank** | ✅ PASS |
+| 43 | ARP Axxe (American poly voice with sample & hold) | **Arc Poly** | ✅ PASS |
+| 7 | Moog Taurus (deep sub-bass pedal synth) | **Sub Pedal** | ✅ PASS |
+| 100 | Novation Bass Station (modern VA acid-bass mono) | **Sub Station** | ✅ PASS |
+| 18 | Roland Jupiter-6 (multimode-filter analog poly) | **Comet Six** | ✅ PASS |
+| 62 | Korg DW-8000 (DWGS digital-wave + analog-filter hybrid poly) | **Digi Wave** | ✅ PASS |
+| 10 | Moog Voyager (modern Moog mono with dual-mode filter) | **Voyage Mono** | ✅ PASS |
+| 25 | Roland JX-8P (warm velocity-sensitive DCO poly) | **Velour Poly** | ✅ PASS |
+| 2 | Moog Modular (55/35) (3-oscillator semi-modular mono monster) | **Patch Tower** | ✅ PASS |
+| 20 | Roland SH-2 (dual-VCO mono with ring mod) | **Twin Volt** | ✅ PASS |
+| 3 | Moog Prodigy (lean 2-oscillator sync mono) | **Bolt Mono** | ✅ PASS |
+| 64 | Korg MS-10 (aggressive patchable single-VCO mono) | **Lab Mono** | ✅ PASS |
+| 49 | Crumar Performer (string + brass ensemble machine) | **Stage Strings** | ✅ PASS |
+| 27 | Roland MC-202 (acid sequencer bass mono) | **Seq Bass** | ✅ PASS |
+| 5 | Micromoog (compact expressive single-osc Moog mono) | **Mini Volt** | ✅ PASS |
+| 82 | Oberheim DMX (sample-playback drum machine, original CC0 one-shots) | **Kit Machine** | ✅ PASS |
+| 69 | Korg M1 (PCM workstation — original CC0 multisamples) | **Crystal Station** | ✅ PASS |
+| 76 | Ensoniq Mirage (lo-fi 8-bit sampler — original CC0 sample) | **Dust Keys** | ✅ PASS |
+| 22 | Roland D-50 (LA synthesis — PCM attack + synth body, CC0 attacks) | **Linear Dream** | ✅ PASS |
+| 16 | Roland Juno-106 (DCO polysynth + high-pass + chorus) | **Nova Six** | ✅ PASS |
+| 33 | Oberheim OB-Xa (fat multimode-filter analog poly) | **Brass Eight** | ✅ PASS |
+| 83 | Simmons SDS-V (real-time analog electronic drums) | **Hex Drums** | ✅ PASS |
+| 92 | Vox Continental (bright combo organ, drawbars) | **Vee Organ** | ✅ PASS |
+| 96 | Roland RS-09 / Logan String Melody (divide-down string+organ) | **Divide Ensemble** | ✅ PASS |
+| 14 | Roland TR-606 (tight analog drum machine) | **Bark Beat** | ✅ PASS |
+| 56 | Yamaha TX81Z (FM with selectable operator waveforms) | **Lately FM** | ✅ PASS |
+| 98 | Clavia Nord Lead (morphable-waveform virtual-analog lead) | **Aurora VA** | ✅ PASS |
+| 68 | Korg Mini-Pops (Latin preset rhythm box) | **Pocket Rhythm** | ✅ PASS |
+| 24 | Roland JX-3P (DCO poly with cross-modulation) | **Tri Poly** | ✅ PASS |
+| 30 | Sequential Prophet-600 (CEM poly with Poly-Mod) | **Oracle Six** | ✅ PASS |
+| 66 | Korg Polysix (single-VCO poly with built-in phaser) | **Hex Glow** | ✅ PASS |
+| 86 | Boss DR-110 (budget analog drum box) | **Micro Beat** | ✅ PASS |
+| 4 | Moog Source (two-osc Moog mono) | **Source Mono** | ✅ PASS |
+| 99 | Waldorf Blofeld (wavetable scanner) | **Wave Storm** | ✅ PASS |
+| 37 | Oberheim Four/Eight Voice (fat unison SEM-stack poly) | **Voice Eight** | ✅ PASS |
+| 9 | Multimoog (expressive single-VCO mono with osc-mod) | **Multi Mono** | ✅ PASS |
+| 26 | Roland CR-78 (warm preset-pattern rhythm box) | **Velvet Rhythm** | ✅ PASS |
+| 34 | Oberheim OB-8 (bright four-pole PWM poly) | **Onyx Eight** | ✅ PASS |
+| 87 | Roland TR-707/727 (crisp digital house drum box) | **Crisp Beat** | ✅ PASS |
+| 40 | Rhodes Chroma (ring-mod hybrid poly) | **Prism Eight** | ✅ PASS |
+| 85 | E-mu Drumulator (8-bit lo-fi crunch drum box) | **Byte Beat** | ✅ PASS |
+| 38 | Sequential Prophet VS (vector-scan poly) | **Vector Eight** | ✅ PASS |
+| 58 | Native FM / Chowning (two-operator FM) | **FM Core** | ✅ PASS |
+| 88 | Yamaha RX5 (bright digital FM drum machine) | **Pulse Kit** | ✅ PASS |
+| 84 | Casio RZ-1 (cheap thin 12-bit drum box) | **Thin Kit** | ✅ PASS |
+| 80 | Waldorf Microwave (gritty digital wavetable poly) | **Grit Wave** | ✅ PASS |
+| 40 | Boss BF-2 (deep resonant stereo flanger) | **Blue Flanger** | ✅ PASS |
+| 73 | Fairlight CMI (8-bit sampler, CC0 baked sample) | **Fair Cell** | ✅ PASS |
+| 91 | PSOLA / phase-vocoder pitch shift (formant-aware) | **Vox Shifter** | ✅ PASS |
+| 74 | E-mu Emulator II (warm 8-bit string/choir sampler) | **Silk Cell** | ✅ PASS |
+| 75 | Akai S900/S1000 (crisp 12-bit rack sampler) | **Rack Cell** | ✅ PASS |
+| 72 | Korg Lambda/Sigma (string ensemble poly) | **Halo Ensemble** | ✅ PASS |
+| 78 | Akai MPC60/3000 (swung punchy drum sampler) | **Swing Kit** | ✅ PASS |
+| 39 | Chroma Polaris (warm hard-sync 6-voice poly) | **Polar Six** | ✅ PASS |
+| 57 | Yamaha SY77/SY99 (FM + resonant filter, RCM) | **Realm FM** | ✅ PASS |
+| 46 | EMS Synthi 100 (ring-mod patch-matrix modular) | **Patch Grid** | ✅ PASS |
+| 8 | Moog Rogue (two-osc Moog ladder mono) | **Rover Mono** | ✅ PASS |
+| 48 | Serge modular (West-Coast wavefolder) | **Fold West** | ✅ PASS |
+| 21 | Roland System-100 (semi-modular S&H mono) | **Scout Mono** | ✅ PASS |
 
-**Done: 106 / 200.** Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.
+**Done: 200 / 200.** 🎉 Every modeling target shipped: tested wasm · stunning bespoke GUI · gallery `.vstai` · `test.html` bench. Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.

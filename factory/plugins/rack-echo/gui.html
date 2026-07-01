@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ac:#6ad0ff;       /* cyan digital readout */
+  --ac2:#b0a0ff;      /* violet doubler tint */
+  --face:#161922;
+  --face2:#0c0e14;
+  --steel:#2a2f3b;
+  --led:#7dffb0;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#cdd6e6;
+  background:
+    radial-gradient(130% 90% at 50% -10%,#1a1d27 0%,#0a0c11 60%,#05060a 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:22px;overflow:hidden;
+}
+
+/* ===== 1U rack face ===== */
+.rack{
+  position:relative;
+  width:640px;max-width:96vw;
+  border-radius:10px;
+  padding:16px 22px 18px;
+  background:
+    linear-gradient(180deg,#262b37 0%,#181c25 8%,#13161e 50%,#0d1016 92%,#1c2029 100%);
+  box-shadow:
+    0 30px 70px -20px rgba(0,0,0,.8),
+    0 1px 0 rgba(255,255,255,.10) inset,
+    0 -14px 30px -16px rgba(0,0,0,.7) inset,
+    0 0 0 1px #04060a,
+    0 0 0 4px #0a0d13;
+  animation:rise .65s cubic-bezier(.2,.8,.25,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
+/* brushed-metal horizontal grain + top sheen */
+.rack::before{
+  content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),
+    linear-gradient(180deg,rgba(255,255,255,.10),transparent 14%);
+  mix-blend-mode:screen;opacity:.7;
+}
+/* rack ears (mounting holes) */
+.ear{position:absolute;top:0;bottom:0;width:26px;display:flex;flex-direction:column;
+  justify-content:space-between;padding:14px 0;align-items:center}
+.ear.l{left:0}.ear.r{right:0}
+.hole{width:9px;height:9px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#05070b,#0c0f15 60%,#2a2f3b 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,.12),inset 0 1px 2px rgba(0,0,0,.9)}
+
+.inner{position:relative;display:flex;gap:18px;align-items:stretch;margin:0 18px}
+
+/* ===== left: branding + readout ===== */
+.left{flex:0 0 222px;display:flex;flex-direction:column;gap:10px}
+.brand{font-size:8px;letter-spacing:.4em;color:#7d8aa3;text-transform:uppercase}
+h1{margin:1px 0 0;font-size:19px;font-weight:800;letter-spacing:.05em;
+  color:#e8eefb;text-shadow:0 1px 0 #000}
+h1 b{color:var(--ac);font-weight:800}
+.tag{font-size:7.5px;letter-spacing:.26em;color:#6f7c95;text-transform:uppercase;margin-top:-2px}
+
+/* green/cyan time readout — the signature display */
+.disp{
+  position:relative;margin-top:4px;height:74px;border-radius:7px;overflow:hidden;
+  background:linear-gradient(180deg,#03110f,#01080a 70%);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.9),
+             0 0 0 1px #04100d,
+             0 0 0 2px rgba(0,0,0,.5),
+             inset 0 0 30px rgba(106,208,255,.10);
+}
+.disp::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.32) 0 2px,transparent 2px 4px);opacity:.45}
+.disp .ms{position:absolute;left:14px;top:11px;font-variant-numeric:tabular-nums;
+  font-weight:800;font-size:34px;letter-spacing:.02em;color:var(--ac);
+  text-shadow:0 0 6px var(--ac),0 0 18px rgba(106,208,255,.5)}
+.disp .unit{font-size:13px;color:#3f9fc4;margin-left:3px;text-shadow:none}
+.disp .meta{position:absolute;left:15px;bottom:9px;font-size:8px;letter-spacing:.22em;
+  color:#3fa6cf;text-transform:uppercase;opacity:.85;font-variant-numeric:tabular-nums}
+.disp .mode{position:absolute;right:13px;top:13px;font-size:8.5px;letter-spacing:.18em;
+  text-transform:uppercase;padding:3px 7px;border-radius:4px;
+  color:var(--ac2);border:1px solid rgba(176,160,255,.4);
+  box-shadow:0 0 10px rgba(176,160,255,.25) inset;transition:opacity .3s, color .3s}
+.disp .mode.dbl{color:#0a0e14;background:var(--ac2);box-shadow:0 0 14px var(--ac2);
+  animation:dblpulse 1.4s ease-in-out infinite}
+@keyframes dblpulse{0%,100%{box-shadow:0 0 8px var(--ac2)}50%{box-shadow:0 0 18px var(--ac2)}}
+
+/* tiny power led */
+.pwr{display:flex;align-items:center;gap:6px;margin-top:2px}
+.led{width:7px;height:7px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#dfffe9,var(--led) 50%,#0c4a2c 90%);
+  box-shadow:0 0 9px var(--led);animation:ledp 2.4s ease-in-out infinite}
+@keyframes ledp{0%,100%{opacity:.7}50%{opacity:1}}
+.pwr span{font-size:7.5px;letter-spacing:.24em;color:#84a59a;text-transform:uppercase}
+
+/* ===== middle: mirrored repeat-waveform scope ===== */
+.scope{
+  flex:1 1 auto;min-width:120px;position:relative;border-radius:7px;overflow:hidden;
+  background:radial-gradient(120% 130% at 50% 50%,#0b1018,#05080d 75%);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.85),0 0 0 1px #04060a,
+             inset 0 0 28px rgba(106,208,255,.06);
+}
+.scope::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 22%)}
+.scope svg{position:absolute;inset:0;width:100%;height:100%}
+.axis{stroke:rgba(106,208,255,.10);stroke-width:1}
+.imp{fill:none;stroke-width:2.2;stroke-linecap:round}
+.impL{stroke:var(--ac);filter:drop-shadow(0 0 5px var(--ac))}
+.impR{stroke:var(--ac2);filter:drop-shadow(0 0 5px var(--ac2))}
+.head{stroke:rgba(255,255,255,.5);stroke-width:1;stroke-dasharray:2 4;
+  animation:flow 1.1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-12}}
+.scope .lbl{position:absolute;left:8px;top:6px;font-size:7px;letter-spacing:.2em;
+  color:#5b7c92;text-transform:uppercase}
+.scope .lblR{left:auto;right:8px;color:#7a6fb0}
+
+/* ===== knob deck ===== */
+.deck{display:flex;justify-content:space-between;gap:8px;margin:18px 18px 2px}
+.pot{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;
+  animation:pop .5s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.knob{position:relative;width:72px;height:72px;cursor:ns-resize;touch-action:none;user-select:none}
+/* tick ring */
+.ticks{position:absolute;inset:-2px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(180,200,230,.45) 0 1deg,transparent 1deg 16.875deg);
+  -webkit-mask:radial-gradient(circle,transparent 35px,#000 36px,#000 39px,transparent 40px);
+  mask:radial-gradient(circle,transparent 35px,#000 36px,#000 39px,transparent 40px)}
+/* value arc */
+.arc{position:absolute;inset:2px;border-radius:50%;
+  background:conic-gradient(from 215deg,var(--ac) calc(var(--n)*270deg),rgba(255,255,255,.06) calc(var(--n)*270deg) 270deg,transparent 270deg);
+  filter:drop-shadow(0 0 calc(1px + var(--n)*7px) var(--ac));
+  transition:--n .1s cubic-bezier(.2,.8,.25,1)}
+/* metal cap */
+.cap{position:absolute;top:9px;left:9px;width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 50% 26%,#3a4150 0%,#1b2029 58%,#0c0f15 100%);
+  box-shadow:inset 0 2px 5px rgba(255,255,255,.14),
+             inset 0 -6px 12px rgba(0,0,0,.8),
+             0 4px 9px rgba(0,0,0,.55)}
+.cap::before{content:"";position:absolute;inset:5px;border-radius:50%;
+  background:repeating-conic-gradient(#1c222c 0 11deg,#0d1116 11deg 22deg);opacity:.55}
+.cap::after{content:"";position:absolute;inset:13px;border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,#414a59,#11151b);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.2)}
+.ptr{position:absolute;top:6px;left:50%;width:3px;height:19px;margin-left:-1.5px;border-radius:3px;
+  background:linear-gradient(var(--ac2),var(--ac));
+  box-shadow:0 0 7px var(--ac),0 0 2px #fff;
+  transform-origin:50% 30px;
+  transform:rotate(calc((var(--n) - .5) * 270deg));
+  transition:transform .1s cubic-bezier(.2,.8,.25,1)}
+.pname{font-size:8.5px;font-weight:700;letter-spacing:.18em;color:#9fb0c8;text-transform:uppercase}
+.pval{font-size:11px;font-weight:800;color:#e8f4ff;font-variant-numeric:tabular-nums;
+  min-height:13px;text-shadow:0 0 7px rgba(106,208,255,.4)}
+.knob.act .cap{box-shadow:inset 0 2px 5px rgba(255,255,255,.14),inset 0 -6px 12px rgba(0,0,0,.8),0 4px 13px rgba(106,208,255,.5)}
+.knob.act .arc{filter:drop-shadow(0 0 calc(3px + var(--n)*9px) var(--ac))}
+</style>
+</head>
+<body>
+<div class="rack">
+  <div class="ear l"><span class="hole"></span><span class="hole"></span></div>
+  <div class="ear r"><span class="hole"></span><span class="hole"></span></div>
+
+  <div class="inner">
+    <div class="left">
+      <div class="brand">Studio Rack Series &middot; 1U</div>
+      <h1>RACK <b>ECHO</b></h1>
+      <div class="tag">Digital Delay / Doubler</div>
+
+      <div class="disp">
+        <div class="ms"><span id="msv">0</span><span class="unit">ms</span></div>
+        <div class="mode" id="mode">Delay</div>
+        <div class="meta"><span id="fbv">FB 0%</span> &middot; <span id="mixv">MIX 0%</span></div>
+      </div>
+      <div class="pwr"><span class="led"></span><span>Power</span></div>
+    </div>
+
+    <div class="scope">
+      <div class="lbl">L</div><div class="lbl lblR">R</div>
+      <svg viewBox="0 0 300 150" preserveAspectRatio="none">
+        <line class="axis" x1="0" y1="40" x2="300" y2="40"/>
+        <line class="axis" x1="0" y1="110" x2="300" y2="110"/>
+        <line class="head" x1="14" y1="6" x2="14" y2="144"/>
+        <path id="impL" class="imp impL" d=""/>
+        <path id="impR" class="imp impR" d=""/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="deck" id="deck"></div>
+</div>
+
+<script>
+(function(){
+  var PARAMS=[
+    {name:"Time",       index:0,min:0,max:1,def:0.35},
+    {name:"Feedback",   index:1,min:0,max:1,def:0.35},
+    {name:"Modulation", index:2,min:0,max:1,def:0.30},
+    {name:"Tone",       index:3,min:0,max:1,def:0.65},
+    {name:"Mix",        index:4,min:0,max:1,def:0.40}
+  ];
+  var state={};
+  var deck=document.getElementById('deck');
+  var msv=document.getElementById('msv');
+  var fbv=document.getElementById('fbv');
+  var mixv=document.getElementById('mixv');
+  var modeEl=document.getElementById('mode');
+  var impL=document.getElementById('impL');
+  var impR=document.getElementById('impR');
+
+  function pct(v){ return Math.round(v*100)+"%"; }
+  function timeMs(n){ return Math.round(20 + n*n*980); } // mirrors DSP 20..1000ms
+
+  function buildKnob(p,i){
+    var cell=document.createElement('div');
+    cell.className='pot'; cell.style.setProperty('--d',(i*60)+'ms');
+    cell.innerHTML=
+      '<div class="knob" tabindex="0">'+
+        '<i class="ticks"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i>'+
+      '</div>'+
+      '<div class="pname">'+p.name+'</div>'+
+      '<div class="pval"></div>';
+    deck.appendChild(cell);
+
+    var knob=cell.querySelector('.knob');
+    var arc=cell.querySelector('.arc');
+    var ptr=cell.querySelector('.ptr');
+    var val=cell.querySelector('.pval');
+    var v=p.def;
+
+    function norm(){ return (v-p.min)/((p.max-p.min)||1); }
+    function paint(){
+      var n=norm();
+      arc.style.setProperty('--n',n);
+      ptr.style.setProperty('--n',n);
+      val.textContent = p.index===0 ? timeMs(n)+" ms" : pct(n);
+      state[p.index]=v;
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+      onChange();
+    }
+    function setNorm(n){
+      n=n<0?0:n>1?1:n;
+      v=p.min+(p.max-p.min)*n;
+      paint();
+    }
+
+    var drag=false,startY=0,startN=0;
+    knob.addEventListener('pointerdown',function(e){
+      drag=true; startY=e.clientY; startN=norm();
+      knob.classList.add('act'); knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!drag)return;
+      var speed=e.shiftKey?640:210;
+      setNorm(startN+(startY-e.clientY)/speed);
+    });
+    function end(){ drag=false; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){
+      e.preventDefault(); setNorm(norm()+(e.deltaY<0?0.025:-0.025));
+    },{passive:false});
+    knob.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'||e.key==='ArrowRight'){setNorm(norm()+0.02);e.preventDefault();}
+      else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
+    });
+
+    paint();
+  }
+
+  // ---- update readout + mirrored repeat-impulse scope ----
+  function onChange(){
+    var timeN=state[0]!=null?state[0]:0.35;
+    var fb   =state[1]!=null?state[1]:0.35;
+    var mod  =state[2]!=null?state[2]:0.30;
+    var mix  =state[4]!=null?state[4]:0.40;
+
+    // readout
+    msv.textContent=timeMs(timeN);
+    fbv.textContent="FB "+Math.round(fb*100)+"%";
+    mixv.textContent="MIX "+Math.round(mix*100)+"%";
+    // mode flips to DOUBLE when modulation is up — the SDE-style doubler
+    if(mod>0.4){ modeEl.textContent="Double"; modeEl.classList.add('dbl'); }
+    else{ modeEl.textContent="Delay"; modeEl.classList.remove('dbl'); }
+
+    // scope: a row of decaying repeat impulses, spaced by Time.
+    // Modulation splits each repeat into a doubled (cyan/violet) pair and
+    // jitters them; Feedback sets how many repeats / how slowly they decay.
+    var W=300, headX=14;
+    var spacing=20 + timeN*40;          // px between repeats follows Time
+    var split=mod*7;                    // doubler L/R offset in px
+    var jitter=mod*4;                   // wobble width
+    var fall=0.55 + (1-fb)*0.35;        // decay per repeat (higher fb = slower)
+
+    function build(sideSplit){
+      var d="";
+      var amp=34;
+      var x=headX, a=1.0, idx=0;
+      while(x<W && a>0.04 && idx<24){
+        var jx = (idx>0? Math.sin(idx*1.7)*jitter : 0);
+        var px = x + sideSplit + jx;
+        var h = amp*a;
+        // a short triangular impulse spike at this repeat
+        d+= "M"+(px-2).toFixed(1)+",75 L"+px.toFixed(1)+","+(75-h).toFixed(1)+
+            " L"+(px+2).toFixed(1)+",75 ";
+        x+=spacing;
+        a*=fall;
+        idx++;
+      }
+      return d;
+    }
+    impL.setAttribute('d', build(-split));
+    impR.setAttribute('d', build(+split));
+  }
+
+  PARAMS.forEach(buildKnob);
+
+  function ready(){ onChange(); }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body>
+</html>

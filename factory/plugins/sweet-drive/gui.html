@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sweet Drive</title>
+<style>
+  :root{
+    --accent:#ffd23d;      /* lemon */
+    --accent2:#ff8a2a;     /* honey orange */
+    --face1:#ffe27a;
+    --face2:#f4b62e;
+    --ink:#5a3a08;
+    --chrome1:#fbfbff;
+    --chrome2:#9aa0ad;
+    --chrome3:#3a3e48;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none}
+  html,body{height:100%}
+  body{
+    font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;
+    background:radial-gradient(120% 120% at 50% -10%,#2a2118 0%,#15110b 60%,#0a0806 100%);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;overflow:hidden;color:var(--ink);
+  }
+
+  /* ---------- ambient honey glow ---------- */
+  .glow{
+    position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(40% 50% at 50% 42%,rgba(255,170,40,.20),transparent 70%);
+    animation:breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+
+  /* ---------- the pedal ---------- */
+  .pedal{
+    position:relative;width:340px;border-radius:26px;padding:26px 26px 30px;
+    background:
+      linear-gradient(155deg,var(--face1) 0%,var(--face2) 55%,#e09b20 100%);
+    box-shadow:
+      0 2px 0 rgba(255,255,255,.55) inset,
+      0 -22px 50px rgba(120,70,0,.35) inset,
+      0 28px 60px rgba(0,0,0,.6),
+      0 4px 14px rgba(0,0,0,.5);
+    border:1px solid rgba(120,70,0,.4);
+  }
+  /* glossy top sheen */
+  .pedal::before{
+    content:"";position:absolute;left:14px;right:14px;top:12px;height:34%;
+    border-radius:20px 20px 60% 60%;
+    background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));
+    pointer-events:none;mix-blend-mode:screen;
+  }
+  /* corner screws */
+  .screw{position:absolute;width:14px;height:14px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff,#c9a23a 55%,#7a5a10);
+    box-shadow:0 1px 2px rgba(0,0,0,.5),0 0 0 1px rgba(120,70,0,.3) inset}
+  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
+    background:linear-gradient(45deg,transparent 44%,#6b4d10 44%,#6b4d10 56%,transparent 56%)}
+  .screw.tl{top:10px;left:10px}.screw.tr{top:10px;right:10px}
+  .screw.bl{bottom:10px;left:10px}.screw.br{bottom:10px;right:10px}
+
+  .brand{text-align:center;margin-bottom:4px}
+  .brand h1{
+    font-size:30px;letter-spacing:1px;font-weight:800;font-style:italic;
+    color:#fff;text-shadow:0 1px 0 #fff6,0 2px 3px rgba(120,60,0,.55);
+  }
+  .brand .sub{font-size:10px;letter-spacing:4px;font-weight:700;color:#7a4f0c;opacity:.8;text-transform:uppercase}
+
+  /* ---------- scope: asymmetric clipping waves ---------- */
+  .scope-wrap{
+    margin:12px auto 6px;width:100%;height:96px;border-radius:14px;
+    background:linear-gradient(180deg,#2a1c08,#120c04);
+    box-shadow:0 2px 6px rgba(0,0,0,.5) inset,0 1px 0 rgba(255,255,255,.3);
+    overflow:hidden;position:relative;border:1px solid rgba(0,0,0,.4);
+  }
+  .scope-wrap::after{ /* glass reflection */
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(120deg,rgba(255,255,255,.12),transparent 40%);
+  }
+  svg{display:block;width:100%;height:100%}
+
+  /* ---------- big chrome drive knob ---------- */
+  .knob-stage{display:flex;justify-content:center;margin:14px 0 6px}
+  .bigknob{position:relative;width:130px;height:130px;cursor:grab}
+  .bigknob.drag{cursor:grabbing}
+  .halo{position:absolute;inset:-10px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,180,50,.0),rgba(255,180,50,.0));
+    transition:background .25s}
+  .bigknob:hover .halo{background:radial-gradient(circle,rgba(255,180,50,.35),transparent 65%)}
+  .dial{position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(circle at 38% 30%,#ffffff 0%,#dfe3ec 22%,#aab0bd 48%,#6e7480 70%,#42464f 100%);
+    box-shadow:
+      0 6px 16px rgba(0,0,0,.55),
+      0 1px 0 rgba(255,255,255,.8) inset,
+      0 -8px 14px rgba(0,0,0,.45) inset;
+    border:1px solid #2a2d34;
+  }
+  .dial::before{content:"";position:absolute;inset:14px;border-radius:50%;
+    background:repeating-conic-gradient(#c7ccd6 0deg 4deg,#9aa0ad 4deg 8deg);
+    box-shadow:0 1px 3px rgba(0,0,0,.4) inset}
+  .cap{position:absolute;inset:30px;border-radius:50%;
+    background:radial-gradient(circle at 40% 32%,#fff,#cdd2dc 40%,#7a808c 100%);
+    box-shadow:0 2px 6px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.9) inset}
+  .pointer{position:absolute;left:50%;top:8px;width:5px;height:34px;margin-left:-2.5px;
+    border-radius:3px;background:linear-gradient(#fff,var(--accent2));
+    box-shadow:0 0 6px var(--accent),0 1px 2px rgba(0,0,0,.6);transform-origin:50% 57px}
+  .ticks{position:absolute;inset:-2px;pointer-events:none}
+  .knob-label{position:absolute;left:0;right:0;bottom:-22px;text-align:center;
+    font-size:11px;letter-spacing:3px;font-weight:800;color:#6b4310;text-transform:uppercase}
+  .knob-val{position:absolute;left:0;right:0;top:50px;text-align:center;
+    font-size:18px;font-weight:800;color:#3a2606;text-shadow:0 1px 0 #fff8}
+
+  /* ---------- small knobs row ---------- */
+  .row{display:flex;justify-content:space-around;margin-top:30px}
+  .mini{position:relative;width:74px;text-align:center;cursor:grab}
+  .mini.drag{cursor:grabbing}
+  .mdial{position:relative;width:62px;height:62px;margin:0 auto;border-radius:50%;
+    background:radial-gradient(circle at 38% 30%,#fff 0%,#e7ebf2 24%,#aeb4c1 52%,#5d626d 100%);
+    box-shadow:0 4px 10px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.8) inset,0 -6px 10px rgba(0,0,0,.35) inset;
+    border:1px solid #2a2d34}
+  .mcap{position:absolute;inset:14px;border-radius:50%;
+    background:radial-gradient(circle at 40% 32%,#fff,#c7ccd6 45%,#7a808c)}
+  .mpointer{position:absolute;left:50%;top:4px;width:4px;height:18px;margin-left:-2px;border-radius:2px;
+    background:linear-gradient(#fff,var(--accent2));box-shadow:0 0 5px var(--accent);transform-origin:50% 27px}
+  .mlabel{font-size:10px;letter-spacing:2px;font-weight:800;color:#6b4310;margin-top:7px;text-transform:uppercase}
+  .mval{font-size:11px;font-weight:700;color:#4a3208;opacity:.85}
+
+  /* ---------- LED ---------- */
+  .led{position:absolute;top:54px;right:30px;width:13px;height:13px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff,#ffcf3b 40%,#ff7a18 90%);
+    box-shadow:0 0 12px 3px rgba(255,150,30,.85),0 1px 2px rgba(0,0,0,.5);
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 8px 2px rgba(255,150,30,.6)}50%{box-shadow:0 0 16px 5px rgba(255,170,40,1)}}
+
+  .footnote{text-align:center;font-size:9px;color:#7a4f0c;opacity:.7;margin-top:18px;letter-spacing:2px}
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="pedal">
+    <span class="screw tl"></span><span class="screw tr"></span>
+    <span class="screw bl"></span><span class="screw br"></span>
+    <span class="led"></span>
+
+    <div class="brand">
+      <h1>Sweet&nbsp;Drive</h1>
+      <div class="sub">Asymmetric Overdrive</div>
+    </div>
+
+    <div class="scope-wrap">
+      <svg id="scope" viewBox="0 0 340 96" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="g-wave" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff2a8"/>
+            <stop offset="1" stop-color="#ff8a2a"/>
+          </linearGradient>
+          <linearGradient id="g-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="rgba(255,210,61,.45)"/>
+            <stop offset="1" stop-color="rgba(255,138,42,.02)"/>
+          </linearGradient>
+        </defs>
+        <line x1="0" y1="48" x2="340" y2="48" stroke="rgba(255,200,80,.18)" stroke-width="1"/>
+        <path id="wfill" fill="url(#g-fill)" d=""/>
+        <path id="wave" fill="none" stroke="url(#g-wave)" stroke-width="2.4"
+              stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="knob-stage">
+      <div class="bigknob" id="k-drive" tabindex="0">
+        <div class="halo"></div>
+        <svg class="ticks" viewBox="0 0 130 130">
+          <g id="bigticks" stroke="#7a4f0c" stroke-width="2" stroke-linecap="round"></g>
+        </svg>
+        <div class="dial"></div>
+        <div class="cap"></div>
+        <div class="pointer" id="p-drive"></div>
+        <div class="knob-val" id="v-drive">50</div>
+        <div class="knob-label">Drive</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="mini" id="k-tone" tabindex="0">
+        <div class="mdial"><div class="mcap"></div><div class="mpointer" id="p-tone"></div></div>
+        <div class="mlabel">Tone</div><div class="mval" id="v-tone">50</div>
+      </div>
+      <div class="mini" id="k-level" tabindex="0">
+        <div class="mdial"><div class="mcap"></div><div class="mpointer" id="p-level"></div></div>
+        <div class="mlabel">Level</div><div class="mval" id="v-level">60</div>
+      </div>
+      <div class="mini" id="k-mix" tabindex="0">
+        <div class="mdial"><div class="mcap"></div><div class="mpointer" id="p-mix"></div></div>
+        <div class="mlabel">Mix</div><div class="mval" id="v-mix">100</div>
+      </div>
+    </div>
+
+    <div class="footnote">EVEN-HARMONIC SOFT CLIP · BOUTIQUE TONE</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- host bridge ----
+  function setParam(i,v){
+    try{ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i, v); }catch(e){}
+  }
+
+  // ---- param model (all 0..1 normalized) ----
+  var P = {
+    drive:{idx:0, def:0.5, val:0.5, big:true,  pEl:"p-drive", vEl:"v-drive"},
+    tone: {idx:1, def:0.5, val:0.5, big:false, pEl:"p-tone",  vEl:"v-tone"},
+    level:{idx:2, def:0.6, val:0.6, big:false, pEl:"p-level", vEl:"v-level"},
+    mix:  {idx:3, def:1.0, val:1.0, big:false, pEl:"p-mix",   vEl:"v-mix"}
+  };
+
+  var MIN=-135, MAX=135; // pointer sweep degrees
+
+  function angle(v){ return MIN + v*(MAX-MIN); }
+
+  function render(name){
+    var p=P[name];
+    var ptr=document.getElementById(p.pEl);
+    if(ptr) ptr.style.transform = "rotate("+angle(p.val).toFixed(1)+"deg)";
+    var val=document.getElementById(p.vEl);
+    if(val) val.textContent = Math.round(p.val*100);
+  }
+
+  function commit(name){
+    var p=P[name];
+    setParam(p.idx, p.val);
+    render(name);
+  }
+
+  // ---- big knob tick marks ----
+  (function(){
+    var g=document.getElementById("bigticks");
+    if(!g) return;
+    var cx=65, cy=65;
+    for(var i=0;i<=10;i++){
+      var a=(MIN + i/10*(MAX-MIN))*Math.PI/180;
+      var r1=58, r2=(i%5===0)?49:53;
+      var x1=cx+r1*Math.sin(a), y1=cy-r1*Math.cos(a);
+      var x2=cx+r2*Math.sin(a), y2=cy-r2*Math.cos(a);
+      var ln=document.createElementNS("http://www.w3.org/2000/svg","line");
+      ln.setAttribute("x1",x1.toFixed(1));ln.setAttribute("y1",y1.toFixed(1));
+      ln.setAttribute("x2",x2.toFixed(1));ln.setAttribute("y2",y2.toFixed(1));
+      ln.setAttribute("opacity", i%5===0 ? "0.9":"0.45");
+      g.appendChild(ln);
+    }
+  })();
+
+  // ---- drag interaction (vertical drag = value) ----
+  function attach(name, elId){
+    var el=document.getElementById(elId);
+    if(!el) return;
+    var dragging=false, startY=0, startVal=0;
+
+    function down(e){
+      dragging=true; el.classList.add("drag");
+      startY = (e.touches?e.touches[0].clientY:e.clientY);
+      startVal = P[name].val;
+      e.preventDefault();
+      window.addEventListener("mousemove",move);
+      window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false});
+      window.addEventListener("touchend",up);
+    }
+    function move(e){
+      if(!dragging) return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var dy=startY-y;
+      var span = e.shiftKey ? 600 : 220; // shift = fine
+      var v=startVal + dy/span;
+      v = v<0?0:(v>1?1:v);
+      P[name].val=v; commit(name);
+      e.preventDefault();
+    }
+    function up(){
+      dragging=false; el.classList.remove("drag");
+      window.removeEventListener("mousemove",move);
+      window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move);
+      window.removeEventListener("touchend",up);
+    }
+    el.addEventListener("mousedown",down);
+    el.addEventListener("touchstart",down,{passive:false});
+    // double-click = reset to default
+    el.addEventListener("dblclick",function(){ P[name].val=P[name].def; commit(name); });
+    // wheel = fine adjust
+    el.addEventListener("wheel",function(e){
+      var v=P[name].val - (e.deltaY>0?0.02:-0.02);
+      v=v<0?0:(v>1?1:v); P[name].val=v; commit(name); e.preventDefault();
+    },{passive:false});
+    // keyboard
+    el.addEventListener("keydown",function(e){
+      var step=(e.shiftKey?0.01:0.05),d=0;
+      if(e.key==="ArrowUp"||e.key==="ArrowRight")d=step;
+      else if(e.key==="ArrowDown"||e.key==="ArrowLeft")d=-step;
+      else return;
+      var v=P[name].val+d; v=v<0?0:(v>1?1:v); P[name].val=v; commit(name); e.preventDefault();
+    });
+  }
+
+  // ---- animated scope: asymmetric soft-clip waveform ----
+  var wave=document.getElementById("wave");
+  var wfill=document.getElementById("wfill");
+  var W=340,H=96,MID=48,phase=0;
+
+  function tanh(x){ var e=Math.exp(2*x); return (e-1)/(e+1); }
+
+  function drawScope(){
+    var drive=P.drive.val, tone=P.tone.val, level=P.level.val, mix=P.mix.val;
+    var gain=1 + drive*drive*9;          // visual gain
+    var bias=0.18 + drive*0.4;           // asymmetry grows with drive
+    var amp=(0.30 + level*0.55)*36;      // vertical amplitude
+    var bright=0.4 + tone*0.6;           // tone -> harmonic sharpness
+    var d="M0 "+MID, fill="M0 "+MID;
+    var N=68;
+    for(var i=0;i<=N;i++){
+      var x=i/N*W;
+      var t=i/N*Math.PI*2*2 + phase;     // two cycles
+      var s=Math.sin(t) + 0.18*bright*Math.sin(3*t);
+      // asymmetric clip: bias pushes one half harder
+      var y=tanh(s*gain + bias) - tanh(bias); // remove DC offset
+      // blend dry (clean sine) by mix
+      var dry=Math.sin(t)*0.6;
+      y = y*mix + dry*(1-mix);
+      var py=MID - y*amp;
+      d += " L"+x.toFixed(1)+" "+py.toFixed(1);
+      fill += " L"+x.toFixed(1)+" "+py.toFixed(1);
+    }
+    fill += " L"+W+" "+MID+" Z";
+    wave.setAttribute("d",d);
+    wfill.setAttribute("d",fill);
+    phase += 0.045 + drive*0.06;
+    requestAnimationFrame(drawScope);
+  }
+
+  // ---- boot ----
+  function boot(){
+    attach("drive","k-drive");
+    attach("tone","k-tone");
+    attach("level","k-level");
+    attach("mix","k-mix");
+    for(var k in P){ if(P.hasOwnProperty(k)){ P[k].val=P[k].def; commit(k); } }
+    requestAnimationFrame(drawScope);
+  }
+
+  if(window.vstai && typeof window.vstai.onReady==="function"){
+    window.vstai.onReady(boot);
+  }else{
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

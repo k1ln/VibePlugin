@@ -1,0 +1,477 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Comet Six</title><style>
+@property --p{syntax:'<number>';inherits:false;initial-value:0}
+:root{
+  --ac:#6ad0ff; --ac2:#ff6ad0;
+  --bg0:#070d1c; --bg1:#0c1733; --bg2:#122151;
+  --steel:#16264e; --line:rgba(106,208,255,.18);
+  --ink:#cfe6ff; --dim:#6f86b8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(140% 110% at 50% -20%,#10204a 0%,#0a1430 46%,#05091a 100%);
+  display:flex;align-items:center;justify-content:center;padding:18px;-webkit-font-smoothing:antialiased;
+}
+
+/* ---------------- chassis ---------------- */
+.synth{
+  position:relative;width:100%;max-width:780px;border-radius:16px;padding:10px;
+  background:linear-gradient(160deg,#0e1a3c 0%,#0a1530 60%,#070f24 100%);
+  box-shadow:
+    0 40px 90px rgba(0,0,0,.7),
+    0 2px 0 rgba(106,208,255,.10) inset,
+    0 -3px 16px rgba(0,0,0,.6) inset,
+    0 0 0 1px rgba(106,208,255,.10);
+  animation:rise .7s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.985)}to{opacity:1;transform:none}}
+.surface{
+  position:relative;border-radius:11px;overflow:hidden;
+  background:
+    linear-gradient(180deg,#0d1838,#0a1430 64%,#070f26 100%);
+  box-shadow:
+    0 1px 0 rgba(106,208,255,.16) inset,
+    0 -16px 40px rgba(5,9,26,.7) inset,
+    0 0 0 1px rgba(106,208,255,.08);
+}
+/* faint brushed-metal grain + magenta wash */
+.surface::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.6;
+  background:
+    repeating-linear-gradient(96deg,rgba(106,208,255,.035) 0 2px,transparent 2px 6px),
+    radial-gradient(120% 80% at 88% 8%,rgba(255,106,208,.10),transparent 55%),
+    radial-gradient(120% 80% at 8% 4%,rgba(106,208,255,.10),transparent 55%);
+}
+
+/* ---------------- header ---------------- */
+.head{
+  position:relative;z-index:2;display:flex;align-items:flex-end;gap:14px;
+  padding:18px 24px 13px;border-bottom:1px solid var(--line);
+}
+.brand{display:flex;flex-direction:column;line-height:1}
+.brand .mk{font-size:9.5px;letter-spacing:.46em;color:var(--ac);font-weight:700;text-transform:uppercase;
+  text-shadow:0 0 10px rgba(106,208,255,.5)}
+.brand h1{margin:5px 0 0;font-size:27px;font-weight:900;letter-spacing:.04em;color:#eaf4ff;
+  text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.brand h1 em{font-style:normal;
+  background:linear-gradient(92deg,var(--ac),var(--ac2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 12px rgba(255,106,208,.35))}
+.tag{font-size:9px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;margin-top:5px}
+
+/* voice bar bank */
+.voices{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.voices .vlbl{font-size:8.5px;letter-spacing:.36em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.bank{display:flex;gap:6px;padding:9px 12px;border-radius:10px;align-items:flex-end;height:46px;
+  background:linear-gradient(180deg,#060d22,#040814);
+  box-shadow:0 1px 0 rgba(106,208,255,.12),0 -2px 8px rgba(0,0,0,.6) inset,0 2px 6px rgba(0,0,0,.5)}
+.voice{position:relative;width:9px;height:8px;border-radius:3px;align-self:flex-end;
+  background:linear-gradient(180deg,#16264e,#0c1530);
+  box-shadow:0 0 0 1px rgba(106,208,255,.10) inset;
+  transition:height .14s cubic-bezier(.2,.8,.25,1),background .14s,box-shadow .14s}
+.voice.on{height:30px;
+  background:linear-gradient(180deg,var(--ac),#2a86c8 70%,#15406b);
+  box-shadow:0 0 9px var(--ac),0 0 18px rgba(106,208,255,.5),0 0 0 1px rgba(106,208,255,.5) inset}
+
+/* ---------------- body ---------------- */
+.body{position:relative;z-index:2;padding:18px 24px 8px;display:grid;gap:16px}
+
+/* MODE / filter display hero */
+.hero{display:flex;gap:18px;align-items:stretch;flex-wrap:wrap}
+.scope{flex:1 1 320px;min-width:300px;position:relative;border-radius:12px;overflow:hidden;height:172px;
+  background:
+    radial-gradient(120% 130% at 50% 0%,#0a1838,#060d22 70%,#040813 100%);
+  box-shadow:0 -2px 10px rgba(0,0,0,.6) inset,0 1px 0 rgba(106,208,255,.14),0 0 0 1px rgba(106,208,255,.10)}
+.scope svg{position:absolute;inset:0;width:100%;height:100%}
+.scope .glab{position:absolute;top:9px;left:13px;font-size:8.5px;letter-spacing:.32em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.scope .modeName{position:absolute;top:9px;right:13px;font-size:10px;letter-spacing:.18em;font-weight:800;text-transform:uppercase;
+  color:var(--ac);text-shadow:0 0 10px rgba(106,208,255,.6)}
+.gridln{stroke:rgba(106,208,255,.07);stroke-width:1}
+.curve{fill:none;stroke:url(#cg);stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round;
+  filter:drop-shadow(0 0 6px rgba(106,208,255,.55))}
+.curvefill{fill:url(#cf);opacity:.32}
+.cutline{stroke:var(--ac2);stroke-width:1.4;stroke-dasharray:3 4;opacity:.7;
+  filter:drop-shadow(0 0 5px rgba(255,106,208,.6))}
+/* cross-mod waveform mini-scope */
+.wave{fill:none;stroke:var(--ac2);stroke-width:1.6;opacity:.85;
+  filter:drop-shadow(0 0 5px rgba(255,106,208,.5))}
+.scanline{stroke:rgba(106,208,255,.5);stroke-width:1;animation:scan 3.2s linear infinite}
+@keyframes scan{0%{transform:translateX(0)}100%{transform:translateX(300px)}}
+
+/* side mode-morph control column */
+.modecol{flex:0 0 168px;display:flex;flex-direction:column;gap:11px;
+  padding:14px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(106,208,255,.06),rgba(255,106,208,.04));
+  box-shadow:0 0 0 1px rgba(106,208,255,.12) inset,0 1px 0 rgba(106,208,255,.10)}
+.modecol .mt{font-size:9px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;font-weight:800}
+.morph{position:relative;height:24px;border-radius:13px;cursor:ew-resize;touch-action:none;user-select:none;
+  background:linear-gradient(90deg,
+    rgba(106,208,255,.35) 0%, rgba(160,140,255,.30) 50%, rgba(255,106,208,.35) 100%);
+  box-shadow:0 2px 7px rgba(0,0,0,.5) inset,0 0 0 1px rgba(106,208,255,.18)}
+.morph .fillm{position:absolute;inset:2px;border-radius:11px;
+  background:linear-gradient(90deg,var(--ac),#a08cff 50%,var(--ac2));opacity:.18}
+.morph .thumb{position:absolute;top:50%;width:22px;height:22px;border-radius:50%;margin:-11px 0 0 -11px;
+  left:0%;
+  background:radial-gradient(circle at 38% 32%,#eaf6ff,#bcd9f5 55%,#5e87b8 100%);
+  box-shadow:0 2px 6px rgba(0,0,0,.6),0 0 0 2px rgba(106,208,255,.5),0 0 12px rgba(106,208,255,.6);
+  transition:left .14s cubic-bezier(.2,.8,.25,1)}
+.steps{display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.12em;font-weight:800;text-transform:uppercase}
+.steps span{color:var(--dim);transition:color .15s,text-shadow .15s;cursor:pointer}
+.steps span.sel{color:var(--ink);text-shadow:0 0 9px rgba(106,208,255,.7)}
+.modecol .hint{font-size:8.5px;color:var(--dim);line-height:1.5;letter-spacing:.02em}
+
+/* knob rows */
+.row{display:flex;gap:18px;align-items:stretch;flex-wrap:wrap}
+.module{flex:1 1 0;min-width:220px;position:relative;padding:14px 16px 16px;border-radius:11px;
+  background:linear-gradient(180deg,rgba(106,208,255,.05),rgba(106,208,255,0));
+  box-shadow:0 0 0 1px rgba(106,208,255,.10) inset,0 1px 0 rgba(106,208,255,.08)}
+.module>.mt{font-size:9px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;font-weight:800;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px}
+.module>.mt::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(106,208,255,.22) 0 5px,transparent 5px 10px)}
+.knobs{display:flex;gap:8px;justify-content:space-around;flex-wrap:wrap}
+
+/* ---------------- knob ---------------- */
+.cell{display:flex;flex-direction:column;align-items:center;gap:8px;width:82px;
+  animation:pop .55s both;animation-delay:var(--d)}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.92)}to{opacity:1;transform:none}}
+.knob{--p:0;position:relative;width:62px;height:62px;cursor:ns-resize;touch-action:none;user-select:none}
+.knob .scale{position:absolute;inset:-9px;border-radius:50%;
+  background:repeating-conic-gradient(from 215deg,rgba(106,208,255,.30) 0 1.1deg,transparent 1.1deg 13.5deg);
+  -webkit-mask:radial-gradient(circle,transparent 33px,#000 34px,#000 36px,transparent 37px);
+  mask:radial-gradient(circle,transparent 33px,#000 34px,#000 36px,transparent 37px)}
+.knob .arc{position:absolute;inset:-5px;border-radius:50%;
+  background:conic-gradient(from 215deg,
+    var(--ac) calc(var(--p)*290deg),
+    color-mix(in srgb,var(--ac2) 55%,var(--ac)) calc(var(--p)*290deg),
+    rgba(106,208,255,.10) calc(var(--p)*290deg) 290deg,
+    transparent 290deg);
+  -webkit-mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33.5px,transparent 34.5px);
+  mask:radial-gradient(circle,transparent 30px,#000 31px,#000 33.5px,transparent 34.5px);
+  filter:drop-shadow(0 0 calc(2px + var(--p)*8px) color-mix(in srgb,var(--ac) 75%,transparent));
+  transition:--p .12s cubic-bezier(.2,.8,.25,1)}
+.knob .cap{position:absolute;inset:8px;border-radius:50%;
+  background:radial-gradient(circle at 42% 30%,#1b2c54,#11203f 52%,#0a1430 100%);
+  box-shadow:0 2px 6px rgba(0,0,0,.55),0 1px 0 rgba(106,208,255,.22) inset,0 -5px 10px rgba(0,0,0,.5) inset}
+.knob.act .cap{box-shadow:0 2px 6px rgba(0,0,0,.55),0 1px 0 rgba(106,208,255,.22) inset,0 -5px 10px rgba(0,0,0,.5) inset,0 0 0 2px color-mix(in srgb,var(--ac) 60%,transparent)}
+.knob .ptr{position:absolute;left:50%;top:9px;width:3px;height:18px;margin-left:-1.5px;border-radius:2px;
+  background:linear-gradient(var(--ac),#2a86c8);
+  box-shadow:0 0 6px var(--ac);
+  transform-origin:50% 22px;
+  transform:rotate(calc((var(--p) - .5)*290deg));
+  transition:transform .12s cubic-bezier(.2,.8,.25,1)}
+.cnm{font-size:9.5px;letter-spacing:.13em;color:var(--dim);text-transform:uppercase;font-weight:800;text-align:center}
+.cval{font-size:11px;font-weight:800;color:#eaf4ff;font-variant-numeric:tabular-nums;
+  background:rgba(106,208,255,.08);padding:1px 8px;border-radius:5px;min-width:40px;text-align:center}
+.cell:hover .cval{background:color-mix(in srgb,var(--ac) 26%,rgba(106,208,255,.08))}
+
+footer{position:relative;z-index:2;display:flex;align-items:center;gap:10px;
+  padding:11px 24px 16px;font-size:10px;color:var(--dim);letter-spacing:.04em}
+footer .dotL{width:7px;height:7px;border-radius:50%;background:var(--ac);
+  box-shadow:0 0 8px var(--ac);animation:bp 2.4s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:.5}50%{opacity:1}}
+footer b{color:var(--ink);font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+footer .sp{margin-left:auto;font-style:italic;color:var(--dim);max-width:430px;text-align:right;line-height:1.4}
+</style></head><body>
+<div class="synth"><div class="surface">
+
+  <div class="head">
+    <div class="brand">
+      <span class="mk">Vibe Instruments</span>
+      <h1>Comet <em>Six</em></h1>
+      <span class="tag">6-Voice · Cross-Mod · Multimode SVF</span>
+    </div>
+    <div class="voices">
+      <span class="vlbl">Voices</span>
+      <div class="bank" id="bank"></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- HERO: filter morph scope + cross-mod wave + mode control -->
+    <div class="hero">
+      <div class="scope">
+        <span class="glab">Multimode Filter</span>
+        <span class="modeName" id="modeName">Low-Pass</span>
+        <svg viewBox="0 0 300 172" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="cg" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#6ad0ff"/><stop offset="1" stop-color="#ff6ad0"/>
+            </linearGradient>
+            <linearGradient id="cf" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#6ad0ff" stop-opacity=".6"/>
+              <stop offset="1" stop-color="#6ad0ff" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <line class="gridln" x1="0" y1="40" x2="300" y2="40"/>
+            <line class="gridln" x1="0" y1="80" x2="300" y2="80"/>
+            <line class="gridln" x1="0" y1="120" x2="300" y2="120"/>
+            <line class="gridln" x1="75" y1="0" x2="75" y2="148"/>
+            <line class="gridln" x1="150" y1="0" x2="150" y2="148"/>
+            <line class="gridln" x1="225" y1="0" x2="225" y2="148"/>
+          </g>
+          <path class="curvefill" id="curvefill" d=""/>
+          <path class="curve" id="curve" d=""/>
+          <line class="cutline" id="cutline" x1="150" y1="0" x2="150" y2="148"/>
+          <!-- cross-mod waveform strip across the bottom -->
+          <path class="wave" id="wave" d=""/>
+          <line class="scanline" x1="0" y1="0" x2="0" y2="148"/>
+        </svg>
+      </div>
+
+      <div class="modecol">
+        <div class="mt">Filter Mode</div>
+        <div class="morph" id="morph">
+          <i class="fillm"></i>
+          <i class="thumb" id="thumb"></i>
+        </div>
+        <div class="steps" id="steps">
+          <span data-m="0">LP</span><span data-m="1">BP</span><span data-m="2">HP</span>
+        </div>
+        <div class="hint">Morph the resonant curve from low-pass through band-pass to high-pass for hollow, bright and nasal poly tones.</div>
+      </div>
+    </div>
+
+    <!-- KNOB ROWS -->
+    <div class="row">
+      <div class="module">
+        <div class="mt">Filter</div>
+        <div class="knobs" id="filtK"></div>
+      </div>
+      <div class="module">
+        <div class="mt">Oscillators</div>
+        <div class="knobs" id="oscK"></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="module">
+        <div class="mt">Envelope</div>
+        <div class="knobs" id="envK"></div>
+      </div>
+      <div class="module">
+        <div class="mt">Output</div>
+        <div class="knobs" id="outK"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="dotL"></span><b>Comet Six</b>
+    <span class="sp" id="sp"></span>
+  </footer>
+
+</div></div>
+
+<script>
+(function(){
+  "use strict";
+  // ---- exact param contract (mirrors spec.json) ----
+  var P=[
+    {name:"Cutoff",     index:0,min:0,max:1,def:0.5,  step:0},
+    {name:"Resonance",  index:1,min:0,max:1,def:0.35, step:0},
+    {name:"FilterMode", index:2,min:0,max:2,def:0,    step:1},
+    {name:"EnvAmount",  index:3,min:0,max:1,def:0.55, step:0},
+    {name:"CrossMod",   index:4,min:0,max:1,def:0.3,  step:0},
+    {name:"Attack",     index:5,min:0,max:1,def:0.04, step:0},
+    {name:"Release",    index:6,min:0,max:1,def:0.35, step:0},
+    {name:"Level",      index:7,min:0,max:1,def:0.7,  step:0}
+  ];
+  var byName={}; P.forEach(function(p){byName[p.name]=p;});
+  document.getElementById('sp').textContent=
+    "Six-voice cross-modulated poly with a morphing multimode filter — low-pass to band-pass to high-pass.";
+
+  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
+  function fmtPct(v){ return Math.round(v*100)+"%"; }
+  function fmtMs(v){ var ms=Math.round((v*v)*4000)+1; return ms>=1000?(ms/1000).toFixed(2)+"s":ms+"ms"; }
+  function labelFor(p,v){ // v normalized 0..1
+    if(p.name==="Attack"||p.name==="Release") return fmtMs(v);
+    if(p.name==="Cutoff"){ var hz=Math.round(50*Math.pow(280,v)); return hz>=1000?(hz/1000).toFixed(1)+"k":hz+"Hz"; }
+    return fmtPct(v);
+  }
+
+  // live normalized cache for the visuals
+  var live={}; P.forEach(function(p){ live[p.name]=(p.def-p.min)/(p.max-p.min||1); });
+
+  // ============ KNOBS ============
+  function makeKnob(host,p){
+    var cell=document.createElement('div'); cell.className='cell';
+    cell.style.setProperty('--d',(p.index*55)+'ms');
+    cell.innerHTML=
+      '<div class="knob"><i class="scale"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i></div>'+
+      '<div class="cnm">'+p.name.replace("EnvAmount","Env Amt").replace("CrossMod","Cross-Mod")+'</div>'+
+      '<div class="cval"></div>';
+    host.appendChild(cell);
+    var knob=cell.querySelector('.knob'), val=cell.querySelector('.cval');
+    var v=p.def;
+    function norm(){ return (v-p.min)/(p.max-p.min||1); }
+    function paint(){
+      var nrm=norm(); knob.style.setProperty('--p',nrm);
+      val.textContent=labelFor(p,nrm);
+      live[p.name]=nrm;
+      send(p.index,v);
+      if(p.name==="Cutoff"||p.name==="Resonance"||p.name==="EnvAmount") drawCurve();
+      if(p.name==="CrossMod") drawWave();
+    }
+    function setN(nrm){ nrm=nrm<0?0:nrm>1?1:nrm; v=p.min+(p.max-p.min)*nrm; paint(); }
+    knob.addEventListener('pointerdown',function(e){
+      knob._d=1; knob._y=e.clientY; knob._n=norm(); knob.classList.add('act');
+      knob.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    knob.addEventListener('pointermove',function(e){
+      if(!knob._d)return; var spd=e.shiftKey?620:200;
+      setN(knob._n+(knob._y-e.clientY)/spd);
+    });
+    function end(){ knob._d=0; knob.classList.remove('act'); }
+    knob.addEventListener('pointerup',end);
+    knob.addEventListener('pointercancel',end);
+    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
+    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
+    paint();
+  }
+
+  makeKnob(document.getElementById('filtK'), byName["Cutoff"]);
+  makeKnob(document.getElementById('filtK'), byName["Resonance"]);
+  makeKnob(document.getElementById('filtK'), byName["EnvAmount"]);
+  makeKnob(document.getElementById('oscK'),  byName["CrossMod"]);
+  makeKnob(document.getElementById('envK'),  byName["Attack"]);
+  makeKnob(document.getElementById('envK'),  byName["Release"]);
+  makeKnob(document.getElementById('outK'),  byName["Level"]);
+
+  // ============ FILTER MODE MORPH (discrete 0/1/2) ============
+  var morph=document.getElementById('morph'), thumb=document.getElementById('thumb');
+  var stepsBox=document.getElementById('steps'), modeName=document.getElementById('modeName');
+  var modeP=byName["FilterMode"];
+  var modeNames=["Low-Pass","Band-Pass","High-Pass"];
+  var modeVal=modeP.def; // 0,1,2
+
+  function paintMode(){
+    var t=modeVal/2; // 0..1 across the bar
+    thumb.style.left=(t*100)+"%";
+    modeName.textContent=modeNames[modeVal];
+    var spans=stepsBox.querySelectorAll('span');
+    for(var i=0;i<spans.length;i++) spans[i].classList.toggle('sel', (+spans[i].dataset.m)===modeVal);
+    live["FilterMode"]=t;
+    send(modeP.index, modeVal); // real value 0/1/2
+    drawCurve();
+  }
+  function setMode(m){ m=m<0?0:m>2?2:Math.round(m); if(m!==modeVal){modeVal=m;} paintMode(); }
+  function modeFromX(clientX){
+    var r=morph.getBoundingClientRect();
+    var t=(clientX-r.left)/r.width; t=t<0?0:t>1?1:t;
+    return Math.round(t*2);
+  }
+  morph.addEventListener('pointerdown',function(e){
+    morph._d=1; morph.setPointerCapture(e.pointerId); setMode(modeFromX(e.clientX)); e.preventDefault();
+  });
+  morph.addEventListener('pointermove',function(e){ if(morph._d) setMode(modeFromX(e.clientX)); });
+  function mend(){ morph._d=0; }
+  morph.addEventListener('pointerup',mend);
+  morph.addEventListener('pointercancel',mend);
+  morph.addEventListener('dblclick',function(){ setMode(modeP.def); });
+  stepsBox.addEventListener('click',function(e){
+    var s=e.target.closest('span'); if(s) setMode(+s.dataset.m);
+  });
+
+  // ============ FILTER CURVE (LP/BP/HP) ============
+  var curve=document.getElementById('curve'), curvefill=document.getElementById('curvefill'),
+      cutline=document.getElementById('cutline');
+  function drawCurve(){
+    if(!cutline||!curve) return;
+    var cut=live["Cutoff"], reso=live["Resonance"], env=live["EnvAmount"];
+    // visual cutoff position shifted up a bit by env amount
+    var fc=Math.min(0.97, cut + env*0.18);
+    var W=300, top=8, bot=140;
+    var xc=fc*W;
+    cutline.setAttribute('x1',xc); cutline.setAttribute('x2',xc);
+    var peak=1+reso*2.4; // resonance bump height multiplier
+    var d="M 0 ";
+    var first=true, pts="";
+    for(var x=0;x<=W;x+=4){
+      var f=x/W;
+      var mag=0;
+      var rw = 0.05/(peak); // resonance bandwidth (narrower w/ more reso)
+      var bump = peak*Math.exp(-Math.pow((f-fc)/(rw+0.04),2));
+      if(modeVal===0){ // LP
+        var roll = 1/(1+Math.pow(Math.max(0,(f-fc))/0.10,2.2));
+        mag = roll + (bump-1)*Math.max(0,1-Math.abs(f-fc)/0.18);
+      } else if(modeVal===1){ // BP
+        mag = bump*Math.exp(-Math.pow((f-fc)/0.13,2))*1.0 + 0.02;
+      } else { // HP
+        var rollh = 1/(1+Math.pow(Math.max(0,(fc-f))/0.10,2.2));
+        mag = rollh + (bump-1)*Math.max(0,1-Math.abs(f-fc)/0.18);
+      }
+      mag=Math.max(0,Math.min(1.35,mag));
+      var y=bot-(mag/1.35)*(bot-top);
+      pts+=(first?"":"L ")+x.toFixed(0)+" "+y.toFixed(1)+" ";
+      first=false;
+    }
+    var line="M "+pts;
+    curve.setAttribute('d',line);
+    curvefill.setAttribute('d',line+" L "+W+" "+bot+" L 0 "+bot+" Z");
+  }
+
+  // ============ CROSS-MOD WAVEFORM ============
+  var waveEl=document.getElementById('wave');
+  function drawWave(){
+    if(!waveEl) return;
+    var x=live["CrossMod"]; // 0..1 cross-mod depth
+    var W=300, y0=156, amp=10+x*4;
+    var d="M 0 "+y0+" ", pts="";
+    for(var i=0;i<=W;i+=3){
+      var ph=i/W*Math.PI*8;
+      // saw cross-modulated by pulse: base saw + fm wiggle + sync edge
+      var saw=((i/W*4)%1)*2-1;
+      var fm=Math.sin(ph)*x*0.6;
+      var s=(saw*0.5 + Math.sin(ph + fm*3)*0.5);
+      var yy=y0 - s*amp;
+      pts+=(i===0?"M ":"L ")+i+" "+yy.toFixed(1)+" ";
+    }
+    waveEl.setAttribute('d',pts);
+  }
+
+  // ============ VOICE BARS ============
+  var BANK=document.getElementById('bank'), voices=[];
+  for(var i=0;i<6;i++){ var b=document.createElement('div'); b.className='voice'; BANK.appendChild(b); voices.push(b); }
+  var voiceOfNote={}, nextV=0;
+  function lightOn(note){
+    if(voiceOfNote[note]!=null) return;
+    var v=nextV; nextV=(nextV+1)%6;
+    voiceOfNote[note]=v; voices[v].classList.add('on');
+  }
+  function lightOff(note){
+    var v=voiceOfNote[note];
+    if(v!=null){ voices[v].classList.remove('on'); delete voiceOfNote[note]; }
+  }
+  window.addEventListener('message',function(e){
+    var d=e.data||{};
+    if(d.t==='on') lightOn(d.id); else if(d.t==='off') lightOff(d.id);
+  });
+  // idle shimmer when no real notes are held
+  var idleV=-1, idleT=0;
+  function idle(now){
+    requestAnimationFrame(idle);
+    if(Object.keys(voiceOfNote).length) return;
+    if(now-idleT>440){
+      idleT=now;
+      if(idleV>=0) voices[idleV].classList.remove('on');
+      idleV=(idleV+1)%6; voices[idleV].classList.add('on');
+    }
+  }
+  requestAnimationFrame(idle);
+
+  // ---- init visuals + push defaults ----
+  function ready(){
+    paintMode();
+    drawCurve();
+    drawWave();
+  }
+  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>
