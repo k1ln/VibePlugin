@@ -4,17 +4,17 @@
   :root{ --acc:#e05a3a; --acc2:#f0c040; --bg0:#0d0806; --bg1:#1a100b; --ink:#f5e8df; --dim:#9a7a68; }
   *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }
   body{ font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(120% 90% at 50% -10%,#2a1810 0%,var(--bg1) 46%,var(--bg0) 100%); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; }
-  .unit{ width:min(95vw,780px); border-radius:13px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#221510,#0d0806); border:1px solid rgba(224,90,58,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(245,232,223,.06); }
+  .unit{ width:min(95vw,820px); border-radius:13px; padding:16px 22px 20px; position:relative; overflow:hidden; background:linear-gradient(160deg,#221510,#0d0806); border:1px solid rgba(224,90,58,.22); box-shadow:0 22px 64px rgba(0,0,0,.62),inset 0 1px 0 rgba(245,232,223,.06); }
   header{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
   .logo{ font-weight:800; letter-spacing:.16em; font-size:21px; background:linear-gradient(90deg,var(--acc),var(--acc2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .sub{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--dim); }
-  .led{ margin-left:auto; width:10px; height:10px; border-radius:3px; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 1.0s steps(2,end) infinite; }
+  .tip{ margin-left:auto; font-size:9px; letter-spacing:.12em; color:rgba(240,192,64,.6); }
+  .led{ margin-left:13px; width:10px; height:10px; border-radius:3px; background:var(--acc); box-shadow:0 0 10px var(--acc); animation:pulse 1.0s steps(2,end) infinite; }
   @keyframes pulse{ 0%,50%{ opacity:1;} 51%,100%{ opacity:.3;} }
-  .stage{ display:flex; gap:12px; margin-bottom:14px; }
-  .screen{ height:172px; border-radius:9px; overflow:hidden; position:relative; background:linear-gradient(180deg,#160d09,#0c0705); border:1px solid rgba(224,90,58,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
-  .pads{ width:172px; flex:0 0 172px; } .swing{ flex:1; }
-  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
-  .scrlbl{ position:absolute; left:10px; top:7px; font-size:8.5px; letter-spacing:.2em; color:var(--dim); z-index:2; }
+  .stage{ margin-bottom:14px; }
+  .screen{ height:222px; border-radius:9px; overflow:hidden; position:relative; background:linear-gradient(180deg,#160d09,#0c0705); border:1px solid rgba(224,90,58,.16); box-shadow:inset 0 2px 18px rgba(0,0,0,.55); }
+  .screen canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:pointer; touch-action:none; }
+  .scrlbl{ position:absolute; left:10px; top:7px; font-size:8.5px; letter-spacing:.2em; color:var(--dim); z-index:2; pointer-events:none; }
   .knobs{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
   .knob{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 1px; cursor:ns-resize; touch-action:none; }
   .dial{ width:66px; height:66px; position:relative; } .dial svg{ width:100%; height:100%; display:block; overflow:visible; }
@@ -25,17 +25,19 @@
 </style></head>
 <body>
   <div class="unit">
-    <header><span class="logo">SWING&nbsp;KIT</span><span class="sub">mpc drum sampler</span><span class="led"></span></header>
+    <header><span class="logo">SWING&nbsp;KIT</span><span class="sub">mpc step sequencer</span><span class="tip">click / drag the grid to program a groove</span><span class="led"></span></header>
     <div class="stage">
-      <div class="screen pads"><div class="scrlbl">PADS</div><canvas id="pv"></canvas></div>
-      <div class="screen swing"><div class="scrlbl">SWING&nbsp;GRID</div><canvas id="sv"></canvas></div>
+      <div class="screen"><div class="scrlbl">STEP&nbsp;GRID</div><canvas id="gv"></canvas></div>
     </div>
     <div class="knobs" id="knobs"></div>
   </div>
 <script>
 (function(){"use strict";
+  var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+
+  // ---- knobs (6 sound/feel controls) ---------------------------------
   var P=[{name:"Tune",idx:0,def:0.5},{name:"Decay",idx:1,def:0.5},{name:"Snap",idx:2,def:0.55},{name:"Swing",idx:3,def:0.5},{name:"Punch",idx:4,def:0.5},{name:"Level",idx:5,def:0.85}];
-  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
+  var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
   var R=31, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
   var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob";
     el.innerHTML='<div class="dial"><svg viewBox="0 0 76 76"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e05a3a"/><stop offset="1" stop-color="#f0c040"/></linearGradient></defs><circle class="track" cx="38" cy="38" r="31"></circle><circle class="arc" cx="38" cy="38" r="31" transform="rotate(135 38 38)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="38" cy="38" r="19"></circle><line class="ptr" x1="38" y1="38" x2="38" y2="22"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
@@ -46,47 +48,81 @@
     el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
     el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
-  // any voice hits per step (for pad lighting)
-  var HIT=[1,0,1,1, 1,0,1,0, 0,0,1,1, 1,0,1,1];
-  var flash=new Float32Array(16), lastStep=-1;
-  // set up two canvases
+
+  // ================================================================
+  //  STEP SEQUENCER — 6 voices x 16 steps. Each row is a live 16-bit
+  //  pattern mask param (idx 6..11); toggling a cell recomputes that
+  //  row's mask and sends it, so the engine plays what you draw.
+  //  Defaults match the DSP's boom-bap groove.
+  // ================================================================
+  var VOICES=[
+    {n:"KICK", idx:6,  col:"#e05a3a", def:1089},
+    {n:"SNARE",idx:7,  col:"#f0c040", def:36880},
+    {n:"HAT",  idx:8,  col:"#63c4e6", def:21845},
+    {n:"OPEN", idx:9,  col:"#74d0a2", def:16448},
+    {n:"CLAP", idx:10, col:"#e58a54", def:4112},
+    {n:"PERC", idx:11, col:"#c489e6", def:2056}
+  ];
+  var grid=VOICES.map(function(V){ var row=[]; for(var s=0;s<16;s++) row.push((V.def>>s)&1); return row; });
+  function maskOf(v){ var m=0; for(var s=0;s<16;s++) if(grid[v][s]) m|=(1<<s); return m; }
+
   function C2(id){ var cv=document.getElementById(id); var ctx=cv.getContext("2d"); var o={cv:cv,ctx:ctx,W:0,H:0,DPR:Math.min(2,window.devicePixelRatio||1)};
     function rs(){ var r=cv.getBoundingClientRect(); o.W=r.width; o.H=r.height; cv.width=o.W*o.DPR; cv.height=o.H*o.DPR; ctx.setTransform(o.DPR,0,0,o.DPR,0,0); } o.rs=rs; window.addEventListener("resize",rs); rs(); return o; }
-  var pv=C2("pv"), sv=C2("sv");
-  function swungPos(step,swing){ // fractional bar position 0..16 with off-beats delayed
-    var pos=0; for(var k=0;k<step;k++){ pos += (k%2===0)?(1+swing):(1-swing); } return pos; }
+  var gv=C2("gv");
+
+  function geo(o){ var lx=52, ty=18, rp=8, bp=8; return {lx:lx, ty:ty, cw:(o.W-lx-rp)/16, ch:(o.H-ty-bp)/6}; }
+  function cellAt(e){ var r=gv.cv.getBoundingClientRect(); var cx=e.clientX-r.left, cy=e.clientY-r.top; var g=geo(gv);
+    if(cx<g.lx || cy<g.ty) return null; var s=Math.floor((cx-g.lx)/g.cw), v=Math.floor((cy-g.ty)/g.ch);
+    if(s<0||s>15||v<0||v>5) return null; return {v:v,s:s}; }
+
+  // click OR drag-paint: pointerdown sets the paint value (flip of the first
+  // cell), pointermove stamps that value onto every cell it crosses.
+  var paint=null;
+  function apply(c){ if(!c||grid[c.v][c.s]===paint) return; grid[c.v][c.s]=paint; send(VOICES[c.v].idx, maskOf(c.v)); }
+  gv.cv.addEventListener("pointerdown",function(e){ var c=cellAt(e); if(!c) return; paint=grid[c.v][c.s]?0:1; apply(c); gv.cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+  gv.cv.addEventListener("pointermove",function(e){ if(paint===null) return; apply(cellAt(e)); });
+  gv.cv.addEventListener("pointerup",function(){ paint=null; }); gv.cv.addEventListener("pointercancel",function(){ paint=null; });
+
+  // decorative free-running playhead (the GUI can't see the engine's transport,
+  // so this is a visual position guide, not sample-accurate).
   function frame(ts){
-    var swing=vals[3]*0.62, punch=vals[4];
-    // real-time step following the swing timing (approx): advance a phase
-    var barLen=16; var t=(ts/2000)%1; // 2s per bar
-    // find current step by swung cumulative time
-    var total=0; for(var k=0;k<16;k++) total += (k%2===0)?(1+swing):(1-swing);
-    var target=t*total, acc=0, step=0; for(var k2=0;k2<16;k2++){ var d=(k2%2===0)?(1+swing):(1-swing); if(target<acc+d){step=k2;break;} acc+=d; step=k2; }
-    if(step!==lastStep){ if(HIT[step]) flash[step]=1; lastStep=step; }
-    // PADS 4x4
-    var pc=pv.ctx, W=pv.W, H=pv.H; pc.clearRect(0,0,W,H);
-    var pad=8, top=18, gs=(Math.min(W,H)-pad*2-top)/4 -3;
-    var gx=(W-(gs*4+3*6))/2, gy=top+ (H-top-(gs*4+3*6))/2;
-    for(var r=0;r<4;r++)for(var c=0;c<4;c++){ var idx=(3-r)*4+c; var x=gx+c*(gs+6), y=gy+r*(gs+6); var f=flash[idx]; flash[idx]*=0.85; var hit=HIT[idx];
-      var rr=6; pc.beginPath(); pc.moveTo(x+rr,y); pc.arcTo(x+gs,y,x+gs,y+gs,rr); pc.arcTo(x+gs,y+gs,x,y+gs,rr); pc.arcTo(x,y+gs,x,y,rr); pc.arcTo(x,y,x+gs,y,rr); pc.closePath();
-      var g=pc.createLinearGradient(0,y,0,y+gs); g.addColorStop(0,"rgba(255,255,255,"+(0.05+f*0.25)+")"); g.addColorStop(1,"rgba(0,0,0,0.2)"); pc.fillStyle=g; pc.fill();
-      pc.strokeStyle= hit? "rgba(224,90,58,"+(0.4+f*0.6)+")" : "rgba(150,120,100,0.25)"; pc.lineWidth=1.4; pc.shadowColor="#e05a3a"; pc.shadowBlur=f*14; pc.stroke(); pc.shadowBlur=0;
+    var g=geo(gv), mc=gv.ctx, W=gv.W, H=gv.H; mc.clearRect(0,0,W,H);
+    var swing=vals[3]*0.62;
+    // swung cumulative step time, so the playhead lopes like the groove
+    var total=0; for(var k=0;k<16;k++) total+=(k%2===0)?(1+swing):(1-swing);
+    var t=(ts/2000)%1, tgt=t*total, acc=0, head=0; for(var k2=0;k2<16;k2++){ var d=(k2%2===0)?(1+swing):(1-swing); if(tgt<acc+d){head=k2;break;} acc+=d; head=k2; }
+
+    // playhead column band (behind cells)
+    var hx=g.lx+head*g.cw; mc.fillStyle="rgba(240,192,64,0.09)"; mc.fillRect(hx,g.ty-4,g.cw,H-g.ty-4);
+
+    // beat-group separators (every 4 steps) + step ticks along the top
+    mc.textBaseline="middle"; mc.font="8px Inter,system-ui,sans-serif"; mc.textAlign="center";
+    for(var s=0;s<16;s++){ var cx=g.lx+s*g.cw+g.cw/2;
+      if(s%4===0){ mc.strokeStyle="rgba(224,90,58,0.22)"; mc.lineWidth=1; mc.beginPath(); mc.moveTo(g.lx+s*g.cw,g.ty-4); mc.lineTo(g.lx+s*g.cw,H-6); mc.stroke(); }
+      mc.fillStyle=(s===head)?"#f0c040":(s%4===0?"rgba(245,232,223,0.6)":"rgba(154,122,104,0.55)");
+      mc.fillText((s%4===0)?String(s/4+1):"·", cx, 9); }
+
+    // rows: label + cells
+    for(var v=0; v<6; v++){ var V=VOICES[v]; var cy=g.ty+v*g.ch;
+      var act=false; for(var d2=0;d2<16;d2++) if(grid[v][d2]) act=true;
+      mc.textAlign="right"; mc.fillStyle=act?V.col:"rgba(154,122,104,0.7)"; mc.font="9px Inter,system-ui,sans-serif";
+      mc.fillText(V.n, g.lx-8, cy+g.ch/2);
+      for(var s2=0;s2<16;s2++){ var on=grid[v][s2];
+        var pad=Math.min(g.cw,g.ch)*0.16; var x=g.lx+s2*g.cw+pad, y=cy+pad, w=g.cw-pad*2, h=g.ch-pad*2, rr=Math.min(w,h)*0.28;
+        mc.beginPath(); mc.moveTo(x+rr,y); mc.arcTo(x+w,y,x+w,y+h,rr); mc.arcTo(x+w,y+h,x,y+h,rr); mc.arcTo(x,y+h,x,y,rr); mc.arcTo(x,y,x+w,y,rr); mc.closePath();
+        if(on){ var live=(s2===head); var pulse=live?1:0.86; mc.fillStyle=V.col; mc.globalAlpha=pulse;
+          mc.shadowColor=V.col; mc.shadowBlur=live?12:5; mc.fill(); mc.shadowBlur=0; mc.globalAlpha=1;
+          mc.fillStyle="rgba(255,255,255,0.28)"; mc.beginPath(); mc.arc(x+w*0.32,y+h*0.32,Math.min(w,h)*0.12,0,6.2832); mc.fill();
+        } else { mc.fillStyle="rgba(255,255,255,0.035)"; mc.fill();
+          mc.strokeStyle=(s2%4===0)?"rgba(224,90,58,0.22)":"rgba(150,120,100,0.16)"; mc.lineWidth=1; mc.stroke(); }
+      }
     }
-    // SWING GRID timeline
-    var sc=sv.ctx, SW=sv.W, SH=sv.H; sc.clearRect(0,0,SW,SH);
-    var mL=12, mR=12, midY=SH*0.5;
-    sc.strokeStyle="rgba(224,90,58,0.15)"; sc.lineWidth=1; sc.beginPath(); sc.moveTo(mL,midY); sc.lineTo(SW-mR,midY); sc.stroke();
-    for(var k3=0;k3<16;k3++){ var sp=swungPos(k3,swing)/total; var x=mL+sp*(SW-mL-mR); var off=(k3%2===1);
-      var live=(k3===step); var h=off?10:16;
-      sc.strokeStyle= off? "rgba(240,192,64,"+(0.5+ (live?0.5:0))+")" : "rgba(224,90,58,"+(0.6+(live?0.4:0))+")"; sc.lineWidth=live?3:2;
-      sc.shadowColor=off?"#f0c040":"#e05a3a"; sc.shadowBlur=live?10:0;
-      sc.beginPath(); sc.moveTo(x,midY-h); sc.lineTo(x,midY+h); sc.stroke(); sc.shadowBlur=0;
-      if(HIT[k3]){ sc.fillStyle=off?"#f0c040":"#e05a3a"; sc.globalAlpha=0.7; sc.beginPath(); sc.arc(x,midY-h-4,2.2,0,Math.PI*2); sc.fill(); sc.globalAlpha=1; }
-    }
-    sc.fillStyle="rgba(240,192,64,0.8)"; sc.font="9px Inter,sans-serif"; sc.textAlign="right"; sc.fillText("SWING "+Math.round(50+vals[3]*25)+"%", SW-12, SH-8); sc.textAlign="left";
-    requestAnimationFrame(frame); }
+    mc.textAlign="left"; requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+
+  function boot(){ host=window.vstai||null;
+    P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    for(var v=0; v<6; v++) send(VOICES[v].idx, maskOf(v)); }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script></body></html>

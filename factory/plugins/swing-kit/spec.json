@@ -1,7 +1,7 @@
 {
   "name": "Swing Kit",
   "isInstrument": true,
-  "explanation": "A punchy sampled-style drum kit with SWING in the Akai MPC60 / 3000 lineage. The MPC's two claims to fame are its punchy, slightly saturated drum sound and its legendary timing swing. Swing Kit is a preset 16-step boom-bap groove of six punchy synthesised voices (kick, snare, closed and open hats, clap, perc); the signature Swing control drags every off-beat 16th late for that head-nodding MPC feel, while Punch boosts the transients and adds a touch of drive. Holding a note runs the groove; release stops it. Controls: Tune, Decay, Snap, Swing, Punch and Level.",
+  "explanation": "A punchy sampled-style drum kit with SWING in the Akai MPC60 / 3000 lineage. The MPC's two claims to fame are its punchy, slightly saturated drum sound and its legendary timing swing. Swing Kit is a six-voice (kick, snare, closed and open hats, clap, perc) drum machine with a built-in 16-step sequencer: click the on-screen grid to program your own groove. The signature Swing control drags every off-beat 16th late for that head-nodding MPC feel, while Punch boosts the transients and adds a touch of drive. Holding a note runs the pattern; release stops it. Controls: Tune, Decay, Snap, Swing, Punch and Level, plus the step grid.",
   "assembly": "factory/plugins/swing-kit/assembly.ts",
   "out": "factory/plugins/swing-kit/x.vstai",
   "guiFile": "factory/plugins/swing-kit/gui.html",
@@ -13,6 +13,12 @@
     { "name": "Snap",   "index": 2, "min": 0, "max": 1, "default": 0.55 },
     { "name": "Swing",  "index": 3, "min": 0, "max": 1, "default": 0.5 },
     { "name": "Punch",  "index": 4, "min": 0, "max": 1, "default": 0.5 },
-    { "name": "Level",  "index": 5, "min": 0, "max": 1, "default": 0.85 }
+    { "name": "Level",  "index": 5, "min": 0, "max": 1, "default": 0.85 },
+    { "name": "Kick Row",  "index": 6,  "min": 0, "max": 65535, "step": 1, "default": 1089 },
+    { "name": "Snare Row", "index": 7,  "min": 0, "max": 65535, "step": 1, "default": 36880 },
+    { "name": "Hat Row",   "index": 8,  "min": 0, "max": 65535, "step": 1, "default": 21845 },
+    { "name": "Open Row",  "index": 9,  "min": 0, "max": 65535, "step": 1, "default": 16448 },
+    { "name": "Clap Row",  "index": 10, "min": 0, "max": 65535, "step": 1, "default": 4112 },
+    { "name": "Perc Row",  "index": 11, "min": 0, "max": 65535, "step": 1, "default": 2056 }
   ]
 }

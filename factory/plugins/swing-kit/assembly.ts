@@ -27,12 +27,23 @@ const pAct:  StaticArray<i32> = new StaticArray<i32>(POOL);
 const pVel:  StaticArray<f32> = new StaticArray<f32>(POOL);
 let pNext: i32 = 0;
 
-const kickPat: StaticArray<i32> = StaticArray.fromArray<i32>([1,0,0,0, 0,0,1,0, 0,0,1,0, 0,0,0,0]);
-const snarPat: StaticArray<i32> = StaticArray.fromArray<i32>([0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,1]);
-const chatPat: StaticArray<i32> = StaticArray.fromArray<i32>([1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0]);
-const ohatPat: StaticArray<i32> = StaticArray.fromArray<i32>([0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,1,0]);
-const clapPat: StaticArray<i32> = StaticArray.fromArray<i32>([0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0]);
-const percPat: StaticArray<i32> = StaticArray.fromArray<i32>([0,0,0,1, 0,0,0,0, 0,0,0,1, 0,0,0,0]);
+// Each voice's 16-step pattern is a live parameter, packed as a 16-bit mask
+// (bit s set = step s active). One param per row keeps the whole 6x16 grid in
+// 6 floats — well inside the 64-param pool — and it persists / recalls for
+// free. The GUI's step sequencer writes these; process() reads them every step
+// so edits are heard immediately. Defaults below = the original boom-bap groove.
+//   kick  1,0,0,0 0,0,1,0 0,0,1,0 0,0,0,0 -> steps 0,6,10        = 1089
+//   snare 0,0,0,0 1,0,0,0 0,0,0,0 1,0,0,1 -> steps 4,12,15       = 36880
+//   chat  1,0,1,0 1,0,1,0 1,0,1,0 1,0,1,0 -> even steps          = 21845
+//   ohat  0,0,0,0 0,0,1,0 0,0,0,0 0,0,1,0 -> steps 6,14          = 16448
+//   clap  0,0,0,0 1,0,0,0 0,0,0,0 1,0,0,0 -> steps 4,12          = 4112
+//   perc  0,0,0,1 0,0,0,0 0,0,0,1 0,0,0,0 -> steps 3,11          = 2056
+const DEF_KICK:  f32 = 1089.0;
+const DEF_SNARE: f32 = 36880.0;
+const DEF_CHAT:  f32 = 21845.0;
+const DEF_OHAT:  f32 = 16448.0;
+const DEF_CLAP:  f32 = 4112.0;
+const DEF_PERC:  f32 = 2056.0;
 
 let seqOn: i32 = 0;
 let seqStep: i32 = 0;
@@ -44,9 +55,14 @@ let rngState: i32 = 246813;
 let hpz: f32 = 0.0;
 
 const P_TUNE: i32 = 0; const P_DECAY: i32 = 1; const P_SNAP: i32 = 2; const P_SWING: i32 = 3; const P_PUNCH: i32 = 4; const P_LEVEL: i32 = 5;
+// step-sequencer rows: one 16-bit pattern mask per voice
+const P_KICK_ROW: i32 = 6; const P_SNARE_ROW: i32 = 7; const P_CHAT_ROW: i32 = 8; const P_OHAT_ROW: i32 = 9; const P_CLAP_ROW: i32 = 10; const P_PERC_ROW: i32 = 11;
 
 @inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }
 @inline function rnd(): f32 { rngState = (rngState * 1103515245 + 12345) & 0x7fffffff; return f32(rngState) / 1073741824.0 - 1.0; }
+// decode a step from a voice's pattern mask; round() survives the host's
+// normalized param round-trip (raw pass-through is already exact).
+@inline function stepOn(mask: f32, step: i32): bool { return ((i32(Mathf.round(mask)) >> step) & 1) != 0; }
 
 function trig(t: i32, vel: f32): void {
   const slot: i32 = pNext; pNext = (pNext + 1) % POOL;
@@ -54,12 +70,12 @@ function trig(t: i32, vel: f32): void {
 }
 function fireStep(step: i32): void {
   const v: f32 = gateVel;
-  if (kickPat[step] != 0) trig(0, v);
-  if (snarPat[step] != 0) trig(1, v * 0.92);
-  if (chatPat[step] != 0) trig(2, v * 0.55);
-  if (ohatPat[step] != 0) trig(3, v * 0.5);
-  if (clapPat[step] != 0) trig(4, v * 0.8);
-  if (percPat[step] != 0) trig(5, v * 0.7);
+  if (stepOn(params[P_KICK_ROW],  step)) trig(0, v);
+  if (stepOn(params[P_SNARE_ROW], step)) trig(1, v * 0.92);
+  if (stepOn(params[P_CHAT_ROW],  step)) trig(2, v * 0.55);
+  if (stepOn(params[P_OHAT_ROW],  step)) trig(3, v * 0.5);
+  if (stepOn(params[P_CLAP_ROW],  step)) trig(4, v * 0.8);
+  if (stepOn(params[P_PERC_ROW],  step)) trig(5, v * 0.7);
 }
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
@@ -67,12 +83,14 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   seqOn = 0; seqStep = 0; seqCount = 0.0; curStepLen = sampleRate * 0.125; gateVel = 0.8;
   for (let i = 0; i < POOL; i++) { pAct[i] = 0; pPh[i] = 0.0; pAEnv[i] = 0.0; pPEnv[i] = 0.0; pType[i] = 0; pVel[i] = 0.0; }
   params[P_TUNE] = 0.5; params[P_DECAY] = 0.5; params[P_SNAP] = 0.55; params[P_SWING] = 0.5; params[P_PUNCH] = 0.5; params[P_LEVEL] = 0.85;
+  params[P_KICK_ROW] = DEF_KICK; params[P_SNARE_ROW] = DEF_SNARE; params[P_CHAT_ROW] = DEF_CHAT;
+  params[P_OHAT_ROW] = DEF_OHAT; params[P_CLAP_ROW] = DEF_CLAP; params[P_PERC_ROW] = DEF_PERC;
 }
 
 export function getInputPtr(): usize  { return changetype<usize>(inBuf); }
 export function getOutputPtr(): usize { return changetype<usize>(outBuf); }
 export function getParamsPtr(): usize { return changetype<usize>(params); }
-export function getNumParams(): i32   { return 6; }
+export function getNumParams(): i32   { return 12; }
 
 export function noteOn(id: i32, f: f32, v: f32): void {
   gateVel = clampf(v, 0.1, 1.0); seqOn = 1; seqStep = 0; seqCount = 0.0; curStepLen = sampleRate * 0.125; fireStep(0);

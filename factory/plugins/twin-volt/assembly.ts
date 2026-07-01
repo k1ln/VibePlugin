@@ -86,6 +86,34 @@ export function getNumParams(): i32   { return 7; }
 
 @inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }
 
+// PolyBLEP correction term — subtracted/added at each waveform discontinuity to
+// band-limit the naive saw/pulse/square so they stay smooth and analog instead
+// of buzzy/aliased digital. t = phase (0..1), dt = phase increment per sample.
+@inline function polyBlep(t: f32, dt: f32): f32 {
+  if (dt <= 0.0) return 0.0;
+  if (t < dt) {
+    const x: f32 = t / dt;
+    return x + x - x * x - 1.0;
+  } else if (t > 1.0 - dt) {
+    const x: f32 = (t - 1.0) / dt;
+    return x * x + x + x + 1.0;
+  }
+  return 0.0;
+}
+
+// Fast f32 tanh (rational Padé) — warms the ladder feedback and glues the
+// output, staying in f32 the whole way.
+@inline function tanhf(x: f32): f32 {
+  if (x > 4.0) return 1.0;
+  if (x < -4.0) return -1.0;
+  const x2: f32 = x * x;
+  const num: f32 = x * (135135.0 + x2 * (17325.0 + x2 * (378.0 + x2)));
+  const den: f32 = 135135.0 + x2 * (62370.0 + x2 * (3150.0 + x2 * 28.0));
+  let r: f32 = num / den;
+  if (r > 1.0) r = 1.0; else if (r < -1.0) r = -1.0;
+  return r;
+}
+
 // Host passes frequency in Hz.
 export function noteOn(id: i32, f: f32, v: f32): void {
   note = id;
@@ -128,6 +156,13 @@ export function process(n: i32): void {
 
   const ringAmt: f32 = ringN;
   const dryAmt: f32 = 1.0 - 0.6 * ringN; // ring crowds the dry a touch as it comes up
+  // resonance robs the low end; lift the drive a touch as reso climbs so the
+  // voice stays fat instead of thinning out.
+  const resComp: f32 = 1.0 + 0.6 * resoN;
+
+  // VCO2 pulse duty — slightly narrower than square for a richer, hollow-reedy
+  // tone with more body than a plain 50% square.
+  const DUTY: f32 = 0.42;
 
   for (let f = 0; f < n; f++) {
     // --- glide pitch ---
@@ -136,22 +171,35 @@ export function process(n: i32): void {
     const inc2: f32 = (curFreq * detRatio) / sampleRate;
     const incSub: f32 = (curFreq * 0.5) / sampleRate;
 
-    // --- oscillators ---
+    // --- oscillators (all PolyBLEP band-limited: no aliasing / digital buzz) ---
     ph1 += inc1; if (ph1 >= 1.0) ph1 -= 1.0;
     ph2 += inc2; if (ph2 >= 1.0) ph2 -= 1.0;
     phSub += incSub; if (phSub >= 1.0) phSub -= 1.0;
 
-    const saw: f32 = ph1 * 2.0 - 1.0;                 // VCO1 saw
-    const pulse: f32 = ph2 < 0.5 ? 1.0 : -1.0;        // VCO2 pulse (50%)
-    const sub: f32 = phSub < 0.5 ? 0.7 : -0.7;        // square sub, slightly tamed
+    // VCO1: band-limited saw
+    let saw: f32 = ph1 * 2.0 - 1.0;
+    saw -= polyBlep(ph1, inc1);
 
-    // --- ring modulation of the two VCOs ---
+    // VCO2: band-limited pulse (two edges: rising at 0, falling at DUTY)
+    let pulse: f32 = ph2 < DUTY ? 1.0 : -1.0;
+    pulse += polyBlep(ph2, inc2);
+    let ph2b: f32 = ph2 - DUTY; if (ph2b < 0.0) ph2b += 1.0;
+    pulse -= polyBlep(ph2b, inc2);
+
+    // square sub one octave down, band-limited then tamed
+    let sub: f32 = phSub < 0.5 ? 1.0 : -1.0;
+    sub += polyBlep(phSub, incSub);
+    let phSubB: f32 = phSub - 0.5; if (phSubB < 0.0) phSubB += 1.0;
+    sub -= polyBlep(phSubB, incSub);
+    sub *= 0.7; // slightly tamed
+
+    // --- ring modulation of the two (band-limited) VCOs ---
     const ring: f32 = saw * pulse;                    // clangy product
 
     // dry oscillator blend
     const dry: f32 = 0.55 * saw + 0.45 * pulse;
     let mix: f32 = dryAmt * dry + ringAmt * ring + 0.5 * sub;
-    mix *= 0.6; // headroom before the filter
+    mix *= 0.6 * resComp; // headroom before the filter (+ resonance make-up)
 
     // --- envelopes ---
     if (gate) {
@@ -180,8 +228,9 @@ export function process(n: i32): void {
 
     // --- resonant 4-pole ladder ---
     let inp: f32 = mix - reso * lp4;
-    // soft-clip the feedback path for analog character / stability
-    inp = inp - 0.16667 * inp * inp * inp;
+    // tanh drive in the feedback loop — the warm, singing analog character
+    // (and it keeps the resonance stable near self-oscillation).
+    inp = tanhf(inp);
     lp1 += g * (inp - lp1);
     lp2 += g * (lp1 - lp2);
     lp3 += g * (lp2 - lp3);
@@ -195,8 +244,8 @@ export function process(n: i32): void {
     dcY = dc;
     voice = dc;
 
-    // output gain stage (kept below full scale)
-    let s: f32 = voice * level * 1.4;
+    // output gain stage — gentle tanh glue/limit instead of a hard clip
+    let s: f32 = tanhf(voice * level * 1.7);
     if (s > 1.0) s = 1.0; else if (s < -1.0) s = -1.0;
 
     outBuf[f] = s;
