@@ -30,17 +30,24 @@ const vBp1: StaticArray<f32> = new StaticArray<f32>(NVOX);
 const vLp2: StaticArray<f32> = new StaticArray<f32>(NVOX);
 const vBp2: StaticArray<f32> = new StaticArray<f32>(NVOX);
 const vNote: StaticArray<i32> = new StaticArray<i32>(NVOX);
+const vDrift: StaticArray<f32> = new StaticArray<f32>(NVOX);   // slow analog pitch drift
+const vGL: StaticArray<f32> = new StaticArray<f32>(NVOX);      // per-voice pan gain L
+const vGR: StaticArray<f32> = new StaticArray<f32>(NVOX);      // per-voice pan gain R
+const PANTAB: StaticArray<f32> = new StaticArray<f32>(NVOX);   // interleaved stereo spread
 let vNext: i32 = 0;
 let lfo: f32 = 0.0;
 let sampleRate: f32 = 48000.0;
+let rngState: i32 = 0x1d3b9f;
 
 const P_CUTOFF: i32 = 0; const P_RESO: i32 = 1; const P_ENV: i32 = 2; const P_PWM: i32 = 3; const P_SPREAD: i32 = 4; const P_LEVEL: i32 = 5;
 
 @inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }
+@inline function rnd(): f32 { rngState = (rngState * 1103515245 + 12345) & 0x7fffffff; return f32(rngState) / 1073741824.0 - 1.0; }
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
-  sampleRate = sr > 0.0 ? sr : 48000.0; vNext = 0; lfo = 0.0;
-  for (let i = 0; i < NVOX; i++) { vSt[i] = 0; vA[i] = 0.0; vB[i] = 0.0; vAmp[i] = 0.0; vFEnv[i] = 0.0; vFreq[i] = 220.0; vVel[i] = 0.0; vLp1[i] = 0.0; vBp1[i] = 0.0; vLp2[i] = 0.0; vBp2[i] = 0.0; vNote[i] = -1; }
+  sampleRate = sr > 0.0 ? sr : 48000.0; vNext = 0; lfo = 0.0; rngState = 0x1d3b9f;
+  PANTAB[0] = 0.0; PANTAB[1] = -0.78; PANTAB[2] = 0.78; PANTAB[3] = -0.4; PANTAB[4] = 0.4; PANTAB[5] = -1.0; PANTAB[6] = 1.0; PANTAB[7] = 0.16;
+  for (let i = 0; i < NVOX; i++) { vSt[i] = 0; vA[i] = 0.0; vB[i] = 0.0; vAmp[i] = 0.0; vFEnv[i] = 0.0; vFreq[i] = 220.0; vVel[i] = 0.0; vLp1[i] = 0.0; vBp1[i] = 0.0; vLp2[i] = 0.0; vBp2[i] = 0.0; vNote[i] = -1; vDrift[i] = 0.0; vGL[i] = 0.707; vGR[i] = 0.707; }
   params[P_CUTOFF] = 0.55; params[P_RESO] = 0.35; params[P_ENV] = 0.5; params[P_PWM] = 0.4; params[P_SPREAD] = 0.3; params[P_LEVEL] = 0.8;
 }
 
@@ -75,14 +82,22 @@ export function process(n: i32): void {
   const lfoInc: f32 = 4.2 / sampleRate * 6.2831853;
   const pwmDepth: f32 = pwmN * 0.42;
   const out: f32 = level * 0.42;
+  const width: f32 = spreadN * 0.92;
+  for (let s = 0; s < NVOX; s++) {
+    const pan: f32 = PANTAB[s] * width;
+    vGL[s] = f32(Mathf.sqrt(0.5 * (1.0 - pan)));
+    vGR[s] = f32(Mathf.sqrt(0.5 * (1.0 + pan)));
+  }
+  const driftLeak: f32 = 0.9998; const driftStep: f32 = 0.00006;
 
   for (let i = 0; i < n; i++) {
     lfo += lfoInc; if (lfo > 6.2831853) lfo -= 6.2831853;
     const pw: f32 = 0.5 + pwmDepth * f32(Mathf.sin(lfo));
-    let mix: f32 = 0.0;
+    let mixL: f32 = 0.0; let mixR: f32 = 0.0;
     for (let s = 0; s < NVOX; s++) {
       if (vSt[s] == 0) continue;
-      const fr: f32 = vFreq[s];
+      vDrift[s] = vDrift[s] * driftLeak + rnd() * driftStep;
+      const fr: f32 = vFreq[s] * (1.0 + vDrift[s]);
       if (vSt[s] == 1) { vAmp[s] += atkInc; if (vAmp[s] > 1.0) vAmp[s] = 1.0; }
       else { vAmp[s] *= relCoef; if (vAmp[s] < 0.0004) { vSt[s] = 0; continue; } }
       let a: f32 = vA[s] + fr / sampleRate; if (a >= 1.0) a -= 1.0; vA[s] = a;
@@ -103,10 +118,12 @@ export function process(n: i32): void {
       const hp2: f32 = (lp1 - (g + k) * vBp2[s] - vLp2[s]) * a1;
       const bp2: f32 = g * hp2 + vBp2[s]; const lp2: f32 = g * bp2 + vLp2[s];
       vBp2[s] = bp2; vLp2[s] = lp2;
-      mix += lp2 * vAmp[s] * vVel[s];
+      const val: f32 = lp2 * vAmp[s] * vVel[s];
+      mixL += val * vGL[s]; mixR += val * vGR[s];
     }
-    let o: f32 = mix * out;
-    if (o > 1.4) o = 1.4; else if (o < -1.4) o = -1.4;
-    outBuf[i] = o; outBuf[MAX_FRAMES + i] = o;
+    let oL: f32 = mixL * out; let oR: f32 = mixR * out;
+    if (oL > 1.4) oL = 1.4; else if (oL < -1.4) oL = -1.4;
+    if (oR > 1.4) oR = 1.4; else if (oR < -1.4) oR = -1.4;
+    outBuf[i] = oL; outBuf[MAX_FRAMES + i] = oR;
   }
 }

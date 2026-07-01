@@ -20,6 +20,8 @@ const BASE_FREQ: f32 = 220.0;
 const inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
+const vGL: StaticArray<f32> = new StaticArray<f32>(NVOX);
+const vGR: StaticArray<f32> = new StaticArray<f32>(NVOX);
 const samp: StaticArray<f32> = new StaticArray<f32>(SAMP_CAP);
 let sampLen: i32 = 0;
 
@@ -33,7 +35,7 @@ const vBp: StaticArray<f32> = new StaticArray<f32>(NVOX);
 const vNote: StaticArray<i32> = new StaticArray<i32>(NVOX);
 let vNext: i32 = 0;
 let sampleRate: f32 = 48000.0;
-let holdVal: f32 = 0.0; let holdCnt: i32 = 0;
+let holdVal: f32 = 0.0; let holdValR: f32 = 0.0; let holdCnt: i32 = 0;
 
 const P_TUNE: i32 = 0; const P_CUTOFF: i32 = 1; const P_DECAY: i32 = 2; const P_CRUNCH: i32 = 3; const P_ATTACK: i32 = 4; const P_LEVEL: i32 = 5;
 
@@ -51,6 +53,9 @@ const SAMPLE_B64: string = "AAAAAAAAAgECAQIBAgECAQQCBAIEAgQCBAICAQAA/v78/fz9/P38
 function decodeSample(): void {
   const s = SAMPLE_B64; const n = s.length;
   let buf: i32 = 0, bits: i32 = 0, lo: i32 = -1, si: i32 = 0;
+    const _width: f32 = 0.5;
+  for (let _s = 0; _s < NVOX; _s++) { const _pr: i32 = (_s + 1) / 2; const _mg: f32 = _s == 0 ? 0.0 : (1.0 - f32(_pr - 1) / f32(NVOX)); const _pan: f32 = ((_s % 2 == 1) ? -_mg : _mg) * _width; vGL[_s] = f32(Mathf.sqrt(0.5 * (1.0 - _pan))); vGR[_s] = f32(Mathf.sqrt(0.5 * (1.0 + _pan))); }
+
   for (let i = 0; i < n; i++) {
     const v = b64sym(s.charCodeAt(i));
     if (v < 0) continue;
@@ -115,7 +120,7 @@ export function process(n: i32): void {
   const a1c: f32 = 1.0 / (1.0 + g * (g + k));
 
   for (let i = 0; i < n; i++) {
-    let mix: f32 = 0.0;
+    let mixL: f32 = 0.0; let mixR: f32 = 0.0;
     for (let s = 0; s < NVOX; s++) {
       if (vSt[s] == 0) continue;
       // amp env
@@ -138,16 +143,16 @@ export function process(n: i32): void {
       const hp: f32 = (smp - (g + k) * vBp[s] - vLp[s]) * a1c;
       const bpN: f32 = g * hp + vBp[s]; const lpN: f32 = g * bpN + vLp[s];
       vBp[s] = bpN; vLp[s] = lpN;
-      mix += lpN * vAmp[s] * vVel[s];
+      const _v: f32 = lpN * vAmp[s] * vVel[s]; mixL += _v * vGL[s]; mixR += _v * vGR[s];
       // advance
       pos += vRate[s] * tuneMul * srRatio; vPos[s] = pos;
       if (pos >= f32(sampLen)) { vSt[s] = 0; }
     }
     // Crunch sample-rate reducer (grain) on the summed voices
     holdCnt += 1;
-    if (holdCnt >= holdLen) { holdCnt = 0; holdVal = mix; }
-    let o: f32 = holdVal * out;
-    if (o > 1.4) o = 1.4; else if (o < -1.4) o = -1.4;
-    outBuf[i] = o; outBuf[MAX_FRAMES + i] = o;
+    if (holdCnt >= holdLen) { holdCnt = 0; holdVal = mixL; holdValR = mixR; }
+    let oL: f32 = holdVal * out; let oR: f32 = holdValR * out;
+    if (oL > 1.4) oL = 1.4; else if (oL < -1.4) oL = -1.4; if (oR > 1.4) oR = 1.4; else if (oR < -1.4) oR = -1.4;
+    outBuf[i] = oL; outBuf[MAX_FRAMES + i] = oR;
   }
 }

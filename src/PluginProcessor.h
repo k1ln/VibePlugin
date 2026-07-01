@@ -170,6 +170,9 @@ public:
     // Save/load .vstai to/from disk.
     bool saveDocument (const juce::File&, juce::String& errorOut);
     bool loadDocument (const juce::File&, juce::String& errorOut);
+    // Load a plugin straight from a .vstai JSON string (used by the in-editor
+    // gallery browser, which downloads the document rather than reading a file).
+    bool loadDocumentFromJson (const juce::String& json, juce::String& errorOut);
 
     const VstaiDocument& getDocument() const { return document; }
     juce::String getDisplayHtml() const;     // current GUI, or the default starter GUI

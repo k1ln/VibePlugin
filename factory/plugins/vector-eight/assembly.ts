@@ -16,6 +16,9 @@ const NVOX: i32 = 8;
 const inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
+const vDrift: StaticArray<f32> = new StaticArray<f32>(NVOX);
+const vGL: StaticArray<f32> = new StaticArray<f32>(NVOX);
+const vGR: StaticArray<f32> = new StaticArray<f32>(NVOX);
 
 const vPh: StaticArray<f32> = new StaticArray<f32>(NVOX);
 const vAmp: StaticArray<f32> = new StaticArray<f32>(NVOX);
@@ -32,6 +35,8 @@ let sampleRate: f32 = 48000.0;
 const P_CUTOFF: i32 = 0; const P_RESO: i32 = 1; const P_VX: i32 = 2; const P_VY: i32 = 3; const P_SCAN: i32 = 4; const P_LEVEL: i32 = 5;
 
 @inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }
+let rngState: i32 = 0x2b9f17;
+@inline function rnd(): f32 { rngState = (rngState * 1103515245 + 12345) & 0x7fffffff; return f32(rngState) / 1073741824.0 - 1.0; }
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr > 0.0 ? sr : 48000.0; vNext = 0; lfo = 0.0;
@@ -68,6 +73,10 @@ export function process(n: i32): void {
   const scanDepth: f32 = scanN * 0.9;
   const out: f32 = level * 1.0;
 
+    const _width: f32 = 0.55;
+  for (let _s = 0; _s < NVOX; _s++) { const _pr: i32 = (_s + 1) / 2; const _mg: f32 = _s == 0 ? 0.0 : (1.0 - f32(_pr - 1) / f32(NVOX)); const _pan: f32 = ((_s % 2 == 1) ? -_mg : _mg) * _width; vGL[_s] = f32(Mathf.sqrt(0.5 * (1.0 - _pan))); vGR[_s] = f32(Mathf.sqrt(0.5 * (1.0 + _pan))); }
+  const _dLeak: f32 = 0.9998; const _dStep: f32 = 0.00006;
+
   for (let i = 0; i < n; i++) {
     lfo += lfoInc; if (lfo > 6.2831853) lfo -= 6.2831853;
     // vector position: center (from VX/VY) + orbiting scan
@@ -86,10 +95,11 @@ export function process(n: i32): void {
     const g: f32 = f32(Mathf.tan(3.14159265 * fc / sampleRate));
     const a1: f32 = 1.0 / (1.0 + g * (g + k));
 
-    let mix: f32 = 0.0;
+    let mixL: f32 = 0.0; let mixR: f32 = 0.0;
     for (let s = 0; s < NVOX; s++) {
       if (vSt[s] == 0) continue;
-      const fr: f32 = vFreq[s];
+      vDrift[s] = vDrift[s] * _dLeak + rnd() * _dStep;
+      const fr: f32 = vFreq[s] * (1.0 + vDrift[s]);
       if (vSt[s] == 1) { vAmp[s] += atkInc; if (vAmp[s] > 1.0) vAmp[s] = 1.0; }
       else { vAmp[s] *= relCoef; if (vAmp[s] < 0.0004) { vSt[s] = 0; continue; } }
       let ph: f32 = vPh[s] + fr / sampleRate; if (ph >= 1.0) ph -= 1.0; vPh[s] = ph;
@@ -102,9 +112,9 @@ export function process(n: i32): void {
       const hp: f32 = (osc - (g + k) * vBp[s] - vLp[s]) * a1;
       const bpN: f32 = g * hp + vBp[s]; const lpN: f32 = g * bpN + vLp[s];
       vBp[s] = bpN; vLp[s] = lpN;
-      mix += lpN * vAmp[s] * vVel[s];
+      const _v: f32 = lpN * vAmp[s] * vVel[s]; mixL += _v * vGL[s]; mixR += _v * vGR[s];
     }
-    let o: f32 = f32(Mathf.tanh(mix * out));
-    outBuf[i] = o; outBuf[MAX_FRAMES + i] = o;
+    let oL: f32 = f32(Mathf.tanh(mixL * out)); let oR: f32 = f32(Mathf.tanh(mixR * out));
+    outBuf[i] = oL; outBuf[MAX_FRAMES + i] = oR;
   }
 }

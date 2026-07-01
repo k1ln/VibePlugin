@@ -210,12 +210,12 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   *{box-sizing:border-box}
   body{margin:0;min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#e7eef6;
     background:radial-gradient(130% 100% at 50% -20%,#171f2d,#070a0f 72%);display:flex;flex-direction:column;align-items:center;gap:13px;padding:18px}
-  .top{display:flex;align-items:center;gap:11px;width:100%;max-width:620px}
+  .top{display:flex;align-items:center;gap:11px;width:100%;max-width:1000px}
   .top .led{width:9px;height:9px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
   .top b{font-size:15px;letter-spacing:.05em;color:var(--ac)}
   .top .sub{font-size:11px;color:#7c8aa3;margin-left:auto}
-  iframe{width:100%;max-width:620px;height:400px;border:0;background:transparent}
-  .bar{width:100%;max-width:620px;display:flex;flex-direction:column;gap:11px;
+  iframe{width:100%;max-width:1000px;height:600px;border:0;background:transparent;display:block}
+  .bar{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:11px;
     background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
     border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:14px 16px;
     box-shadow:0 16px 40px rgba(0,0,0,.4)}
@@ -247,7 +247,16 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
   </div>
   <script>
   var WB=${JSON.stringify(wasmB64)}, IS_SYNTH=${isInstrument ? "true" : "false"};
-  document.getElementById('gui').srcdoc=${guiLit};
+  var gf=document.getElementById('gui');
+  gf.srcdoc=${guiLit};
+  // Size the iframe to the GUI's true content so nothing is cut off (buttons,
+  // keyboard, patch bay). Collapse-then-measure defeats the GUI's min-height:100%.
+  function sizeGui(){ try{ var d=gf.contentDocument; if(!d||!d.body) return;
+    gf.style.height='60px';
+    var h=Math.max(d.documentElement.scrollHeight,d.body.scrollHeight);
+    gf.style.height=(h+6)+'px'; }catch(e){} }
+  gf.addEventListener('load',function(){ sizeGui(); setTimeout(sizeGui,150); setTimeout(sizeGui,500); });
+  window.addEventListener('resize',sizeGui);
   var ctx,node,src,analyser,wav,ex,inPtr,outPtr,parPtr,STRIDE=8192,started=false,running=false;
   var pcache=new Float32Array(64);
   function memF(){return new Float32Array(ex.memory.buffer);}
@@ -309,8 +318,8 @@ function genTestHtml(name, params, opts, wasmB64, isInstrument, guiHtml) {
     } else { running=false; this.textContent='▶ Start audio'; this.className='off'; disconnectSrc(); st('stopped'); }
   });
   ${isInstrument ? `
-  var KB=document.getElementById('kb'), KEYS=[['C',60,0],['C#',61,1],['D',62,0],['D#',63,1],['E',64,0],['F',65,0],['F#',66,1],['G',67,0],['G#',68,1],['A',69,0],['A#',70,1],['B',71,0],['C',72,0]];
-  var KMAP={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
+  var KB=document.getElementById('kb'), KEYS=[['C',60,0],['C#',61,1],['D',62,0],['D#',63,1],['E',64,0],['F',65,0],['F#',66,1],['G',67,0],['G#',68,1],['A',69,0],['A#',70,1],['B',71,0],['C',72,0],['C#',73,1],['D',74,0]];
+  var KMAP={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72,o:73,l:74};
   var oct=0;                                              // octave offset (−4..+4), applied at note-on
   function hz(m){return 440*Math.pow(2,(m-69)/12);}
   function setOct(o){ oct=o<-4?-4:(o>4?4:o); var ov=document.getElementById('octval'); if(ov)ov.textContent=(4+oct); }

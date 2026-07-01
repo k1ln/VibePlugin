@@ -74,7 +74,8 @@ LockedEditor::provideResource (const juce::String& rawUrl)
     if (url == "/" || url.endsWithIgnoreCase ("/index.html")
         || url == "/preview" || url.endsWithIgnoreCase ("/preview"))
         return juce::WebBrowserComponent::Resource {
-            vstai::shim::toBytes (vstai::shim::withBridge (processor.getDisplayHtml())),
+            vstai::shim::toBytes (vstai::shim::withBridge (processor.getDisplayHtml(),
+                                                           vstai::shim::restoredValuesJson (processor))),
             "text/html;charset=UTF-8" };
 
     return std::nullopt;

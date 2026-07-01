@@ -43,17 +43,48 @@
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
   var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
   function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); } window.addEventListener("resize",resize); resize();
-  function frame(ts){ ctx.clearRect(0,0,W,H); var fold=vals[0], timbre=vals[1], env=vals[3]; var mid=H*0.52;
-    var foldE=Math.exp(-((ts/1300)%1)*(1+env*3));
-    var foldAmt=1+fold*7*(1-env+env*foldE);
-    // folded waveform (2 cycles)
-    ctx.beginPath();
-    for(var x=0;x<=W;x+=1.2){ var t=x/W; var ph=((t*2+ts/1400)%1);
-      var sine=Math.sin(ph*6.2831853); var tri=1-4*Math.abs(ph-0.5); var core=sine*(1-timbre)+tri*timbre;
-      var folded=Math.sin(core*foldAmt*1.5708); folded=folded*0.8+Math.sin(folded*(1+fold*2)*1.5708)*0.2;
-      ctx.lineTo(x, mid - folded*(H*0.34)); }
+  function frame(ts){ ctx.clearRect(0,0,W,H);
+    var fold=vals[0], timbre=vals[1], cutoff=vals[2], env=vals[3];
+    var mid=H*0.54, amp=H*0.40;
+    // continuous fold "breathing": depth eases up and down forever, no reset/loop point
+    var foldE=0.5+0.5*Math.sin(ts/1050);
+    var foldAmt=1+fold*7*(1-env*0.5+env*0.5*foldE);
+    var bloom=0.45+0.55*foldE;                       // brightness/energy pulse
+    // sampled folded wave, cutoff smooths, timbre morphs sine->tri
+    function wy(t){ var ph=((t*2+ts/1350)%1);
+      var s=Math.sin(ph*6.2831853), tr=1-4*Math.abs(ph-0.5);
+      var core=s*(1-timbre)+tr*timbre;
+      var f=Math.sin(core*foldAmt*1.5708); f=f*0.8+Math.sin(f*(1+fold*2)*1.5708)*0.2;
+      return f*(0.55+0.45*cutoff); }
+    // --- background grid ---
+    ctx.lineWidth=1; ctx.strokeStyle="rgba(224,208,96,0.05)";
+    ctx.beginPath(); ctx.moveTo(0,mid); ctx.lineTo(W,mid); ctx.stroke();
+    var gsp=44, goff=(ts*0.028)%gsp; ctx.strokeStyle="rgba(224,208,96,0.03)"; ctx.beginPath();
+    for(var gx=-goff; gx<W; gx+=gsp){ ctx.moveTo(gx,8); ctx.lineTo(gx,H-8); } ctx.stroke();
+    // --- fold-boundary lines (the "ceiling/floor" the wave folds against) ---
+    ctx.setLineDash([4,5]); ctx.strokeStyle="rgba(208,80,64,"+(0.18+0.22*foldE)+")"; ctx.beginPath();
+    ctx.moveTo(0,mid-amp); ctx.lineTo(W,mid-amp); ctx.moveTo(0,mid+amp); ctx.lineTo(W,mid+amp); ctx.stroke(); ctx.setLineDash([]);
+    // --- sample once, reuse for fill/stroke/nodes ---
+    var pts=[]; for(var x=0;x<=W;x+=1.2){ pts.push([x, wy(x/W)]); }
+    // area fill under the trace
+    var fg=ctx.createLinearGradient(0,mid-amp,0,mid+amp);
+    fg.addColorStop(0,"rgba(224,208,96,"+(0.17*bloom).toFixed(3)+")");
+    fg.addColorStop(0.5,"rgba(208,80,64,"+(0.05*bloom).toFixed(3)+")");
+    fg.addColorStop(1,"rgba(224,208,96,"+(0.17*bloom).toFixed(3)+")");
+    ctx.beginPath(); ctx.moveTo(0,mid);
+    for(var i=0;i<pts.length;i++) ctx.lineTo(pts[i][0], mid-pts[i][1]*amp);
+    ctx.lineTo(W,mid); ctx.closePath(); ctx.fillStyle=fg; ctx.fill();
+    // main trace with glow
     var grd=ctx.createLinearGradient(0,0,W,0); grd.addColorStop(0,"#e0d060"); grd.addColorStop(1,"#d05040");
-    ctx.strokeStyle=grd; ctx.lineWidth=2; ctx.shadowColor="#e0d060"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    ctx.beginPath(); for(var i=0;i<pts.length;i++){ var x=pts[i][0], y=mid-pts[i][1]*amp; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.strokeStyle=grd; ctx.lineWidth=2.4; ctx.shadowColor="#e0d060"; ctx.shadowBlur=6+8*bloom; ctx.stroke(); ctx.shadowBlur=0;
+    // fold-node dots where the wave peaks against the boundary
+    ctx.fillStyle="rgba(246,239,220,"+(0.35+0.55*bloom).toFixed(3)+")"; var lastN=-99;
+    for(var i=0;i<pts.length;i++){ if(Math.abs(pts[i][1])>0.9 && pts[i][0]-lastN>14){ var x=pts[i][0],y=mid-pts[i][1]*amp; ctx.beginPath(); ctx.arc(x,y,2.1,0,6.2832); ctx.fill(); lastN=pts[i][0]; } }
+    // scanning playhead riding the wave — ping-pongs so it never snaps back
+    var scanT=Math.abs(((ts/3000)%2)-1), sx=scanT*W, sy=mid-wy(scanT)*amp;
+    ctx.strokeStyle="rgba(246,239,220,0.10)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(sx,6); ctx.lineTo(sx,H-6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx,sy,3.2,0,6.2832); ctx.fillStyle="#f6efdc"; ctx.shadowColor="#e0d060"; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
     // fold transfer-curve inset (top-right): input->output fold function
     var iw=64, ih=40, ix=W-iw-10, iy=8;
     ctx.strokeStyle="rgba(208,80,64,0.25)"; ctx.lineWidth=1; ctx.strokeRect(ix,iy,iw,ih);

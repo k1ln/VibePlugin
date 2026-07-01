@@ -1,0 +1,250 @@
+{
+  "format": 1,
+  "name": "Quasar",
+  "isInstrument": true,
+  "explanation": "An organismic patchable mono synth-voice for the experimentally minded - a wild instrument that pushes back. Two oscillators cross-modulate with through-zero FM and a feedback path, so small patch moves bloom into clangy, unpredictable, living textures. A resonant ladder low-pass, snappy ADSR, free LFO, sample & hold and noise round it out. Fully patchable: a 5x4 modulation matrix (LFO, Env, S&H, Noise, Osc2 into Pitch, Cutoff, PWM and Chaos) whose routing amounts are real parameters - cabling a source to a destination turns that amount up, so the patch you see is the patch you hear. Normalled Env-to-Cutoff and a touch of LFO-to-PWM. Not for straight subtractive sounds - for instruments that surprise you.",
+  "params": [
+    {
+      "name": "Osc Wave",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Osc2 Int",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Osc Mix",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Cutoff",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Reso",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Env Amt",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Attack",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.06
+    },
+    {
+      "name": "Decay",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Sustain",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "LFO Rate",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Glide",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.12
+    },
+    {
+      "name": "Chaos",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drive",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Level",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "LFO > PITCH",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > CUTOFF",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > PWM",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "LFO > CHAOS",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > PITCH",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > CUTOFF",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "ENV > PWM",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > CHAOS",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PITCH",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > CUTOFF",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PWM",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > CHAOS",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PITCH",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > CUTOFF",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PWM",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > CHAOS",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > PITCH",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > CUTOFF",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > PWM",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > CHAOS",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ],
+  "wasmBase64": "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",
+  "html": "<!DOCTYPE html>\n<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Quasar</title>\n<style>\n  :root{ --r:#ff5a52; --o:#ff9f43; --y:#ffd23f; --g:#4bd66a; --c:#31c6ff; --b:#4a7bff; --v:#b06cff;\n         --ink:#2a2418; --dim:#8a7c5e; --line:#c9b78c; }\n  *{ box-sizing:border-box; margin:0; padding:0; } html,body{ height:100%; }\n  body{ font-family:\"Inter\",system-ui,-apple-system,\"Segoe UI\",sans-serif; background:radial-gradient(130% 100% at 50% -10%,#5a4a2e,#2a2114 55%,#160f08); overflow:hidden; user-select:none; -webkit-user-select:none; display:flex; align-items:center; justify-content:center; min-height:100%; padding:12px; color:var(--ink); }\n  .unit{ width:min(97vw,960px); border-radius:16px; overflow:hidden; position:relative; background:linear-gradient(180deg,#2a2013,#170f07); box-shadow:0 30px 80px rgba(0,0,0,.62); border:1px solid rgba(255,210,63,.18); }\n  .rail{ position:absolute; top:0; bottom:0; width:26px; background:linear-gradient(90deg,#6a4a22,#4a3116); box-shadow:inset -3px 0 8px rgba(0,0,0,.5),inset 3px 0 8px rgba(0,0,0,.5); }\n  .rail::after{ content:\"\"; position:absolute; inset:0; background:repeating-linear-gradient(180deg,transparent,transparent 12px,rgba(0,0,0,.18) 12px,rgba(0,0,0,.18) 13px); }\n  .rail.l{ left:0; } .rail.r{ right:0; }\n  .face{ margin:0 26px; background:linear-gradient(180deg,#f3e8cd,#e6d6b2); padding:14px 20px 16px; }\n  header{ display:flex; align-items:center; gap:14px; margin-bottom:12px; }\n  .mark{ width:34px; height:34px; border-radius:9px; background:conic-gradient(from 210deg,var(--r),var(--o),var(--y),var(--g),var(--c),var(--b),var(--v),var(--r)); box-shadow:0 2px 8px rgba(0,0,0,.25); }\n  .title h1{ font-size:23px; font-weight:800; letter-spacing:.06em; color:#2a2013; line-height:1; }\n  .title .s{ font-size:9.5px; letter-spacing:.32em; text-transform:uppercase; color:#a08a54; margin-top:3px; }\n  .flag{ margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:#fff; background:linear-gradient(90deg,#ff5a7a,#ffcf5a); border-radius:20px; padding:4px 12px; box-shadow:0 3px 10px rgba(255,90,82,.35); }\n  .grid{ display:flex; flex-wrap:wrap; gap:9px; }\n  .sec{ border-radius:11px; padding:9px 11px 7px; background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.14)); border:1px solid var(--line); position:relative; }\n  .sec h4{ font-size:8.5px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:7px; text-align:center; font-weight:700; }\n  .sec .bar{ position:absolute; top:0; left:11px; right:11px; height:3px; border-radius:0 0 3px 3px; }\n  .ks{ display:flex; gap:7px; }\n  .knob{ display:flex; flex-direction:column; align-items:center; gap:3px; cursor:ns-resize; touch-action:none; width:54px; }\n  .dial{ width:46px; height:46px; position:relative; } .dial svg{ width:100%; height:100%; overflow:visible; display:block; }\n  .trk{ fill:none; stroke:#cbb489; stroke-width:5.5; stroke-linecap:round; } .arc{ fill:none; stroke-width:5.5; stroke-linecap:round; }\n  .cap{ fill:#fbf4e2; stroke:#c3ad82; stroke-width:1; } .ptr{ stroke:#2a2013; stroke-width:2.6; stroke-linecap:round; }\n  .kn{ font-size:7.6px; letter-spacing:.03em; text-transform:uppercase; color:#7c663d; text-align:center; height:15px; line-height:1.05; }\n  .kv{ font-size:8.4px; font-variant-numeric:tabular-nums; color:#2a2013; }\n  /* patch bay */\n  .patch{ margin-top:11px; border-radius:12px; background:linear-gradient(180deg,#1c140a,#0e0904); border:1px solid #3a2c16; padding:11px 16px 12px; position:relative; }\n  .patch .ph{ display:flex; align-items:center; gap:12px; margin-bottom:9px; }\n  .patch .ph b{ font-size:9px; letter-spacing:.22em; text-transform:uppercase; color:var(--y); }\n  .patch .ph span{ font-size:9.5px; color:#9a865c; }\n  .bay{ position:relative; display:flex; justify-content:space-between; align-items:stretch; gap:20px; min-height:130px; }\n  .jc{ display:flex; flex-direction:column; gap:9px; z-index:3; }\n  .jc.right{ align-items:flex-end; }\n  .jrow{ display:flex; align-items:center; gap:9px; }\n  .jc.right .jrow{ flex-direction:row-reverse; }\n  .jack{ width:26px; height:26px; border-radius:50%; flex:none; cursor:grab; position:relative;\n    background:radial-gradient(circle at 38% 32%,#4a4030,#0c0a05 70%); border:2.5px solid #6b5a38;\n    box-shadow:inset 0 2px 4px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06); transition:border-color .1s,box-shadow .1s,transform .06s; }\n  .jack::after{ content:\"\"; position:absolute; inset:7px; border-radius:50%; background:#080602; box-shadow:inset 0 1px 2px rgba(0,0,0,.9); }\n  .jack:hover{ transform:scale(1.08); }\n  .jack.hot{ border-color:var(--y); box-shadow:0 0 12px var(--y), inset 0 2px 4px rgba(0,0,0,.8); }\n  .jack.wired{ border-color:var(--o); }\n  .jlab{ font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#8a7550; white-space:nowrap; }\n  .jack.wired ~ .jlab, .jc.right .jack.wired + .jlab{ color:#efe3c8; }\n  svg.cbl{ position:absolute; inset:0; width:100%; height:100%; z-index:2; overflow:visible; pointer-events:none; }\n  .cbl path{ pointer-events:stroke; cursor:pointer; }\n  .midcol{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; opacity:.5; }\n  .midcol .lbl{ font-size:8px; letter-spacing:.2em; text-transform:uppercase; color:#7a683f; }\n  .kbd{ margin-top:11px; height:56px; display:flex; position:relative; border-radius:7px; overflow:hidden; box-shadow:0 3px 10px rgba(0,0,0,.4); }\n  .wk{ flex:1; background:linear-gradient(180deg,#fdf8ec,#e9dec6); border-right:1px solid #c9b78c; cursor:pointer; }\n  .wk:active,.wk.on{ background:linear-gradient(180deg,var(--y),var(--o)); }\n  .bk{ position:absolute; top:0; width:5.2%; height:62%; background:linear-gradient(180deg,#241a0c,#0d0905); border-radius:0 0 3px 3px; z-index:4; cursor:pointer; }\n  .bk:active,.bk.on{ background:linear-gradient(180deg,#8a6a2c,#4a3116); }\n</style></head>\n<body>\n  <div class=\"unit\">\n    <div class=\"rail l\"></div><div class=\"rail r\"></div>\n    <div class=\"face\">\n      <header>\n        <div class=\"mark\"></div>\n        <div class=\"title\"><h1>QUASAR</h1><div class=\"s\">Organismic · Cross-Mod</div></div>\n        <div class=\"flag\">Patchable</div>\n      </header>\n      <div class=\"grid\" id=\"grid\"></div>\n      <div class=\"patch\">\n        <div class=\"ph\"><b>Patch Bay</b><span id=\"phint\">drag a cable from any jack to another · click a wired jack to unplug</span></div>\n        <div class=\"bay\" id=\"bay\">\n          <svg class=\"cbl\" id=\"cbl\"></svg>\n          <div class=\"jc left\" id=\"srcCol\"></div>\n          <div class=\"midcol\"><div class=\"lbl\">Sources</div><div class=\"lbl\" style=\"opacity:.6\">↔</div><div class=\"lbl\">Dests</div></div>\n          <div class=\"jc right\" id=\"dstCol\"></div>\n        </div>\n      </div>\n      <div class=\"kbd\" id=\"kbd\"></div>\n    </div>\n  </div>\n<script>\n(function(){\"use strict\";\n  var SECTIONS=[{\"name\":\"Oscillators\",\"col\":\"#ff5a52\",\"idx\":[0,1,2]},{\"name\":\"Filter\",\"col\":\"#31c6ff\",\"idx\":[3,4,5]},{\"name\":\"Envelope\",\"col\":\"#4bd66a\",\"idx\":[6,7,8]},{\"name\":\"Chaos\",\"col\":\"#b06cff\",\"idx\":[11,12]},{\"name\":\"Voice / Out\",\"col\":\"#ff9f43\",\"idx\":[9,10,13]}];\n  var P=[{\"n\":\"Osc Wave\",\"d\":0.25},{\"n\":\"Osc2 Int\",\"d\":0.5},{\"n\":\"Osc Mix\",\"d\":0.4},{\"n\":\"Cutoff\",\"d\":0.55},{\"n\":\"Reso\",\"d\":0.4},{\"n\":\"Env Amt\",\"d\":0.6},{\"n\":\"Attack\",\"d\":0.06},{\"n\":\"Decay\",\"d\":0.45},{\"n\":\"Sustain\",\"d\":0.6},{\"n\":\"LFO Rate\",\"d\":0.35},{\"n\":\"Glide\",\"d\":0.12},{\"n\":\"Chaos\",\"d\":0.3},{\"n\":\"Drive\",\"d\":0.45},{\"n\":\"Level\",\"d\":0.75}];\n  var SRC=[\"LFO\",\"ENV\",\"S&H\",\"NOISE\",\"OSC2\"];\n  var DST=[\"PITCH\",\"CUTOFF\",\"PWM\",\"CHAOS\"];\n  var ROUTE_BASE=14, NDST=4, CABLE_AMT=0.68;\n  var CCOL=[\"#ffcf5a\",\"#8ee06a\",\"#6ad0ff\",\"#ff5a7a\",\"#c89bff\"];\n  var NORMALLED=[[1,1,0.55],[0,2,0.35]];\n\n  var host=null, vals={}; P.forEach(function(p,i){ vals[i]=p.d; });\n  function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,+v); }catch(e){} }\n  var colOf=function(v){ var m={\"var(--r)\":\"#ff5a52\",\"var(--o)\":\"#ff9f43\",\"var(--y)\":\"#ffd23f\",\"var(--g)\":\"#4bd66a\",\"var(--c)\":\"#31c6ff\",\"var(--b)\":\"#4a7bff\",\"var(--v)\":\"#b06cff\"}; return m[v]||v; };\n\n  // ---- knobs ----\n  var grid=document.getElementById(\"grid\"), knobEls={};\n  function makeKnob(i,accent){\n    var p=P[i], el=document.createElement(\"div\"); el.className=\"knob\"; el.title=p.n;\n    el.innerHTML='<div class=\"dial\"><svg viewBox=\"0 0 48 48\"><circle class=\"trk\" cx=\"24\" cy=\"24\" r=\"18\"/><circle class=\"arc\" cx=\"24\" cy=\"24\" r=\"18\" transform=\"rotate(135 24 24)\" stroke=\"'+accent+'\"/><circle class=\"cap\" cx=\"24\" cy=\"24\" r=\"11\"/><line class=\"ptr\" x1=\"24\" y1=\"24\" x2=\"24\" y2=\"10\"/></svg></div><span class=\"kn\">'+p.n+'</span><span class=\"kv\"></span>';\n    var arc=el.querySelector(\".arc\"), ptr=el.querySelector(\".ptr\"), kv=el.querySelector(\".kv\"), C=2*Math.PI*18;\n    function render(v){ arc.setAttribute(\"stroke-dasharray\",C); arc.setAttribute(\"stroke-dashoffset\",(C*(1-0.75*v)).toFixed(2));\n      var a=(-135+270*v)*Math.PI/180; ptr.setAttribute(\"x2\",(24+Math.sin(a)*13).toFixed(2)); ptr.setAttribute(\"y2\",(24-Math.cos(a)*13).toFixed(2)); kv.textContent=Math.round(v*100)+\"%\"; }\n    var drag=null;\n    el.addEventListener(\"pointerdown\",function(e){ drag={y:e.clientY,v:vals[i]}; try{el.setPointerCapture(e.pointerId);}catch(_){} e.preventDefault(); });\n    el.addEventListener(\"pointermove\",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/175)); vals[i]=nv; render(nv); send(i,nv); });\n    el.addEventListener(\"pointerup\",function(){drag=null;}); el.addEventListener(\"pointercancel\",function(){drag=null;});\n    el.addEventListener(\"dblclick\",function(){ vals[i]=p.d; render(p.d); send(i,p.d); });\n    render(vals[i]); knobEls[i]={render:render}; return el;\n  }\n  SECTIONS.forEach(function(s){\n    var sec=document.createElement(\"div\"); sec.className=\"sec\";\n    var bar=document.createElement(\"div\"); bar.className=\"bar\"; bar.style.background=colOf(s.col); sec.appendChild(bar);\n    var h=document.createElement(\"h4\"); h.textContent=s.name; h.style.color=colOf(s.col); sec.appendChild(h);\n    var ks=document.createElement(\"div\"); ks.className=\"ks\";\n    s.idx.forEach(function(i){ ks.appendChild(makeKnob(i,colOf(s.col))); });\n    sec.appendChild(ks); grid.appendChild(sec);\n  });\n\n  // ---- patch bay: DRAG to connect ----\n  var srcCol=document.getElementById(\"srcCol\"), dstCol=document.getElementById(\"dstCol\"), cbl=document.getElementById(\"cbl\"), bay=document.getElementById(\"bay\");\n  var srcJ=[], dstJ=[];\n  var patched=[]; for(var s=0;s<SRC.length;s++){ patched[s]=[]; for(var d=0;d<DST.length;d++) patched[s][d]=0; }\n  function mkJack(kind,i,name){\n    var row=document.createElement(\"div\"); row.className=\"jrow\";\n    var j=document.createElement(\"div\"); j.className=\"jack\"; j.dataset.kind=kind; j.dataset.i=i;\n    var lb=document.createElement(\"span\"); lb.className=\"jlab\"; lb.textContent=name;\n    row.appendChild(j); row.appendChild(lb);\n    (kind===\"src\"?srcCol:dstCol).appendChild(row);\n    (kind===\"src\"?srcJ:dstJ)[i]=j;\n    j.addEventListener(\"pointerdown\",function(e){ startDrag(kind,i,e); e.preventDefault(); });\n    return j;\n  }\n  SRC.forEach(function(n,i){ mkJack(\"src\",i,n); });\n  DST.forEach(function(n,i){ mkJack(\"dst\",i,n); });\n  function routeIdx(s,d){ return ROUTE_BASE + s*NDST + d; }\n  function setPatch(s,d,amt){ patched[s][d]=amt; var idx=routeIdx(s,d); vals[idx]=amt; send(idx,amt); }\n  function center(j){ var b=j.getBoundingClientRect(), p=cbl.getBoundingClientRect(); return {x:b.left+b.width/2-p.left,y:b.top+b.height/2-p.top}; }\n  function cablePath(a,b){ var mx=(a.x+b.x)/2, sag=Math.min(60,Math.abs(a.y-b.y)*0.35+Math.abs(a.x-b.x)*0.12+16); return \"M\"+a.x+\",\"+a.y+\" Q\"+mx+\",\"+(Math.max(a.y,b.y)+sag)+\" \"+b.x+\",\"+b.y; }\n  function draw(){\n    while(cbl.firstChild) cbl.removeChild(cbl.firstChild);\n    for(var s=0;s<SRC.length;s++)for(var d=0;d<DST.length;d++){ if(!patched[s][d])continue;\n      var a=center(srcJ[s]), b=center(dstJ[d]);\n      var sh=document.createElementNS(\"http://www.w3.org/2000/svg\",\"path\"); sh.setAttribute(\"d\",cablePath(a,b)); sh.setAttribute(\"fill\",\"none\"); sh.setAttribute(\"stroke\",\"rgba(0,0,0,.45)\"); sh.setAttribute(\"stroke-width\",\"5.5\"); sh.setAttribute(\"stroke-linecap\",\"round\"); cbl.appendChild(sh);\n      var pth=document.createElementNS(\"http://www.w3.org/2000/svg\",\"path\"); pth.setAttribute(\"d\",cablePath(a,b)); pth.setAttribute(\"fill\",\"none\"); pth.setAttribute(\"stroke\",CCOL[s%CCOL.length]); pth.setAttribute(\"stroke-width\",\"3.4\"); pth.setAttribute(\"stroke-linecap\",\"round\");\n      pth.addEventListener(\"pointerdown\",function(ss,dd){ return function(e){ setPatch(ss,dd,0); refresh(); draw(); e.stopPropagation(); e.preventDefault(); }; }(s,d));\n      cbl.appendChild(pth);\n    }\n  }\n  function refresh(){\n    srcJ.forEach(function(j,s){ var w=false; for(var d=0;d<DST.length;d++) if(patched[s][d])w=true; j.classList.toggle(\"wired\",w); });\n    dstJ.forEach(function(j,d){ var w=false; for(var s=0;s<SRC.length;s++) if(patched[s][d])w=true; j.classList.toggle(\"wired\",w); });\n  }\n  // drag state\n  var drag=null, live=null, moved=false;\n  function startDrag(kind,i,e){\n    drag={kind:kind,i:i}; moved=false;\n    (kind===\"src\"?srcJ:dstJ)[i].classList.add(\"hot\");\n    live=document.createElementNS(\"http://www.w3.org/2000/svg\",\"path\"); live.setAttribute(\"fill\",\"none\"); live.setAttribute(\"stroke\",\"#ffd23f\"); live.setAttribute(\"stroke-width\",\"3.4\"); live.setAttribute(\"stroke-linecap\",\"round\"); live.setAttribute(\"opacity\",\"0.9\"); cbl.appendChild(live);\n    window.addEventListener(\"pointermove\",onMove,true); window.addEventListener(\"pointerup\",onUp,true);\n  }\n  function onMove(e){ if(!drag)return; moved=true; var from=center((drag.kind===\"src\"?srcJ:dstJ)[drag.i]); var pr=cbl.getBoundingClientRect(); var to={x:e.clientX-pr.left,y:e.clientY-pr.top}; live.setAttribute(\"d\",cablePath(from,to)); }\n  function onUp(e){\n    window.removeEventListener(\"pointermove\",onMove,true); window.removeEventListener(\"pointerup\",onUp,true);\n    if(live){ cbl.removeChild(live); live=null; }\n    (drag.kind===\"src\"?srcJ:dstJ)[drag.i].classList.remove(\"hot\");\n    var el=document.elementFromPoint(e.clientX,e.clientY); var tj=el&&el.closest?el.closest(\".jack\"):null;\n    if(tj){ var tk=tj.dataset.kind, ti=+tj.dataset.i;\n      if(tk!==drag.kind){ var s=drag.kind===\"src\"?drag.i:ti, d=drag.kind===\"src\"?ti:drag.i;\n        setPatch(s,d, patched[s][d]?0:CABLE_AMT); }\n      else if(!moved){ // clicked own jack without dragging: unplug all its cables\n        if(drag.kind===\"src\"){ for(var d2=0;d2<DST.length;d2++) if(patched[drag.i][d2]) setPatch(drag.i,d2,0); }\n        else { for(var s2=0;s2<SRC.length;s2++) if(patched[s2][drag.i]) setPatch(s2,drag.i,0); } }\n    } else if(!moved){ // click on empty: unplug this jack\n      if(drag.kind===\"src\"){ for(var d3=0;d3<DST.length;d3++) if(patched[drag.i][d3]) setPatch(drag.i,d3,0); }\n      else { for(var s3=0;s3<SRC.length;s3++) if(patched[s3][drag.i]) setPatch(s3,drag.i,0); }\n    }\n    drag=null; refresh(); draw();\n  }\n  window.addEventListener(\"resize\",draw);\n\n  // ---- keyboard ----\n  var kbd=document.getElementById(\"kbd\"), BASE=48, NW=15, pcW=[0,2,4,5,7,9,11], held={};\n  function down(m,el){ held[m]=1; if(el)el.classList.add(\"on\"); try{ if(host&&host.noteOn)host.noteOn(m,0.9);}catch(e){} }\n  function up(m,el){ delete held[m]; if(el)el.classList.remove(\"on\"); try{ if(host&&host.noteOff)host.noteOff(m);}catch(e){} }\n  for(var w=0;w<NW;w++){ var oct=Math.floor(w/7), m=BASE+oct*12+pcW[w%7]; var wk=document.createElement(\"div\"); wk.className=\"wk\";\n    (function(m,wk){ wk.addEventListener(\"pointerdown\",function(e){down(m,wk);e.preventDefault();}); wk.addEventListener(\"pointerup\",function(){up(m,wk);}); wk.addEventListener(\"pointerleave\",function(){if(held[m])up(m,wk);}); })(m,wk); kbd.appendChild(wk); }\n  for(var w=0;w<NW-1;w++){ var pi=w%7; if(pi===2||pi===6)continue; var oct=Math.floor(w/7), m=BASE+oct*12+pcW[w%7]+1;\n    var bk=document.createElement(\"div\"); bk.className=\"bk\"; bk.style.left=((w+1)/NW*100-5.2/2)+\"%\";\n    (function(m,bk){ bk.addEventListener(\"pointerdown\",function(e){down(m,bk);e.preventDefault();e.stopPropagation();}); bk.addEventListener(\"pointerup\",function(){up(m,bk);}); bk.addEventListener(\"pointerleave\",function(){if(held[m])up(m,bk);}); })(m,bk); kbd.appendChild(bk); }\n\n  // ---- boot ----\n  function boot(){ host=window.vstai||null;\n    for(var i=0;i<P.length;i++){ send(i,vals[i]); knobEls[i].render(vals[i]); }\n    for(var s=0;s<SRC.length;s++)for(var d=0;d<DST.length;d++){ var idx=routeIdx(s,d); var cur=(host&&host.getParam)?host.getParam(idx):0;\n      var amt=(typeof cur===\"number\"&&isFinite(cur)&&cur>0.001)?cur:0;\n      if(amt===0){ for(var k=0;k<NORMALLED.length;k++) if(NORMALLED[k][0]===s&&NORMALLED[k][1]===d) amt=NORMALLED[k][2]; }\n      patched[s][d]=amt; vals[idx]=amt; send(idx,amt); }\n    refresh(); requestAnimationFrame(draw); setTimeout(draw,90);\n  }\n  if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot);}catch(e){boot();} } else boot();\n})();\n</script></body></html>\n",
+  "assembly": "// =====================================================================\n//  QUASAR — an \"organismic\" patchable MONO synth-voice for the\n//  experimentally minded: a wild instrument that pushes back. Two\n//  oscillators cross-modulate (through-zero FM) with a feedback path, so\n//  small patch moves bloom into clangy, unpredictable, living textures. A\n//  resonant ladder low-pass, snappy ADSR, free LFO, S&H and noise. Fully\n//  patchable: a 5x4 matrix (LFO/Env/S&H/Noise/Osc2 -> Pitch/Cutoff/PWM/Chaos)\n//  whose routing amounts ARE parameters. Normalled Env->Cutoff + LFO->PWM.\n//  Not for straight subtractive sounds - for instruments that surprise you.\n// =====================================================================\nconst MAX_FRAMES: i32 = 8192;\nconst MAX_CHANNELS: i32 = 2;\nconst MAX_PARAMS: i32 = 64;\nconst TAU: f32 = 6.2831853;\n\nconst inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);\nconst outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);\nconst params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);\n\n// ---- panel params (knobs) -------------------------------------------\nconst P_OSC1:  i32 = 0;   // saw <-> square morph\nconst P_INT:   i32 = 1;   // osc2 interval / detune\nconst P_MIX:   i32 = 2;   // osc1 <-> osc2 blend\nconst P_CUT:   i32 = 3;   // ladder cutoff\nconst P_RES:   i32 = 4;   // ladder resonance\nconst P_ENVA:  i32 = 5;   // env -> cutoff amount (normalled)\nconst P_ATK:   i32 = 6;   // attack\nconst P_DEC:   i32 = 7;   // decay/release\nconst P_SUS:   i32 = 8;   // sustain\nconst P_LFO:   i32 = 9;   // lfo rate\nconst P_GLIDE: i32 = 10;  // portamento\nconst P_VERB:  i32 = 11;  // spring reverb mix\nconst P_DRIVE: i32 = 12;  // drive / tone\nconst P_LEVEL: i32 = 13;  // output level\n\n// ---- modulation matrix routing params (5 sources x 4 dests) ---------\n//  index = P_ROUTE + src*4 + dst ; src: 0 LFO 1 Env 2 S&H 3 Noise 4 Osc2\n//  dst: 0 Pitch 1 Cutoff 2 PWM 3 Reverb\nconst P_ROUTE: i32 = 14;   // 14..33 (20 routing amounts)\nconst NSRC: i32 = 5;\nconst NDST: i32 = 4;\nconst NUM_PARAMS: i32 = 34;\n\n// ---- state ----------------------------------------------------------\nlet sampleRate: f32 = 48000.0;\nlet ph1: f32 = 0.0;\nlet ph2: f32 = 0.0;\nlet lfoPh: f32 = 0.0;\nlet snhVal: f32 = 0.0;\nlet snhClk: f32 = 0.0;\nlet env: f32 = 0.0;\nlet envSt: i32 = 0;          // 0 idle, 1 atk, 2 dec, 3 sus, 4 rel\nlet gate: i32 = 0;\nlet curFreq: f32 = 220.0;\nlet tgtFreq: f32 = 220.0;\nlet noteHeld: i32 = -1;\nlet lastO2: f32 = 0.0;\nlet fbk: f32 = 0.0;\n// ladder filter state (4 one-pole stages)\nlet z0: f32 = 0.0; let z1: f32 = 0.0; let z2: f32 = 0.0; let z3: f32 = 0.0;\n// spring reverb: 3 modulated allpass + a short comb, per channel\nlet apL0: f32 = 0.0; let apL1: f32 = 0.0; let apL2: f32 = 0.0;\nlet apR0: f32 = 0.0; let apR1: f32 = 0.0; let apR2: f32 = 0.0;\nconst SPRINGN: i32 = 2400;\nconst springL: StaticArray<f32> = new StaticArray<f32>(SPRINGN);\nconst springR: StaticArray<f32> = new StaticArray<f32>(SPRINGN);\nlet spIdx: i32 = 0;\nlet rngState: i32 = 0x1a2b3c;\n\n@inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }\n@inline function rnd(): f32 { rngState = (rngState * 1103515245 + 12345) & 0x7fffffff; return f32(rngState) / 1073741824.0 - 1.0; }\n@inline function poly(ph: f32): f32 { return ph; }   // placeholder for clarity\n\nexport function init(sr: f32, maxFrames: i32, numChannels: i32): void {\n  sampleRate = sr > 0.0 ? sr : 48000.0;\n  ph1 = 0.0; ph2 = 0.0; lfoPh = 0.0; snhVal = 0.0; snhClk = 0.0;\n  env = 0.0; envSt = 0; gate = 0; curFreq = 220.0; tgtFreq = 220.0; noteHeld = -1; lastO2 = 0.0; fbk = 0.0;\n  z0 = 0.0; z1 = 0.0; z2 = 0.0; z3 = 0.0;\n  apL0 = 0.0; apL1 = 0.0; apL2 = 0.0; apR0 = 0.0; apR1 = 0.0; apR2 = 0.0; spIdx = 0;\n  for (let i = 0; i < SPRINGN; i++) { springL[i] = 0.0; springR[i] = 0.0; }\n  // panel defaults\n  params[P_OSC1] = 0.25; params[P_INT] = 0.5; params[P_MIX] = 0.4;\n  params[P_CUT] = 0.55; params[P_RES] = 0.35; params[P_ENVA] = 0.6;\n  params[P_ATK] = 0.06; params[P_DEC] = 0.45; params[P_SUS] = 0.6;\n  params[P_LFO] = 0.35; params[P_GLIDE] = 0.12; params[P_VERB] = 0.3;\n  params[P_DRIVE] = 0.4; params[P_LEVEL] = 0.75;\n  for (let i = 0; i < NSRC * NDST; i++) params[P_ROUTE + i] = 0.0;\n  // normalled default patch: Env->Cutoff (src1,dst1), LFO->PWM (src0,dst2)\n  params[P_ROUTE + 1 * NDST + 1] = 0.55;\n  params[P_ROUTE + 0 * NDST + 2] = 0.35;\n}\n\nexport function getInputPtr(): usize  { return changetype<usize>(inBuf); }\nexport function getOutputPtr(): usize { return changetype<usize>(outBuf); }\nexport function getParamsPtr(): usize { return changetype<usize>(params); }\nexport function getNumParams(): i32   { return NUM_PARAMS; }\n\nexport function noteOn(id: i32, f: f32, v: f32): void {\n  tgtFreq = f > 0.0 ? f : 220.0;\n  if (noteHeld < 0) curFreq = tgtFreq;   // first note: jump; else glide\n  noteHeld = id; gate = 1; envSt = 1;\n}\nexport function noteOff(id: i32): void {\n  if (id == noteHeld) { gate = 0; envSt = 4; noteHeld = -1; }\n}\n\n@inline function route(src: i32, dst: i32): f32 { return params[P_ROUTE + src * NDST + dst]; }\n\nexport function process(n: i32): void {\n  const osc1N: f32 = clampf(params[P_OSC1], 0.0, 1.0);\n  const intN: f32  = clampf(params[P_INT], 0.0, 1.0);\n  const mixN: f32  = clampf(params[P_MIX], 0.0, 1.0);\n  const cutN: f32  = clampf(params[P_CUT], 0.0, 1.0);\n  const resN: f32  = clampf(params[P_RES], 0.0, 1.0);\n  const envAN: f32 = clampf(params[P_ENVA], 0.0, 1.0);\n  const atkN: f32  = clampf(params[P_ATK], 0.0, 1.0);\n  const decN: f32  = clampf(params[P_DEC], 0.0, 1.0);\n  const susN: f32  = clampf(params[P_SUS], 0.0, 1.0);\n  const lfoN: f32  = clampf(params[P_LFO], 0.0, 1.0);\n  const glideN: f32= clampf(params[P_GLIDE], 0.0, 1.0);\n  const verbN: f32 = clampf(params[P_VERB], 0.0, 1.0);\n  const driveN: f32= clampf(params[P_DRIVE], 0.0, 1.0);\n  const level: f32 = clampf(params[P_LEVEL], 0.0, 1.0);\n\n  // osc2 interval: -12..+12 semis quantised-ish around center\n  const semis: f32 = (intN - 0.5) * 24.0;\n  const ratio2: f32 = f32(Mathf.pow(2.0, semis / 12.0));\n  const sq: f32 = osc1N;                                  // saw(0)->square(1) morph\n  const atkInc: f32 = 1.0 / ((0.002 + atkN * atkN * 1.6) * sampleRate);\n  const decT: f32 = 0.02 + decN * decN * 2.2;\n  const decCoef: f32 = f32(Mathf.exp(-1.0 / (decT * sampleRate)));\n  const relCoef: f32 = f32(Mathf.exp(-1.0 / ((0.03 + decN * 1.4) * sampleRate)));\n  const lfoHz: f32 = 0.05 * f32(Mathf.pow(240.0, lfoN));  // 0.05..12 Hz\n  const lfoInc: f32 = lfoHz / sampleRate;\n  const snhRate: f32 = 3.0 + lfoN * 12.0;   // 3..15 Hz stepped random\n  const glideCoef: f32 = glideN < 0.001 ? 0.0 : f32(Mathf.exp(-1.0 / ((0.005 + glideN * 0.5) * sampleRate)));\n  const baseCut: f32 = 40.0 * f32(Mathf.exp(cutN * 5.6));\n  const reso: f32 = resN * 4.2;                           // up to self-oscillation\n  const drive: f32 = 0.7 + driveN * 2.4;\n  const out: f32 = level * 0.7;\n  const springFb: f32 = 0.72;\n\n  for (let i = 0; i < n; i++) {\n    // ---- glide ----\n    if (glideCoef > 0.0) curFreq = tgtFreq + (curFreq - tgtFreq) * glideCoef;\n    else curFreq = tgtFreq;\n\n    // ---- sources ----\n    lfoPh += lfoInc; if (lfoPh >= 1.0) lfoPh -= 1.0;\n    const lfo: f32 = f32(Mathf.sin(lfoPh * TAU));\n    snhClk += snhRate / sampleRate;\n    if (snhClk >= 1.0) { snhClk -= 1.0; snhVal = rnd(); }\n    const noise: f32 = rnd();\n\n    // ---- envelope (ADSR) ----\n    if (envSt == 1) { env += atkInc; if (env >= 1.0) { env = 1.0; envSt = 2; } }\n    else if (envSt == 2) { env = susN + (env - susN) * decCoef; if (env <= susN + 0.001) { env = susN; envSt = 3; } }\n    else if (envSt == 3) { env = susN; }\n    else if (envSt == 4) { env *= relCoef; if (env < 0.0003) { env = 0.0; envSt = 0; } }\n\n    // ---- destination modulations (full 5x4 matrix; osc2 = last sample) ----\n    const pitchMod: f32 = lfo*route(0,0) + env*route(1,0) + snhVal*route(2,0) + noise*route(3,0) + lastO2*route(4,0);\n    const cutMod:   f32 = lfo*route(0,1) + env*route(1,1) + snhVal*route(2,1) + noise*route(3,1) + lastO2*route(4,1);\n    const pwmMod:   f32 = lfo*route(0,2) + env*route(1,2) + snhVal*route(2,2) + noise*route(3,2) + lastO2*route(4,2);\n    const verbMod:  f32 = lfo*route(0,3) + env*route(1,3) + snhVal*route(2,3) + noise*route(3,3) + lastO2*route(4,3);\n\n    // ---- oscillators ----\n    const fmod: f32 = f32(Mathf.pow(2.0, pitchMod * 2.0));   // +-2 oct range\n    const chaos: f32 = clampf(verbN + verbMod * 0.6, 0.0, 1.5);\n    const f1: f32 = curFreq * fmod * f32(Mathf.pow(2.0, lastO2 * chaos * 0.9));   // osc2 -> osc1 through-zero FM\n    const f2: f32 = f1 * ratio2;\n    ph1 += f1 / sampleRate; if (ph1 >= 1.0) ph1 -= 1.0;\n    ph2 += f2 / sampleRate; if (ph2 >= 1.0) ph2 -= 1.0;\n    // pulse width (0.5 default) modulated by PWM dest\n    let pw: f32 = 0.5 + pwmMod * 0.45; pw = clampf(pw, 0.05, 0.95);\n    const saw1: f32 = ph1 * 2.0 - 1.0;\n    const pul1: f32 = ph1 < pw ? 1.0 : -1.0;\n    const o1: f32 = saw1 * (1.0 - sq) + pul1 * sq;\n    const saw2: f32 = ph2 * 2.0 - 1.0;\n    const pul2: f32 = ph2 < 0.5 ? 1.0 : -1.0;\n    const o2: f32 = saw2 * (1.0 - sq) + pul2 * sq;\n    lastO2 = o2;                                  // osc2 as an audio-rate mod source\n    let oscmix: f32 = o1 * (1.0 - mixN) + o2 * mixN;\n    oscmix = oscmix * 0.7;\n\n    // ---- ladder filter cutoff (base + env + matrix) ----\n    let fc: f32 = baseCut * f32(Mathf.pow(2.0, envAN * env * 3.2 + cutMod * 4.0));\n    fc = clampf(fc, 20.0, sampleRate * 0.46);\n    const g: f32 = f32(Mathf.tan(3.14159265 * fc / sampleRate));\n    const G: f32 = g / (1.0 + g);\n    // resonant 4-pole transistor-ladder: feedback around a cascade of\n    // tanh-saturated one-pole stages (stable, self-oscillates at high reso).\n    const inp: f32 = f32(Mathf.tanh((oscmix + fbk * chaos * 1.3) * drive));   // feedback bloom\n    let u: f32 = f32(Mathf.tanh((inp - reso * z3) * 0.8));\n    z0 = z0 + G * (u - f32(Mathf.tanh(z0)));\n    z1 = z1 + G * (f32(Mathf.tanh(z0)) - f32(Mathf.tanh(z1)));\n    z2 = z2 + G * (f32(Mathf.tanh(z1)) - f32(Mathf.tanh(z2)));\n    z3 = z3 + G * (f32(Mathf.tanh(z2)) - f32(Mathf.tanh(z3)));\n    let filtered: f32 = z3;\n\n    let sig: f32 = filtered * env;\n    fbk = f32(Mathf.tanh(sig * (1.0 + chaos)));\n\n    // ---- output ----\n    let o: f32 = f32(Mathf.tanh(sig * out * 1.4));\n    outBuf[i] = o;\n    outBuf[MAX_FRAMES + i] = o;\n  }\n}\n",
+  "publishedAt": 1751400900000
+}

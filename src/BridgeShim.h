@@ -36,6 +36,20 @@ namespace vstai::shim
     inline const char* kBridgeShim = R"JS(<script>
 (function(){
   var vals = {};
+  // Values the host restored from the saved DAW session (these equal the plugin's
+  // built-in defaults for a fresh or gallery load). Injected as window.__vstaiRestored
+  // just before this shim. The generated GUI re-pushes its OWN defaults when it boots;
+  // during that short boot window we redirect those pushes back to the restored value
+  // so reopening a saved project keeps your exact sound instead of snapping to defaults.
+  var restored = (window.__vstaiRestored && typeof window.__vstaiRestored === 'object') ? window.__vstaiRestored : {};
+  for (var _rk in restored) vals[_rk] = +restored[_rk];
+  var booting = true;
+  function endBoot(){ booting = false; }
+  // Any genuine user interaction ends the boot window; a timer covers plugins the
+  // user never touches. Capture phase so it runs before a knob's own drag handler.
+  window.addEventListener('pointerdown', endBoot, true);
+  window.addEventListener('keydown',     endBoot, true);
+  setTimeout(endBoot, 6000);
   function send(path){
     try { fetch(path + '?_=' + Date.now() + '_' + Math.random(), { cache: 'no-store' }); } catch(e){}
   }
@@ -84,7 +98,14 @@ namespace vstai::shim
     return { frames: frames, channels: channels, sampleRate: rate };
   }
   window.vstai = {
-    setParam: function(i, v){ vals[i] = +v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v)); },
+    setParam: function(i, v){
+      v = +v;
+      // Boot echo: the GUI is pushing its default while the host restored a different
+      // value for this param -> keep the restored value. Once the user interacts
+      // (booting=false) every write is honored verbatim.
+      if (booting && (i in restored) && Math.abs(v - restored[i]) > 1e-6) v = restored[i];
+      vals[i] = v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v));
+    },
     getParam: function(i){ return (i in vals) ? vals[i] : 0; },
     onReady: function(cb){ try { cb(); } catch(e){} },
     // Register cb(index, value) to be called when a param changes from OUTSIDE the
@@ -134,9 +155,29 @@ namespace vstai::shim
         return out;
     }
 
-    inline juce::String withBridge (const juce::String& html)
+    // Snapshot the current param values (0..1 knob space) as a JSON object keyed by
+    // index. After the host restores a saved session these are the user's values;
+    // for a fresh/gallery load they are the plugin's defaults. Injected as
+    // window.__vstaiRestored so the bridge can keep the GUI's boot from resetting them.
+    inline juce::String restoredValuesJson (VstaiAudioProcessor& processor)
     {
-        const juce::String inject = juce::String (kCharsetMeta) + kBridgeShim;
+        juce::String s = "{";
+        bool first = true;
+        for (const auto& p : processor.getDocument().params)
+        {
+            if (p.index < 0 || p.index >= vstai::kMaxParams) continue;
+            s << (first ? "" : ",") << "\"" << p.index << "\":"
+              << juce::String (processor.getParamValue (p.index), 6);
+            first = false;
+        }
+        s << "}";
+        return s;
+    }
+
+    inline juce::String withBridge (const juce::String& html, const juce::String& initialValuesJson = "{}")
+    {
+        const juce::String initScript = "<script>window.__vstaiRestored=" + initialValuesJson + ";</script>";
+        const juce::String inject = juce::String (kCharsetMeta) + initScript + kBridgeShim;
         int head = html.indexOfIgnoreCase ("<head>");
         if (head >= 0)
             return html.substring (0, head + 6) + inject + html.substring (head + 6);

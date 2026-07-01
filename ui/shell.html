@@ -58,6 +58,7 @@ window.addEventListener("unhandledrejection", function (e) {
       <button class="btn" id="newBtn">New</button>
       <button class="btn" id="saveBtn">Save</button>
       <button class="btn" id="loadBtn">Load</button>
+      <button class="btn" id="galleryBtn" title="Browse the online gallery and load an example plugin on the fly">Gallery</button>
       <button class="btn accent2" id="publishBtn" title="Publish to the web catalogue — play it live in a browser">Publish</button>
       <button class="btn accent2" id="exportBtn" title="Export this creation as a standalone, locked plugin you can hand to others">Export plugin…</button>
     </div>
@@ -208,6 +209,38 @@ window.addEventListener("unhandledrejection", function (e) {
         <button class="btn" id="copyErrorBtn">Copy error</button>
         <button class="btn accent2" id="copyFixBtn">Copy fix request →</button>
         <span class="muted">paste the fix request back into the same chat</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Gallery browser ========================================= -->
+  <div class="modal" id="galleryModal" hidden>
+    <div class="sheet gallery-sheet">
+      <div class="sheet-head">
+        <h2 id="galleryTitle">Gallery</h2>
+        <button class="iconbtn" id="galleryCloseBtn" title="Close">✕</button>
+      </div>
+
+      <!-- list view -->
+      <div id="galleryListView">
+        <p class="muted" id="gallerySub">Browse example plugins from the online gallery and load one on the fly.</p>
+        <input id="gallerySearch" class="gallery-search" type="text" placeholder="Search plugins…" spellcheck="false" autocomplete="off"/>
+        <div class="gallery-grid" id="galleryGrid"></div>
+        <div class="gallery-status muted" id="galleryStatus"></div>
+      </div>
+
+      <!-- detail ("side") view -->
+      <div id="galleryDetail" hidden>
+        <button class="link" id="galleryBackBtn">‹ Back to gallery</button>
+        <div class="gallery-detail-head">
+          <span class="vibe-flag">Vibe Plugin</span>
+          <h2 id="galleryDetailName"></h2>
+        </div>
+        <p class="muted gallery-detail-desc" id="galleryDetailDesc"></p>
+        <div class="row">
+          <button class="btn primary" id="galleryLoadBtn">Load Plugin</button>
+          <span class="muted" id="galleryDetailStatus"></span>
+        </div>
       </div>
     </div>
   </div>

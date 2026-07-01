@@ -1,0 +1,253 @@
+{
+  "name": "Feral",
+  "isInstrument": true,
+  "explanation": "A raw, aggressive two-oscillator semi-modular mono synth in the Steiner-Parker lineage. Two oscillators (saw-to-pulse morph, osc2 tunable across an interval) drive a snarling resonant low-pass, and the signature is Grind: a feedback circuit that folds the output back into the filter for dirt, honk and chaos. A snappy ADSR, free LFO, sample & hold and noise round it out. Fully patchable: a 5x4 modulation matrix (LFO, Env, S&H, Noise, Osc2 into Pitch, Cutoff, PWM and Grind) whose routing amounts are real parameters - cabling a source to a destination turns that amount up, so the patch you see is the patch you hear. Normalled Env-to-Cutoff and a touch of LFO-to-PWM. Mono, last-note priority.",
+  "assembly": "factory/plugins/feral/assembly.ts",
+  "out": "factory/plugins/feral/x.vstai",
+  "guiFile": "factory/plugins/feral/gui.html",
+  "publishedAt": 1751400200000,
+  "theme": {
+    "accent": "#ff4a4a",
+    "accent2": "#ffb24a"
+  },
+  "params": [
+    {
+      "name": "Osc Wave",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Osc2 Int",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Osc Mix",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Cutoff",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Reso",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Env Amt",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Attack",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.06
+    },
+    {
+      "name": "Decay",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Sustain",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "LFO Rate",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Glide",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.12
+    },
+    {
+      "name": "Grind",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Drive",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Level",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "LFO > PITCH",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > CUTOFF",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > PWM",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "LFO > GRIND",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > PITCH",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > CUTOFF",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "ENV > PWM",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > GRIND",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PITCH",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > CUTOFF",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PWM",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > GRIND",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PITCH",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > CUTOFF",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PWM",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > GRIND",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > PITCH",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > CUTOFF",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > PWM",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > GRIND",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

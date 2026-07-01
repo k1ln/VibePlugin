@@ -17,6 +17,9 @@ const FLEN: i32 = 256;
 const inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
+const vDrift: StaticArray<f32> = new StaticArray<f32>(NVOX);
+const vGL: StaticArray<f32> = new StaticArray<f32>(NVOX);
+const vGR: StaticArray<f32> = new StaticArray<f32>(NVOX);
 
 const wt: StaticArray<f32> = new StaticArray<f32>(FRAMES * FLEN);
 
@@ -35,6 +38,8 @@ let sampleRate: f32 = 48000.0;
 const P_POS: i32 = 0; const P_SCAN: i32 = 1; const P_CUTOFF: i32 = 2; const P_RESO: i32 = 3; const P_ENV: i32 = 4; const P_LEVEL: i32 = 5;
 
 @inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }
+let rngState: i32 = 0x2b9f17;
+@inline function rnd(): f32 { rngState = (rngState * 1103515245 + 12345) & 0x7fffffff; return f32(rngState) / 1073741824.0 - 1.0; }
 
 function buildWavetable(): void {
   for (let f = 0; f < FRAMES; f++) {
@@ -92,11 +97,16 @@ export function process(n: i32): void {
   const k: f32 = 2.0 - 1.9 * resoN;
   const out: f32 = level * 0.45;
 
+    const _width: f32 = 0.55;
+  for (let _s = 0; _s < NVOX; _s++) { const _pr: i32 = (_s + 1) / 2; const _mg: f32 = _s == 0 ? 0.0 : (1.0 - f32(_pr - 1) / f32(NVOX)); const _pan: f32 = ((_s % 2 == 1) ? -_mg : _mg) * _width; vGL[_s] = f32(Mathf.sqrt(0.5 * (1.0 - _pan))); vGR[_s] = f32(Mathf.sqrt(0.5 * (1.0 + _pan))); }
+  const _dLeak: f32 = 0.9998; const _dStep: f32 = 0.00006;
+
   for (let i = 0; i < n; i++) {
-    let mix: f32 = 0.0;
+    let mixL: f32 = 0.0; let mixR: f32 = 0.0;
     for (let s = 0; s < NVOX; s++) {
       if (vSt[s] == 0) continue;
-      const fr: f32 = vFreq[s];
+      vDrift[s] = vDrift[s] * _dLeak + rnd() * _dStep;
+      const fr: f32 = vFreq[s] * (1.0 + vDrift[s]);
       if (vSt[s] == 1) { vAmp[s] += atkInc; if (vAmp[s] > 1.0) vAmp[s] = 1.0; }
       else { vAmp[s] *= relCoef; if (vAmp[s] < 0.0004) { vSt[s] = 0; continue; } }
       vEnv[s] *= eCoef;
@@ -122,10 +132,10 @@ export function process(n: i32): void {
       const hp: f32 = (osc - (g + k) * vBp[s] - vLp[s]) * a1;
       const bpN: f32 = g * hp + vBp[s]; const lpN: f32 = g * bpN + vLp[s];
       vBp[s] = bpN; vLp[s] = lpN;
-      mix += lpN * vAmp[s] * vVel[s];
+      const _v: f32 = lpN * vAmp[s] * vVel[s]; mixL += _v * vGL[s]; mixR += _v * vGR[s];
     }
-    let o: f32 = mix * out;
-    if (o > 1.4) o = 1.4; else if (o < -1.4) o = -1.4;
-    outBuf[i] = o; outBuf[MAX_FRAMES + i] = o;
+    let oL: f32 = mixL * out; let oR: f32 = mixR * out;
+    if (oL > 1.4) oL = 1.4; else if (oL < -1.4) oL = -1.4; if (oR > 1.4) oR = 1.4; else if (oR < -1.4) oR = -1.4;
+    outBuf[i] = oL; outBuf[MAX_FRAMES + i] = oR;
   }
 }

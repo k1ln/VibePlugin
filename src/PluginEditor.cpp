@@ -28,6 +28,15 @@ namespace
     const char* kBridgeShim = R"JS(<script>
 (function(){
   var vals = {};
+  // Restored session values (see BridgeShim.h). During the GUI's boot window we
+  // redirect its default-pushes back to these so reopening keeps your sound.
+  var restored = (window.__vstaiRestored && typeof window.__vstaiRestored === 'object') ? window.__vstaiRestored : {};
+  for (var _rk in restored) vals[_rk] = +restored[_rk];
+  var booting = true;
+  function endBoot(){ booting = false; }
+  window.addEventListener('pointerdown', endBoot, true);
+  window.addEventListener('keydown',     endBoot, true);
+  setTimeout(endBoot, 6000);
   var held = {};   // note numbers currently sounding from the on-screen GUI
   function send(path){
     try { fetch(path + '?_=' + Date.now() + '_' + Math.random(), { cache: 'no-store' }); } catch(e){}
@@ -75,7 +84,11 @@ namespace
     return { frames: frames, channels: channels, sampleRate: rate };
   }
   window.vstai = {
-    setParam: function(i, v){ vals[i] = +v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v)); },
+    setParam: function(i, v){
+      v = +v;
+      if (booting && (i in restored) && Math.abs(v - restored[i]) > 1e-6) v = restored[i];
+      vals[i] = v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v));
+    },
     getParam: function(i){ return (i in vals) ? vals[i] : 0; },
     onReady: function(cb){ try { cb(); } catch(e){} },
     noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
@@ -108,10 +121,28 @@ namespace
         return out;
     }
 
-    // Inject the charset meta + bridge shim as early as possible in the document.
-    juce::String withBridge (const juce::String& html)
+    // Current param values (0..1) as a JSON object keyed by index — restored session
+    // values after reload, defaults otherwise. See BridgeShim.h for how it's used.
+    juce::String restoredValuesJson (VstaiAudioProcessor& processor)
     {
-        const juce::String inject = juce::String (kCharsetMeta) + kBridgeShim;
+        juce::String s = "{";
+        bool first = true;
+        for (const auto& p : processor.getDocument().params)
+        {
+            if (p.index < 0 || p.index >= vstai::kMaxParams) continue;
+            s << (first ? "" : ",") << "\"" << p.index << "\":"
+              << juce::String (processor.getParamValue (p.index), 6);
+            first = false;
+        }
+        s << "}";
+        return s;
+    }
+
+    // Inject the charset meta + bridge shim as early as possible in the document.
+    juce::String withBridge (const juce::String& html, const juce::String& initialValuesJson = "{}")
+    {
+        const juce::String initScript = "<script>window.__vstaiRestored=" + initialValuesJson + ";</script>";
+        const juce::String inject = juce::String (kCharsetMeta) + initScript + kBridgeShim;
         int head = html.indexOfIgnoreCase ("<head>");
         if (head >= 0)
             return html.substring (0, head + 6) + inject + html.substring (head + 6);
@@ -536,7 +567,8 @@ VstaiAudioProcessorEditor::provideResource (const juce::String& rawUrl)
     // Everything else serves the current GUI document.
     if (url == "/" || url.endsWithIgnoreCase ("index.html") || ! url.startsWith ("/__vstai"))
         return juce::WebBrowserComponent::Resource {
-            toBytes (withBridge (processor.getDisplayHtml())), "text/html;charset=UTF-8" };
+            toBytes (withBridge (processor.getDisplayHtml(), restoredValuesJson (processor))),
+            "text/html;charset=UTF-8" };
 
     return std::nullopt;
 }

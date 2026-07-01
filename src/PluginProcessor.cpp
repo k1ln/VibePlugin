@@ -769,6 +769,19 @@ bool VstaiAudioProcessor::loadDocument (const juce::File& file, juce::String& er
     return true;
 }
 
+bool VstaiAudioProcessor::loadDocumentFromJson (const juce::String& json, juce::String& errorOut)
+{
+    if (json.trim().isEmpty()) { errorOut = "Empty document."; return false; }
+    auto loaded = VstaiDocument::fromJsonString (json);
+    if (! loaded.hasPlugin()) { errorOut = "Not a valid .vstai plugin (no DSP/GUI)."; return false; }
+    document = std::move (loaded);
+    if (document.revisions.empty() && document.hasPlugin())
+        document.pushRevision ("Loaded from gallery");
+    loadDocumentIntoEngine();
+    notifyChanged();
+    return true;
+}
+
 void VstaiAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     auto json = document.toJsonString();

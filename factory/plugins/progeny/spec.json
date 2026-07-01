@@ -1,0 +1,309 @@
+{
+  "name": "Progeny",
+  "isInstrument": true,
+  "explanation": "A single-oscillator semi-modular mono synth built around an 8-step analog-style sequencer - the tabletop that launched a modern semi-modular line. One saw/pulse oscillator with a variable pulse width plus a square sub runs into a warm 4-pole transistor-ladder low-pass with a snappy ADSR, a free LFO, sample & hold, noise and a clocked step sequencer that keeps a held note dancing. Its signature is the patch bay: a 5x4 modulation matrix (LFO, Env, Seq, S&H, Noise into Pitch, Cutoff, PWM and Verb) whose routing amounts are real parameters - cabling a source to a destination turns that amount up, so the patch you see is the patch you hear. Normalled Seq-to-Pitch and Env-to-Cutoff make it sequence out of the box. Mono, last-note priority.",
+  "assembly": "factory/plugins/progeny/assembly.ts",
+  "out": "factory/plugins/progeny/x.vstai",
+  "guiFile": "factory/plugins/progeny/gui.html",
+  "publishedAt": 1751400100000,
+  "theme": {
+    "accent": "#ff8a3d",
+    "accent2": "#6ad0ff"
+  },
+  "params": [
+    {
+      "name": "Osc Wave",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Pulse W",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Sub",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Cutoff",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Reso",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Env Amt",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Attack",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.06
+    },
+    {
+      "name": "Decay",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Sustain",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Seq Rate",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Glide",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.12
+    },
+    {
+      "name": "Reverb",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drive",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Level",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "LFO > PITCH",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > CUTOFF",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > PWM",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "LFO > VERB",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > PITCH",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > CUTOFF",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "ENV > PWM",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > VERB",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "SEQ > PITCH",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "SEQ > CUTOFF",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "SEQ > PWM",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "SEQ > VERB",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PITCH",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > CUTOFF",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PWM",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > VERB",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PITCH",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > CUTOFF",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PWM",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > VERB",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Step 1",
+      "index": 34,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Step 2",
+      "index": 35,
+      "min": 0,
+      "max": 1,
+      "default": 0.71
+    },
+    {
+      "name": "Step 3",
+      "index": 36,
+      "min": 0,
+      "max": 1,
+      "default": 0.375
+    },
+    {
+      "name": "Step 4",
+      "index": 37,
+      "min": 0,
+      "max": 1,
+      "default": 0.79
+    },
+    {
+      "name": "Step 5",
+      "index": 38,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Step 6",
+      "index": 39,
+      "min": 0,
+      "max": 1,
+      "default": 0.86
+    },
+    {
+      "name": "Step 7",
+      "index": 40,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Step 8",
+      "index": 41,
+      "min": 0,
+      "max": 1,
+      "default": 0.625
+    }
+  ]
+}

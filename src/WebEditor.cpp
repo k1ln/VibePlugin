@@ -339,6 +339,60 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                     complete (result (ok, ok ? ("Loaded " + file.getFileName()) : ("Load failed: " + err)));
                 });
         })
+        // ---- browse the public GitHub gallery and load examples on the fly ----
+        // Fetch happens in C++ (no browser CORS) against the Pages-hosted catalogue.
+        .withNativeFunction ("galleryIndex", [safe] (const VarArray&, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            juce::Component::SafePointer<WebEditor> s2 (safe);
+            std::thread ([s2, complete]() mutable
+            {
+                const juce::String url = "https://k1ln.github.io/VibePlugin/gallery/data/index.json";
+                int status = 0; juce::String body;
+                auto opts = juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inAddress)
+                                .withConnectionTimeoutMs (15000).withStatusCode (&status);
+                if (auto in = juce::URL (url).createInputStream (opts))
+                    body = in->readEntireStreamAsString();
+                const bool ok = (status >= 200 && status < 300) && body.isNotEmpty();
+                auto items = ok ? juce::JSON::parse (body) : juce::var();
+                juce::MessageManager::callAsync ([s2, complete, ok, items, status]() mutable
+                {
+                    if (s2 == nullptr) return;
+                    auto* o = new juce::DynamicObject();
+                    o->setProperty ("ok", ok);
+                    if (ok) o->setProperty ("items", items);
+                    else    o->setProperty ("message", "Could not reach the gallery (HTTP " + juce::String (status) + ").");
+                    complete (juce::var (o));
+                });
+            }).detach();
+        })
+        .withNativeFunction ("galleryLoad", [safe] (const VarArray& a, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            const juce::String slug = argStr (a, 0).trim();
+            if (slug.isEmpty()) { complete (result (false, "No plugin chosen.")); return; }
+            juce::Component::SafePointer<WebEditor> s2 (safe);
+            std::thread ([s2, slug, complete]() mutable
+            {
+                const juce::String url = "https://k1ln.github.io/VibePlugin/gallery/data/"
+                                       + juce::URL::addEscapeChars (slug, false) + ".vstai";
+                int status = 0; juce::String body;
+                auto opts = juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inAddress)
+                                .withConnectionTimeoutMs (20000).withStatusCode (&status);
+                if (auto in = juce::URL (url).createInputStream (opts))
+                    body = in->readEntireStreamAsString();
+                const bool got = (status >= 200 && status < 300) && body.isNotEmpty();
+                juce::MessageManager::callAsync ([s2, complete, got, body, status]() mutable
+                {
+                    if (s2 == nullptr) return;
+                    if (! got) { complete (result (false, "Download failed (HTTP " + juce::String (status) + ").")); return; }
+                    juce::String err;
+                    const bool ok = s2->processor.loadDocumentFromJson (body, err);
+                    complete (result (ok, ok ? ("Loaded " + s2->processor.getDocument().name)
+                                             : ("Load failed: " + err)));
+                });
+            }).detach();
+        })
         // ---- export as a standalone, locked whitelabel plugin ----------
         .withNativeFunction ("exportPlugin", [safe] (const VarArray&, Completion complete)
         {
@@ -867,9 +921,12 @@ WebEditor::provideResource (const juce::String& rawUrl)
         return r;
 
     // ---- the sandboxed generated GUI ---------------------------------------
+    // Pass the current param values so the injected bridge stops the GUI's boot from
+    // resetting them to defaults — keeps your sound on reopen (see BridgeShim.h).
     if (url == "/preview" || url.endsWithIgnoreCase ("/preview"))
         return juce::WebBrowserComponent::Resource {
-            toBytes (withBridge (processor.getDisplayHtml())), "text/html;charset=UTF-8" };
+            toBytes (withBridge (processor.getDisplayHtml(), vstai::shim::restoredValuesJson (processor))),
+            "text/html;charset=UTF-8" };
 
     // ---- the SPA shell -----------------------------------------------------
     if (url == "/" || url.endsWithIgnoreCase ("/index.html"))

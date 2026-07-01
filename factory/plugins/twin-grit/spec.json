@@ -1,0 +1,253 @@
+{
+  "name": "Twin Grit",
+  "isInstrument": true,
+  "explanation": "A bright, gritty two-oscillator semi-modular mono synth in the Japanese dual-filter lineage. Two oscillators run through two aggressive, self-oscillating filters in series - a resonant low-pass then a resonant high-pass - for the unmistakable honking, screaming character. A snappy ADSR, free LFO, sample & hold and noise feed a 5x4 patch matrix (LFO, Env, S&H, Noise, Osc2 into Pitch, LP Cut, PWM and HP Cut) whose routing amounts are real parameters - cabling a source to a destination turns that amount up, so the patch you see is the patch you hear. Normalled Env-to-LP Cut and a touch of LFO-to-PWM. Bright, gritty, unmistakable. Mono, last-note priority.",
+  "assembly": "factory/plugins/twin-grit/assembly.ts",
+  "out": "factory/plugins/twin-grit/x.vstai",
+  "guiFile": "factory/plugins/twin-grit/gui.html",
+  "publishedAt": 1751400500000,
+  "theme": {
+    "accent": "#ffe14a",
+    "accent2": "#ff7a7a"
+  },
+  "params": [
+    {
+      "name": "Osc Wave",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Osc2 Int",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Osc Mix",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "LP Cut",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Reso",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Env Amt",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Attack",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.06
+    },
+    {
+      "name": "Decay",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Sustain",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "LFO Rate",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Glide",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.12
+    },
+    {
+      "name": "HP Cut",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drive",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Level",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "LFO > PITCH",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > LP CUT",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO > PWM",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "LFO > HP CUT",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > PITCH",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > LP CUT",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "ENV > PWM",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "ENV > HP CUT",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PITCH",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > LP CUT",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > PWM",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S&H > HP CUT",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PITCH",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > LP CUT",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > PWM",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "NOISE > HP CUT",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > PITCH",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > LP CUT",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > PWM",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "OSC2 > HP CUT",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

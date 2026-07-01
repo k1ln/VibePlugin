@@ -287,3 +287,20 @@ unchecked row each pass. After this list, fall back to category order for the re
 | 21 | Roland System-100 (semi-modular S&H mono) | **Scout Mono** | ✅ PASS |
 
 **Done: 200 / 200.** 🎉 Every modeling target shipped: tested wasm · stunning bespoke GUI · gallery `.vstai` · `test.html` bench. Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.
+
+## Patchable semi-modular set (+10, 2026-07-01)
+
+Ten original **fully-patchable** semi-modular synths, each inspired by a famous unit's *layout* but with a trademark-safe name and a real, working **patch bay** — a jack matrix where clicking a source jack then a destination jack draws a cable and sets a real modulation-routing parameter (the DSP carries a 5×4 mod matrix; normalled cables so it sounds good unpatched). All 10: DSP `VERDICT: PASS` · GUI 0 console errors · patching proven to route (`setParam` fires + cable draws) · gallery `.vstai`. Gallery total → **210**.
+
+| Inspired by | Name | Voice | Patch dest⁴ |
+|---|---|---|---|
+| Moog Grandmother | **Forebear** | 2-osc ladder + spring reverb | Verb |
+| Moog Mother-32 | **Progeny** | 1-osc + sub + 8-step sequencer | Verb |
+| Arturia MiniBrute 2 | **Feral** | Steiner snarl + Brute-style feedback | Grind |
+| Behringer Neutron | **Nucleon** | dual detuned VCO + overdrive | O-Drive |
+| Make Noise 0-Coast | **Shoreless** | west-coast sine + wavefolder | Fold/Air |
+| Korg MS-20 Mini | **Twin Grit** | dual self-oscillating filters (LP+HP) | HP Cut |
+| Intellijel Cascadia | **Cascara** | 3-osc East/West fold blend | Verb |
+| Pittsburgh Taiga | **Boreal** | aggressive 3-osc stack | Verb |
+| Moog Matriarch | **Dynasty** | 4-osc unison + stereo ping-pong delay | Delay |
+| Soma Pulsar-23 | **Quasar** | organismic through-zero cross-mod + feedback | Chaos |

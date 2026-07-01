@@ -60,6 +60,9 @@ html,body{height:100%}
 .player-pane iframe{display:block;width:100%;height:100%;border:0}
 .player-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   padding:24px;text-align:center;color:var(--muted);pointer-events:none}
+/* display:flex above (author > UA) beats the [hidden] attribute — restore it so
+   hint.hidden=true actually hides the placeholder once a synth is loaded. */
+.player-hint[hidden]{display:none}
 @media(max-width:760px){
   .split{grid-template-columns:1fr}
   .list-pane{border-right:0;border-bottom:1px solid var(--line);max-height:42vh}

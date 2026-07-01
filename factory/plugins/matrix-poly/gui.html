@@ -350,6 +350,8 @@
 
   var values = PARAMS.map(function (p) { return p.def; });
 
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
   // map matrix display + audio to readable param shorthands
   function P(name) {
     for (var i = 0; i < PARAMS.length; i++) if (PARAMS[i].name === name) return i;
