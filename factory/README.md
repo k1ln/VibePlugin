@@ -288,6 +288,21 @@ unchecked row each pass. After this list, fall back to category order for the re
 
 **Done: 200 / 200.** 🎉 Every modeling target shipped: tested wasm · stunning bespoke GUI · gallery `.vstai` · `test.html` bench. Each shipped with: tested wasm · stunning themed GUI · gallery `.vstai` · `test.html` bench.
 
+## Deep-detail rebuilds (2026-07-03)
+
+Full-manual-fidelity builds: the original's operation manual is read cover to cover
+and the hardware's complete program-parameter list (NRPN appendix) is used as the
+completeness checklist. Switch groups are bit-packed so everything fits the 64-param
+host pool; a bespoke panel GUI decodes every individual switch.
+
+| Original | Name | Coverage | Status |
+|---|---|---|---|
+| Moog Minimoog Model D (User's Manual v2, all 84 pp) | **Fat Mono** | 3 osc × 6 waveforms × 6 ranges · osc3 drone/mod source · mixer w/ overload feedback · ladder + Emphasis · KB Control 1/3+2/3 · decay-switch release · glide · note priority + multi-trigger · vel/pressure patch routes (38 params) | ✅ PASS 38/38 reactive, 16/16 behavior, GUI 0 errors |
+| Sequential Prophet-5 Rev 4 (User's Guide 1.3, all 80 pp) | **Analog Poly** | 2 VCOs (simultaneous wave switches, stepped FREQUENCY, hard sync, Osc B fine/lo-freq/kbd-off) · Poly Mod (FiltEnv + audio-rate Osc B → FreqA/PW A/Filter) · Rev 1/2-vs-3/4 switch (filter voicing + SSM-linear/CEM-exp envelope shapes) · Vintage knob (per-voice spread + drift) · Wheel-Mod (LFO↔noise mix, 5 dests) · Release switch · Unison 1-5 + chord memory · glide · aftertouch Filt/LFO · A-440 · bend range (45 params) | ✅ PASS 45/45 reactive, 8/8 behavior, GUI 0 errors |
+| Sequential Prophet-6 (Operation Manual 2.1, all 88 pp) | **Seer Six** | 2 morphing VCOs + sync + sub + noise · LPF/HPF w/ shared env · Slop · 4-mode glide · LFO (5+1 shapes, sync, 6 dests) · Poly Mod · full Aftertouch · Unison 1-6 + chord memory + 6 key modes · Pan Spread · Distortion · dual FX (bbd/ddl/cho/3×phaser/ring/2×flanger + hall/room/plate/spring, clock sync) · arp (5 modes × 3 oct × 10 divisions, Hold) · 64-step 6-note sequencer w/ rest+tie+transpose · wheels | ✅ PASS, all 64 params reactive, GUI 0 errors |
+
+Gallery total → **211**.
+
 ## Patchable semi-modular set (+10, 2026-07-01)
 
 Ten original **fully-patchable** semi-modular synths, each inspired by a famous unit's *layout* but with a trademark-safe name and a real, working **patch bay** — a jack matrix where clicking a source jack then a destination jack draws a cable and sets a real modulation-routing parameter (the DSP carries a 5×4 mod matrix; normalled cables so it sounds good unpatched). All 10: DSP `VERDICT: PASS` · GUI 0 console errors · patching proven to route (`setParam` fires + cable draws) · gallery `.vstai`. Gallery total → **210**.

@@ -1,0 +1,383 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analog Poly</title>
+<style>
+  :root{ --ac:#f08c28; --cream:#efe3c4; --dim:#a89a78; --panel1:#181512; --panel2:#0c0a08; --line:#5e523c; }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none}
+  html,body{margin:0;min-height:100%}
+  body{font:11px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--cream);
+    background:radial-gradient(130% 100% at 50% -10%,#2a241c 0%,#0d0b08 55%,#050403 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:16px 6px}
+  .synth{display:flex;max-width:1240px;width:100%;border-radius:10px;overflow:hidden;
+    box-shadow:0 28px 64px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05)}
+  .cheek{width:30px;flex:0 0 30px;background:
+    linear-gradient(90deg,#8a5f36 0%,#6e4a26 25%,#54371a 60%,#3a250f 100%);position:relative}
+  .cheek.r{transform:scaleX(-1)}
+  .cheek::after{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(92deg,rgba(0,0,0,.16) 0 2px,transparent 2px 5px),
+               repeating-linear-gradient(88deg,rgba(255,220,170,.05) 0 1px,transparent 1px 9px)}
+  .core{flex:1;background:linear-gradient(180deg,var(--panel1),var(--panel2));padding:10px 14px 12px;min-width:0}
+  /* ---------- header ---------- */
+  .head{display:flex;align-items:center;gap:16px;padding:2px 2px 8px;border-bottom:2px solid var(--line)}
+  .badge{background:linear-gradient(180deg,#241f18,#141110);border:1px solid var(--line);border-radius:6px;padding:4px 12px 5px}
+  .logo{font-size:22px;font-weight:700;letter-spacing:.02em;font-style:italic;font-family:Georgia,"Times New Roman",serif;color:var(--cream)}
+  .logo i{color:var(--ac);font-style:italic}
+  .tag{font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-top:1px}
+  .headfill{flex:1}
+  .lcd{display:flex;align-items:center;gap:9px}
+  .lcd .what{font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;max-width:96px;text-align:right}
+  .lcd .scr{min-width:84px;text-align:right;background:#160b03;border:1px solid #000;border-radius:4px;
+    padding:3px 10px;font:700 19px/1 "Menlo","Consolas",monospace;color:#ffa53d;
+    text-shadow:0 0 8px rgba(255,150,40,.8),0 0 20px rgba(255,140,30,.35);letter-spacing:.08em}
+  /* ---------- rows & sections ---------- */
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:stretch}
+  .sec{border:1px solid var(--line);border-radius:5px;padding:6px 7px 7px;position:relative;flex:0 0 auto;
+    background:linear-gradient(180deg,rgba(255,240,210,.02),rgba(0,0,0,.12))}
+  .sec>b{display:block;text-align:center;font-size:8.5px;font-weight:700;letter-spacing:.24em;color:var(--ac);
+    text-transform:uppercase;border-bottom:1px solid var(--line);padding:0 2px 4px;margin:0 -3px 7px;white-space:nowrap}
+  .bank{display:flex;gap:3px 5px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+  .col{display:flex;flex-direction:column;gap:5px;align-items:center}
+  /* ---------- knob (P5-style black skirt, cream pointer, 0-10 ticks) ---------- */
+  .kn{display:flex;flex-direction:column;align-items:center;gap:3px;width:49px}
+  .kn .cap{position:relative;width:38px;height:38px;border-radius:50%;cursor:ns-resize;touch-action:none;
+    background:radial-gradient(circle at 50% 30%,#2e2a24,#0a0908 74%);
+    border:1px solid #000;
+    box-shadow:0 3px 6px rgba(0,0,0,.7), inset 0 1px 1px rgba(255,255,255,.1), 0 0 0 3px #0a0908, 0 0 0 4px rgba(239,227,196,.14)}
+  .kn .cap::before{content:"";position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+    background:repeating-conic-gradient(from 225deg,rgba(239,227,196,.4) 0 1.8deg,transparent 1.8deg 27deg);
+    -webkit-mask:radial-gradient(circle,transparent 23px,#000 24px,#000 26px,transparent 27px);
+    mask:radial-gradient(circle,transparent 23px,#000 24px,#000 26px,transparent 27px)}
+  .kn .ptr{position:absolute;left:50%;top:2px;width:3px;height:15px;margin-left:-1.5px;border-radius:2px;
+    background:var(--cream);box-shadow:0 0 4px rgba(239,227,196,.6);transform-origin:50% 17px}
+  .kn .lb{font-size:7.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;text-align:center;
+    white-space:normal;line-height:1.3;min-height:15px;max-width:56px}
+  .kn.bip .cap::after{content:"";position:absolute;top:-9px;left:50%;width:1px;height:5px;margin-left:-.5px;background:rgba(239,227,196,.55)}
+  /* ---------- P5 rocker-style button with jewel LED ---------- */
+  .bt{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:37px}
+  .bt .sq{width:24px;height:19px;border-radius:2.5px;border:1px solid #000;position:relative;
+    background:linear-gradient(180deg,#35302a,#16130f);box-shadow:0 2px 3px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12)}
+  .bt .sq::after{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:8px;height:4px;border-radius:2px;
+    background:#3a1d10;transition:.12s}
+  .bt.on .sq::after{background:#ff3d1c;box-shadow:0 0 7px #ff3d1c,0 0 15px rgba(255,60,20,.5)}
+  .bt:active .sq{transform:translateY(1px)}
+  .bt .lb{font-size:7px;letter-spacing:.05em;color:var(--dim);text-transform:uppercase;text-align:center;white-space:normal;max-width:37px;line-height:1.25}
+  /* ---------- LED-ladder selector ---------- */
+  .sel{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+  .sel .opt{display:flex;align-items:center;gap:4px;cursor:pointer;padding:0 2px}
+  .sel .led{width:5.5px;height:5.5px;border-radius:50%;background:#3a1d10;border:1px solid #000;transition:.1s}
+  .sel .opt.on .led{background:#ff3d1c;box-shadow:0 0 6px #ff3d1c}
+  .sel .opt span{font-size:7.5px;letter-spacing:.07em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+  .sel .opt.on span{color:var(--cream)}
+  .sel>i{font-size:7.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;font-style:normal;margin-bottom:1px}
+  /* ---------- wheels ---------- */
+  .wheelbox{display:flex;gap:10px;align-items:flex-end;padding:0 2px}
+  .wh{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .wh .slot{width:24px;height:104px;border-radius:4px;background:#060505;border:1px solid #000;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.95);position:relative;cursor:ns-resize;touch-action:none;overflow:hidden}
+  .wh .grip{position:absolute;left:2px;right:2px;height:32px;border-radius:3px;
+    background:repeating-linear-gradient(180deg,#3b352c 0 3px,#1d1913 3px 6px);
+    border:1px solid #000;box-shadow:0 1px 3px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.05);top:36px}
+  .wh .lb{font-size:7.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .foot{margin-top:10px;padding-top:7px;border-top:2px solid var(--line);font-size:9px;color:#8d8266;
+    display:flex;gap:16px;flex-wrap:wrap}
+  .foot b{color:#c8ba97;font-weight:600}
+</style></head><body>
+<div class="synth">
+  <div class="cheek"></div>
+  <div class="core">
+    <div class="head">
+      <div class="badge"><div class="logo">analog<i>~</i>poly</div><div class="tag">five voice polyphonic analog</div></div>
+      <div class="headfill"></div>
+      <div class="lcd"><div class="what" id="lcdWhat">program</div><div class="scr" id="lcd">5</div></div>
+    </div>
+    <div class="row" id="row1"></div>
+    <div class="row" id="row2"></div>
+    <div class="row" id="row3"></div>
+    <div class="foot">
+      <span><b>Poly Mod</b> + <b>Wheel-Mod</b> route to the lit destinations</span>
+      <span><b>Vintage</b> 4 = tight modern &middot; 1 = loose Rev1</span>
+      <span><b>Chord</b>: hold a chord, then switch Unison voices to Chord to capture it</span>
+      <span><b>Release</b> off = fast release on both envelopes</span>
+    </div>
+  </div>
+  <div class="cheek r"></div>
+</div>
+<script>
+(function(){
+  "use strict";
+  // ---- param table (mirror of spec.json) --------------------------------
+  var PD = {}; // index -> {min,max,def}
+  function d(i,mn,mx,df){ PD[i]={min:mn,max:mx,def:df}; }
+  d(0,0,48,24); d(1,0,1,.5); d(2,0,7,1); d(3,0,48,24); d(4,0,1,.12); d(5,0,1,.5); d(6,0,31,1);
+  d(7,0,1,.8); d(8,0,1,.6); d(9,0,1,0);
+  d(10,0,1,1); d(11,0,1,.5); d(12,0,1,.2); d(13,0,1,.45); d(14,0,2,1);
+  d(15,0,1,.05); d(16,0,1,.42); d(17,0,1,.3); d(18,0,1,.3);
+  d(19,0,1,.03); d(20,0,1,.5); d(21,0,1,.8); d(22,0,1,.35);
+  d(23,0,3,0); d(24,0,1,.04); d(25,0,1,.5); d(26,0,7,2); d(27,0,1,0); d(28,0,31,3);
+  d(29,0,1,0); d(30,0,1,0); d(31,0,7,0); d(32,1,4,4); d(33,0,1,0);
+  d(34,0,27,0); d(35,0,8,2); d(36,0,1,1); d(37,-1,1,0); d(38,0,1,0);
+  d(39,-1,1,0); d(40,1,12,1); d(41,0,1,0); d(42,0,3,0); d(43,0,1,0); d(44,0,1,.75);
+
+  var vals = {};
+  for (var k in PD) vals[k] = PD[k].def;
+  var lcd, lcdWhat;
+  var listeners = {}; // param index -> [fn]
+
+  function push(i, v, label, shown){
+    vals[i] = v;
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, v);
+    if (label !== undefined && lcd){ lcdWhat.textContent = label; lcd.textContent = shown; }
+    var ls = listeners[i]; if (ls) for (var j=0;j<ls.length;j++) ls[j]();
+  }
+  function listen(i, fn){ (listeners[i] = listeners[i] || []).push(fn); }
+  function getBit(i,b){ return (Math.round(vals[i]) >> b) & 1; }
+  function setBit(i,b,on,label){
+    var v = Math.round(vals[i]);
+    v = on ? (v | (1<<b)) : (v & ~(1<<b));
+    push(i, v, label, on ? "On" : "Off");
+  }
+
+  // ---- widget builders ----------------------------------------------------
+  function el(tag, cls, parent){ var e=document.createElement(tag); if(cls)e.className=cls; if(parent)parent.appendChild(e); return e; }
+
+  function knob(parent, idx, label, fmt, bipolar){
+    var p = PD[idx];
+    var box = el("div","kn"+(bipolar?" bip":""),parent);
+    var cap = el("div","cap",box);
+    var ptr = el("i","ptr",cap);
+    el("div","lb",box).textContent = label;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function show(){ return fmt ? fmt(vals[idx]) : (norm()*10).toFixed(1); }
+    function paint(){ ptr.style.transform = "rotate(" + ((norm()-0.5)*270) + "deg)"; }
+    function setN(n){
+      n = n<0?0:(n>1?1:n);
+      var v = p.min + (p.max-p.min)*n;
+      if (p.max-p.min >= 8) v = Math.round(v);
+      push(idx, v, label, show());
+      paint();
+    }
+    cap.addEventListener("pointerdown", function(e){ cap._d=1; cap._y=e.clientY; cap._n=norm(); cap.setPointerCapture(e.pointerId); e.preventDefault();
+      if(lcd){ lcdWhat.textContent=label; lcd.textContent=show(); } });
+    cap.addEventListener("pointermove", function(e){ if(!cap._d)return; setN(cap._n + (cap._y-e.clientY)/170); });
+    cap.addEventListener("pointerup", function(){ cap._d=0; });
+    cap.addEventListener("pointercancel", function(){ cap._d=0; });
+    cap.addEventListener("dblclick", function(){ push(idx,p.def,label,show()); paint(); });
+    cap.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm() + (e.deltaY<0?0.03:-0.03)); }, {passive:false});
+    listen(idx, paint);
+    paint();
+    return box;
+  }
+
+  // latching button bound to one bit of a packed param (invert: lit when bit is 0)
+  function bitBtn(parent, idx, bit, label, invert){
+    var b = el("div","bt",parent);
+    el("div","sq",b);
+    el("div","lb",b).textContent = label;
+    function paint(){ var on = getBit(idx,bit); if (invert) on = 1-on; b.classList.toggle("on", !!on); }
+    b.addEventListener("click", function(){
+      var cur = getBit(idx,bit);
+      setBit(idx, bit, cur ? 0 : 1, label);
+      paint();
+    });
+    listen(idx, paint);
+    paint();
+    return b;
+  }
+
+  // whole-param 0/1 button
+  function onBtn(parent, idx, label, invert){ return bitBtn(parent, idx, 0, label, invert); }
+
+  // LED-ladder selector with custom get/set (packed params can host two)
+  function selector(parent, title, opts, get, set){
+    var s = el("div","sel",parent);
+    if (title){ el("i","",s).textContent = title; }
+    var rows = [];
+    function paint(){ var cur=get(); for (var i=0;i<rows.length;i++) rows[i].classList.toggle("on", i===cur); }
+    opts.forEach(function(o,i){
+      var r = el("div","opt",s);
+      el("i","led",r);
+      el("span","",r).textContent = o;
+      r.addEventListener("click", function(){ set(i); paint();
+        if(lcd){ lcdWhat.textContent = title||o; lcd.textContent = o; } });
+      rows.push(r);
+    });
+    s._paint = paint;
+    paint();
+    return s;
+  }
+  function pSelector(parent, title, idx, opts){
+    var s = selector(parent, title, opts,
+      function(){ return Math.round(vals[idx]); },
+      function(i){ push(idx, i, title, opts[i]); });
+    listen(idx, s._paint);
+    return s;
+  }
+
+  function wheel(parent, idx, label, spring){
+    var p = PD[idx];
+    var w = el("div","wh",parent);
+    var slot = el("div","slot",w);
+    var grip = el("div","grip",slot);
+    el("div","lb",w).textContent = label;
+    var TRACK = 104-32-4;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function paint(){ grip.style.top = (2 + (1-norm())*TRACK) + "px"; }
+    function setN(n){
+      n = n<0?0:(n>1?1:n);
+      push(idx, p.min + (p.max-p.min)*n, label, (idx===39? (vals[idx]>=0?"+":"")+(vals[idx]*Math.round(vals[40])).toFixed(1) : (n*10).toFixed(1)));
+      paint();
+    }
+    slot.addEventListener("pointerdown", function(e){ slot._d=1; slot._y=e.clientY; slot._n=norm(); slot.setPointerCapture(e.pointerId); e.preventDefault(); });
+    slot.addEventListener("pointermove", function(e){ if(!slot._d)return; setN(slot._n + (slot._y-e.clientY)/TRACK); });
+    function done(){ if(!slot._d)return; slot._d=0; if (spring){ push(idx,(p.min+p.max)/2,label,"0"); paint(); } }
+    slot.addEventListener("pointerup", done);
+    slot.addEventListener("pointercancel", done);
+    listen(idx, paint);
+    paint();
+    return w;
+  }
+
+  function sec(row, name){
+    var s = el("div","sec",row);
+    el("b","",s).textContent = name;
+    var bank = el("div","bank",s);
+    return bank;
+  }
+  function col(parent){ return el("div","col",parent); }
+
+  // ---- build the panel (Prophet-5 ordering) --------------------------------
+  lcd = document.getElementById("lcd");
+  lcdWhat = document.getElementById("lcdWhat");
+  var row1 = document.getElementById("row1");
+  var row2 = document.getElementById("row2");
+  var row3 = document.getElementById("row3");
+  var semiFmt = function(v){ var s=Math.round(v)-24; return (s>0?"+":"")+s; };
+  var vintFmt = function(v){ return v.toFixed(1); };
+
+  // ---------------- row 1: POLY-MOD | OSC A | MIXER | FILTER | TUNE ----------
+  var b = sec(row1,"Poly-Mod");
+  knob(b,29,"Filt Env");
+  knob(b,30,"Osc B");
+  var pmc = col(b);
+  bitBtn(pmc,31,0,"Freq A");
+  bitBtn(pmc,31,1,"PW A");
+  bitBtn(pmc,31,2,"Filter");
+
+  b = sec(row1,"Oscillator A");
+  knob(b,0,"Frequency",semiFmt);
+  bitBtn(b,2,0,"Saw");
+  bitBtn(b,2,1,"Square");
+  knob(b,1,"Pulse Width");
+  bitBtn(b,2,2,"Sync");
+
+  b = sec(row1,"Mixer");
+  knob(b,7,"Osc A");
+  knob(b,8,"Osc B");
+  knob(b,9,"Noise");
+
+  b = sec(row1,"Filter");
+  var fr = col(b);
+  var frS = selector(fr,"Rev",["1/2","3"],
+    function(){ return Math.round(vals[10]); },
+    function(i){ push(10, i, "Filter Rev", ["Rev 1/2","Rev 3"][i]); });
+  listen(10, frS._paint);
+  knob(b,11,"Cutoff");
+  knob(b,12,"Resonance");
+  knob(b,13,"Envelope Amount");
+  var fk = col(b);
+  var fkS = selector(fk,"Keyboard",["Off","Half","Full"],
+    function(){ return Math.round(vals[14]); },
+    function(i){ push(14, i, "Filt Keyboard", ["Off","Half","Full"][i]); });
+  listen(14, fkS._paint);
+
+  b = sec(row1,"Tune");
+  knob(b,37,"Master Tune",function(v){ var c=Math.round(v*100); return (c>0?"+":"")+c+"c"; },true);
+  knob(b,32,"Vintage",vintFmt);
+  var tc = col(b);
+  onBtn(tc,38,"A 440");
+
+  // ---------------- row 2: LFO | WHEEL-MOD | OSC B | ENVELOPES ---------------
+  b = sec(row2,"LFO");
+  knob(b,24,"Initial Amount");
+  knob(b,25,"Frequency");
+  bitBtn(b,26,0,"Saw");
+  bitBtn(b,26,1,"Tri");
+  bitBtn(b,26,2,"Square");
+
+  b = sec(row2,"Wheel-Mod");
+  knob(b,27,"Source Mix",function(v){ return v<=0? "LFO" : (v>=1? "Noise" : (v*10).toFixed(1)); });
+  var wd1 = col(b);
+  bitBtn(wd1,28,0,"Freq A");
+  bitBtn(wd1,28,1,"Freq B");
+  var wd2 = col(b);
+  bitBtn(wd2,28,2,"PW A");
+  bitBtn(wd2,28,3,"PW B");
+  var wd3 = col(b);
+  bitBtn(wd3,28,4,"Filter");
+
+  b = sec(row2,"Oscillator B");
+  knob(b,3,"Frequency",semiFmt);
+  knob(b,4,"Fine",function(v){ return "+"+Math.round(v*100)+"c"; });
+  bitBtn(b,6,0,"Saw");
+  bitBtn(b,6,1,"Tri");
+  bitBtn(b,6,2,"Square");
+  knob(b,5,"Pulse Width");
+  bitBtn(b,6,3,"Lo Freq");
+  bitBtn(b,6,4,"Keyboard",true); // lit = keyboard tracking on (bit clear)
+
+  b = sec(row2,"Filter Envelope");
+  knob(b,15,"Attack");
+  knob(b,16,"Decay");
+  knob(b,17,"Sustain");
+  knob(b,18,"Release");
+  bitBtn(b,23,0,"Velocity");
+
+  // ---------------- row 3: performance strip ---------------------------------
+  b = sec(row3,"Amplifier Envelope");
+  knob(b,19,"Attack");
+  knob(b,20,"Decay");
+  knob(b,21,"Sustain");
+  knob(b,22,"Release");
+  bitBtn(b,23,1,"Velocity");
+
+  b = sec(row3,"Wheels");
+  var wb = el("div","wheelbox",b);
+  wheel(wb,39,"Pitch",true);
+  wheel(wb,41,"Mod",false);
+  var wc = col(b);
+  knob(wc,40,"Bend Range",function(v){ return Math.round(v)+" st"; });
+
+  b = sec(row3,"Aftertouch");
+  knob(b,43,"Pressure");
+  var at = col(b);
+  var atS = selector(at,"Route",["Off","Filt","LFO","Both"],
+    function(){ return Math.round(vals[42]); },
+    function(i){ push(42, i, "Aftertouch", ["Off","Filt","LFO","Both"][i]); });
+  listen(42, atS._paint);
+
+  b = sec(row3,"Glide · Release");
+  knob(b,33,"Glide Rate");
+  var gr = col(b);
+  onBtn(gr,36,"Release");
+
+  b = sec(row3,"Unison");
+  var uv = col(b);
+  var uvS = selector(uv,"Voices",["Off","1","2","3","4","5","Chord"],
+    function(){ return Math.round(vals[34])%7; },
+    function(i){ push(34, 7*Math.floor(Math.round(vals[34])/7) + i, "Unison", ["Off","1","2","3","4","5","Chd"][i]); });
+  listen(34, uvS._paint);
+  knob(b,35,"Detune",function(v){ return Math.round(v)+""; });
+  var up = col(b);
+  var upS = selector(up,"Priority",["Low","Low R","Last","Last R"],
+    function(){ return Math.floor(Math.round(vals[34])/7); },
+    function(i){ push(34, (Math.round(vals[34])%7) + 7*i, "Key Priority", ["LO","LOr","LAS","LAr"][i]); });
+  listen(34, upS._paint);
+
+  b = sec(row3,"Output");
+  knob(b,44,"Volume");
+
+  // push all defaults to the engine once the host is ready
+  function ready(){ for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]); }
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

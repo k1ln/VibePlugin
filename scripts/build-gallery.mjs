@@ -62,5 +62,22 @@ for (const f of files) {
 
 rows.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0) || a.name.localeCompare(b.name));
 
-await fs.writeFile(path.join(DATA, "index.json"), JSON.stringify(rows, null, 0) + "\n");
-console.log(`Wrote index.json — ${rows.length} plugin${rows.length === 1 ? "" : "s"}.`);
+// ---- quality gate (factory/quality-gate.json) ------------------------
+// Too-light builds keep their .vstai in data/ but are not listed until
+// rebuilt to the deep-detail standard (factory/REBUILD.md).
+let visible = rows;
+try {
+  const gate = JSON.parse(await fs.readFile(path.join(HERE, "..", "factory", "quality-gate.json"), "utf8"));
+  const hideFx = new Set(gate.hideEffects || []);
+  const minP = gate.instrumentMinParams || 0;
+  visible = rows.filter((r) =>
+    r.isInstrument ? r.params >= minP : !hideFx.has(r.id)
+  );
+  const hidden = rows.length - visible.length;
+  if (hidden > 0) console.log(`quality gate: ${hidden} too-light plugin${hidden === 1 ? "" : "s"} not displayed (rebuild queue: factory/REBUILD-QUEUE.md).`);
+} catch {
+  // no gate file — list everything
+}
+
+await fs.writeFile(path.join(DATA, "index.json"), JSON.stringify(visible, null, 0) + "\n");
+console.log(`Wrote index.json — ${visible.length} plugin${visible.length === 1 ? "" : "s"} listed (${rows.length} total).`);

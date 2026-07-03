@@ -1,0 +1,441 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seer Six</title>
+<style>
+  :root{ --ac:#ff5a36; --ac2:#ffc24d; --panel1:#1b1e24; --panel2:#101216; --ink:#d7dbe2; --dim:#8b919c; }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none}
+  html,body{margin:0;min-height:100%}
+  body{font:11px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+    background:radial-gradient(120% 90% at 50% -10%,#23262e 0%,#0b0d11 60%,#06070a 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:14px 6px}
+  .synth{display:flex;max-width:1180px;width:100%;border-radius:12px;overflow:hidden;
+    box-shadow:0 26px 60px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.06)}
+  .cheek{width:22px;flex:0 0 22px;background:
+    linear-gradient(90deg,#7a5433 0%,#5d3f24 30%,#4a3018 70%,#33210f 100%);
+    background-size:100% 100%;position:relative}
+  .cheek.r{transform:scaleX(-1)}
+  .cheek::after{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(175deg,rgba(0,0,0,.13) 0 3px,transparent 3px 7px);opacity:.7}
+  .core{flex:1;background:linear-gradient(180deg,var(--panel1),var(--panel2));padding:10px 12px 12px;min-width:0}
+  /* ---------- header ---------- */
+  .head{display:flex;align-items:center;gap:14px;padding:2px 4px 8px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .logo{font-size:21px;font-weight:800;letter-spacing:.06em;font-style:italic;
+    background:linear-gradient(90deg,#f4f6f9,#b9c0cc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo i{color:var(--ac);font-style:italic}
+  .tag{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  .headfill{flex:1}
+  .lcd{display:flex;align-items:center;gap:8px}
+  .lcd .scr{min-width:76px;text-align:right;background:#150806;border:1px solid #000;border-radius:5px;
+    padding:3px 9px;font:700 20px/1 "Menlo","Consolas",monospace;color:#ff2d12;
+    text-shadow:0 0 7px rgba(255,45,18,.85),0 0 18px rgba(255,45,18,.4);letter-spacing:.1em}
+  .lcd .what{font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;max-width:86px;text-align:left}
+  /* ---------- rows & sections ---------- */
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px;align-items:stretch}
+  .sec{border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:14px 8px 7px;position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0));flex:0 0 auto}
+  .sec>b{position:absolute;top:-7px;left:8px;background:var(--panel1);padding:0 6px;font-size:8.5px;
+    font-weight:700;letter-spacing:.18em;color:#e8ebf0;text-transform:uppercase;white-space:nowrap}
+  .bank{display:flex;gap:2px 6px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+  .col{display:flex;flex-direction:column;gap:5px;align-items:center}
+  /* ---------- knob ---------- */
+  .kn{display:flex;flex-direction:column;align-items:center;gap:3px;width:56px}
+  .kn .cap{position:relative;width:42px;height:42px;border-radius:50%;cursor:ns-resize;touch-action:none;
+    background:radial-gradient(circle at 50% 32%,#3c424e,#14171c 72%);
+    border:1px solid #06070a;
+    box-shadow:0 2px 5px rgba(0,0,0,.65), inset 0 1px 1px rgba(255,255,255,.16), 0 0 0 3px #0d0f13, 0 0 0 4px rgba(255,255,255,.07)}
+  .kn .cap::before{content:"";position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+    background:repeating-conic-gradient(from 225deg,rgba(255,255,255,.28) 0 1.6deg,transparent 1.6deg 27deg);
+    -webkit-mask:radial-gradient(circle,transparent 24px,#000 25px,#000 27px,transparent 28px);
+    mask:radial-gradient(circle,transparent 24px,#000 25px,#000 27px,transparent 28px)}
+  .kn .ptr{position:absolute;left:50%;top:2px;width:2.5px;height:14px;margin-left:-1.25px;border-radius:2px;
+    background:var(--ac);box-shadow:0 0 6px var(--ac);transform-origin:50% 19px}
+  .kn .lb{font-size:8px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;text-align:center;
+    white-space:normal;line-height:1.3;min-height:15px;max-width:56px}
+  .kn.bip .cap::after{content:"";position:absolute;top:-9px;left:50%;width:1px;height:5px;margin-left:-.5px;background:rgba(255,255,255,.5)}
+  /* ---------- led button ---------- */
+  .bt{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:40px}
+  .bt .sq{width:26px;height:16px;border-radius:3px;border:1px solid #000;position:relative;
+    background:linear-gradient(180deg,#3a404b,#181b21);box-shadow:0 2px 3px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14)}
+  .bt .sq::after{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:6px;height:3.5px;border-radius:2px;
+    background:#3a2018;box-shadow:none;transition:.12s}
+  .bt.on .sq::after{background:var(--ac);box-shadow:0 0 7px var(--ac),0 0 14px rgba(255,90,54,.5)}
+  .bt:active .sq{transform:translateY(1px)}
+  .bt .lb{font-size:7.5px;letter-spacing:.09em;color:var(--dim);text-transform:uppercase;text-align:center;white-space:nowrap}
+  .bt.mom .sq::after{background:#26333a}
+  .bt.mom.on .sq::after{background:var(--ac2);box-shadow:0 0 7px var(--ac2)}
+  /* ---------- selector (LED ladder) ---------- */
+  .sel{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+  .sel .opt{display:flex;align-items:center;gap:4px;cursor:pointer;padding:0 2px}
+  .sel .led{width:5.5px;height:5.5px;border-radius:50%;background:#33201a;border:1px solid #000;transition:.1s}
+  .sel .opt.on .led{background:var(--ac);box-shadow:0 0 6px var(--ac)}
+  .sel .opt span{font-size:7.5px;letter-spacing:.07em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+  .sel .opt.on span{color:#f2f4f7}
+  .sel.h{flex-direction:row;gap:5px}
+  .sel>i{font-size:7.5px;letter-spacing:.09em;color:var(--dim);text-transform:uppercase;font-style:normal;margin-bottom:1px}
+  /* ---------- wheels ---------- */
+  .wheelbox{display:flex;gap:9px;align-items:flex-end;padding:0 2px}
+  .wh{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .wh .slot{width:26px;height:110px;border-radius:5px;background:#08090c;border:1px solid #000;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.9);position:relative;cursor:ns-resize;touch-action:none;overflow:hidden}
+  .wh .grip{position:absolute;left:2px;right:2px;height:34px;border-radius:3px;
+    background:repeating-linear-gradient(180deg,#3d434e 0 3px,#22262d 3px 6px);
+    border:1px solid #000;box-shadow:0 1px 3px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.06);top:38px}
+  .wh .lb{font-size:7.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .foot{margin-top:9px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);font-size:9px;color:#79808c;
+    display:flex;gap:14px;flex-wrap:wrap}
+  .foot b{color:#a9b0bc;font-weight:600}
+</style></head><body>
+<div class="synth">
+  <div class="cheek"></div>
+  <div class="core">
+    <div class="head">
+      <div><div class="logo">seer<i>~</i>six</div><div class="tag">six-voice polyphonic analog</div></div>
+      <div class="headfill"></div>
+      <div class="lcd"><div class="what" id="lcdWhat">program</div><div class="scr" id="lcd">6</div></div>
+    </div>
+    <div class="row" id="row1"></div>
+    <div class="row" id="row2"></div>
+    <div class="foot">
+      <span><b>Poly Mod / LFO / Aftertouch</b> route to the lit destinations</span>
+      <span><b>Glide &amp; Unison</b> latch buttons hold their mode selectors</span>
+      <span><b>Seq:</b> Record, play keys (Rest/Tie for silence/length), then Play — Rec+Play = key transpose</span>
+      <span><b>Hold</b> latches the arpeggio</span>
+    </div>
+  </div>
+  <div class="cheek r"></div>
+</div>
+<script>
+(function(){
+  "use strict";
+  // ---- param table (mirror of spec.json) --------------------------------
+  var PD = {}; // index -> {min,max,def}
+  function d(i,mn,mx,df){ PD[i]={min:mn,max:mx,def:df}; }
+  d(0,0,60,24); d(1,0,1,.5); d(2,0,1,.5); d(3,0,7,0); d(4,0,60,24); d(5,-1,1,.14); d(6,0,1,.5); d(7,0,1,.5);
+  d(8,0,1,.8); d(9,0,1,.65); d(10,0,1,.25); d(11,0,1,0); d(12,0,1,.08); d(13,0,1,.12); d(14,0,7,0);
+  d(15,0,1,.55); d(16,0,1,.25); d(17,-1,1,.4); d(18,0,1,0); d(19,0,1,.1); d(20,-1,1,0); d(21,0,8,1); d(22,0,7,5);
+  d(23,0,1,.05); d(24,0,1,.4); d(25,0,1,.3); d(26,0,1,.25); d(27,0,1,.02); d(28,0,1,.5); d(29,0,1,.75); d(30,0,1,.3);
+  d(31,0,1,1); d(32,0,1,.45); d(33,0,1,.08); d(34,0,4,0); d(35,0,1,0); d(36,0,63,3); d(37,-1,1,.15); d(38,-1,1,0);
+  d(39,0,31,8); d(40,-1,1,.3); d(41,0,63,16); d(42,0,1,0); d(43,0,7,1); d(44,0,9,3); d(45,0,1,.35); d(46,0,1,.4);
+  d(47,0,1,.5); d(48,0,13,10); d(49,0,1,.3); d(50,0,1,.5); d(51,0,1,.35); d(52,0,1,.06); d(53,0,7,0); d(54,0,5,0);
+  d(55,0,1,.55); d(56,0,15,0); d(57,0,14,5); d(58,30,250,120); d(59,0,9,2); d(60,-1,1,0); d(61,0,12,2); d(62,0,1,0); d(63,0,1,.75);
+
+  var vals = {};
+  for (var k in PD) vals[k] = PD[k].def;
+  var lcd, lcdWhat;
+  var listeners = {}; // param index -> [fn]
+
+  function push(i, v, label, shown){
+    vals[i] = v;
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, v);
+    if (label !== undefined && lcd){ lcdWhat.textContent = label; lcd.textContent = shown; }
+    var ls = listeners[i]; if (ls) for (var j=0;j<ls.length;j++) ls[j]();
+  }
+  function listen(i, fn){ (listeners[i] = listeners[i] || []).push(fn); }
+  function getBit(i,b){ return (Math.round(vals[i]) >> b) & 1; }
+  function setBit(i,b,on,label){
+    var v = Math.round(vals[i]);
+    v = on ? (v | (1<<b)) : (v & ~(1<<b));
+    push(i, v, label, on ? "On" : "Off");
+  }
+
+  // ---- widget builders ----------------------------------------------------
+  function el(tag, cls, parent){ var e=document.createElement(tag); if(cls)e.className=cls; if(parent)parent.appendChild(e); return e; }
+
+  function knob(parent, idx, label, fmt, bipolar){
+    var p = PD[idx];
+    var box = el("div","kn"+(bipolar?" bip":""),parent);
+    var cap = el("div","cap",box);
+    var ptr = el("i","ptr",cap);
+    el("div","lb",box).textContent = label;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function show(){ return fmt ? fmt(vals[idx]) : Math.round(norm()*127)+""; }
+    function paint(){ ptr.style.transform = "rotate(" + ((norm()-0.5)*270) + "deg)"; }
+    function setN(n){
+      n = n<0?0:(n>1?1:n);
+      var v = p.min + (p.max-p.min)*n;
+      if (p.max-p.min >= 10) v = Math.round(v);
+      push(idx, v, label, show());
+      paint();
+    }
+    cap.addEventListener("pointerdown", function(e){ cap._d=1; cap._y=e.clientY; cap._n=norm(); cap.setPointerCapture(e.pointerId); e.preventDefault();
+      if(lcd){ lcdWhat.textContent=label; lcd.textContent=show(); } });
+    cap.addEventListener("pointermove", function(e){ if(!cap._d)return; setN(cap._n + (cap._y-e.clientY)/170); });
+    cap.addEventListener("pointerup", function(){ cap._d=0; });
+    cap.addEventListener("pointercancel", function(){ cap._d=0; });
+    cap.addEventListener("dblclick", function(){ push(idx,p.def,label,show()); paint(); });
+    cap.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm() + (e.deltaY<0?0.03:-0.03)); }, {passive:false});
+    listen(idx, paint);
+    paint();
+    return box;
+  }
+
+  // latching LED button bound to one bit of a packed param (invert: lit when bit is 0)
+  function bitBtn(parent, idx, bit, label, invert){
+    var b = el("div","bt",parent);
+    el("div","sq",b);
+    el("div","lb",b).textContent = label;
+    function paint(){ var on = getBit(idx,bit); if (invert) on = 1-on; b.classList.toggle("on", !!on); }
+    b.addEventListener("click", function(){
+      var cur = getBit(idx,bit);
+      setBit(idx, bit, cur ? 0 : 1, label + (invert ? " (inv)" : ""));
+      paint();
+    });
+    listen(idx, paint);
+    paint();
+    return b;
+  }
+
+  // momentary button that fires a callback (Rest / Tie markers)
+  function momBtn(parent, label, fire){
+    var b = el("div","bt mom",parent);
+    el("div","sq",b);
+    el("div","lb",b).textContent = label;
+    b.addEventListener("pointerdown", function(){ b.classList.add("on"); fire();
+      if(lcd){ lcdWhat.textContent=label; lcd.textContent="•"; } });
+    b.addEventListener("pointerup", function(){ b.classList.remove("on"); });
+    b.addEventListener("pointerleave", function(){ b.classList.remove("on"); });
+    return b;
+  }
+
+  // LED-ladder selector: writes value = base + step*i to a (possibly shared) field
+  // get()/set(i) supplied so packed params can host two selectors.
+  function selector(parent, title, opts, get, set, horizontal){
+    var s = el("div","sel"+(horizontal?" h":""),parent);
+    if (title){ el("i","",s).textContent = title; }
+    var rows = [];
+    function paint(){ var cur=get(); for (var i=0;i<rows.length;i++) rows[i].classList.toggle("on", i===cur); }
+    opts.forEach(function(o,i){
+      var r = el("div","opt",s);
+      el("i","led",r);
+      el("span","",r).textContent = o;
+      r.addEventListener("click", function(){ set(i); paint();
+        if(lcd){ lcdWhat.textContent = title||o; lcd.textContent = o; } });
+      rows.push(r);
+    });
+    s._paint = paint;
+    paint();
+    return s;
+  }
+  // selector over a whole param
+  function pSelector(parent, title, idx, opts, horizontal){
+    var s = selector(parent, title, opts,
+      function(){ return Math.round(vals[idx]); },
+      function(i){ push(idx, i, title, opts[i]); }, horizontal);
+    listen(idx, s._paint);
+    return s;
+  }
+
+  function wheel(parent, idx, label, spring){
+    var p = PD[idx];
+    var w = el("div","wh",parent);
+    var slot = el("div","slot",w);
+    var grip = el("div","grip",slot);
+    el("div","lb",w).textContent = label;
+    var TRACK = 110-34-4;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function paint(){ grip.style.top = (2 + (1-norm())*TRACK) + "px"; }
+    function setN(n){
+      n = n<0?0:(n>1?1:n);
+      push(idx, p.min + (p.max-p.min)*n, label, (idx===60? (vals[idx]>=0?"+":"")+(vals[idx]*Math.round(vals[61])).toFixed(1) : Math.round(n*127)+""));
+      paint();
+    }
+    slot.addEventListener("pointerdown", function(e){ slot._d=1; slot._y=e.clientY; slot._n=norm(); slot.setPointerCapture(e.pointerId); e.preventDefault(); });
+    slot.addEventListener("pointermove", function(e){ if(!slot._d)return; setN(slot._n + (slot._y-e.clientY)/TRACK); });
+    function done(){ if(!slot._d)return; slot._d=0; if (spring){ push(idx,(p.min+p.max)/2,label,"0"); paint(); } }
+    slot.addEventListener("pointerup", done);
+    slot.addEventListener("pointercancel", done);
+    listen(idx, paint);
+    paint();
+    return w;
+  }
+
+  function sec(row, name){
+    var s = el("div","sec",row);
+    el("b","",s).textContent = name;
+    var bank = el("div","bank",s);
+    return bank;
+  }
+  function col(parent){ return el("div","col",parent); }
+
+  // ---- build the panel -----------------------------------------------------
+  lcd = document.getElementById("lcd");
+  lcdWhat = document.getElementById("lcdWhat");
+  var row1 = document.getElementById("row1");
+  var row2 = document.getElementById("row2");
+  var semiFmt = function(v){ var s=Math.round(v)-24; return (s>0?"+":"")+s; };
+  var centFmt = function(v){ var c=Math.round(v*50); return (c>0?"+":"")+c+"c"; };
+  var bipFmt = function(v){ var s=Math.round(v*127); return (s>0?"+":"")+s; };
+
+  // LFO
+  var b = sec(row1,"Low Frequency Oscillator");
+  knob(b,32,"Frequency");
+  knob(b,33,"Initial Amt");
+  var c1 = col(b);
+  pSelector(c1,"Shape",34,["Tri","Saw","Rev Saw","Sqr","Rnd"]);
+  var c2 = col(b);
+  bitBtn(c2,35,0,"Lfo Sync");
+  var lfoD = col(b);
+  bitBtn(lfoD,36,0,"Freq 1"); bitBtn(lfoD,36,1,"Freq 2"); bitBtn(lfoD,36,2,"PW 1+2");
+  var lfoD2 = col(b);
+  bitBtn(lfoD2,36,3,"Amp"); bitBtn(lfoD2,36,4,"LP Filt"); bitBtn(lfoD2,36,5,"HP Filt");
+
+  // OSC 1 + slop
+  b = sec(row1,"Oscillator 1");
+  knob(b,0,"Frequency",semiFmt);
+  knob(b,1,"Shape");
+  knob(b,2,"Pulse Width");
+  var o1c = col(b);
+  bitBtn(o1c,3,0,"Sync");
+  knob(o1c,12,"Slop");
+
+  // OSC 2
+  b = sec(row1,"Oscillator 2");
+  knob(b,4,"Frequency",semiFmt);
+  knob(b,5,"Fine",centFmt,true);
+  knob(b,6,"Shape");
+  knob(b,7,"Pulse Width");
+  var o2c = col(b);
+  bitBtn(o2c,3,1,"Low Freq");
+  bitBtn(o2c,3,2,"Keyboard",true); // lit = keyboard tracking on (bit clear)
+
+  // MIXER
+  b = sec(row1,"Mixer");
+  knob(b,8,"Osc 1");
+  knob(b,9,"Osc 2");
+  knob(b,10,"Sub Octave");
+  knob(b,11,"Noise");
+
+  // HIGH-PASS
+  b = sec(row1,"High-Pass Filter");
+  knob(b,18,"Cutoff");
+  knob(b,19,"Resonance");
+  knob(b,20,"Env Amount",bipFmt,true);
+  var hc = col(b);
+  bitBtn(hc,22,1,"Velocity");
+  selector(hc,"Keyboard",["Off","Half","Full"],
+    function(){ return Math.floor(Math.round(vals[21])/3); },
+    function(i){ push(21, (Math.round(vals[21])%3) + 3*i, "HPF Keyboard", ["Off","Half","Full"][i]); });
+
+  // LOW-PASS
+  b = sec(row1,"Low-Pass Filter");
+  knob(b,15,"Cutoff");
+  knob(b,16,"Resonance");
+  knob(b,17,"Env Amount",bipFmt,true);
+  var lc = col(b);
+  bitBtn(lc,22,0,"Velocity");
+  selector(lc,"Keyboard",["Off","Half","Full"],
+    function(){ return Math.round(vals[21])%3; },
+    function(i){ push(21, 3*Math.floor(Math.round(vals[21])/3) + i, "LPF Keyboard", ["Off","Half","Full"][i]); });
+
+  // FILTER ENVELOPE
+  b = sec(row1,"Filter Envelope");
+  knob(b,23,"Attack");
+  knob(b,24,"Decay");
+  knob(b,25,"Sustain");
+  knob(b,26,"Release");
+
+  // AMPLIFIER ENVELOPE
+  b = sec(row1,"Amplifier Envelope");
+  knob(b,31,"Env Amount");
+  var ac = col(b);
+  bitBtn(ac,22,2,"Velocity");
+  knob(b,27,"Attack");
+  knob(b,28,"Decay");
+  knob(b,29,"Sustain");
+  knob(b,30,"Release");
+
+  // ---- row 2 ---------------------------------------------------------------
+  // wheels
+  b = sec(row2,"Wheels");
+  var wb = el("div","wheelbox",b);
+  wheel(wb,60,"Pitch",true);
+  wheel(wb,62,"Mod",false);
+  var wc = col(b);
+  knob(wc,61,"Bend Range",function(v){ return Math.round(v)+" st"; });
+  knob(wc,42,"Pressure");
+
+  // GLIDE
+  b = sec(row2,"Glide");
+  knob(b,13,"Rate");
+  var gc = col(b);
+  bitBtn(gc,14,0,"Glide");
+  selector(gc,"Mode",["Fix Rate","Rate A","Fix Time","Time A"],
+    function(){ return (Math.round(vals[14])>>1)&3; },
+    function(i){ push(14, (Math.round(vals[14])&1) | (i<<1), "Glide Mode", ["FR","FRA","FT","FTA"][i]); });
+
+  // UNISON
+  b = sec(row2,"Unison");
+  pSelector(b,"Voices",53,["Off","1","2","3","4","5","6","Chd"]);
+  var uc = col(b);
+  pSelector(uc,"Key Assign",54,["Low","Low R","High","High R","Last","Last R"]);
+
+  // POLY MOD
+  b = sec(row2,"Poly Mod");
+  knob(b,37,"Filt Env",bipFmt,true);
+  knob(b,38,"Osc 2",bipFmt,true);
+  var pm1 = col(b);
+  bitBtn(pm1,39,0,"Freq 1"); bitBtn(pm1,39,1,"Shape 1");
+  var pm2 = col(b);
+  bitBtn(pm2,39,2,"PW 1"); bitBtn(pm2,39,3,"LP Filt");
+  var pm3 = col(b);
+  bitBtn(pm3,39,4,"HP Filt");
+
+  // AFTERTOUCH
+  b = sec(row2,"Aftertouch");
+  knob(b,40,"Amount",bipFmt,true);
+  var at1 = col(b);
+  bitBtn(at1,41,0,"Freq 1"); bitBtn(at1,41,1,"Freq 2");
+  var at2 = col(b);
+  bitBtn(at2,41,2,"LFO Amt"); bitBtn(at2,41,3,"Amp");
+  var at3 = col(b);
+  bitBtn(at3,41,4,"LP Filt"); bitBtn(at3,41,5,"HP Filt");
+
+  // EFFECTS
+  b = sec(row2,"Effects");
+  var fxc = col(b);
+  bitBtn(fxc,43,0,"On/Off");
+  bitBtn(fxc,43,1,"Sync A");
+  bitBtn(fxc,43,2,"Sync B");
+  pSelector(b,"Fx A",44,["Off","BBD","DDL","Chorus","Phase 1","Phase 2","Phase 3","Ring","Flange 1","Flange 2"]);
+  var fam = col(b);
+  knob(fam,45,"A Mix");
+  knob(fam,46,"A Par 1");
+  knob(fam,47,"A Par 2");
+  pSelector(b,"Fx B",48,["Off","BBD","DDL","Chorus","Phase 1","Phase 2","Phase 3","Ring","Flange 1","Flange 2","Hall","Room","Plate","Spring"]);
+  var fbm = col(b);
+  knob(fbm,49,"B Mix");
+  knob(fbm,50,"B Par 1");
+  knob(fbm,51,"B Par 2");
+
+  // DISTORTION / MISC
+  b = sec(row2,"Distortion · Misc");
+  knob(b,52,"Distortion");
+  knob(b,55,"Pan Spread");
+  knob(b,63,"Volume");
+
+  // ARP / SEQ / CLOCK
+  b = sec(row2,"Arpeggiator · Sequencer · Clock");
+  var tc = col(b);
+  bitBtn(tc,56,0,"Arp On");
+  bitBtn(tc,56,1,"Hold");
+  var arpsel = col(b);
+  selector(arpsel,"Mode",["Up","Down","Up+Dn","Random","Assign"],
+    function(){ return Math.round(vals[57])%5; },
+    function(i){ push(57, 5*Math.floor(Math.round(vals[57])/5) + i, "Arp Mode", ["Up","Down","Up+Dn","Rnd","Asn"][i]); });
+  var rangesel = col(b);
+  selector(rangesel,"Octave",["1 Oct","2 Oct","3 Oct"],
+    function(){ return Math.floor(Math.round(vals[57])/5); },
+    function(i){ push(57, (Math.round(vals[57])%5) + 5*i, "Arp Octave", (i+1)+" Oct"); });
+  knob(b,58,"BPM",function(v){ return Math.round(v)+""; });
+  pSelector(b,"Value",59,["Half","Qtr","8th","8th D","8th S","8th T","16th","16 S","16 T","32nd"]);
+  var sq = col(b);
+  bitBtn(sq,56,2,"Record");
+  bitBtn(sq,56,3,"Play");
+  momBtn(sq,"Rest", function(){ if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(-2, 0); });
+  momBtn(sq,"Tie",  function(){ if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(-3, 0); });
+
+  // push all defaults to the engine once the host is ready
+  function ready(){ for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]); }
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

@@ -1,0 +1,22 @@
+{
+  "_comment": "Gallery quality gate, read by scripts/build-gallery.mjs. Plugins failing the gate keep their .vstai in docs/gallery/data but are left out of index.json (not displayed). Instruments: hidden until rebuilt to the deep-detail standard (factory/REBUILD.md) — the params threshold flips them visible automatically as rebuilds land. Effects: pedals/simple studio gear with small real control surfaces are complete at 4-6 params and stay visible; the hideEffects list names builds that model DEEP hardware (multi-engine reverbs, rack delays, vocoders, channel strips, complex compressors) with only a handful of controls — too light until rebuilt.",
+  "instrumentMinParams": 16,
+  "hideEffects": [
+    "vast-hall",
+    "shimmer-hall",
+    "stereo-room",
+    "atrium",
+    "star-field",
+    "studio-delay",
+    "rack-echo",
+    "edge-echo",
+    "robot-voice",
+    "pitch-snap",
+    "compander",
+    "multiband",
+    "strip-eq",
+    "crush-comp",
+    "vari-mu",
+    "bus-glue"
+  ]
+}
