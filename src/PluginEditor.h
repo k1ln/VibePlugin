@@ -6,13 +6,15 @@
 #include <vector>
 #include <memory>
 #include "PluginProcessor.h"
+#include "MacKeyUpMonitor.h"
 #include "SourceEditor.h"
 #include "StandardUiPanel.h"
 #include "HistoryPanel.h"
 #include "Spinner.h"
 
 class VstaiAudioProcessorEditor : public juce::AudioProcessorEditor,
-                                  private juce::Timer
+                                  private juce::Timer,
+                                  private juce::FocusChangeListener
 {
 public:
     explicit VstaiAudioProcessorEditor (VstaiAudioProcessor&);
@@ -20,8 +22,14 @@ public:
 
     void resized() override;
     void paint (juce::Graphics&) override;
+    void visibilityChanged() override;
+
+    // Native stuck-note backstop: flush GUI-held notes whenever the plugin UI loses
+    // focus (clicked into the DAW / another plugin), independent of any WebView event.
+    void globalFocusChanged (juce::Component* focused) override;
 
 private:
+    void releaseGuiNotes();    // flush GUI-held notes if this is a synth build
     void doGenerate();
     void doGenerateManual();   // "bring your own chatbot" flow (no API key/tokens)
     void doNew();
@@ -105,6 +113,16 @@ private:
     std::unique_ptr<StandardUiPanel> standardPanel;  // editable house-style kit
     std::unique_ptr<HistoryPanel> historyPanel;      // prompt browser
     std::unique_ptr<juce::WebBrowserComponent> web;
+
+#if JUCE_MAC
+    // FL Studio (macOS) receives keyUp NSEvents but doesn't forward them to the
+    // WKWebView, latching GUI keyboard notes. This watches the host process's
+    // keyups and re-injects them into the page (see MacKeyUpMonitor.h).
+    std::unique_ptr<MacKeyUpMonitor> keyUpMonitor;
+    // ...and when FL consumes the keyup before dispatch (monitor sees nothing),
+    // this polls the physical key state each timer tick and injects the release.
+    MacKeyStatePoller keyPoller;
+#endif
     juce::TabbedComponent         tabs { juce::TabbedButtonBar::TabsAtTop };
     juce::String                  lastDiagnostics;
 

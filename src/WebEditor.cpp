@@ -662,6 +662,24 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
     web = std::make_unique<juce::WebBrowserComponent> (options);
     addAndMakeVisible (*web);
 
+#if JUCE_MAC
+    // Keyups the WKWebView swallows: re-inject into the page (GUI key handlers)
+    // and hand them back to the host window (FL typing-piano note-off) — see
+    // MacKeyUpMonitor.h.
+    keyUpMonitor = MacKeyUpMonitor::install (
+        [safe] (const std::string& key, const std::string& code)
+        {
+            if (safe != nullptr && safe->web != nullptr)
+                safe->web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (key, code));
+        },
+        [safe]() -> void*
+        {
+            if (safe == nullptr) return nullptr;
+            if (auto* peer = safe->getPeer()) return peer->getNativeHandle();
+            return nullptr;
+        });
+#endif
+
     resetParamReflection();
 
     // Stream document / build / reasoning changes into the SPA.
@@ -710,6 +728,9 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
 WebEditor::~WebEditor()
 {
     stopTimer();
+#if JUCE_MAC
+    keyUpMonitor.reset();   // stop forwarding before `web` goes away
+#endif
     processor.onDocumentChanged   = nullptr;
     processor.onThinkingDelta     = nullptr;
     processor.onBuildStateChanged = nullptr;
@@ -737,6 +758,14 @@ void WebEditor::resized()
 
 void WebEditor::timerCallback()
 {
+#if JUCE_MAC
+    // Physical-key-state fallback for keyups FL never dispatches at all (the
+    // NSEvent monitor can't see those either) — see MacKeyUpMonitor.h.
+    for (const auto& r : keyPoller.pollReleases())
+        if (web != nullptr)
+            web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (r.key, r.code));
+#endif
+
     reflectParamsToGui();
 
     if (! thinkingDirty) return;

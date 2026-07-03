@@ -157,7 +157,8 @@ export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
 
   // boot state = spec.json defaults (host may render before pushing)
   params[P_LFORATE] = 0.35; params[P_LFODEPTH] = 0.15; params[P_PWMDEPTH] = 0.2;
-  params[P_OSCSW] = 5.0; params[P_OSC1FREQ] = 1.0; params[P_OSC2FREQ] = 0.0;
+  params[P_OSCSW] = 15.0; params[P_MODSW] = 112.0;
+  params[P_OSC1FREQ] = 1.0; params[P_OSC2FREQ] = 0.0;
   params[P_OSC2DET] = 0.12; params[P_PW] = 0.3; params[P_FILTSW] = 53.0;
   params[P_CUTOFF] = 0.35; params[P_RESO] = 0.18; params[P_FMOD] = 0.55;
   params[P_FA] = 0.06; params[P_FD] = 0.5; params[P_FS] = 0.35; params[P_FR] = 0.35;

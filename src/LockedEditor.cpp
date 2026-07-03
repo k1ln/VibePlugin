@@ -42,21 +42,70 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
     web = std::move (browser);
     addAndMakeVisible (*web);
 
+#if JUCE_MAC
+    // Keyups the WKWebView swallows: re-inject into the page (GUI key handlers)
+    // and hand them back to the host window (FL typing-piano note-off) — see
+    // MacKeyUpMonitor.h.
+    keyUpMonitor = MacKeyUpMonitor::install (
+        [safe] (const std::string& key, const std::string& code)
+        {
+            if (safe != nullptr && safe->web != nullptr)
+                safe->web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (key, code));
+        },
+        [safe]() -> void*
+        {
+            if (safe == nullptr) return nullptr;
+            if (auto* peer = safe->getPeer()) return peer->getNativeHandle();
+            return nullptr;
+        });
+#endif
+
     setResizable (true, true);
     setSize (900, 600);
     web->goToURL (juce::WebBrowserComponent::getResourceProviderRoot());
 
     startTimerHz (30);   // host-automation -> GUI reflection
+
+    // Watch app-wide focus so we can release stuck GUI notes when the product UI
+    // loses focus (removed in the destructor).
+    juce::Desktop::getInstance().addFocusChangeListener (this);
 }
 
 LockedEditor::~LockedEditor()
 {
     stopTimer();
+#if JUCE_MAC
+    keyUpMonitor.reset();   // stop forwarding before `web` goes away
+#endif
+    juce::Desktop::getInstance().removeFocusChangeListener (this);
+    releaseGuiNotes();   // window closing: don't leave a note droning
 }
 
 void LockedEditor::resized()
 {
     if (web != nullptr) web->setBounds (getLocalBounds());
+}
+
+void LockedEditor::releaseGuiNotes()
+{
+    if (processor.isInstrument())
+        processor.allNotesOffFromGui();
+}
+
+void LockedEditor::globalFocusChanged (juce::Component* focused)
+{
+    // Focus left the product UI (into the DAW, another plugin, or the app lost key
+    // focus -> focused == nullptr). If the WebView swallowed the matching keyup, the
+    // note is still held GUI-side, so flush it. Focus moves that stay within us (e.g.
+    // into our own WebView child) are ignored so live playing isn't cut off.
+    if (focused != this && ! isParentOf (focused))
+        releaseGuiNotes();
+}
+
+void LockedEditor::visibilityChanged()
+{
+    if (! isShowing())
+        releaseGuiNotes();   // window hidden/minimised: release held notes
 }
 
 std::optional<juce::WebBrowserComponent::Resource>
@@ -83,6 +132,14 @@ LockedEditor::provideResource (const juce::String& rawUrl)
 
 void LockedEditor::timerCallback()
 {
+#if JUCE_MAC
+    // Physical-key-state fallback for keyups FL never dispatches at all (the
+    // NSEvent monitor can't see those either) — see MacKeyUpMonitor.h.
+    for (const auto& r : keyPoller.pollReleases())
+        if (web != nullptr)
+            web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (r.key, r.code));
+#endif
+
     reflectParamsToGui();
 }
 

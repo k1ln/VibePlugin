@@ -4,6 +4,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <atomic>
 #include <memory>
+#include <set>
 #include <vector>
 #include "WasmEngine.h"
 #include "VstaiDocument.h"
@@ -122,6 +123,13 @@ public:
     // GUI on-screen keyboard (synth builds). note = MIDI note number.
     void noteFromGui (int note, float velocity, bool on);
 
+    // Native backstop for stuck notes: release every note the GUI still holds. Called
+    // by the editor when the plugin window loses focus / is hidden / is destroyed,
+    // because some WebViews (WKWebView under FL Studio on macOS) drop the
+    // pointerup/keyup/blur that would otherwise fire the GUI-side allNotesOff. Only
+    // GUI-held notes are released, so notes the host sequences over MIDI are untouched.
+    void allNotesOffFromGui();
+
     // GUI sample upload, streamed through the bridge (begin -> data* -> end).
     // All called on the message thread from the resource provider.
     //   beginSampleUpload: start a transfer; returns the engine's sample capacity
@@ -227,6 +235,9 @@ private:
     // Notes injected by the GUI keyboard, drained on the audio thread.
     std::vector<WasmEngine::NoteEvent> guiNotes;
     juce::SpinLock                     guiNotesLock;
+    // MIDI note numbers currently held down via the GUI keyboard (guiNotesLock).
+    // Used by allNotesOffFromGui() to release exactly what the GUI turned on.
+    std::set<int>                      guiHeldNotes;
 
     // In-flight GUI sample upload (message thread only; reassembled before the
     // single engine.loadSample() call on `end`).

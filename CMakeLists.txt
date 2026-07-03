@@ -66,6 +66,12 @@ set(VSTAI_SOURCES
     src/LlmClient.cpp
     src/AssemblyScriptCompiler.cpp)
 
+# macOS: NSEvent keyUp monitor — re-injects keyups the host swallows (FL Studio)
+# so GUI keyboard notes release (see src/MacKeyUpMonitor.h).
+if(APPLE)
+    list(APPEND VSTAI_SOURCES src/MacKeyUpMonitor.mm)
+endif()
+
 # ---------------------------------------------------------------------------
 #  One core, two products: an effect and an instrument/synth.
 # ---------------------------------------------------------------------------

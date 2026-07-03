@@ -195,6 +195,16 @@ void VstaiAudioProcessor::noteFromGui (int note, float velocity, bool on)
     const float freq = (float) juce::MidiMessage::getMidiNoteInHertz (note);
     const juce::SpinLock::ScopedLockType sl (guiNotesLock);
     guiNotes.push_back ({ on, note, freq, velocity });
+    if (on) guiHeldNotes.insert (note);
+    else    guiHeldNotes.erase (note);
+}
+
+void VstaiAudioProcessor::allNotesOffFromGui()
+{
+    const juce::SpinLock::ScopedLockType sl (guiNotesLock);
+    for (const int note : guiHeldNotes)
+        guiNotes.push_back ({ false, note, 0.0f, 0.0f });
+    guiHeldNotes.clear();
 }
 
 int VstaiAudioProcessor::beginSampleUpload (int channels, int frames, double rate)

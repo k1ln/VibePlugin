@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 #include "DevLog.h"
 #include "BridgeProtocol.h"
+#include "BridgeShim.h"
 #include "LlmClient.h"
 #include "AppSettings.h"
 #include "AccountPanel.h"
@@ -231,6 +232,10 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     lnf = std::make_unique<VstaiLookAndFeel>();
     setLookAndFeel (lnf.get());
 
+    // Watch app-wide focus so we can release stuck GUI notes when the plugin UI
+    // loses focus (removed in the destructor).
+    juce::Desktop::getInstance().addFocusChangeListener (this);
+
     // Header brand strip.
     titleLabel.setText ("\xE2\x97\x88  VibePlugin", juce::dontSendNotification);
     titleLabel.setFont (juce::Font (juce::FontOptions (17.0f).withStyle ("Semibold")));
@@ -367,6 +372,27 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
         .withResourceProvider ([this] (const auto& url) { return provideResource (url); });
     web = std::make_unique<juce::WebBrowserComponent> (options);
 
+#if JUCE_MAC
+    // Keyups the WKWebView swallows: re-inject into the page (GUI key handlers)
+    // and hand them back to the host window (FL typing-piano note-off) — see
+    // MacKeyUpMonitor.h.
+    {
+        juce::Component::SafePointer<VstaiAudioProcessorEditor> safeEd (this);
+        keyUpMonitor = MacKeyUpMonitor::install (
+            [safeEd] (const std::string& key, const std::string& code)
+            {
+                if (safeEd != nullptr && safeEd->web != nullptr)
+                    safeEd->web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (key, code));
+            },
+            [safeEd]() -> void*
+            {
+                if (safeEd == nullptr) return nullptr;
+                if (auto* peer = safeEd->getPeer()) return peer->getNativeHandle();
+                return nullptr;
+            });
+    }
+#endif
+
     // Code editors for the DSP + GUI source.
     asmEditor  = std::make_unique<SourceEditor> (&asmTokeniser);
     htmlEditor = std::make_unique<SourceEditor> (&htmlTokeniser);
@@ -471,6 +497,11 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
 VstaiAudioProcessorEditor::~VstaiAudioProcessorEditor()
 {
     stopTimer();
+#if JUCE_MAC
+    keyUpMonitor.reset();   // stop forwarding before `web` goes away
+#endif
+    juce::Desktop::getInstance().removeFocusChangeListener (this);
+    releaseGuiNotes();   // window closing: don't leave a note droning
     processor.onDocumentChanged  = nullptr;
     processor.onThinkingDelta    = nullptr;
     processor.onBuildStateChanged = nullptr;
@@ -482,6 +513,28 @@ VstaiAudioProcessorEditor::~VstaiAudioProcessorEditor()
     openDialogs.clear();
 
     setLookAndFeel (nullptr);   // detach before lnf (and children) are destroyed
+}
+
+void VstaiAudioProcessorEditor::releaseGuiNotes()
+{
+    if (processor.isInstrument())
+        processor.allNotesOffFromGui();
+}
+
+void VstaiAudioProcessorEditor::globalFocusChanged (juce::Component* focused)
+{
+    // Focus left this plugin's UI (into the DAW, another plugin, or the app lost key
+    // focus -> focused == nullptr). If the WebView swallowed the matching keyup, the
+    // note is still held GUI-side, so flush it. Focus moves that stay within us (e.g.
+    // into our own WebView child) are ignored so live playing isn't cut off.
+    if (focused != this && ! isParentOf (focused))
+        releaseGuiNotes();
+}
+
+void VstaiAudioProcessorEditor::visibilityChanged()
+{
+    if (! isShowing())
+        releaseGuiNotes();   // window hidden/minimised: release held notes
 }
 
 void VstaiAudioProcessorEditor::trackDialog (juce::Component* c)
@@ -514,6 +567,14 @@ void VstaiAudioProcessorEditor::refreshThinkingView()
 
 void VstaiAudioProcessorEditor::timerCallback()
 {
+#if JUCE_MAC
+    // Physical-key-state fallback for keyups FL never dispatches at all (the
+    // NSEvent monitor can't see those either) — see MacKeyUpMonitor.h.
+    for (const auto& r : keyPoller.pollReleases())
+        if (web != nullptr)
+            web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (r.key, r.code));
+#endif
+
     if (! thinkingDirty) return;
     thinkingDirty = false;
     refreshThinkingView();

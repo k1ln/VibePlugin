@@ -17,17 +17,26 @@
 #include <memory>
 #include <optional>
 #include "PluginProcessor.h"
+#include "MacKeyUpMonitor.h"
 
 class LockedEditor : public juce::AudioProcessorEditor,
-                     private juce::Timer
+                     private juce::Timer,
+                     private juce::FocusChangeListener
 {
 public:
     explicit LockedEditor (VstaiAudioProcessor&);
     ~LockedEditor() override;
 
     void resized() override;
+    void visibilityChanged() override;
+
+    // Native stuck-note backstop: flush GUI-held notes whenever the product UI loses
+    // focus (clicked into the DAW / another plugin), independent of any WebView event.
+    void globalFocusChanged (juce::Component* focused) override;
 
 private:
+    void releaseGuiNotes();            // flush GUI-held notes if this is a synth build
+
     // Serves the product GUI (with the bridge shim) and the /__vstai/* fetch bridge.
     std::optional<juce::WebBrowserComponent::Resource> provideResource (const juce::String& url);
 
@@ -36,6 +45,16 @@ private:
 
     VstaiAudioProcessor& processor;
     std::unique_ptr<juce::WebBrowserComponent> web;
+
+#if JUCE_MAC
+    // FL Studio (macOS) receives keyUp NSEvents but doesn't forward them to the
+    // WKWebView, latching GUI keyboard notes. This watches the host process's
+    // keyups and re-injects them into the page (see MacKeyUpMonitor.h).
+    std::unique_ptr<MacKeyUpMonitor> keyUpMonitor;
+    // ...and when FL consumes the keyup before dispatch (monitor sees nothing),
+    // this polls the physical key state each timer tick and injects the release.
+    MacKeyStatePoller keyPoller;
+#endif
 
     // Mirror host-automation param values into the on-screen controls, sending only
     // what changed since last poll. The sentinel forces a full resync after load.

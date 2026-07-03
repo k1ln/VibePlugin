@@ -139,6 +139,25 @@ namespace vstai::shim
 })();
 </script>)JS";
 
+    // Build the JS that re-injects a keyup the host swallowed (see MacKeyUpMonitor.h:
+    // FL Studio receives the NSEvent but never forwards it to the WKWebView, so the
+    // page saw the keydown but the note latches). Dispatching on the document bubbles
+    // to window — both listener styles GUIs use — and the same event is fired into
+    // every same-origin iframe because WebEditor serves the GUI in a /preview iframe.
+    // A keyup the page never saw the keydown for is a no-op, so double delivery in
+    // hosts that DO forward keyups is harmless.
+    inline juce::String syntheticKeyUpJs (const std::string& key, const std::string& code)
+    {
+        const auto k = juce::JSON::toString (juce::var (juce::String (juce::CharPointer_UTF8 (key.c_str()))));
+        const auto c = juce::JSON::toString (juce::var (juce::String (juce::CharPointer_UTF8 (code.c_str()))));
+        return "(function(k,c){"
+               "function fire(d){if(!d)return;try{d.dispatchEvent(new KeyboardEvent('keyup',{key:k,code:c,bubbles:true,cancelable:true}));}catch(e){}}"
+               "fire(document);"
+               "var fr=document.getElementsByTagName('iframe');"
+               "for(var i=0;i<fr.length;i++){try{fire(fr[i].contentDocument);}catch(e){}}"
+               "})(" + k + "," + c + ");";
+    }
+
     inline std::vector<std::byte> toBytes (const juce::String& s)
     {
         auto utf8 = s.toRawUTF8();
