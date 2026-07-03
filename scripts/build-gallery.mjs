@@ -69,9 +69,12 @@ let visible = rows;
 try {
   const gate = JSON.parse(await fs.readFile(path.join(HERE, "..", "factory", "quality-gate.json"), "utf8"));
   const hideFx = new Set(gate.hideEffects || []);
+  const always = new Set(gate.alwaysShow || []);
   const minP = gate.instrumentMinParams || 0;
+  // alwaysShow lists deep-detail rebuilds that are faithful but have few controls
+  // (e.g. a TB-303 has ~9 knobs) — they'd fail the param count but are complete.
   visible = rows.filter((r) =>
-    r.isInstrument ? r.params >= minP : !hideFx.has(r.id)
+    always.has(r.id) ? true : (r.isInstrument ? r.params >= minP : !hideFx.has(r.id))
   );
   const hidden = rows.length - visible.length;
   if (hidden > 0) console.log(`quality gate: ${hidden} too-light plugin${hidden === 1 ? "" : "s"} not displayed (rebuild queue: factory/REBUILD-QUEUE.md).`);

@@ -1,244 +1,334 @@
 // =====================================================================
-//  ACID BASS — monophonic resonant squelch-bass synth (303-style voice)
-//  A single morphing saw<->square oscillator drives a 4-pole resonant
-//  low-pass with a fast-decaying filter envelope (the "squelch"). Accent
-//  boosts the filter envelope and level on hard hits; Glide slides pitch
-//  between notes (last-note priority). Pure algorithm, no samples.
+//  ACID BASS — a monophonic squelch-bass synth modelled control-for-
+//  control on the Roland TB-303 Bass Line (Owner's Manual read cover to
+//  cover: 96 pp; TONE CONTROL section p.33-34, specifications p.89).
 //
-//  Signal path per note:
-//    osc (saw<->square morph) -> drive/shaper -> 4-pole resonant LPF
-//    cutoff = base + envMod * filterEnv(+accent) -> amp env -> level
+//  The 303 is "a small synthesizer control panel" (manual p.34) fronting
+//  a step sequencer. Signal path implemented here:
+//
+//  VCO (p.34 WAVEFORM): ONE oscillator, a WAVEFORM switch picking the two
+//    classic 303 waves — sawtooth or square — both polyBLEP band-limited.
+//  TUNING (p.33): master tune, +/-500 cents, clockwise raises pitch.
+//  VCF (p.34 CUTOFF FREQ / RESONANCE): the signature 18 dB/oct (3-pole)
+//    diode-ladder-style resonant low-pass. CUTOFF shaves the upper
+//    harmonics; RESONANCE emphasises the cutoff band and, near maximum,
+//    pushes the filter toward self-oscillation.
+//  ENV MOD (p.34): depth of the envelope sweep into the filter cutoff —
+//    "the tone movement of a note", stronger clockwise.
+//  DECAY (p.34): the single decay-only envelope's time. Both the volume
+//    and the tone take longer to fade clockwise (one EG shapes VCA + VCF).
+//  ACCENT (p.34): the accent circuit. On accented steps it boosts the
+//    level, adds an extra fast resonant filter sweep and the characteristic
+//    accent "wow", and — like the hardware — accumulates across consecutive
+//    accents (a short-decay feedback envelope).
+//  SLIDE (p.5, p.39): portamento between tied/slid steps — a fixed-time
+//    glide, legato (no envelope retrigger) from the previous pitch.
+//  SEQUENCER (spec p.89): 16 steps of 16th notes, each carrying pitch,
+//    ACCENT, SLIDE and rest, at TEMPO 40-300 BPM. Monophonic. The panel edits
+//    the pattern through a single "pattern-write" note channel (see noteOn): the
+//    note number carries the step PITCH and a sentinel velocity carries the step
+//    index + accent/slide/rest flags, so one click rewrites exactly one step.
+//    Playback runs while the PLAY (transport bit0) bit is set.
+//  VOLUME (p.8): output level.
+//
+//  Pure algorithm — no samples, no imports, allocation-free in process().
 // =====================================================================
 
 const MAX_FRAMES: i32 = 8192;
 const MAX_CHANNELS: i32 = 2;
 const MAX_PARAMS: i32 = 64;
 
+const PI: f32 = 3.14159265358979;
+const TWO_PI: f32 = 6.28318530717959;
+
 const inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);
 const params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);
 
-const PI: f32  = 3.14159265358979;
-const TWO_PI: f32 = 6.28318530717959;
-
 let sampleRate: f32 = 48000.0;
 
-// ---- parameter indices (must match spec.json) ----
-const P_WAVE:  i32 = 0; // 0 = saw, 1 = square (morph)
-const P_CUTOFF: i32 = 1; // base cutoff 0..1
-const P_RESO:  i32 = 2; // resonance 0..1
-const P_ENVMOD: i32 = 3; // filter envelope amount 0..1
-const P_DECAY: i32 = 4; // filter+amp decay 0..1
-const P_ACCENT: i32 = 5; // accent amount 0..1
-const P_GLIDE: i32 = 6; // glide / portamento time 0..1
-const P_LEVEL: i32 = 7; // output level 0..1
+// ---- parameter indices (must match spec.json) ------------------------
+const P_WAVE: i32 = 0;      // 0 sawtooth, 1 square (WAVEFORM switch)
+const P_TUNE: i32 = 1;      // -1..1  → +/-500 cents master tune
+const P_CUTOFF: i32 = 2;    // 0..1   filter cutoff
+const P_RESO: i32 = 3;      // 0..1   filter resonance
+const P_ENVMOD: i32 = 4;    // 0..1   envelope → cutoff depth
+const P_DECAY: i32 = 5;     // 0..1   envelope decay time
+const P_ACCENT: i32 = 6;    // 0..1   accent amount
+const P_VOLUME: i32 = 7;    // 0..1   output volume
+const P_TEMPO: i32 = 8;     // 40..300 BPM
+const P_SLIDE: i32 = 9;     // 0..1   glide time (fixed-time slide)
+const P_TRANSPORT: i32 = 10;// bit0 PLAY (RUN), bit1 RECORD (WRITE)
 
-// ---- voice state ----
-let phase: f32 = 0.0;       // oscillator phase 0..1
-let targetFreq: f32 = 0.0;  // freq requested by the note
-let curFreq: f32 = 0.0;     // current (glided) freq
-let gate: i32 = 0;          // 1 while a note is held
-let note: i32 = -1;         // currently sounding note id
-let accentAmt: f32 = 0.0;   // 0..1 accent strength for the current note (from velocity)
+const NUM_PARAMS: i32 = 11;
 
-// envelopes
-let fenv: f32 = 0.0;        // filter envelope (decays from 1 -> 0)
-let aenv: f32 = 0.0;        // amplitude envelope (AD-ish with sustain)
+// ---- helpers ---------------------------------------------------------
+@inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }
+@inline function pget(i: i32): f32 { return params[i]; }
+@inline function pbits(i: i32): i32 { return i32(params[i] + 0.5); }
+@inline function midiHz(m: f32): f32 { return 440.0 * Mathf.pow(2.0, (m - 69.0) / 12.0); }
 
-// 4-pole (Moog-style) ladder filter state
-let f0: f32 = 0.0;
-let f1: f32 = 0.0;
-let f2: f32 = 0.0;
-let f3: f32 = 0.0;
+let rngState: i32 = 0x2545f491;
+@inline function rngf(): f32 {
+  rngState ^= rngState << 13; rngState ^= rngState >>> 17; rngState ^= rngState << 5;
+  return f32(rngState & 0x7fffffff) / f32(0x3fffffff) - 1.0;
+}
 
-// gentle DC blocker on the output
-let dcX: f32 = 0.0;
-let dcY: f32 = 0.0;
+@inline function polyBlep(t: f32, dt: f32): f32 {
+  if (dt <= 0.0) return 0.0;
+  if (t < dt) { const x: f32 = t / dt; return x + x - x * x - 1.0; }
+  else if (t > 1.0 - dt) { const x: f32 = (t - 1.0) / dt; return x * x + x + x + 1.0; }
+  return 0.0;
+}
+
+// ---- sequencer state -------------------------------------------------
+const SEQ_MAX: i32 = 16;
+const seqHz:    StaticArray<f32> = new StaticArray<f32>(SEQ_MAX);
+const seqGate:  StaticArray<i32> = new StaticArray<i32>(SEQ_MAX); // 1 note, 0 rest
+const seqAcc:   StaticArray<i32> = new StaticArray<i32>(SEQ_MAX);
+const seqSlide: StaticArray<i32> = new StaticArray<i32>(SEQ_MAX);
+let seqLen: i32 = 0;
+let seqPos: i32 = 0;
+let clockAcc: f32 = 0.0;
+let lastTransport: i32 = 0;
+
+// ---- monophonic voice state ------------------------------------------
+let vActive: i32 = 0;
+let vGate:   i32 = 0;
+let vCur:    f32 = 55.0;   // current pitch Hz (glide follows this)
+let vTarget: f32 = 55.0;   // target pitch Hz
+let vSliding:i32 = 0;
+let mainEnv: f32 = 0.0;    // single decay-only envelope (VCA + VCF)
+let mainStage: i32 = 0;    // 0 idle, 1 attack, 2 decay, 3 release
+let accEnv:  f32 = 0.0;    // accent feedback envelope
+let ph:      f32 = 0.0;    // oscillator phase
+let st0: f32 = 0.0; let st1: f32 = 0.0; let st2: f32 = 0.0; // 3-pole ladder states
+let liveId: i32 = -1;
+
+// ---- default acid pattern (recognisable auto-play preview) -----------
+function setStep(i: i32, midi: f32, gate: i32, acc: i32, slide: i32): void {
+  seqHz[i] = midiHz(midi); seqGate[i] = gate; seqAcc[i] = acc; seqSlide[i] = slide;
+}
+function loadDefaultPattern(): void {
+  // A minor acid riff around A1/A2 with accents, slides and rests.
+  const A1: f32 = 33.0; const A2: f32 = 45.0; const C3: f32 = 48.0;
+  const E3: f32 = 52.0; const G3: f32 = 55.0;
+  setStep(0,  A1, 1, 1, 0);
+  setStep(1,  A1, 1, 0, 0);
+  setStep(2,  A2, 1, 0, 1);   // slide up
+  setStep(3,  0.0,0, 0, 0);   // rest
+  setStep(4,  A1, 1, 1, 0);   // accent
+  setStep(5,  A1, 1, 0, 0);
+  setStep(6,  C3, 1, 0, 1);   // slide
+  setStep(7,  A1, 1, 0, 0);
+  setStep(8,  A1, 1, 1, 0);   // accent
+  setStep(9,  E3, 1, 0, 1);   // slide
+  setStep(10, A1, 1, 0, 0);
+  setStep(11, 0.0,0, 0, 0);   // rest
+  setStep(12, A1, 1, 1, 0);   // accent
+  setStep(13, G3, 1, 0, 1);   // slide
+  setStep(14, A1, 1, 0, 0);
+  setStep(15, A2, 1, 0, 0);
+  seqLen = 16;
+}
 
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr > 0.0 ? sr : 48000.0;
-  phase = 0.0;
-  targetFreq = 0.0;
-  curFreq = 0.0;
-  gate = 0;
-  note = -1;
-  accentAmt = 0.0;
-  fenv = 0.0;
-  aenv = 0.0;
-  f0 = 0.0; f1 = 0.0; f2 = 0.0; f3 = 0.0;
-  dcX = 0.0; dcY = 0.0;
+  vActive = 0; vGate = 0; vCur = 55.0; vTarget = 55.0; vSliding = 0;
+  mainEnv = 0.0; mainStage = 0; accEnv = 0.0; ph = 0.0;
+  st0 = 0.0; st1 = 0.0; st2 = 0.0; liveId = -1;
+  seqPos = 0; clockAcc = 0.0; lastTransport = 0;
+  loadDefaultPattern();
 
-  params[P_WAVE]   = 0.15;
-  params[P_CUTOFF] = 0.35;
-  params[P_RESO]   = 0.78;
-  params[P_ENVMOD] = 0.7;
-  params[P_DECAY]  = 0.4;
-  params[P_ACCENT] = 0.5;
-  params[P_GLIDE]  = 0.25;
-  params[P_LEVEL]  = 0.8;
+  // boot state = spec.json defaults (host may render before pushing)
+  params[P_WAVE] = 0.0; params[P_TUNE] = 0.0; params[P_CUTOFF] = 0.35;
+  params[P_RESO] = 0.75; params[P_ENVMOD] = 0.6; params[P_DECAY] = 0.45;
+  params[P_ACCENT] = 0.6; params[P_VOLUME] = 0.8; params[P_TEMPO] = 130.0;
+  params[P_SLIDE] = 0.3; params[P_TRANSPORT] = 1.0; // PLAY on → auto-play line
 }
 
 export function getInputPtr(): usize  { return changetype<usize>(inBuf); }
 export function getOutputPtr(): usize { return changetype<usize>(outBuf); }
 export function getParamsPtr(): usize { return changetype<usize>(params); }
-export function getNumParams(): i32   { return 8; }
+export function getNumParams(): i32   { return NUM_PARAMS; }
 
-@inline function clampf(x: f32, lo: f32, hi: f32): f32 {
-  return x < lo ? lo : (x > hi ? hi : x);
-}
-
-// soft saturator to tame self-oscillating resonance and add analog grit
-@inline function satf(x: f32): f32 {
-  // fast tanh-ish: bounded, smooth, cheap
-  const c: f32 = clampf(x, -3.0, 3.0);
-  return f32(c * (27.0 + c * c) / (27.0 + 9.0 * c * c));
-}
-
-// Host passes frequency in Hz. Last-note priority; new notes (re-)trigger the
-// envelopes. Velocity sets the per-note accent strength.
-export function noteOn(id: i32, f: f32, v: f32): void {
-  const newFreq: f32 = f > 0.0 ? f : 0.0001;
-  // If nothing was sounding, jump straight to pitch so the first note doesn't
-  // glide up from silence in an unexpected way... but a tiny seed gives glide
-  // something audible to ride for very first note too.
-  if (gate == 0 && curFreq <= 0.0) {
-    curFreq = newFreq * 0.5; // start an octave down so the first note glides
+// ---- trigger the mono voice ------------------------------------------
+function trigVoice(hz: f32, accent: i32, slide: i32): void {
+  vTarget = hz;
+  if (slide == 1 && vActive == 1) {
+    vSliding = 1;                 // legato glide, keep the envelope running
+  } else {
+    vCur = hz;                    // jump pitch
+    vSliding = 0;
+    mainStage = 1;               // retrigger the decay-only envelope
   }
-  targetFreq = newFreq;
-  note = id;
-  gate = 1;
-  // velocity -> accent strength for this note
-  accentAmt = clampf(v, 0.0, 1.0);
-  // (re)trigger envelopes
-  fenv = 1.0;
-  aenv = 1.0;
+  if (accent == 1) {
+    const a: f32 = clampf(pget(P_ACCENT), 0.0, 1.0);
+    accEnv = clampf(accEnv + 0.4 + a * 0.9, 0.0, 1.8); // accumulate (accent build-up)
+  }
+  vActive = 1; vGate = 1;
+}
+
+// ---- note events (host / GUI) ----------------------------------------
+export function noteOn(id: i32, hz: f32, vel: f32): void {
+  // ---- panel pattern-write channel ------------------------------------------
+  // The WebView note bridge can only deliver a MIDI note number (0..127, which the
+  // host converts into `hz`) plus a float `vel` — it can pass neither a negative
+  // control id nor a raw frequency. So the panel packs each step edit into ONE note
+  // event: the note number carries the step's PITCH and a sentinel velocity carries
+  // the step index + flags. It is order-independent (every message names its own step
+  // index) and transport-agnostic, so a click always rewrites the correct step.
+  //   vel = 64 + stepIndex*8 + flags,  flags = accent(bit0) | slide(bit1) | rest(bit2)
+  if (vel >= 64.0) {
+    const code: i32 = i32(vel - 64.0 + 0.5);
+    const idx: i32 = (code >> 3) & (SEQ_MAX - 1);
+    const flags: i32 = code & 7;
+    seqHz[idx] = hz;
+    if ((flags & 4) != 0) { seqGate[idx] = 0; seqAcc[idx] = 0; seqSlide[idx] = 0; }
+    else { seqGate[idx] = 1; seqAcc[idx] = flags & 1; seqSlide[idx] = (flags >> 1) & 1; }
+    if (idx + 1 > seqLen) seqLen = idx + 1;
+    return;
+  }
+
+  // ---- live keyboard play (only while the sequencer is stopped) --------------
+  const tr: i32 = pbits(P_TRANSPORT);
+  if ((tr & 1) == 1 && seqLen > 0) return; // sequencer owns the voice
+  if (hz <= 0.0) return;
+
+  const accent: i32 = vel >= 0.85 ? 1 : 0;
+  const slide: i32 = (vActive == 1 && vGate == 1) ? 1 : 0; // overlapping keys glide
+  trigVoice(hz, accent, slide);
+  liveId = id;
 }
 
 export function noteOff(id: i32): void {
-  if (id == note) gate = 0;
+  const tr: i32 = pbits(P_TRANSPORT);
+  if (((tr >> 1) & 1) == 1) return;            // ignore key-up while recording
+  if ((tr & 1) == 1 && seqLen > 0) return;     // sequencer owns the voice
+  if (id < 0) return;
+  if (id == liveId) { vGate = 0; mainStage = 3; }
 }
 
+// ---- one sequencer step ----------------------------------------------
+function seqAdvance(): void {
+  if (seqLen == 0) return;
+  if (seqPos >= seqLen) seqPos = 0;
+  const s: i32 = seqPos;
+  if (seqGate[s] == 0) {
+    // rest → release the envelope
+    if (mainStage != 0) mainStage = 3;
+    vGate = 0;
+  } else {
+    trigVoice(seqHz[s], seqAcc[s], seqSlide[s]);
+  }
+  seqPos = s + 1 >= seqLen ? 0 : s + 1;
+}
+
+// =====================================================================
+//  PROCESS
+// =====================================================================
 export function process(n: i32): void {
-  const wave:   f32 = clampf(params[P_WAVE],   0.0, 1.0);
-  const cutoffN: f32 = clampf(params[P_CUTOFF], 0.0, 1.0);
-  const resoN:  f32 = clampf(params[P_RESO],   0.0, 1.0);
-  const envModN: f32 = clampf(params[P_ENVMOD], 0.0, 1.0);
-  const decayN: f32 = clampf(params[P_DECAY],  0.0, 1.0);
-  const accentN: f32 = clampf(params[P_ACCENT], 0.0, 1.0);
-  const glideN: f32 = clampf(params[P_GLIDE],  0.0, 1.0);
-  const level:  f32 = clampf(params[P_LEVEL],  0.0, 1.0);
+  const sr: f32 = sampleRate;
 
-  // ---- derived coefficients ----
+  // ---- transport edges ------------------------------------------------
+  const tr: i32 = pbits(P_TRANSPORT);
+  const play: i32 = tr & 1;
+  const rec: i32 = (tr >> 1) & 1;
+  const trWas: i32 = lastTransport;
+  // A stopped→PLAY edge restarts the sequence from the top. (Pattern edits arrive on
+  //  the separate pattern-write note channel and never disturb the transport.)
+  if ((trWas & 1) == 0 && play == 1) { seqPos = 0; clockAcc = 0.0; }
+  lastTransport = tr;
+  const seqRunning: i32 = (play == 1 && seqLen > 0) ? 1 : 0;
 
-  // Filter-envelope decay: ~30 ms (snappy) up to ~1.2 s (long sweep).
-  const fdecaySec: f32 = 0.03 + decayN * decayN * 1.2;
-  const fenvCoef: f32 = f32(Mathf.exp(-1.0 / (fdecaySec * sampleRate)));
+  // ---- per-block parameter mapping ------------------------------------
+  const waveSquare: i32 = pget(P_WAVE) >= 0.5 ? 1 : 0;
+  const tuneMul: f32 = Mathf.pow(2.0, clampf(pget(P_TUNE), -1.0, 1.0) * (500.0 / 1200.0));
 
-  // Amp envelope: a touch longer than the filter so notes ring out musically.
-  const adecaySec: f32 = 0.06 + decayN * decayN * 1.6;
-  const aenvCoef: f32 = f32(Mathf.exp(-1.0 / (adecaySec * sampleRate)));
+  const cutN: f32 = clampf(pget(P_CUTOFF), 0.0, 1.0);
+  const fcBase: f32 = 55.0 * Mathf.pow(2.0, cutN * 7.2);   // ~55 Hz .. ~8 kHz
+  const resN: f32 = clampf(pget(P_RESO), 0.0, 1.0);
+  const envMod: f32 = clampf(pget(P_ENVMOD), 0.0, 1.0);
 
-  // Glide time: 0 (instant) .. ~120 ms per-sample one-pole toward target.
-  // Build a one-pole coefficient; glideN==0 means snap.
-  const glideSec: f32 = glideN * 0.12;
-  const glideCoef: f32 = glideSec > 0.0
-    ? f32(Mathf.exp(-1.0 / (glideSec * sampleRate)))
-    : 0.0;
+  const decN: f32 = clampf(pget(P_DECAY), 0.0, 1.0);
+  const decSec: f32 = 0.03 * Mathf.pow(110.0, decN);       // ~30 ms .. ~3.3 s
+  const decK: f32 = 1.0 - Mathf.exp(-1.0 / (decSec * sr));
+  const atkK: f32 = 1.0 - Mathf.exp(-1.0 / (0.003 * sr));  // ~3 ms attack
+  const relK: f32 = 1.0 - Mathf.exp(-1.0 / (0.012 * sr));  // ~12 ms rest-release
+  const accDecK: f32 = 1.0 - Mathf.exp(-1.0 / (0.20 * sr)); // ~200 ms accent decay
 
-  // Accent: boosts filter-env amount and a bit of level on hard hits.
-  // accentN scales how strong the accent system is; accentAmt is per-note vel.
-  const accent: f32 = accentN * accentAmt;            // 0..1 effective accent
-  const envModEff: f32 = envModN * (1.0 + 1.3 * accent); // accent opens filter more
-  const ampBoost: f32 = 1.0 + 0.6 * accent;            // accent is louder
+  const slideSec: f32 = 0.006 + clampf(pget(P_SLIDE), 0.0, 1.0) * 0.24; // 6..246 ms
+  const glideK: f32 = 1.0 - Mathf.exp(-1.0 / (slideSec * sr));
 
-  // Resonance 0..~3.9 (approaches self-oscillation but stays bounded by satf).
-  const reso: f32 = resoN * 3.9;
+  const vol: f32 = clampf(pget(P_VOLUME), 0.0, 1.0);
+  const outGain: f32 = vol * vol * 0.38;
 
-  // Base cutoff in Hz (exponential, musical): ~80 Hz .. ~9 kHz.
-  const baseCut: f32 = f32(80.0 * Mathf.exp(cutoffN * 4.72)); // 80 * e^4.72 ~ 9000
+  const bpm: f32 = clampf(pget(P_TEMPO), 40.0, 300.0);
+  const stepSamples: f32 = (60.0 / bpm) * 0.25 * sr;       // one 16th note
 
-  // Envelope sweep span in Hz added on top of base.
-  const sweepSpan: f32 = envModEff * 8500.0;
-
-  const nyq: f32 = sampleRate * 0.5;
-
-  // Drive into the filter (square is hotter; keep saw clean-ish).
-  const oscDrive: f32 = 1.0 + wave * 0.6;
-
-  for (let i = 0; i < n; i++) {
-    // ---- glide pitch toward target ----
-    if (glideCoef > 0.0) {
-      curFreq = targetFreq + (curFreq - targetFreq) * glideCoef;
-    } else {
-      curFreq = targetFreq;
+  for (let f = 0; f < n; f++) {
+    // ---- sequencer clock -----------------------------------------------
+    if (seqRunning == 1) {
+      clockAcc -= 1.0;
+      if (clockAcc <= 0.0) { clockAcc += stepSamples; seqAdvance(); }
     }
 
-    // ---- oscillator: phase ramp -> saw, derive square, morph ----
-    let inc: f32 = curFreq / sampleRate;
-    if (inc < 0.0) inc = 0.0;
-    if (inc > 0.5) inc = 0.5;
-    phase += inc;
-    if (phase >= 1.0) phase -= 1.0;
-
-    const saw: f32 = phase * 2.0 - 1.0;
-    const sq:  f32 = phase < 0.5 ? 1.0 : -1.0;
-    // morph saw -> square
-    let osc: f32 = saw + (sq - saw) * wave;
-    osc *= oscDrive;
-
-    // ---- envelopes (decay toward 0; amp holds a small sustain while gated) ----
-    fenv *= fenvCoef;
-    if (gate != 0) {
-      // amp sustains at a floor while held, then releases on noteOff
-      const sustain: f32 = 0.0;
-      aenv = sustain + (aenv - sustain) * aenvCoef;
-      // keep amp from collapsing fully while held: gentle floor
-      if (aenv < 0.25) aenv = 0.25;
-    } else {
-      aenv *= aenvCoef;
+    // ---- glide (fixed-time portamento) ---------------------------------
+    if (vSliding == 1) {
+      vCur += (vTarget - vCur) * glideK;
+      if (Mathf.abs(vTarget - vCur) < 0.05) { vCur = vTarget; vSliding = 0; }
     }
 
-    // ---- compute cutoff for this sample ----
-    let cutHz: f32 = baseCut + sweepSpan * fenv;
-    // accent adds a brief extra "click" of brightness at note start via fenv^2
-    cutHz += sweepSpan * 0.5 * accent * (fenv * fenv);
-    if (cutHz < 20.0) cutHz = 20.0;
-    if (cutHz > nyq * 0.49) cutHz = nyq * 0.49;
+    // ---- envelope (single decay-only EG) -------------------------------
+    if (mainStage == 1) { mainEnv += atkK * (1.06 - mainEnv); if (mainEnv >= 1.0) { mainEnv = 1.0; mainStage = 2; } }
+    else if (mainStage == 2) { mainEnv += decK * (0.0 - mainEnv); }
+    else if (mainStage == 3) { mainEnv += relK * (0.0 - mainEnv); if (mainEnv <= 0.0006) { mainEnv = 0.0; mainStage = 0; } }
+    if (accEnv > 0.0) { accEnv -= accEnv * accDecK; if (accEnv < 0.00005) accEnv = 0.0; }
 
-    // ---- 4-pole resonant ladder (normalized cutoff) ----
-    // g = tan-ish frequency warp approximated; use simple one-pole cascade.
-    let fc: f32 = cutHz / nyq; // 0..0.49
-    if (fc > 0.49) fc = 0.49;
-    // tuning coefficient for the cascade
-    const g: f32 = fc * (1.8 - 0.8 * fc); // empirical tuning curve
+    if (vActive == 1 && mainStage == 0 && mainEnv <= 0.0006) { vActive = 0; }
 
-    // resonance feedback (clamped); satf on feedback keeps it bounded
-    const fb: f32 = reso * (1.0 - 0.15 * g);
-    let input: f32 = osc - fb * satf(f3);
+    let outAmp: f32 = 0.0;
+    if (vActive == 1 || mainEnv > 0.0006) {
+      // ---- oscillator (saw or square, polyBLEP) ------------------------
+      const hz: f32 = vCur * tuneMul;
+      let inc: f32 = hz / sr;
+      if (inc > 0.45) inc = 0.45; if (inc < 0.0) inc = 0.0;
+      ph += inc; if (ph >= 1.0) ph -= 1.0;
+      let sig: f32;
+      if (waveSquare == 1) {
+        let sq: f32 = ph < 0.5 ? 1.0 : -1.0;
+        sq += polyBlep(ph, inc);
+        let p2: f32 = ph - 0.5; if (p2 < 0.0) p2 += 1.0;
+        sq -= polyBlep(p2, inc);
+        sig = sq;
+      } else {
+        let sw: f32 = 2.0 * ph - 1.0;
+        sw -= polyBlep(ph, inc);
+        sig = sw;
+      }
 
-    // four cascaded one-pole low-passes
-    f0 += g * (input - f0);
-    f1 += g * (f0 - f1);
-    f2 += g * (f1 - f2);
-    f3 += g * (f2 - f3);
+      // ---- 3-pole (18 dB/oct) diode-ladder resonant LPF ----------------
+      const cutOct: f32 = envMod * mainEnv * 4.4 + accEnv * 2.6
+                        + Mathf.log2(hz / 110.0) * 0.25;  // mild key tracking
+      let fc: f32 = fcBase * Mathf.pow(2.0, cutOct);
+      fc = clampf(fc, 20.0, sr * 0.45);
+      let g: f32 = 1.0 - Mathf.exp(-TWO_PI * fc / sr);
+      if (g > 0.99) g = 0.99;
+      const k: f32 = clampf(resN * 3.9 + accEnv * 0.7, 0.0, 4.4); // reso + accent emphasis
 
-    let filtered: f32 = f3;
-    // saturate the output of the ladder for analog warmth + safety
-    filtered = satf(filtered * 1.4);
+      let inp: f32 = sig - k * st2;
+      inp = Mathf.tanh(inp);
+      st0 += g * (inp - st0);
+      st1 += g * (st0 - st1);
+      st2 += g * (st1 - st2);
+      const filt: f32 = st2 * (1.0 + k * 0.5); // passband makeup
 
-    // ---- amp + accent + level ----
-    let s: f32 = filtered * aenv * ampBoost;
+      const levelBoost: f32 = 1.0 + accEnv * 0.9; // accent lifts the level
+      outAmp = filt * mainEnv * levelBoost;
+    }
 
-    // DC blocker
-    const y: f32 = s - dcX + 0.9985 * dcY;
-    dcX = s;
-    dcY = y;
-    s = y;
-
-    // final level + headroom guard
-    s = satf(s * level * 1.3) * 0.85;
-
-    outBuf[i] = s;
-    outBuf[MAX_FRAMES + i] = s;
+    const out: f32 = Mathf.tanh(outAmp * outGain);
+    outBuf[f] = out;
+    outBuf[MAX_FRAMES + f] = out;
   }
 }

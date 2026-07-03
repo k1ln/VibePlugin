@@ -1,289 +1,285 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-@property --p{syntax:'<number>';inherits:false;initial-value:0}
-:root{
-  --ac:#caa6ff; --ac2:#ff8fb0;
-  --cream:#f3ead6; --cream2:#e6d8ba; --ink:#33291f;
-  --wood:#6a4327; --wood2:#3f2614; --woodHi:#8a5d39;
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{
-  font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-  color:var(--ink);
-  background:radial-gradient(130% 100% at 50% -12%,#221b14 0%,#120d08 60%,#070503 100%);
-  display:flex;align-items:center;justify-content:center;padding:18px;-webkit-font-smoothing:antialiased;
-}
-
-/* ============ chassis: cream panel between two wood end-cheeks ======= */
-.synth{
-  position:relative;width:100%;max-width:820px;display:flex;
-  border-radius:13px;
-  box-shadow:0 40px 90px rgba(0,0,0,.66),0 2px 0 rgba(255,255,255,.05) inset;
-  animation:rise .75s cubic-bezier(.2,.85,.2,1) both;
-}
-@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.984)}to{opacity:1;transform:none}}
-
-/* the two wooden end-cheeks */
-.cheek{flex:0 0 28px;position:relative;
-  background:
-    repeating-linear-gradient(176deg,rgba(0,0,0,.16) 0 3px,rgba(255,255,255,.045) 3px 7px),
-    linear-gradient(160deg,var(--woodHi),var(--wood) 40%,var(--wood2) 100%);
-  box-shadow:0 1px 0 rgba(255,255,255,.1) inset,0 -2px 10px rgba(0,0,0,.5) inset;
-}
-.cheek.l{border-radius:13px 0 0 13px}
-.cheek.r{border-radius:0 13px 13px 0}
-.cheek::after{content:"";position:absolute;inset:5px 6px;border-radius:7px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.25),0 0 0 2px rgba(255,255,255,.06)}
-
-.surface{
-  position:relative;flex:1 1 auto;border-radius:4px;overflow:hidden;
-  background:linear-gradient(180deg,#f7efdd,#ebe0c6 60%,#ddceac 100%);
-  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 -12px 30px rgba(120,90,48,.2) inset,0 0 0 1px rgba(80,52,30,.35);
-}
-.surface::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.55;
-  background:
-    repeating-linear-gradient(91deg,rgba(120,90,48,.04) 0 2px,transparent 2px 6px),
-    radial-gradient(150% 70% at 50% 0%,rgba(255,255,255,.5),transparent 62%);
-  mix-blend-mode:multiply}
-
-/* ---------------- header / brand plate ---------------- */
-.head{position:relative;z-index:2;display:flex;align-items:flex-end;gap:14px;
-  padding:16px 24px 12px;border-bottom:2px solid rgba(80,52,30,.26)}
-.brand{display:flex;flex-direction:column;line-height:1}
-.brand .mk{font-size:9px;letter-spacing:.46em;color:#9a7c4c;font-weight:700;text-transform:uppercase}
-.brand h1{margin:4px 0 0;font-size:27px;font-weight:900;letter-spacing:.04em;color:#33291f;
-  text-shadow:0 1px 0 rgba(255,255,255,.6),0 -1px 0 rgba(80,52,30,.18)}
-.brand h1 em{font-style:normal;background:linear-gradient(90deg,var(--ac),var(--ac2));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 0 8px rgba(202,166,255,.35))}
-.tag{font-size:9px;letter-spacing:.3em;color:#a98a58;text-transform:uppercase;margin-top:4px}
-
-/* ---- the breathing stacked-saw scope (the motif) ---- */
-.scope{margin-left:auto;width:230px;height:62px;border-radius:8px;position:relative;overflow:hidden;
-  background:linear-gradient(180deg,#241c12,#0f0a05);
-  box-shadow:0 1px 0 rgba(255,255,255,.16),0 -2px 8px rgba(0,0,0,.55) inset,0 2px 6px rgba(0,0,0,.4)}
-.scope svg{position:absolute;inset:0;width:100%;height:100%}
-.scope .sgrid{stroke:rgba(255,255,255,.05)}
-.swave{fill:none;stroke-linejoin:round;stroke-linecap:round}
-.swave.a{stroke:var(--ac);stroke-width:2;filter:drop-shadow(0 0 5px var(--ac));animation:breathe 3.4s ease-in-out infinite}
-.swave.b{stroke:var(--ac2);stroke-width:1.6;opacity:.8;filter:drop-shadow(0 0 5px var(--ac2));animation:breathe 3.4s ease-in-out infinite .9s}
-.swave.c{stroke:color-mix(in srgb,var(--ac) 60%,var(--ac2));stroke-width:1.2;opacity:.55;animation:breathe 3.4s ease-in-out infinite 1.8s}
-@keyframes breathe{0%,100%{transform:translateX(0) scaleY(.9)}50%{transform:translateX(-6px) scaleY(1.12)}}
-.scope .glo{position:absolute;inset:0;background:radial-gradient(90% 120% at 30% 50%,rgba(202,166,255,.14),transparent 70%);
-  animation:sweepg 3.4s ease-in-out infinite}
-@keyframes sweepg{0%,100%{opacity:.4;transform:translateX(-12%)}50%{opacity:.9;transform:translateX(12%)}}
-
-/* ---------------- body ---------------- */
-.body{position:relative;z-index:2;padding:18px 24px 8px}
-.row{display:flex;gap:20px;align-items:stretch;flex-wrap:wrap}
-.module{flex:1 1 0;min-width:210px;position:relative;padding:14px 18px 18px;border-radius:9px;
-  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0));
-  box-shadow:0 0 0 1px rgba(80,52,30,.16),0 1px 0 rgba(255,255,255,.5) inset}
-.module>.mt{font-size:9px;letter-spacing:.32em;color:#9a7c4c;text-transform:uppercase;font-weight:800;
-  margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.module>.mt::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(80,52,30,.3) 0 5px,transparent 5px 9px)}
-.knobs{display:flex;gap:6px;justify-content:space-around;flex-wrap:wrap}
-
-/* ---------------- bakelite/ivory knob ---------------- */
-.cell{display:flex;flex-direction:column;align-items:center;gap:8px;width:78px;
-  animation:pop .55s both;animation-delay:var(--d)}
-@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
-.knob{--p:0;position:relative;width:60px;height:60px;cursor:ns-resize;touch-action:none;user-select:none}
-.knob .scale{position:absolute;inset:-9px;border-radius:50%;
-  background:repeating-conic-gradient(from 215deg,rgba(80,52,30,.5) 0 1.1deg,transparent 1.1deg 13.5deg);
-  -webkit-mask:radial-gradient(circle,transparent 32px,#000 33px,#000 35px,transparent 36px);
-  mask:radial-gradient(circle,transparent 32px,#000 33px,#000 35px,transparent 36px)}
-.knob .arc{position:absolute;inset:-5px;border-radius:50%;
-  background:conic-gradient(from 215deg,
-    var(--ac) calc(var(--p)*290deg),
-    color-mix(in srgb,var(--ac2) 65%,var(--ac)) calc(var(--p)*290deg),
-    rgba(80,52,30,.13) calc(var(--p)*290deg) 290deg,
-    transparent 290deg);
-  -webkit-mask:radial-gradient(circle,transparent 29px,#000 30px,#000 32.5px,transparent 33.5px);
-  mask:radial-gradient(circle,transparent 29px,#000 30px,#000 32.5px,transparent 33.5px);
-  filter:drop-shadow(0 0 calc(2px + var(--p)*8px) color-mix(in srgb,var(--ac) 72%,transparent));
-  transition:--p .13s cubic-bezier(.2,.8,.25,1)}
-.knob .cap{position:absolute;inset:8px;border-radius:50%;
-  background:radial-gradient(circle at 40% 28%,#fdf7ea,#e8dcc4 52%,#bca882 100%);
-  box-shadow:0 2px 6px rgba(55,38,24,.45),0 1px 0 rgba(255,255,255,.85) inset,0 -4px 9px rgba(120,90,48,.34) inset}
-.knob.act .cap{box-shadow:0 2px 6px rgba(55,38,24,.45),0 1px 0 rgba(255,255,255,.85) inset,0 -4px 9px rgba(120,90,48,.34) inset,0 0 0 2px color-mix(in srgb,var(--ac) 62%,transparent)}
-.knob .ptr{position:absolute;left:50%;top:9px;width:3px;height:17px;margin-left:-1.5px;border-radius:2px;
-  background:linear-gradient(var(--ink),#6a4327);box-shadow:0 0 0 1px rgba(255,255,255,.3);
-  transform-origin:50% 21px;transform:rotate(calc((var(--p) - .5)*290deg));
-  transition:transform .13s cubic-bezier(.2,.8,.25,1)}
-.cnm{font-size:9px;letter-spacing:.12em;color:#7a623e;text-transform:uppercase;font-weight:800;text-align:center}
-.cval{font-size:11px;font-weight:800;color:#33291f;font-variant-numeric:tabular-nums;
-  background:rgba(80,52,30,.1);padding:1px 8px;border-radius:5px;min-width:42px;text-align:center}
-.cell:hover .cval{background:color-mix(in srgb,var(--ac) 30%,rgba(80,52,30,.1))}
-
-/* ---------------- voice LED bank ---------------- */
-.voices{display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center;padding:0 4px}
-.voices .vlbl{font-size:8px;letter-spacing:.32em;color:#9a7c4c;text-transform:uppercase;font-weight:700}
-.bank{display:flex;gap:9px;padding:9px 11px;border-radius:9px;
-  background:linear-gradient(180deg,#2a2114,#15100a);
-  box-shadow:0 1px 0 rgba(255,255,255,.16),0 -2px 6px rgba(0,0,0,.5) inset,0 2px 5px rgba(0,0,0,.4)}
-.voice{position:relative;width:13px;height:13px;border-radius:50%;
-  background:radial-gradient(circle at 38% 32%,#5e564a,#221d15 75%);
-  box-shadow:0 1px 1px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.07)}
-.voice::after{content:"";position:absolute;inset:2px;border-radius:50%;background:var(--ac);opacity:0;transform:scale(.5);
-  box-shadow:0 0 9px var(--ac),0 0 18px var(--ac2);transition:opacity .12s,transform .12s}
-.voice.on::after{opacity:1;transform:scale(1)}
-
-footer{position:relative;z-index:2;display:flex;align-items:center;gap:10px;
-  padding:11px 24px 16px;font-size:10px;color:#9a7c4c;letter-spacing:.04em}
-footer .dotL{width:7px;height:7px;border-radius:50%;background:var(--ac);
-  box-shadow:0 0 8px var(--ac);animation:bp 2.4s ease-in-out infinite}
-@keyframes bp{0%,100%{opacity:.5}50%{opacity:1}}
-footer b{color:#7a623e;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
-footer .sp{margin-left:auto;font-style:italic;color:#a98a58;max-width:420px;text-align:right;line-height:1.4}
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oberon</title>
+<style>
+  :root{ --ac:#4a90d9; --ac2:#c88a3a; --panel1:#20222a; --panel2:#0b0c10; --ink:#e9ecf2; --dim:#8b93a4; }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none}
+  html,body{margin:0;min-height:100%}
+  body{font:11px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+    background:radial-gradient(120% 90% at 50% -10%,#2b2e39 0%,#08090d 60%,#030407 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:14px 6px}
+  .synth{display:flex;max-width:1320px;width:100%;border-radius:9px;overflow:hidden;
+    box-shadow:0 26px 60px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.05)}
+  /* real-wood end cheeks (the OB-X's walnut sides) */
+  .cheek{width:26px;flex:0 0 26px;
+    background:linear-gradient(90deg,#5a3a1e,#71481f 35%,#4a2f18 70%,#3a2412);
+    box-shadow:inset -3px 0 6px rgba(0,0,0,.5), inset 2px 0 2px rgba(255,220,170,.15);
+    border-right:2px solid #05070c}
+  .cheek.r{border-right:none;border-left:2px solid #05070c;
+    background:linear-gradient(90deg,#3a2412,#4a2f18 30%,#71481f 65%,#5a3a1e)}
+  .core{flex:1;background:linear-gradient(180deg,var(--panel1),var(--panel2));padding:10px 12px 12px;min-width:0}
+  .head{display:flex;align-items:center;gap:14px;padding:2px 4px 9px;border-bottom:1px solid rgba(255,255,255,.09)}
+  .logo{font-size:26px;font-weight:800;letter-spacing:.04em;
+    background:linear-gradient(90deg,#f0f4fb,#9fb4d6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo b{color:var(--ac);font-weight:800}
+  .stripe{height:10px;width:150px;border-radius:2px;
+    background:linear-gradient(90deg,#c88a3a 0 25%,#4a90d9 25% 55%,#2a5f9c 55% 80%,#20222a 80%)}
+  .tag{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  .headfill{flex:1}
+  .lcd{display:flex;align-items:center;gap:8px}
+  .lcd .scr{min-width:96px;text-align:right;background:#06121d;border:1px solid #000;border-radius:5px;
+    padding:3px 9px;font:700 18px/1 "Menlo","Consolas",monospace;color:#4d9fff;
+    text-shadow:0 0 7px rgba(74,144,217,.9),0 0 18px rgba(74,144,217,.4);letter-spacing:.04em}
+  .lcd .what{font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;max-width:96px;text-align:left}
+  .row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;align-items:stretch}
+  .sec{border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:19px 8px 7px;position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));flex:0 0 auto}
+  .sec>b{position:absolute;top:0;left:0;right:0;padding:2px 8px;font-size:8.5px;font-weight:700;
+    letter-spacing:.14em;color:#eaf1fb;text-transform:uppercase;white-space:nowrap;border-radius:5px 5px 0 0;
+    background:linear-gradient(90deg,#2a5f9c,#1c3350)}
+  .bank{display:flex;gap:4px 8px;align-items:flex-start;flex-wrap:nowrap}
+  .col{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:flex-start}
+  /* vertical slider */
+  .sl{display:flex;flex-direction:column;align-items:center;gap:4px;width:32px}
+  .sl .track{position:relative;width:15px;height:86px;border-radius:4px;cursor:ns-resize;touch-action:none;
+    background:linear-gradient(90deg,#05070c,#161c26 45%,#05070c);border:1px solid #000;box-shadow:inset 0 0 4px rgba(0,0,0,.8)}
+  .sl .track::before{content:"";position:absolute;left:50%;top:4px;bottom:4px;width:2px;margin-left:-1px;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.16) 0 1px,transparent 1px 9px)}
+  .sl .cap{position:absolute;left:-4px;width:23px;height:13px;margin-top:-6px;border-radius:3px;
+    background:linear-gradient(180deg,#e9edf4,#93a0b4 55%,#4a5566);border:1px solid #05070a;box-shadow:0 2px 4px rgba(0,0,0,.6);pointer-events:none}
+  .sl .cap::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:var(--ac);border-radius:1px}
+  .sl .lb,.kn .lb{font-size:7.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;text-align:center;line-height:1.2;min-height:18px;max-width:40px}
+  /* knob */
+  .kn{display:flex;flex-direction:column;align-items:center;gap:5px;width:44px}
+  .kn .dial{position:relative;width:34px;height:34px;border-radius:50%;cursor:ns-resize;touch-action:none;
+    background:radial-gradient(60% 60% at 40% 32%,#3a4454,#161c26 70%,#080b11);border:1px solid #000;
+    box-shadow:0 2px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12)}
+  .kn .dial .ind{position:absolute;left:50%;top:3px;width:2px;height:12px;margin-left:-1px;
+    background:var(--ac);border-radius:1px;transform-origin:50% 14px;box-shadow:0 0 5px var(--ac)}
+  /* led button */
+  .bt{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:42px}
+  .bt .sq{width:26px;height:14px;border-radius:3px;border:1px solid #000;position:relative;
+    background:linear-gradient(180deg,#333c4a,#12161e);box-shadow:0 2px 3px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12)}
+  .bt .sq::after{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:6px;height:3.5px;border-radius:2px;background:#332;transition:.12s}
+  .bt.on .sq::after{background:var(--ac2);box-shadow:0 0 7px var(--ac2),0 0 13px rgba(200,138,58,.5)}
+  .bt:active .sq{transform:translateY(1px)}
+  .bt .lb{font-size:7.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;text-align:center;white-space:nowrap}
+  /* selector (LED ladder) */
+  .sel{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+  .sel>i{font-size:7.5px;letter-spacing:.06em;color:var(--dim);text-transform:uppercase;font-style:normal;margin-bottom:1px}
+  .sel .opt{display:flex;align-items:center;gap:4px;cursor:pointer;padding:0 1px}
+  .sel .led{width:6px;height:6px;border-radius:50%;background:#141a22;border:1px solid #000;transition:.1s}
+  .sel .opt.on .led{background:var(--ac);box-shadow:0 0 6px var(--ac)}
+  .sel .opt span{font-size:7.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+  .sel .opt.on span{color:#eef2f7}
+  /* lever */
+  .lever{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .lever .slot{width:112px;height:26px;border-radius:5px;background:#05070a;border:1px solid #000;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.9);position:relative;cursor:ew-resize;touch-action:none;overflow:hidden}
+  .lever .grip{position:absolute;top:2px;bottom:2px;width:30px;border-radius:3px;
+    background:linear-gradient(90deg,#3c4656 0 3px,#222a36 3px 6px);background-size:6px 100%;
+    border:1px solid #000;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);left:41px}
+  .lever .lb{font-size:7.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .foot{margin-top:10px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);font-size:9px;color:#6f7889;display:flex;gap:16px;flex-wrap:wrap}
+  .foot b{color:#a7b3c6;font-weight:600}
 </style></head><body>
 <div class="synth">
- <div class="cheek l"></div>
- <div class="surface">
-  <div class="head">
-    <div class="brand">
-      <span class="mk">Vibe Instruments</span>
-      <h1>Ober<em>on</em></h1>
-      <span class="tag">6-Voice · Discrete Dual-Osc · SEM-Flavour</span>
+  <div class="cheek"></div>
+  <div class="core">
+    <div class="head">
+      <div><div class="logo">OBER<b>·</b>ON</div><div class="tag">eight voice polyphonic synthesizer</div></div>
+      <div class="headfill"></div><div class="stripe"></div>
+      <div class="lcd"><div class="what" id="lcdWhat">patch</div><div class="scr" id="lcd">OB-X</div></div>
     </div>
-    <div class="scope">
-      <div class="glo"></div>
-      <svg viewBox="0 0 230 62" preserveAspectRatio="none">
-        <line class="sgrid" x1="0" y1="31" x2="230" y2="31"/>
-        <path class="swave c" id="wc"></path>
-        <path class="swave b" id="wb"></path>
-        <path class="swave a" id="wa"></path>
-      </svg>
+    <div class="row" id="row1"></div>
+    <div class="row" id="row2"></div>
+    <div class="foot">
+      <span><b>OSC 1/2</b> continuous FREQ · independent SAW+PULSE · <b>SYNC</b> slaves OSC 2 to OSC 1</span>
+      <span><b>FILTER</b> SEM 2-pole 12 dB/oct · mixer selects OSC1 / OSC2 half-full / NOISE · <b>TRACK</b> keyboard follow</span>
+      <span><b>UNISON</b> low-note stack · <b>HOLD</b> latch · <b>PORTA</b> poly glide · pan pots &rarr; <b>SPREAD</b></span>
     </div>
   </div>
-
-  <div class="body">
-   <div class="row">
-      <div class="module">
-        <div class="mt">Filter</div>
-        <div class="knobs" id="filtK"></div>
-      </div>
-      <div class="module">
-        <div class="mt">Oscillators</div>
-        <div class="knobs" id="oscK"></div>
-      </div>
-   </div>
-   <div class="row">
-      <div class="module">
-        <div class="mt">Envelope</div>
-        <div class="knobs" id="envK"></div>
-      </div>
-      <div class="module" style="flex:0 0 150px;min-width:150px">
-        <div class="mt">Output</div>
-        <div class="knobs" id="outK"></div>
-      </div>
-      <div class="module" style="flex:0 0 130px;min-width:130px">
-        <div class="mt">Voices</div>
-        <div class="voices"><div class="bank" id="bank"></div></div>
-      </div>
-   </div>
-  </div>
-
-  <footer>
-    <span class="dotL"></span><b>Oberon</b>
-    <span class="sp" id="sp"></span>
-  </footer>
- </div>
- <div class="cheek r"></div>
+  <div class="cheek r"></div>
 </div>
-
 <script>
 (function(){
-  var P=[
-    {name:"Cutoff",    index:0,min:0,max:1,def:0.5 },
-    {name:"Resonance", index:1,min:0,max:1,def:0.4 },
-    {name:"EnvAmount", index:2,min:0,max:1,def:0.55},
-    {name:"Spread",    index:3,min:0,max:1,def:0.4 },
-    {name:"Attack",    index:4,min:0,max:1,def:0.04},
-    {name:"Release",   index:5,min:0,max:1,def:0.35},
-    {name:"Level",     index:6,min:0,max:1,def:0.6 }
-  ];
-  var byName={}; P.forEach(function(p){byName[p.name]=p;});
-  var live={}; P.forEach(function(p){ live[p.name]=(p.def-p.min)/(p.max-p.min); });
-  document.getElementById('sp').textContent="Fat discrete dual-oscillator poly — raw resonant filter, wide unison spread.";
+  "use strict";
+  var PD = {};
+  function d(i,mn,mx,df){ PD[i]={min:mn,max:mx,def:df}; }
+  d(0,0,1,.3); d(1,0,1,.08); d(2,0,1,.12); d(3,-1,1,0); d(4,0,1,0); d(5,-1,1,.09);
+  d(6,0,1,0); d(7,0,1,0); d(8,0,1,.4); d(9,0,1,.42); d(10,0,1,.2); d(11,0,1,.5);
+  d(12,0,1,.05); d(13,0,1,.6); d(14,0,1,.3); d(15,0,1,.5);
+  d(16,0,1,.12); d(17,0,1,.6); d(18,0,1,.85); d(19,0,1,.6);
+  d(20,-1,1,0); d(21,0,1,0); d(22,0,12,2); d(23,0,1,.5); d(24,0,1,.8);
+  d(25,0,31,5); d(26,0,127,0); d(27,0,31,21); d(28,0,3,0);
 
-  function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
-  function fmtPct(v){ return Math.round(v*100)+"%"; }
-  function fmtMs(v){ var ms=Math.round((v*v)*3500)+1; return ms>=1000?(ms/1000).toFixed(2)+"s":ms+"ms"; }
-  function labelFor(p,v){
-    if(p.name==="Attack"||p.name==="Release") return fmtMs(v);
-    if(p.name==="Cutoff"){ var hz=Math.round(70*Math.pow(214,v)); return hz>=1000?(hz/1000).toFixed(1)+"k":hz+"Hz"; }
-    return fmtPct(v);
+  var vals = {}; for (var k in PD) vals[k] = PD[k].def;
+  var lcd, lcdWhat, listeners = {};
+
+  function push(i, v, label, shown){
+    vals[i] = v;
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, v);
+    if (label !== undefined && lcd){ lcdWhat.textContent = label; lcd.textContent = shown; }
+    var ls = listeners[i]; if (ls) for (var j=0;j<ls.length;j++) ls[j]();
+  }
+  function listen(i, fn){ (listeners[i] = listeners[i] || []).push(fn); }
+  function getField(i,shift,width){ var m=(1<<width)-1; return (Math.round(vals[i])>>shift)&m; }
+  function setField(i,shift,width,val,label,shown){
+    var m=(1<<width)-1; var v=Math.round(vals[i]); v=(v & ~(m<<shift)) | ((val&m)<<shift);
+    push(i, v, label, shown);
+  }
+  function el(tag, cls, parent){ var e=document.createElement(tag); if(cls)e.className=cls; if(parent)parent.appendChild(e); return e; }
+
+  function slider(parent, idx, label, fmt){
+    var p = PD[idx];
+    var box = el("div","sl",parent);
+    var track = el("div","track",box);
+    var cap = el("div","cap",track);
+    el("div","lb",box).textContent = label;
+    var TOP=4, RANGE=86-13-8;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function show(){ return fmt ? fmt(vals[idx]) : Math.round(norm()*127)+""; }
+    function paint(){ cap.style.top = (TOP + (1-norm())*RANGE) + "px"; }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); var v=p.min+(p.max-p.min)*nn;
+      if (p.min>=0 && p.max-p.min>=2 && (p.max-p.min)%1===0) v=Math.round(v);
+      push(idx, v, label, show()); paint(); }
+    track.addEventListener("pointerdown", function(e){ track._d=1; var r=track.getBoundingClientRect();
+      setN(1-(e.clientY-r.top-TOP-6)/RANGE); track.setPointerCapture(e.pointerId); e.preventDefault(); });
+    track.addEventListener("pointermove", function(e){ if(!track._d)return; var r=track.getBoundingClientRect(); setN(1-(e.clientY-r.top-TOP-6)/RANGE); });
+    track.addEventListener("pointerup", function(){ track._d=0; });
+    track.addEventListener("pointercancel", function(){ track._d=0; });
+    track.addEventListener("dblclick", function(){ push(idx,p.def,label,show()); paint(); });
+    track.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.04:-0.04)); }, {passive:false});
+    listen(idx, paint); paint();
+    return box;
   }
 
-  function makeKnob(host,p){
-    var cell=document.createElement('div'); cell.className='cell';
-    cell.style.setProperty('--d',(p.index*55)+'ms');
-    cell.innerHTML='<div class="knob"><i class="scale"></i><i class="arc"></i><i class="cap"></i><i class="ptr"></i></div>'+
-      '<div class="cnm">'+(p.name==="EnvAmount"?"Env Amt":p.name)+'</div><div class="cval"></div>';
-    host.appendChild(cell);
-    var knob=cell.querySelector('.knob'), val=cell.querySelector('.cval');
-    var v=p.def;
-    function norm(){ return (v-p.min)/(p.max-p.min||1); }
-    function paint(){ var n=norm(); knob.style.setProperty('--p',n); val.textContent=labelFor(p,n); live[p.name]=n; send(p.index,v); reshape(); }
-    function setN(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
-    knob.addEventListener('pointerdown',function(e){ knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault(); });
-    knob.addEventListener('pointermove',function(e){ if(!knob._d)return; var spd=e.shiftKey?640:200; setN(knob._n+(knob._y-e.clientY)/spd); });
-    function end(){ knob._d=0; knob.classList.remove('act'); }
-    knob.addEventListener('pointerup',end); knob.addEventListener('pointercancel',end);
-    knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
-    knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
-    paint();
+  function knob(parent, idx, label, fmt){
+    var p = PD[idx];
+    var box = el("div","kn",parent);
+    var dial = el("div","dial",box);
+    el("div","lb",box).textContent = label;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function show(){ return fmt ? fmt(vals[idx]) : Math.round(norm()*127)+""; }
+    var ind = el("div","ind",dial);
+    function repaint(){ ind.style.transform="rotate("+(norm()*270-135)+"deg)"; }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); var v=p.min+(p.max-p.min)*nn;
+      if (p.min>=0 && p.max-p.min>=2 && (p.max-p.min)%1===0) v=Math.round(v);
+      push(idx, v, label, show()); repaint(); }
+    dial.addEventListener("pointerdown", function(e){ dial._d=1; dial._y=e.clientY; dial._n=norm(); dial.setPointerCapture(e.pointerId); e.preventDefault(); });
+    dial.addEventListener("pointermove", function(e){ if(!dial._d)return; setN(dial._n+(dial._y-e.clientY)/140); });
+    dial.addEventListener("pointerup", function(){ dial._d=0; });
+    dial.addEventListener("pointercancel", function(){ dial._d=0; });
+    dial.addEventListener("dblclick", function(){ push(idx,p.def,label,show()); repaint(); });
+    dial.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.04:-0.04)); }, {passive:false});
+    listen(idx, repaint); repaint();
+    return box;
   }
 
-  makeKnob(document.getElementById('filtK'), byName["Cutoff"]);
-  makeKnob(document.getElementById('filtK'), byName["Resonance"]);
-  makeKnob(document.getElementById('filtK'), byName["EnvAmount"]);
-  makeKnob(document.getElementById('oscK'),  byName["Spread"]);
-  makeKnob(document.getElementById('envK'),  byName["Attack"]);
-  makeKnob(document.getElementById('envK'),  byName["Release"]);
-  makeKnob(document.getElementById('outK'),  byName["Level"]);
+  // latching LED button on one bit of a packed param
+  function bitBtn(parent, idx, bit, label){
+    var b = el("div","bt",parent);
+    el("div","sq",b); el("div","lb",b).textContent = label;
+    function paint(){ b.classList.toggle("on", !!getField(idx,bit,1)); }
+    b.addEventListener("click", function(){ var cur=getField(idx,bit,1); setField(idx,bit,1,cur?0:1,label,cur?"Off":"On"); });
+    listen(idx, paint); paint();
+    return b;
+  }
 
-  // ---- stacked-saw scope reshaped live by Spread + Cutoff ----
-  var wa=document.getElementById('wa'),wb=document.getElementById('wb'),wc=document.getElementById('wc');
-  function sawPath(off,amp,duty){
-    // 3 stacked detuned saw teeth across the width
-    var W=230,Hm=31, teeth=4, d=document; var s="M 0 "+Hm;
-    var step=W/teeth;
-    for(var k=0;k<=teeth;k++){
-      var x=k*step+off;
-      var open=Hm-amp; // top
-      var close=Hm+amp*duty; // bottom
-      s+=" L "+(x).toFixed(1)+" "+open.toFixed(1)+" L "+(x).toFixed(1)+" "+close.toFixed(1);
-    }
+  // selector bound to a multi-bit field inside a packed param
+  function fieldSelector(parent, title, idx, shift, width, opts){
+    var s = el("div","sel",parent);
+    el("i","",s).textContent = title;
+    var rows = [];
+    function paint(){ var cur=getField(idx,shift,width); for (var i=0;i<rows.length;i++) rows[i].classList.toggle("on", i===cur); }
+    opts.forEach(function(o,i){ var r=el("div","opt",s); el("i","led",r); el("span","",r).textContent=o;
+      r.addEventListener("click", function(){ setField(idx,shift,width,i,title,o); }); rows.push(r); });
+    listen(idx, paint); paint();
     return s;
   }
-  function reshape(){
-    if(!wa||!wb) return;
-    var sp=live["Spread"]||0, cut=live["Cutoff"]||0;
-    var amp=8+cut*16;            // brighter cutoff -> taller teeth
-    var duty=0.5+sp*0.4;
-    wa.setAttribute('d',sawPath(0,amp,duty));
-    wb.setAttribute('d',sawPath(6+sp*10,amp*0.85,duty));
-    wc.setAttribute('d',sawPath(12+sp*20,amp*0.7,duty));
+
+  function lever(parent, idx, label, spring){
+    var p=PD[idx];
+    var w = el("div","lever",parent);
+    var slot = el("div","slot",w); var grip = el("div","grip",slot);
+    el("div","lb",w).textContent = label;
+    var TRACK=112-30-4;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function paint(){ grip.style.left=(2+norm()*TRACK)+"px"; }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); var v=p.min+(p.max-p.min)*nn;
+      push(idx,v,label,(v>=0?"+":"")+v.toFixed(2)); paint(); }
+    slot.addEventListener("pointerdown", function(e){ slot._d=1; var r=slot.getBoundingClientRect(); setN((e.clientX-r.left-15)/TRACK); slot.setPointerCapture(e.pointerId); e.preventDefault(); });
+    slot.addEventListener("pointermove", function(e){ if(!slot._d)return; var r=slot.getBoundingClientRect(); setN((e.clientX-r.left-15)/TRACK); });
+    function done(){ if(!slot._d)return; slot._d=0; if(spring){ push(idx,0,label,"0"); paint(); } }
+    slot.addEventListener("pointerup", done); slot.addEventListener("pointercancel", done);
+    listen(idx, paint); paint();
+    return w;
   }
-  reshape();
 
-  // ---- voice LED bank (6) ----
-  var BANK=document.getElementById('bank'), voices=[];
-  for(var i=0;i<6;i++){ var vv=document.createElement('div'); vv.className='voice'; BANK.appendChild(vv); voices.push(vv); }
-  var voiceOfNote={}, nextV=0;
-  function lightOn(note){ if(voiceOfNote[note]!=null)return; var v=nextV; nextV=(nextV+1)%6; voiceOfNote[note]=v; voices[v].classList.add('on'); }
-  function lightOff(note){ var v=voiceOfNote[note]; if(v!=null){ voices[v].classList.remove('on'); delete voiceOfNote[note]; } }
-  window.addEventListener('message',function(e){ var d=e.data||{}; if(d.t==='on')lightOn(d.id); else if(d.t==='off')lightOff(d.id); });
-  var idleV=-1, idleT=0;
-  function idle(now){ requestAnimationFrame(idle);
-    if(Object.keys(voiceOfNote).length) return;
-    if(now-idleT>560){ idleT=now; if(idleV>=0)voices[idleV].classList.remove('on'); idleV=(idleV+1)%6; voices[idleV].classList.add('on'); } }
-  requestAnimationFrame(idle);
+  function sec(row, name){ var s=el("div","sec",row); el("b","",s).textContent=name; return el("div","bank",s); }
+  function col(parent){ return el("div","col",parent); }
 
-  function ready(){}
-  if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
+  lcd = document.getElementById("lcd"); lcdWhat = document.getElementById("lcdWhat");
+  var row1 = document.getElementById("row1"), row2 = document.getElementById("row2");
+  var pct = function(v){ return Math.round(v*100)+""; };
+  var cents = function(v){ return (v>=0?"+":"")+Math.round(v*50)+"c"; };
+  var semis = function(v){ return "+"+Math.round(v*30)+"st"; };
+  var stFmt = function(v){ return "±"+Math.round(v)+"st"; };
+
+  // ---- row 1 ----
+  var b = sec(row1,"Control");
+  knob(b,3,"Tune",cents);
+  knob(b,4,"Porta",pct);
+  knob(b,5,"Osc2 Det",cents);
+  var cm=col(b); bitBtn(cm,28,0,"Unison"); bitBtn(cm,28,1,"Hold");
+
+  b = sec(row1,"Modulation / LFO");
+  knob(b,0,"Rate");
+  var lw2=col(b); fieldSelector(lw2,"Wave",26,0,2,["Sin","Squ","S/H"]);
+  slider(b,1,"Freq");
+  var fd=col(b); bitBtn(fd,26,2,"Osc 1"); bitBtn(fd,26,3,"Osc 2"); bitBtn(fd,26,4,"Filter");
+  slider(b,2,"PWM");
+  var pdc=col(b); bitBtn(pdc,26,5,"Osc 1"); bitBtn(pdc,26,6,"Osc 2");
+
+  b = sec(row1,"Oscillators");
+  knob(b,6,"Osc1 Fr",semis);
+  var o1w=col(b); bitBtn(o1w,25,0,"1 Saw"); bitBtn(o1w,25,1,"1 Pulse");
+  knob(b,8,"Pulse W",pct);
+  var oc=col(b); bitBtn(oc,25,4,"Sync");
+  knob(b,7,"Osc2 Fr",semis);
+  var o2w=col(b); bitBtn(o2w,25,2,"2 Saw"); bitBtn(o2w,25,3,"2 Pulse");
+
+  b = sec(row1,"Filter · SEM 2-Pole");
+  slider(b,9,"Freq"); slider(b,10,"Reso"); slider(b,11,"Mod",pct);
+  var fs=col(b); bitBtn(fs,27,0,"Osc 1"); bitBtn(fs,27,3,"Noise");
+  var fo2=col(b); fieldSelector(fo2,"Osc 2",27,1,2,["Off","Half","Full"]);
+  var ft=col(b); bitBtn(ft,27,4,"Track");
+
+  // ---- row 2 ----
+  b = sec(row2,"Filter Env");
+  slider(b,12,"A"); slider(b,13,"D"); slider(b,14,"S"); slider(b,15,"R");
+
+  b = sec(row2,"Loudness Env");
+  slider(b,16,"A"); slider(b,17,"D"); slider(b,18,"S"); slider(b,19,"R");
+
+  b = sec(row2,"Master");
+  knob(b,23,"Spread",pct);
+  knob(b,24,"Volume",pct);
+
+  b = sec(row2,"Levers");
+  var lv=col(b); lever(lv,20,"Pitch Bend",true); slider(lv,21,"Mod Lever",pct);
+  knob(b,22,"Bend Rng",stFmt);
+
+  // push all defaults to the engine once the host is ready
+  function ready(){
+    for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]);
+    // Follow host-side changes (session restore, preset load, DAW automation): the
+    // host pushes (index, value) so every control repaints to the real value.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      if (!(i in vals)) return; vals[i] = +v;
+      var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j]();
+    });
+  }
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>
 </body></html>

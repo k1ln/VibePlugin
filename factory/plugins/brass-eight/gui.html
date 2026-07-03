@@ -1,0 +1,291 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brass Eight</title>
+<style>
+  :root{ --ac:#3f7fd6; --ac2:#d6b23f; --panel1:#1c2330; --panel2:#0a0d14; --ink:#e7ebf2; --dim:#8792a5; }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none}
+  html,body{margin:0;min-height:100%}
+  body{font:11px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+    background:radial-gradient(120% 90% at 50% -10%,#24304a 0%,#070a11 60%,#03040a 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:14px 6px}
+  .synth{display:flex;max-width:1320px;width:100%;border-radius:11px;overflow:hidden;
+    box-shadow:0 26px 60px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.05)}
+  .cheek{width:24px;flex:0 0 24px;background:linear-gradient(90deg,#2a2f38,#12151b);
+    border-right:2px solid #05070c}
+  .cheek.r{border-right:none;border-left:2px solid #05070c;background:linear-gradient(90deg,#12151b,#2a2f38)}
+  .core{flex:1;background:linear-gradient(180deg,var(--panel1),var(--panel2));padding:10px 12px 12px;min-width:0}
+  .head{display:flex;align-items:center;gap:14px;padding:2px 4px 9px;border-bottom:1px solid rgba(255,255,255,.09)}
+  .logo{font-size:25px;font-weight:800;letter-spacing:.02em;font-style:italic;
+    background:linear-gradient(90deg,#eef3fb,#9fb4d6);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo b{color:var(--ac);font-weight:800}
+  .stripe{height:9px;width:120px;border-radius:2px;background:linear-gradient(90deg,#3f7fd6,#5a6fd6,#2a6fa8,#1c2330)}
+  .tag{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  .headfill{flex:1}
+  .lcd{display:flex;align-items:center;gap:8px}
+  .lcd .scr{min-width:96px;text-align:right;background:#05131f;border:1px solid #000;border-radius:5px;
+    padding:3px 9px;font:700 18px/1 "Menlo","Consolas",monospace;color:#4d9fff;
+    text-shadow:0 0 7px rgba(63,127,214,.9),0 0 18px rgba(63,127,214,.4);letter-spacing:.04em}
+  .lcd .what{font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;max-width:96px;text-align:left}
+  .row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;align-items:stretch}
+  .sec{border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:19px 8px 7px;position:relative;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));flex:0 0 auto}
+  .sec>b{position:absolute;top:0;left:0;right:0;padding:2px 8px;font-size:8.5px;font-weight:700;
+    letter-spacing:.14em;color:#eaf1fb;text-transform:uppercase;white-space:nowrap;border-radius:5px 5px 0 0;
+    background:linear-gradient(90deg,#2a6fa8,#1c3a5c)}
+  .bank{display:flex;gap:4px 8px;align-items:flex-start;flex-wrap:nowrap}
+  .col{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:flex-start}
+  /* vertical slider */
+  .sl{display:flex;flex-direction:column;align-items:center;gap:4px;width:32px}
+  .sl .track{position:relative;width:15px;height:86px;border-radius:4px;cursor:ns-resize;touch-action:none;
+    background:linear-gradient(90deg,#05070c,#161c26 45%,#05070c);border:1px solid #000;box-shadow:inset 0 0 4px rgba(0,0,0,.8)}
+  .sl .track::before{content:"";position:absolute;left:50%;top:4px;bottom:4px;width:2px;margin-left:-1px;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,.16) 0 1px,transparent 1px 9px)}
+  .sl .cap{position:absolute;left:-4px;width:23px;height:13px;margin-top:-6px;border-radius:3px;
+    background:linear-gradient(180deg,#e9edf4,#93a0b4 55%,#4a5566);border:1px solid #05070a;box-shadow:0 2px 4px rgba(0,0,0,.6);pointer-events:none}
+  .sl .cap::after{content:"";position:absolute;left:2px;right:2px;top:5px;height:2px;background:var(--ac);border-radius:1px}
+  .sl .lb,.kn .lb{font-size:7.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;text-align:center;line-height:1.2;min-height:18px;max-width:40px}
+  /* knob */
+  .kn{display:flex;flex-direction:column;align-items:center;gap:5px;width:44px}
+  .kn .dial{position:relative;width:34px;height:34px;border-radius:50%;cursor:ns-resize;touch-action:none;
+    background:radial-gradient(60% 60% at 40% 32%,#3a4454,#161c26 70%,#080b11);border:1px solid #000;
+    box-shadow:0 2px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12)}
+  .kn .dial .ind{position:absolute;left:50%;top:3px;width:2px;height:12px;margin-left:-1px;
+    background:var(--ac);border-radius:1px;transform-origin:50% 14px;box-shadow:0 0 5px var(--ac)}
+  /* led button */
+  .bt{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;width:42px}
+  .bt .sq{width:26px;height:14px;border-radius:3px;border:1px solid #000;position:relative;
+    background:linear-gradient(180deg,#333c4a,#12161e);box-shadow:0 2px 3px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12)}
+  .bt .sq::after{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:6px;height:3.5px;border-radius:2px;background:#332;transition:.12s}
+  .bt.on .sq::after{background:var(--ac2);box-shadow:0 0 7px var(--ac2),0 0 13px rgba(214,178,63,.5)}
+  .bt:active .sq{transform:translateY(1px)}
+  .bt .lb{font-size:7.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;text-align:center;white-space:nowrap}
+  /* selector (LED ladder) */
+  .sel{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+  .sel>i{font-size:7.5px;letter-spacing:.06em;color:var(--dim);text-transform:uppercase;font-style:normal;margin-bottom:1px}
+  .sel .opt{display:flex;align-items:center;gap:4px;cursor:pointer;padding:0 1px}
+  .sel .led{width:6px;height:6px;border-radius:50%;background:#141a22;border:1px solid #000;transition:.1s}
+  .sel .opt.on .led{background:var(--ac);box-shadow:0 0 6px var(--ac)}
+  .sel .opt span{font-size:7.5px;letter-spacing:.03em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+  .sel .opt.on span{color:#eef2f7}
+  /* bender lever */
+  .lever{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .lever .slot{width:112px;height:26px;border-radius:5px;background:#05070a;border:1px solid #000;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.9);position:relative;cursor:ew-resize;touch-action:none;overflow:hidden}
+  .lever .grip{position:absolute;top:2px;bottom:2px;width:30px;border-radius:3px;
+    background:linear-gradient(90deg,#3c4656 0 3px,#222a36 3px 6px);background-size:6px 100%;
+    border:1px solid #000;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);left:41px}
+  .lever .lb{font-size:7.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .foot{margin-top:10px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);font-size:9px;color:#6f7889;display:flex;gap:16px;flex-wrap:wrap}
+  .foot b{color:#a7b3c6;font-weight:600}
+</style></head><body>
+<div class="synth">
+  <div class="cheek"></div>
+  <div class="core">
+    <div class="head">
+      <div><div class="logo">Brass<b>·</b>Eight</div><div class="tag">eight voice polyphonic synthesizer</div></div>
+      <div class="headfill"></div><div class="stripe"></div>
+      <div class="lcd"><div class="what" id="lcdWhat">patch</div><div class="scr" id="lcd">OB 8</div></div>
+    </div>
+    <div class="row" id="row1"></div>
+    <div class="row" id="row2"></div>
+    <div class="foot">
+      <span><b>OSC 1/2</b> independent SAW+PULSE · <b>SYNC</b> slaves OSC 2 to OSC 1 · <b>F-ENV</b> filter env &rarr; OSC 2 pitch</span>
+      <span><b>FILTER</b> selects sources (OSC1 / OSC2 half-full / NOISE) · <b>2/4-POLE</b> 12 vs 24 dB/oct · <b>TRACK</b> keyboard follow</span>
+      <span><b>UNISON</b> 8-voice low-note stack · <b>HOLD</b> latch · <b>PORTA</b> linear/quantized + offset · <b>BEND</b> osc2-only / narrow</span>
+    </div>
+  </div>
+  <div class="cheek r"></div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var PD = {};
+  function d(i,mn,mx,df){ PD[i]={min:mn,max:mx,def:df}; }
+  d(0,0,1,.35); d(1,0,1,.15); d(2,0,1,.2);
+  d(3,0,63,5); d(4,0,127,0); d(5,0,3,1); d(6,0,1,0); d(7,-1,1,.12); d(8,0,1,.3);
+  d(9,0,63,53); d(10,0,1,.35); d(11,0,1,.18); d(12,0,1,.55);
+  d(13,0,1,.06); d(14,0,1,.5); d(15,0,1,.35); d(16,0,1,.35);
+  d(17,0,1,.08); d(18,0,1,.5); d(19,0,1,.75); d(20,0,1,.4);
+  d(21,0,1,0); d(22,0,255,72); d(23,-1,1,0); d(24,0,1,0); d(25,-1,1,0); d(26,0,1,.8);
+
+  var vals = {}; for (var k in PD) vals[k] = PD[k].def;
+  var lcd, lcdWhat, listeners = {};
+
+  function push(i, v, label, shown){
+    vals[i] = v;
+    if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, v);
+    if (label !== undefined && lcd){ lcdWhat.textContent = label; lcd.textContent = shown; }
+    var ls = listeners[i]; if (ls) for (var j=0;j<ls.length;j++) ls[j]();
+  }
+  function listen(i, fn){ (listeners[i] = listeners[i] || []).push(fn); }
+  function getField(i,shift,width){ var m=(1<<width)-1; return (Math.round(vals[i])>>shift)&m; }
+  function setField(i,shift,width,val,label,shown){
+    var m=(1<<width)-1; var v=Math.round(vals[i]); v=(v & ~(m<<shift)) | ((val&m)<<shift);
+    push(i, v, label, shown);
+  }
+  function el(tag, cls, parent){ var e=document.createElement(tag); if(cls)e.className=cls; if(parent)parent.appendChild(e); return e; }
+
+  function slider(parent, idx, label, fmt){
+    var p = PD[idx];
+    var box = el("div","sl",parent);
+    var track = el("div","track",box);
+    var cap = el("div","cap",track);
+    el("div","lb",box).textContent = label;
+    var TOP=4, RANGE=86-13-8;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function show(){ return fmt ? fmt(vals[idx]) : Math.round(norm()*127)+""; }
+    function paint(){ cap.style.top = (TOP + (1-norm())*RANGE) + "px"; }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); var v=p.min+(p.max-p.min)*nn;
+      if (p.min>=0 && p.max-p.min>=2 && (p.max-p.min)%1===0) v=Math.round(v);
+      push(idx, v, label, show()); paint(); }
+    track.addEventListener("pointerdown", function(e){ track._d=1; var r=track.getBoundingClientRect();
+      setN(1-(e.clientY-r.top-TOP-6)/RANGE); track.setPointerCapture(e.pointerId); e.preventDefault(); });
+    track.addEventListener("pointermove", function(e){ if(!track._d)return; var r=track.getBoundingClientRect(); setN(1-(e.clientY-r.top-TOP-6)/RANGE); });
+    track.addEventListener("pointerup", function(){ track._d=0; });
+    track.addEventListener("pointercancel", function(){ track._d=0; });
+    track.addEventListener("dblclick", function(){ push(idx,p.def,label,show()); paint(); });
+    track.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.04:-0.04)); }, {passive:false});
+    listen(idx, paint); paint();
+    return box;
+  }
+
+  function knob(parent, idx, label, fmt){
+    var p = PD[idx];
+    var box = el("div","kn",parent);
+    var dial = el("div","dial",box);
+    el("div","lb",box).textContent = label;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function show(){ return fmt ? fmt(vals[idx]) : Math.round(norm()*127)+""; }
+    var ind = el("div","ind",dial);
+    function repaint(){ ind.style.transform="rotate("+(norm()*270-135)+"deg)"; }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); var v=p.min+(p.max-p.min)*nn;
+      if (p.min>=0 && p.max-p.min>=2 && (p.max-p.min)%1===0) v=Math.round(v);
+      push(idx, v, label, show()); repaint(); }
+    dial.addEventListener("pointerdown", function(e){ dial._d=1; dial._y=e.clientY; dial._n=norm(); dial.setPointerCapture(e.pointerId); e.preventDefault(); });
+    dial.addEventListener("pointermove", function(e){ if(!dial._d)return; setN(dial._n+(dial._y-e.clientY)/140); });
+    dial.addEventListener("pointerup", function(){ dial._d=0; });
+    dial.addEventListener("pointercancel", function(){ dial._d=0; });
+    dial.addEventListener("dblclick", function(){ push(idx,p.def,label,show()); repaint(); });
+    dial.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.04:-0.04)); }, {passive:false});
+    listen(idx, repaint); repaint();
+    return box;
+  }
+
+  // latching LED button on one bit of a packed param
+  function bitBtn(parent, idx, bit, label){
+    var b = el("div","bt",parent);
+    el("div","sq",b); el("div","lb",b).textContent = label;
+    function paint(){ b.classList.toggle("on", !!getField(idx,bit,1)); }
+    b.addEventListener("click", function(){ var cur=getField(idx,bit,1); setField(idx,bit,1,cur?0:1,label,cur?"Off":"On"); });
+    listen(idx, paint); paint();
+    return b;
+  }
+
+  // whole-param LED-ladder selector
+  function pSelector(parent, title, idx, opts){
+    var s = el("div","sel",parent);
+    if (title){ el("i","",s).textContent = title; }
+    var rows = [];
+    function paint(){ var cur=Math.round(vals[idx]); for (var i=0;i<rows.length;i++) rows[i].classList.toggle("on", i===cur); }
+    opts.forEach(function(o,i){ var r=el("div","opt",s); el("i","led",r); el("span","",r).textContent=o;
+      r.addEventListener("click", function(){ push(idx,i,title,o); }); rows.push(r); });
+    listen(idx, paint); paint();
+    return s;
+  }
+
+  // selector bound to a multi-bit field inside a packed param
+  function fieldSelector(parent, title, idx, shift, width, opts){
+    var s = el("div","sel",parent);
+    el("i","",s).textContent = title;
+    var rows = [];
+    function paint(){ var cur=getField(idx,shift,width); for (var i=0;i<rows.length;i++) rows[i].classList.toggle("on", i===cur); }
+    opts.forEach(function(o,i){ var r=el("div","opt",s); el("i","led",r); el("span","",r).textContent=o;
+      r.addEventListener("click", function(){ setField(idx,shift,width,i,title,o); }); rows.push(r); });
+    listen(idx, paint); paint();
+    return s;
+  }
+
+  function bender(parent, idx){
+    var p=PD[idx];
+    var w = el("div","lever",parent);
+    var slot = el("div","slot",w); var grip = el("div","grip",slot);
+    el("div","lb",w).textContent = "Pitch Bend";
+    var TRACK=112-30-4;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function paint(){ grip.style.left=(2+norm()*TRACK)+"px"; }
+    function setN(nn){ nn=nn<0?0:(nn>1?1:nn); push(idx,p.min+(p.max-p.min)*nn,"Bend",(vals[idx]>=0?"+":"")+vals[idx].toFixed(2)); paint(); }
+    slot.addEventListener("pointerdown", function(e){ slot._d=1; var r=slot.getBoundingClientRect(); setN((e.clientX-r.left-15)/TRACK); slot.setPointerCapture(e.pointerId); e.preventDefault(); });
+    slot.addEventListener("pointermove", function(e){ if(!slot._d)return; var r=slot.getBoundingClientRect(); setN((e.clientX-r.left-15)/TRACK); });
+    function done(){ if(!slot._d)return; slot._d=0; push(idx,0,"Bend","0"); paint(); }
+    slot.addEventListener("pointerup", done); slot.addEventListener("pointercancel", done);
+    listen(idx, paint); paint();
+    return w;
+  }
+
+  function sec(row, name){ var s=el("div","sec",row); el("b","",s).textContent=name; return el("div","bank",s); }
+  function col(parent){ return el("div","col",parent); }
+
+  lcd = document.getElementById("lcd"); lcdWhat = document.getElementById("lcdWhat");
+  var row1 = document.getElementById("row1"), row2 = document.getElementById("row2");
+  var pct = function(v){ return Math.round(v*100)+""; };
+  var cents = function(v){ return (v>=0?"+":"")+Math.round(v*50)+"c"; };
+  var semis = function(v){ return "+"+Math.round(v*60)+"st"; };
+
+  // ---- row 1 ----
+  var b = sec(row1,"Modulation / LFO");
+  knob(b,0,"Rate");
+  // LFO wave is a 2-bit field inside Mod Switch
+  var lw2=col(b); fieldSelector(lw2,"Wave",4,0,2,["Sin","Squ","S/H"]);
+  slider(b,1,"Freq");
+  var fd=col(b); bitBtn(fd,4,2,"Osc 1"); bitBtn(fd,4,3,"Osc 2"); bitBtn(fd,4,4,"Filter");
+  slider(b,2,"PWM");
+  var pd=col(b); bitBtn(pd,4,5,"Osc 1"); bitBtn(pd,4,6,"Osc 2");
+
+  b = sec(row1,"Oscillators");
+  var o1=col(b); pSelector(o1,"Osc1 Freq",5,["16'","8'","4'","2'"]);
+  var o1w=col(b); bitBtn(o1w,3,0,"1 Saw"); bitBtn(o1w,3,1,"1 Pulse");
+  knob(b,8,"Pulse W");
+  var oc=col(b); bitBtn(oc,3,4,"Sync"); bitBtn(oc,3,5,"F-Env");
+  knob(b,6,"Osc2 Fr",semis);
+  knob(b,7,"Detune",cents);
+  var o2w=col(b); bitBtn(o2w,3,2,"2 Saw"); bitBtn(o2w,3,3,"2 Pulse");
+
+  b = sec(row1,"Filter");
+  slider(b,10,"Freq"); slider(b,11,"Reso"); slider(b,12,"Mod",pct);
+  var fs=col(b); bitBtn(fs,9,0,"Osc 1"); bitBtn(fs,9,3,"Noise");
+  var fo2=col(b); fieldSelector(fo2,"Osc 2",9,1,2,["Off","Half","Full"]);
+  var fm=col(b); bitBtn(fm,9,4,"4-Pole"); bitBtn(fm,9,5,"Track");
+
+  // ---- row 2 ----
+  b = sec(row2,"Filter Env");
+  slider(b,13,"A"); slider(b,14,"D"); slider(b,15,"S"); slider(b,16,"R");
+
+  b = sec(row2,"Loudness Env");
+  slider(b,17,"A"); slider(b,18,"D"); slider(b,19,"S"); slider(b,20,"R");
+
+  b = sec(row2,"Control");
+  knob(b,21,"Porta");
+  var pm=col(b); fieldSelector(pm,"Porta",22,5,1,["Lin","Quant"]);
+  var po=col(b); bitBtn(po,22,6,"Offset"); bitBtn(po,22,0,"Unison");
+  var hm=col(b); bitBtn(hm,22,7,"Hold");
+  var tr=col(b); fieldSelector(tr,"Transpose",22,3,2,["Down","Norm","Up"]);
+  knob(b,25,"Tune",cents);
+  knob(b,26,"Volume",pct);
+
+  b = sec(row2,"Modulation Panel");
+  var lv=col(b); bender(lv,23); slider(lv,24,"Mod Lever",pct);
+  var bb=col(b); bitBtn(bb,22,1,"Osc2 Only"); bitBtn(bb,22,2,"Narrow");
+
+  // push all defaults to the engine once the host is ready
+  function ready(){
+    for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]);
+    // Follow host-side changes (session restore, preset load, DAW automation): the
+    // host pushes (index, value) so every control repaints to the real value.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      if (!(i in vals)) return; vals[i] = +v;
+      var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j]();
+    });
+  }
+  if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
+})();
+</script>
+</body></html>

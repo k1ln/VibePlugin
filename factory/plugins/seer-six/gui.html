@@ -434,7 +434,15 @@
   momBtn(sq,"Tie",  function(){ if (window.vstai && window.vstai.noteOn) window.vstai.noteOn(-3, 0); });
 
   // push all defaults to the engine once the host is ready
-  function ready(){ for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]); }
+  function ready(){
+    for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]);
+    // Follow host-side changes (session restore, preset load, DAW automation): the
+    // host pushes (index, value) so every control repaints to the real value.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      if (!(i in vals)) return; vals[i] = +v;
+      var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j]();
+    });
+  }
   if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

@@ -1,433 +1,246 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Acid Bass</title>
 <style>
-  :root{
-    --acc:#c6ff3d;
-    --acc2:#9ae66e;
-    --acc-dim:#5a7a1f;
-    --metal0:#0f1113;
-    --metal1:#23282b;
-    --metal2:#3a4044;
-    --metal3:#565d62;
-    --ink:#0a0c0d;
-    --face:#c9d0d4;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
-  body{
-    background:
-      radial-gradient(120% 90% at 50% -10%, #2a2f33 0%, #14181a 45%, #090b0c 100%);
-    color:#dfe6e9;
-    font-family:"Helvetica Neue",Arial,sans-serif;
-    overflow:hidden;
-    display:flex;align-items:center;justify-content:center;
-    letter-spacing:.02em;
-  }
-
-  /* ====== THE BOX ====== */
-  .box{
-    position:relative;
-    width:760px;height:430px;
-    border-radius:18px;
-    padding:18px 22px 20px;
-    /* brushed silver chassis */
-    background:
-      linear-gradient(180deg,#e9eef1 0%,#aeb6bb 6%,#7c858a 7%,#9aa3a8 8%,#6f777c 50%,#565d62 92%,#42484c 100%);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,.6) inset,
-      0 -2px 6px rgba(0,0,0,.5) inset,
-      0 30px 60px rgba(0,0,0,.65),
-      0 2px 0 #20262a;
-    overflow:hidden;
-  }
-  /* brushed-metal micro grain */
-  .box::before{
-    content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
-    background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,rgba(0,0,0,.04) 1px 2px);
-    mix-blend-mode:overlay;opacity:.5;
-  }
-  /* moving sheen */
-  .box::after{
-    content:"";position:absolute;top:0;left:-40%;width:35%;height:100%;
-    background:linear-gradient(105deg,transparent,rgba(255,255,255,.28),transparent);
-    transform:skewX(-18deg);pointer-events:none;
-    animation:sheen 7s ease-in-out infinite;
-  }
-  @keyframes sheen{0%,72%{left:-45%}90%{left:130%}100%{left:130%}}
-
-  /* corner screws */
-  .screw{position:absolute;width:13px;height:13px;border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#f2f5f6,#888f93 55%,#4a5054 100%);
-    box-shadow:0 1px 1px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.25) inset;}
-  .screw::after{content:"";position:absolute;inset:3px;border-radius:1px;
-    background:linear-gradient(90deg,transparent 44%,#2b3033 44% 56%,transparent 56%);transform:rotate(28deg)}
-  .screw.tl{top:9px;left:9px}.screw.tr{top:9px;right:9px}
-  .screw.bl{bottom:9px;left:9px}.screw.br{bottom:9px;right:9px}
-
-  /* ====== HEADER / READOUT ====== */
-  .head{display:flex;align-items:flex-end;justify-content:space-between;margin:2px 6px 12px}
-  .brand{display:flex;flex-direction:column;line-height:1}
-  .brand .sub{font-size:9px;letter-spacing:.42em;color:#3a4145;font-weight:700;margin-bottom:5px;text-transform:uppercase;
-    text-shadow:0 1px 0 rgba(255,255,255,.5)}
-  .brand .name{font-size:30px;font-weight:800;font-style:italic;letter-spacing:-.01em;
-    color:#1b2023;text-shadow:0 1px 0 rgba(255,255,255,.55),0 -1px 1px rgba(0,0,0,.3)}
-  .brand .name b{color:var(--acc-dim);
-    text-shadow:0 0 8px rgba(198,255,61,.55),0 1px 0 rgba(255,255,255,.4)}
-
-  /* LCD-ish resonance/cutoff scope */
-  .readout{
-    position:relative;width:236px;height:74px;border-radius:8px;
-    background:linear-gradient(180deg,#04150a,#020c06);
-    border:2px solid #1d2326;
-    box-shadow:0 2px 4px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.35);
-    overflow:hidden;
-  }
-  .readout canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-  .ro-grid{position:absolute;inset:0;pointer-events:none;
-    background:
-      repeating-linear-gradient(0deg,rgba(154,230,110,.07) 0 1px,transparent 1px 11px),
-      repeating-linear-gradient(90deg,rgba(154,230,110,.07) 0 1px,transparent 1px 13px);}
-  .ro-glass{position:absolute;inset:0;pointer-events:none;
-    background:radial-gradient(120% 70% at 50% 0%,rgba(180,255,160,.14),transparent 60%)}
-  .ro-tags{position:absolute;inset:0;pointer-events:none;font-size:8px;color:var(--acc2);
-    text-shadow:0 0 5px rgba(154,230,110,.8);font-weight:700;letter-spacing:.1em}
-  .ro-tags .t1{position:absolute;top:5px;left:8px}
-  .ro-tags .t2{position:absolute;bottom:5px;left:8px}
-  .ro-tags .t3{position:absolute;top:5px;right:8px;color:var(--acc)}
-
-  /* ====== STEP STRIP ====== */
-  .strip{
-    display:grid;grid-template-columns:repeat(16,1fr);gap:5px;
-    padding:11px 12px;margin:0 4px 16px;border-radius:10px;
-    background:linear-gradient(180deg,#14181a,#080a0b);
-    box-shadow:0 2px 5px rgba(0,0,0,.6) inset,0 1px 0 rgba(255,255,255,.3);
-  }
-  .step{position:relative;height:30px;border-radius:5px;cursor:pointer;
-    background:radial-gradient(circle at 50% 35%,#1c2123,#0c0f10);
-    box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 -2px 3px rgba(0,0,0,.5) inset;
-    transition:transform .08s}
-  .step .led{position:absolute;inset:6px;border-radius:3px;background:#0d2410;
-    box-shadow:0 0 0 1px rgba(0,0,0,.4) inset;transition:background .12s,box-shadow .12s}
-  .step.on .led{background:var(--acc-dim);box-shadow:0 0 0 1px rgba(0,0,0,.4) inset}
-  .step.acc .led{background:linear-gradient(180deg,#fff,var(--acc))}
-  /* the chaser highlights whichever step is current */
-  .step.cur .led{background:var(--acc);
-    box-shadow:0 0 9px 2px var(--acc),0 0 18px var(--acc2),0 0 0 1px rgba(0,0,0,.3) inset}
-  .step.cur.acc .led{background:#fff;box-shadow:0 0 12px 3px var(--acc),0 0 22px #fff}
-  .step:active{transform:translateY(1px)}
-  .step .n{position:absolute;bottom:-13px;left:0;right:0;text-align:center;font-size:7px;color:#5d6469}
-
-  /* ====== KNOB ROW ====== */
-  .rack{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;padding:0 2px}
-  .cell{display:flex;flex-direction:column;align-items:center;gap:5px}
-  .label{font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:#2a3033;font-weight:800;
-    text-shadow:0 1px 0 rgba(255,255,255,.45)}
-  .knob{position:relative;width:60px;height:60px;cursor:ns-resize;touch-action:none}
-  .knob svg{display:block;width:60px;height:60px;overflow:visible}
-  .knob .cap{filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
-  .knob:hover .ringGlow{opacity:1}
-  .ringGlow{transition:opacity .2s;opacity:.35}
-  .vbox{font-size:10px;font-weight:700;color:#10130f;
-    background:linear-gradient(180deg,#d8ff8c,#b6ef4d);
-    border:1px solid #4d5b1f;border-radius:4px;padding:1px 6px;min-width:42px;text-align:center;
-    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 1px 2px rgba(0,0,0,.4);
-    text-shadow:0 1px 0 rgba(255,255,255,.3)}
-
-  .knob.dragging .ringGlow{opacity:1}
-  .knob.dragging~.vbox,.dragging .vbox{}
-
-  .credit{position:absolute;bottom:6px;right:54px;font-size:7px;letter-spacing:.3em;
-    color:#2c3236;font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.4)}
-</style>
-</head>
-<body>
-  <div class="box" id="box">
-    <span class="screw tl"></span><span class="screw tr"></span>
-    <span class="screw bl"></span><span class="screw br"></span>
-
-    <div class="head">
+  :root{ --ac:#ff7a1a; --ac2:#c6ff3d; --sil1:#d9dde2; --sil2:#a7adb6; --ink:#1a1c1f; }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none}
+  html,body{margin:0;min-height:100%}
+  body{font:11px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#e6e9ee;
+    background:radial-gradient(120% 90% at 50% -10%,#22252b 0%,#0a0b0e 62%,#050506 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:14px 6px}
+  .box{max-width:1120px;width:100%;border-radius:10px;overflow:hidden;
+    box-shadow:0 26px 60px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.05)}
+  /* silver control plate */
+  .plate{background:linear-gradient(180deg,var(--sil1),var(--sil2));color:var(--ink);padding:10px 14px 12px}
+  .top{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;gap:2px;min-width:150px}
+  .brand .r{font-size:10px;letter-spacing:.28em;font-weight:700;color:#3a3d43;text-transform:uppercase}
+  .brand .n{font-size:26px;font-weight:800;font-style:italic;letter-spacing:.01em;color:#16181b;line-height:.95}
+  .brand .n b{color:var(--ac)}
+  .brand .s{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#5a5e65}
+  .knobs{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;flex:1;justify-content:flex-end}
+  /* knob */
+  .kn{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px}
+  .kn .dial{width:46px;height:46px;border-radius:50%;position:relative;cursor:ns-resize;touch-action:none;
+    background:radial-gradient(60% 60% at 40% 32%,#3a3d43,#17181b 72%,#0c0d0f);
+    border:2px solid #0c0d0f;box-shadow:0 2px 5px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.18)}
+  .kn .notch{position:absolute;left:50%;top:5px;width:2.5px;height:15px;margin-left:-1.25px;
+    background:var(--ac2);border-radius:2px;transform-origin:50% 18px;box-shadow:0 0 5px rgba(198,255,61,.7)}
+  .kn .lb{font-size:8px;letter-spacing:.06em;color:#2c2f34;text-transform:uppercase;text-align:center;
+    font-weight:700;line-height:1.1;min-height:18px}
+  .kn .vv{font-size:8px;color:#5a5e65;font-variant-numeric:tabular-nums;min-height:10px}
+  /* waveform switch */
+  .wf{display:flex;flex-direction:column;align-items:center;gap:4px;width:70px}
+  .wf .seg{display:flex;border:1.5px solid #0c0d0f;border-radius:5px;overflow:hidden;background:#17181b}
+  .wf .seg div{padding:5px 9px;font-size:13px;color:#7a7f88;cursor:pointer;line-height:1}
+  .wf .seg div.on{background:var(--ac);color:#161616;font-weight:800}
+  .wf .lb{font-size:8px;letter-spacing:.06em;color:#2c2f34;text-transform:uppercase;font-weight:700}
+  /* dark lower deck (sequencer) */
+  .deck{background:linear-gradient(180deg,#1c1e22,#101114);padding:11px 14px 14px}
+  .drow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .runbtn{padding:9px 16px;border-radius:6px;border:1.5px solid #000;cursor:pointer;font-weight:800;
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c9ced6;
+    background:linear-gradient(180deg,#31353c,#1a1c20);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+  .runbtn.on{background:linear-gradient(180deg,var(--ac),#b4470c);color:#160c04;
+    box-shadow:0 0 10px rgba(255,122,26,.6)}
+  .hint{font-size:9px;color:#7c828c;max-width:330px}
+  .hint b{color:#aeb4be}
+  /* step grid */
+  .grid{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px}
+  .step{flex:0 0 auto;width:48px;display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:#080909;border:1px solid #2a2d33;border-radius:5px;padding:5px 3px}
+  .step .idx{font-size:8px;color:#565b63;font-weight:700}
+  .step .nn{font-size:10px;font-weight:800;color:var(--ac2);font-variant-numeric:tabular-nums;min-height:12px}
+  .step .ar{display:flex;gap:2px}
+  .step .ar div{width:16px;height:13px;border-radius:3px;background:#20242b;border:1px solid #000;color:#aeb4be;
+    font-size:10px;line-height:11px;text-align:center;cursor:pointer}
+  .step .ar div:active{background:#2c3138}
+  .gate{width:34px;height:20px;border-radius:3px;border:1px solid #000;cursor:pointer;
+    background:linear-gradient(180deg,#2b2f36,#15171b)}
+  .gate.on{background:linear-gradient(180deg,var(--ac2),#7fb020);box-shadow:0 0 7px rgba(198,255,61,.45)}
+  .flag{width:34px;display:flex;justify-content:space-between;gap:3px}
+  .flag div{flex:1;font-size:7.5px;font-weight:700;text-align:center;padding:2px 0;border-radius:3px;
+    border:1px solid #000;color:#6b7079;background:#16181c;cursor:pointer;letter-spacing:.03em}
+  .flag div.on{color:#160c04;background:var(--ac);box-shadow:0 0 6px rgba(255,122,26,.5)}
+  .flag div.sl.on{background:#4fb3ff;box-shadow:0 0 6px rgba(79,179,255,.55)}
+  .foot{padding:8px 14px 12px;background:#0b0c0e;font-size:9px;color:#6b7079;display:flex;gap:16px;flex-wrap:wrap}
+  .foot b{color:#9aa0aa}
+</style></head><body>
+<div class="box">
+  <div class="plate">
+    <div class="top">
       <div class="brand">
-        <span class="sub">303 · monosquelch</span>
-        <span class="name">Acid<b>Bass</b></span>
+        <div class="r">Roland-style</div>
+        <div class="n">Acid<b>·</b>Bass</div>
+        <div class="s">Computer Controlled Bass Line</div>
       </div>
-      <div class="readout">
-        <canvas id="scope" width="472" height="148"></canvas>
-        <div class="ro-grid"></div>
-        <div class="ro-glass"></div>
-        <div class="ro-tags">
-          <span class="t1" id="roCut">CUT 035</span>
-          <span class="t2" id="roReso">RES 078</span>
-          <span class="t3">SELF-OSC</span>
-        </div>
-      </div>
+      <div class="knobs" id="knobs"></div>
     </div>
-
-    <div class="strip" id="strip"></div>
-
-    <div class="rack" id="rack"></div>
-    <div class="credit">VIBE · BOUTIQUE</div>
   </div>
-
+  <div class="deck">
+    <div class="drow">
+      <div class="runbtn on" id="runbtn">Run / Stop</div>
+      <div id="deckknobs" style="display:flex;gap:10px"></div>
+      <div class="hint"><b>Step sequencer</b> — click a step to toggle rest, ▲▼ set pitch,
+        <b>ACC</b> accent, <b>SLD</b> slide (glide from the previous note). Edits rewrite the pattern live.</div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="foot">
+    <span><b>WAVEFORM</b> saw or square · <b>ENV MOD</b> envelope→filter depth · <b>DECAY</b> shapes both tone &amp; volume</span>
+    <span><b>ACCENT</b> louder + extra resonant sweep · <b>SLIDE</b> fixed-time glide</span>
+  </div>
+</div>
 <script>
 (function(){
   "use strict";
+  // ---- param table (mirror of spec.json) --------------------------------
+  var PD = {};
+  function d(i,mn,mx,df){ PD[i]={min:mn,max:mx,def:df}; }
+  d(0,0,1,0); d(1,-1,1,0); d(2,0,1,.35); d(3,0,1,.75); d(4,0,1,.6);
+  d(5,0,1,.45); d(6,0,1,.6); d(7,0,1,.8); d(8,40,300,130); d(9,0,1,.3); d(10,0,3,1);
 
-  // ---- params straight from spec.json ----
-  var PARAMS = [
-    {name:"Waveform",  index:0, min:0, max:1, def:0.15, fmt:"morph"},
-    {name:"Cutoff",    index:1, min:0, max:1, def:0.35, fmt:"pct"},
-    {name:"Resonance", index:2, min:0, max:1, def:0.78, fmt:"pct"},
-    {name:"Env Mod",   index:3, min:0, max:1, def:0.70, fmt:"pct"},
-    {name:"Decay",     index:4, min:0, max:1, def:0.40, fmt:"ms"},
-    {name:"Accent",    index:5, min:0, max:1, def:0.50, fmt:"pct"},
-    {name:"Glide",     index:6, min:0, max:1, def:0.25, fmt:"ms"},
-    {name:"Level",     index:7, min:0, max:1, def:0.80, fmt:"pct"}
-  ];
-  var ACC="#c6ff3d", ACC2="#9ae66e";
+  var vals = {}; for (var k in PD) vals[k] = PD[k].def;
+  var listeners = {};
+  var V = window.vstai;
 
-  function clamp(v,a,b){return v<a?a:v>b?b:v;}
-  function fmtVal(p,v){
-    var n=(v-p.min)/(p.max-p.min);
-    if(p.fmt==="pct") return Math.round(n*100)+"%";
-    if(p.fmt==="ms")  return Math.round(2+n*n*900)+"ms";
-    if(p.fmt==="morph") return n<0.04?"SAW":n>0.96?"SQR":Math.round(n*100)+"%";
-    return n.toFixed(2);
+  function push(i, v){
+    vals[i] = v;
+    if (V && V.setParam) V.setParam(+i, v);
+    var ls = listeners[i]; if (ls) for (var j=0;j<ls.length;j++) ls[j]();
+  }
+  function listen(i, fn){ (listeners[i] = listeners[i] || []).push(fn); }
+  function el(tag, cls, parent){ var e=document.createElement(tag); if(cls)e.className=cls; if(parent)parent.appendChild(e); return e; }
+  function midiHz(m){ return 440*Math.pow(2,(m-69)/12); }
+  var NOTES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  function noteName(m){ return NOTES[((m%12)+12)%12] + (Math.floor(m/12)-1); }
+
+  // ---- rotary knob ------------------------------------------------------
+  function knob(parent, idx, label, fmt){
+    var p = PD[idx];
+    var box = el("div","kn",parent);
+    var dial = el("div","dial",box);
+    var notch = el("div","notch",dial);
+    el("div","lb",box).textContent = label;
+    var vv = el("div","vv",box);
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function paint(){
+      notch.style.transform = "translateX(-50%) rotate(" + (-135 + norm()*270) + "deg)";
+      vv.textContent = fmt ? fmt(vals[idx]) : "";
+    }
+    function setN(nn){
+      nn = nn<0?0:(nn>1?1:nn);
+      var v = p.min + (p.max-p.min)*nn;
+      if (p.min >= 0 && p.max-p.min >= 2 && (p.max-p.min)%1===0) v = Math.round(v);
+      push(idx, v); paint();
+    }
+    var last=0;
+    dial.addEventListener("pointerdown", function(e){ dial._d=1; last=e.clientY; dial.setPointerCapture(e.pointerId); e.preventDefault(); });
+    dial.addEventListener("pointermove", function(e){ if(!dial._d)return; var dy=last-e.clientY; last=e.clientY; setN(norm()+dy/160); });
+    dial.addEventListener("pointerup", function(){ dial._d=0; });
+    dial.addEventListener("pointercancel", function(){ dial._d=0; });
+    dial.addEventListener("dblclick", function(){ push(idx,p.def); paint(); });
+    dial.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.04:-0.04)); }, {passive:false});
+    listen(idx, paint); paint();
+    return box;
   }
 
-  // live state shared with scope + readout
-  var STATE={};
-  PARAMS.forEach(function(p){STATE[p.index]=p.def;});
-
-  var host = window.vstai || null;
-  function send(i,v){ if(host&&host.setParam) host.setParam(i,v); }
-
-  // ============== KNOBS (custom SVG) ==============
-  var rack=document.getElementById("rack");
-  var SW=270; // sweep degrees
-  function buildKnob(p){
-    var cell=document.createElement("div"); cell.className="cell";
-    var lab=document.createElement("div"); lab.className="label"; lab.textContent=p.name;
-    var knob=document.createElement("div"); knob.className="knob"; knob.setAttribute("title","drag · double-click resets");
-    var vbox=document.createElement("div"); vbox.className="vbox";
-
-    var ns="http://www.w3.org/2000/svg";
-    var svg=document.createElementNS(ns,"svg"); svg.setAttribute("viewBox","0 0 60 60");
-    // arc geometry helper
-    var cx=30,cy=31,r=23;
-    function pt(deg,rr){var a=(deg-90)*Math.PI/180;return [cx+Math.cos(a)*rr, cy+Math.sin(a)*rr];}
-    function arc(a0,a1,rr){
-      var s=pt(a0,rr),e=pt(a1,rr),large=(a1-a0)>180?1:0;
-      return "M"+s[0]+" "+s[1]+" A"+rr+" "+rr+" 0 "+large+" 1 "+e[0]+" "+e[1];
-    }
-    var start=-(SW/2), end=(SW/2);
-
-    // glow ring behind
-    var glow=document.createElementNS(ns,"path"); glow.setAttribute("class","ringGlow");
-    glow.setAttribute("d",arc(start,end,r+4)); glow.setAttribute("fill","none");
-    glow.setAttribute("stroke",ACC); glow.setAttribute("stroke-width","2");
-    glow.setAttribute("stroke-linecap","round");
-    glow.setAttribute("filter","url(#blur)"); svg.appendChild(glow);
-
-    // track
-    var track=document.createElementNS(ns,"path");
-    track.setAttribute("d",arc(start,end,r)); track.setAttribute("fill","none");
-    track.setAttribute("stroke","#0c0f10"); track.setAttribute("stroke-width","3.5");
-    track.setAttribute("stroke-linecap","round"); svg.appendChild(track);
-
-    // value arc
-    var val=document.createElementNS(ns,"path"); val.setAttribute("fill","none");
-    val.setAttribute("stroke","url(#grad)"); val.setAttribute("stroke-width","3.5");
-    val.setAttribute("stroke-linecap","round"); svg.appendChild(val);
-
-    // metal cap
-    var cap=document.createElementNS(ns,"circle"); cap.setAttribute("class","cap");
-    cap.setAttribute("cx",cx); cap.setAttribute("cy",cy); cap.setAttribute("r","16");
-    cap.setAttribute("fill","url(#cap)"); cap.setAttribute("stroke","#23282b"); cap.setAttribute("stroke-width","1");
-    svg.appendChild(cap);
-    var capRim=document.createElementNS(ns,"circle");
-    capRim.setAttribute("cx",cx); capRim.setAttribute("cy",cy); capRim.setAttribute("r","16");
-    capRim.setAttribute("fill","none"); capRim.setAttribute("stroke","rgba(255,255,255,.18)"); capRim.setAttribute("stroke-width","1");
-    svg.appendChild(capRim);
-
-    // pointer (notch)
-    var notch=document.createElementNS(ns,"line");
-    notch.setAttribute("stroke",ACC); notch.setAttribute("stroke-width","2.6");
-    notch.setAttribute("stroke-linecap","round");
-    notch.setAttribute("filter","url(#nglow)"); svg.appendChild(notch);
-
-    // shared defs (once)
-    if(!document.getElementById("kdefs")){
-      var defs=document.createElementNS(ns,"defs"); defs.setAttribute("id","kdefs");
-      defs.innerHTML=
-        '<radialGradient id="cap" cx="38%" cy="30%" r="80%">'+
-          '<stop offset="0%" stop-color="#5b6469"/><stop offset="45%" stop-color="#3a4044"/>'+
-          '<stop offset="100%" stop-color="#14181a"/></radialGradient>'+
-        '<linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">'+
-          '<stop offset="0%" stop-color="'+ACC2+'"/><stop offset="100%" stop-color="'+ACC+'"/></linearGradient>'+
-        '<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>'+
-        '<filter id="nglow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.1" result="b"/>'+
-          '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
-      svg.appendChild(defs);
-    }
-
-    knob.appendChild(svg);
-    cell.appendChild(lab); cell.appendChild(knob); cell.appendChild(vbox);
-    rack.appendChild(cell);
-
-    var cur=p.def;
-    function render(){
-      var n=(cur-p.min)/(p.max-p.min);
-      var ang=start+n*(end-start);
-      val.setAttribute("d", arc(start, n<=0.0001?start+0.001:ang, r));
-      glow.setAttribute("d", arc(start, n<=0.0001?start+0.001:ang, r+4));
-      var inner=pt(ang,6), outer=pt(ang,14.5);
-      notch.setAttribute("x1",inner[0]); notch.setAttribute("y1",inner[1]);
-      notch.setAttribute("x2",outer[0]); notch.setAttribute("y2",outer[1]);
-      vbox.textContent=fmtVal(p,cur);
-      STATE[p.index]=cur;
-    }
-    function setVal(v,push){
-      cur=clamp(v,p.min,p.max); render();
-      if(push) send(p.index,cur);
-    }
-    render();
-
-    // ---- drag ----
-    var dragging=false,startY=0,startV=0;
-    function onMove(e){
-      if(!dragging)return;
-      var y=(e.touches?e.touches[0].clientY:e.clientY);
-      var dy=startY-y;
-      var span=p.max-p.min;
-      var fine=e.shiftKey?0.25:1;
-      setVal(startV+ dy/180*span*fine, true);
-      e.preventDefault();
-    }
-    function onUp(){ if(!dragging)return; dragging=false; knob.classList.remove("dragging");
-      window.removeEventListener("pointermove",onMove);
-      window.removeEventListener("pointerup",onUp);
-    }
-    knob.addEventListener("pointerdown",function(e){
-      dragging=true; knob.classList.add("dragging");
-      startY=e.clientY; startV=cur;
-      window.addEventListener("pointermove",onMove);
-      window.addEventListener("pointerup",onUp);
-      e.preventDefault();
-    });
-    knob.addEventListener("dblclick",function(e){ setVal(p.def,true); e.preventDefault(); });
-    // wheel for fine tweaking
-    knob.addEventListener("wheel",function(e){
-      setVal(cur - Math.sign(e.deltaY)*(p.max-p.min)*0.02, true); e.preventDefault();
-    },{passive:false});
-
-    return {set:setVal,get:function(){return cur;}};
-  }
-  var knobs=PARAMS.map(buildKnob);
-
-  // ============== STEP STRIP (the chaser) ==============
-  var strip=document.getElementById("strip");
-  var STEPS=16, steps=[];
-  // a default acid pattern (purely decorative chaser; accents on the 1,5,9,11)
-  var pattern=[1,0,1,1, 1,0,0,1, 1,1,0,1, 0,1,1,0];
-  var accents=[1,0,0,0, 1,0,0,0, 1,0,1,0, 0,0,0,0];
-  for(var i=0;i<STEPS;i++){
-    var s=document.createElement("div"); s.className="step";
-    if(pattern[i]) s.classList.add("on");
-    if(accents[i]) s.classList.add("acc");
-    var led=document.createElement("div"); led.className="led"; s.appendChild(led);
-    if(i%4===0){var n=document.createElement("div"); n.className="n"; n.textContent=(i/4+1); s.appendChild(n);}
-    (function(idx,el){
-      el.addEventListener("click",function(){
-        // toggle the step's accent state for tactile feedback
-        if(el.classList.contains("on")){
-          if(el.classList.contains("acc")) el.classList.remove("acc","on");
-          else el.classList.add("acc");
-        } else { el.classList.add("on"); }
-        pattern[idx]=el.classList.contains("on")?1:0;
-        accents[idx]=el.classList.contains("acc")?1:0;
-      });
-    })(i,s);
-    strip.appendChild(s); steps.push(s);
+  // ---- waveform 2-way switch (param 0) ----------------------------------
+  function waveSwitch(parent){
+    var box = el("div","wf",parent);
+    var seg = el("div","seg",box);
+    var saw = el("div","",seg); saw.textContent = "◺"; saw.title="Sawtooth";
+    var sqr = el("div","",seg); sqr.textContent = "⊓"; sqr.title="Square";
+    el("div","lb",box).textContent = "Waveform";
+    function paint(){ var on=Math.round(vals[0]); saw.classList.toggle("on",on===0); sqr.classList.toggle("on",on===1); }
+    saw.addEventListener("click", function(){ push(0,0); paint(); });
+    sqr.addEventListener("click", function(){ push(0,1); paint(); });
+    listen(0, paint); paint();
   }
 
-  // ============== ANIMATION LOOP ==============
-  var scope=document.getElementById("scope");
-  var sctx=scope.getContext("2d");
-  var W=scope.width,H=scope.height;
-  var roCut=document.getElementById("roCut"), roReso=document.getElementById("roReso");
+  // ---- build the plate --------------------------------------------------
+  var knobs = document.getElementById("knobs");
+  waveSwitch(knobs);
+  var pct = function(v){ return Math.round(v*100)+""; };
+  var cents = function(v){ return (v>=0?"+":"")+Math.round(v*500)+"c"; };
+  knob(knobs,1,"Tuning",cents);
+  knob(knobs,2,"Cutoff",pct);
+  knob(knobs,3,"Resonance",pct);
+  knob(knobs,4,"Env Mod",pct);
+  knob(knobs,5,"Decay",pct);
+  knob(knobs,6,"Accent",pct);
+  knob(knobs,7,"Volume",pct);
 
-  var cur=0, lastStep=-1, phase=0, t0=performance.now();
-  function applyCur(idx){
-    steps.forEach(function(s,i){ s.classList.toggle("cur", i===idx && (pattern[i]===1)); });
+  var dk = document.getElementById("deckknobs");
+  knob(dk,8,"Tempo",function(v){ return Math.round(v)+"bpm"; });
+  knob(dk,9,"Slide",function(v){ return Math.round(6+v*240)+"ms"; });
+
+  // ---- sequencer pattern (mirrors the engine's default) -----------------
+  var gate  = [1,1,1,0,1,1,1,1,1,1,1,0,1,1,1,1];
+  var note  = [33,33,45,45,33,33,48,33,33,52,33,45,33,55,33,45];
+  var acc   = [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0];
+  var slide = [0,0,1,0,0,0,1,0,0,1,0,0,0,1,0,0];
+  var runState = true; // Transport PLAY bit
+
+  function writePattern(){
+    if (!(V && V.noteOn)) return;
+    // The note bridge only carries a MIDI note number (→ pitch) plus a velocity, so we
+    // pack each step's index + accent/slide/rest flags into a sentinel velocity
+    // (64 + i*8 + flags; bit0 accent, bit1 slide, bit2 rest). Every message names its
+    // own step, so order doesn't matter and no RECORD/clear handshake is needed.
+    for (var i=0;i<16;i++){
+      var flags = gate[i] ? ((acc[i]?1:0)|(slide[i]?2:0)) : 4; // bit2 = rest
+      var pitch = gate[i] ? note[i] : 60;                      // any valid MIDI note for a rest
+      V.noteOn(pitch, 64 + i*8 + flags);
+    }
   }
 
-  function pad3(v){return ("00"+Math.round(v*100)).slice(-3);}
-
-  function loop(now){
-    var dt=(now-t0)/1000; t0=now;
-    // tempo: glide & decay nudge the chase speed for character
-    var decay=STATE[4], glide=STATE[6];
-    var bps = 2.0 + (1-decay)*2.6;       // faster with shorter decay
-    phase += dt*bps;
-    if(phase>=1){ phase-=1; cur=(cur+1)%STEPS;
-      // skip to next active-ish step occasionally for a "chase" feel
+  var grid = document.getElementById("grid");
+  for (var i=0;i<16;i++){ buildStep(i); }
+  function buildStep(i){
+    var s = el("div","step",grid);
+    el("div","idx",s).textContent = (i+1);
+    var nn = el("div","nn",s);
+    var ar = el("div","ar",s);
+    var up = el("div","",ar); up.textContent="▲";
+    var dn = el("div","",ar); dn.textContent="▼";
+    var g = el("div","gate",s);
+    var fl = el("div","flag",s);
+    var af = el("div","",fl); af.textContent="ACC";
+    var sf = el("div","sl",fl); sf.textContent="SLD";
+    function paint(){
+      nn.textContent = gate[i]?noteName(note[i]):"–";
+      g.classList.toggle("on", !!gate[i]);
+      af.classList.toggle("on", !!acc[i]);
+      sf.classList.toggle("on", !!slide[i]);
     }
-    if(cur!==lastStep){ applyCur(cur); lastStep=cur; }
-
-    // ---- scope: resonant low-pass squelch waveform ----
-    var cut=STATE[1], reso=STATE[2], envm=STATE[3], wave=STATE[0], lvl=STATE[7], acc=STATE[5];
-    roCut.textContent="CUT "+pad3(cut);
-    roReso.textContent="RES "+pad3(reso);
-
-    sctx.clearRect(0,0,W,H);
-    // glow under-curve
-    var freq = 2 + cut*9;                 // visible cycles
-    var q = 1 + reso*9;                    // resonant ringing depth
-    var env = Math.exp(-((phase)) * (1.5+ (1-STATE[4])*6)); // filter-env sweep per step
-    var amp = (0.30 + lvl*0.55) * (1 + acc*0.35* (accents[cur]?1:0));
-
-    sctx.lineWidth=2;
-    var grad=sctx.createLinearGradient(0,0,W,0);
-    grad.addColorStop(0,ACC2); grad.addColorStop(1,ACC);
-    sctx.strokeStyle=grad;
-    sctx.shadowColor=ACC; sctx.shadowBlur=8;
-    sctx.beginPath();
-    for(var x=0;x<=W;x+=2){
-      var u=x/W;
-      // base osc: saw<->square morph
-      var saw = 2*((u*freq)%1)-1;
-      var sq  = ((u*freq)%1)<0.5?1:-1;
-      var osc = saw*(1-wave)+sq*wave;
-      // resonant ring riding on the cutoff sweep, modulated by env
-      var ring = Math.sin(u*freq*Math.PI*2*(1+ q*0.18)) * Math.exp(-((u*freq)%1)*q*0.7) * (0.4+envm*0.6) * env;
-      var y = (osc*0.5 + ring) * amp;
-      var py = H/2 - y*(H*0.42);
-      if(x===0) sctx.moveTo(x,py); else sctx.lineTo(x,py);
-    }
-    sctx.stroke();
-    sctx.shadowBlur=0;
-
-    // scan line that tracks the step
-    var sx = (cur+phase)/STEPS * W;
-    sctx.fillStyle="rgba(198,255,61,.10)";
-    sctx.fillRect(sx-1,0,3,H);
-
-    requestAnimationFrame(loop);
+    up.addEventListener("click", function(){ note[i]=Math.min(72,note[i]+1); gate[i]=1; paint(); writePattern(); });
+    dn.addEventListener("click", function(){ note[i]=Math.max(24,note[i]-1); gate[i]=1; paint(); writePattern(); });
+    g.addEventListener("click", function(){ gate[i]=gate[i]?0:1; paint(); writePattern(); });
+    af.addEventListener("click", function(){ acc[i]=acc[i]?0:1; paint(); writePattern(); });
+    sf.addEventListener("click", function(){ slide[i]=slide[i]?0:1; paint(); writePattern(); });
+    paint();
   }
-  requestAnimationFrame(loop);
 
-  // ============== HOST WIRING ==============
+  var runbtn = document.getElementById("runbtn");
+  function paintRun(){ runbtn.classList.toggle("on", runState); }
+  runbtn.addEventListener("click", function(){
+    runState = !runState;
+    push(10, runState?1:0); paintRun();
+  });
+
+  // ---- host handshake ---------------------------------------------------
   function ready(){
-    // push every param at its default so host + UI agree
-    knobs.forEach(function(k,i){ send(PARAMS[i].index, k.get()); });
+    for (var i in vals) if (V && V.setParam) V.setParam(+i, vals[i]);
+    paintRun();
+    // Follow host-side changes (session restore, preset load, DAW automation):
+    // the host pushes (index, value) so every control repaints to the real value.
+    if (V && V.onParam) V.onParam(function(i, v){
+      if (!(i in vals)) return; vals[i] = +v;
+      if (+i === 10) { runState = (Math.round(v) & 1) === 1; paintRun(); }
+      var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j]();
+    });
   }
-  if(host && host.onReady) host.onReady(ready); else ready();
-
+  if (V && V.onReady) V.onReady(ready); else ready();
 })();
 </script>
-</body>
-</html>
+</body></html>

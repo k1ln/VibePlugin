@@ -95,6 +95,20 @@ Quality bar learned on Seer Six:
   switches, etc.
 - Every packed param decodes into its individual switches. Push all defaults on
   `vstai.onReady`. Guard every `window.vstai` call (must run standalone too).
+- **Host readback is mandatory.** Inside `ready()`, after pushing defaults, register
+  `window.vstai.onParam(function(i, v){ if(!(i in vals)) return; vals[i]=+v; var
+  ls=listeners[i]; if(ls) for(var j=0;j<ls.length;j++) ls[j](); })`. Without this the
+  knobs render at hardcoded defaults and never follow the host — after a project/preset
+  restore or DAW automation they show the WRONG position ("knobs are off"). Every widget
+  already registers `listen(idx, repaint)`, so this one handler repaints all of them.
+  The host pushes natural (not normalized) values — same units the GUI sends via `setParam`.
+- **Knob/slider integer-snapping must not catch bipolar continuous params.** The `setN`
+  helper snaps discrete params to integers, but a naive `if (p.max-p.min >= 2) v=round(v)`
+  ALSO snaps bipolar continuous knobs (`min:-1, max:1`, range 2) to −1/0/1 — fine tune,
+  master tune, detune, pan, pitch-wheel become unusable ("knobs jump instead of turning").
+  Guard it with `p.min >= 0`: discrete selectors are always `0..N-1`, bipolar continuous
+  are `-1..1`, so `if (p.min >= 0 && p.max-p.min >= 2 && (p.max-p.min)%1===0) v=round(v)`
+  snaps the selectors and leaves the bipolar knobs smooth.
 - `node factory/tools/gui-check.mjs factory/plugins/<slug> --shot /tmp/<slug>.png`
   → `GUI CHECK: PASS` (0 errors, 64-or-N params pushed). Then **Read the screenshot
   and look at it** — fix overlapping labels, broken layout, invisible controls.

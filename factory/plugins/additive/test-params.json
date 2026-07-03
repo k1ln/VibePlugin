@@ -1,0 +1,443 @@
+[
+  {
+    "name": "S1 Profile",
+    "index": 0,
+    "min": 0,
+    "max": 5,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "S1 Tilt",
+    "index": 1,
+    "min": -1,
+    "max": 1,
+    "default": 0.1
+  },
+  {
+    "name": "S1 Odd/Even",
+    "index": 2,
+    "min": -1,
+    "max": 1,
+    "default": 0
+  },
+  {
+    "name": "S1 Density",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "S1 Form Freq",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "S1 Form Wid",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "S1 Form Amt",
+    "index": 6,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "S1 Lo Atk",
+    "index": 7,
+    "min": 0,
+    "max": 1,
+    "default": 0.02
+  },
+  {
+    "name": "S1 Lo Dec",
+    "index": 8,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "S1 Mid Atk",
+    "index": 9,
+    "min": 0,
+    "max": 1,
+    "default": 0.05
+  },
+  {
+    "name": "S1 Mid Dec",
+    "index": 10,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "S1 Hi Atk",
+    "index": 11,
+    "min": 0,
+    "max": 1,
+    "default": 0.08
+  },
+  {
+    "name": "S1 Hi Dec",
+    "index": 12,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "S1 DDF Cut",
+    "index": 13,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "S1 DDF Res",
+    "index": 14,
+    "min": 0,
+    "max": 1,
+    "default": 0.2
+  },
+  {
+    "name": "S1 DDF Env",
+    "index": 15,
+    "min": -1,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "S1 DDF Atk",
+    "index": 16,
+    "min": 0,
+    "max": 1,
+    "default": 0.05
+  },
+  {
+    "name": "S1 DDF Dec",
+    "index": 17,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S1 DDA Atk",
+    "index": 18,
+    "min": 0,
+    "max": 1,
+    "default": 0.02
+  },
+  {
+    "name": "S1 DDA Dec",
+    "index": 19,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S1 DDA Sus",
+    "index": 20,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "S1 DDA Rel",
+    "index": 21,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "S2 Profile",
+    "index": 22,
+    "min": 0,
+    "max": 5,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "S2 Tilt",
+    "index": 23,
+    "min": -1,
+    "max": 1,
+    "default": -0.1
+  },
+  {
+    "name": "S2 Odd/Even",
+    "index": 24,
+    "min": -1,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "S2 Density",
+    "index": 25,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S2 Form Freq",
+    "index": 26,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S2 Form Wid",
+    "index": 27,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S2 Form Amt",
+    "index": 28,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "S2 Lo Atk",
+    "index": 29,
+    "min": 0,
+    "max": 1,
+    "default": 0.03
+  },
+  {
+    "name": "S2 Lo Dec",
+    "index": 30,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "S2 Mid Atk",
+    "index": 31,
+    "min": 0,
+    "max": 1,
+    "default": 0.1
+  },
+  {
+    "name": "S2 Mid Dec",
+    "index": 32,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S2 Hi Atk",
+    "index": 33,
+    "min": 0,
+    "max": 1,
+    "default": 0.15
+  },
+  {
+    "name": "S2 Hi Dec",
+    "index": 34,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "S2 DDF Cut",
+    "index": 35,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "S2 DDF Res",
+    "index": 36,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "S2 DDF Env",
+    "index": 37,
+    "min": -1,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "S2 DDF Atk",
+    "index": 38,
+    "min": 0,
+    "max": 1,
+    "default": 0.08
+  },
+  {
+    "name": "S2 DDF Dec",
+    "index": 39,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S2 DDA Atk",
+    "index": 40,
+    "min": 0,
+    "max": 1,
+    "default": 0.04
+  },
+  {
+    "name": "S2 DDA Dec",
+    "index": 41,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "S2 DDA Sus",
+    "index": 42,
+    "min": 0,
+    "max": 1,
+    "default": 0.65
+  },
+  {
+    "name": "S2 DDA Rel",
+    "index": 43,
+    "min": 0,
+    "max": 1,
+    "default": 0.45
+  },
+  {
+    "name": "Mode Flags",
+    "index": 44,
+    "min": 0,
+    "max": 15,
+    "default": 7,
+    "step": 1
+  },
+  {
+    "name": "S1/S2 Bal",
+    "index": 45,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "S2 Coarse",
+    "index": 46,
+    "min": -24,
+    "max": 24,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "S2 Detune",
+    "index": 47,
+    "min": -1,
+    "max": 1,
+    "default": 0.08
+  },
+  {
+    "name": "Master Tune",
+    "index": 48,
+    "min": -1,
+    "max": 1,
+    "default": 0
+  },
+  {
+    "name": "Portamento",
+    "index": 49,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "Pitch Env",
+    "index": 50,
+    "min": -1,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "P.Env Rate",
+    "index": 51,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "LFO Rate",
+    "index": 52,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "LFO Shape",
+    "index": 53,
+    "min": 0,
+    "max": 4,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "LFO Depth",
+    "index": 54,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "LFO Dest",
+    "index": 55,
+    "min": 0,
+    "max": 15,
+    "default": 15,
+    "step": 1
+  },
+  {
+    "name": "DDF KeyTrk",
+    "index": 56,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "Bend Range",
+    "index": 57,
+    "min": 0,
+    "max": 12,
+    "default": 2,
+    "step": 1
+  },
+  {
+    "name": "Pitch Wheel",
+    "index": 58,
+    "min": -1,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "Mod Wheel",
+    "index": 59,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "Aftertouch",
+    "index": 60,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "Volume",
+    "index": 61,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  }
+]

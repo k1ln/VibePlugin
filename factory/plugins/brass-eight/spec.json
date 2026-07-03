@@ -1,0 +1,42 @@
+{
+  "name": "Brass Eight",
+  "isInstrument": true,
+  "explanation": "An eight-voice, sixteen-oscillator polyphonic analog synthesizer modelled control-for-control on the Oberheim OB-Xa (OB-Xa Owner's Manual, 3rd Ed., April 1982, read cover to cover). Each of the eight voices is a complete synth with two VCOs, two selectable low-pass filters (a 2-pole and a 4-pole), two ADSR envelopes and a VCA. OSC 1 has an octave FREQUENCY control (4-octave range) and independent SAW and PULSE waveform switches that sum additively. OSC 2 has a coarse FREQUENCY (5-octave, half-step), a bipolar DETUNE (+/-50 cents, flat or sharp of OSC 1), and its own SAW/PULSE switches; SYNC hard-locks OSC 2 to OSC 1 for the classic timbral sweep, and F-ENV routes the Filter Envelope to OSC 2's pitch (amount set by the filter MODULATION control, up to +1 octave). A shared PULSE WIDTH control sets both oscillators' duty (50% square fully CCW, thin/nasal CW). The programmable MODULATION section is a LFO (SINE / SQUARE / SAMPLE&HOLD, ~0.1-20 Hz) with a FREQUENCY DEPTH routable to OSC 1 / OSC 2 / FILTER and a PULSE-WIDTH DEPTH routable to OSC 1 / OSC 2. The FILTER section both selects the sound sources into the filter (OSC 1, OSC 2 at HALF or FULL level, pink NOISE) and shapes them: FREQUENCY, RESONANCE (raises level in 2-pole, lowers it in 4-pole), MODULATION (filter-env amount), a 2-POLE/4-POLE slope switch (the OB-Xa signature: 12 dB/oct bright vs 24 dB/oct full) and keyboard TRACK. Two four-stage ADSR envelopes drive the Filter and the Loudness (VCA). Performance: polyphonic PORTAMENTO with linear/quantized and offset options, UNISON (low-note-priority 8-voice stack), HOLD latch, a PITCH BEND lever (OSC-2-only and NARROW +/-whole-step vs +/-octave switches), a MOD lever that fades LFO vibrato in, master TRANSPOSE (+/-octave), MASTER TUNE and VOLUME. Switch groups are bit-packed into single host parameters; the panel decodes and shows every individual switch. SPLIT / DOUBLE dual-keyboard modes, chord-memory transposition, auto-tune and the cassette/patch-memory system are host or hardware concerns and are out of scope (single Whole-mode patch).",
+  "assembly": "factory/plugins/brass-eight/assembly.ts",
+  "out": "factory/plugins/brass-eight/x.vstai",
+  "guiFile": "factory/plugins/brass-eight/gui.html",
+  "publishedAt": 1751500800000,
+  "theme": {
+    "accent": "#3f7fd6",
+    "accent2": "#d6b23f"
+  },
+  "params": [
+    { "name": "LFO Rate",     "index": 0,  "min": 0,  "max": 1, "default": 0.35 },
+    { "name": "LFO Depth",    "index": 1,  "min": 0,  "max": 1, "default": 0.15 },
+    { "name": "PWM Depth",    "index": 2,  "min": 0,  "max": 1, "default": 0.2 },
+    { "name": "Osc Switch",   "index": 3,  "min": 0,  "max": 63,  "default": 5,  "step": 1 },
+    { "name": "Mod Switch",   "index": 4,  "min": 0,  "max": 127, "default": 0,  "step": 1 },
+    { "name": "OSC1 Freq",    "index": 5,  "min": 0,  "max": 3, "default": 1, "step": 1 },
+    { "name": "OSC2 Freq",    "index": 6,  "min": 0,  "max": 1, "default": 0 },
+    { "name": "OSC2 Detune",  "index": 7,  "min": -1, "max": 1, "default": 0.12 },
+    { "name": "Pulse Width",  "index": 8,  "min": 0,  "max": 1, "default": 0.3 },
+    { "name": "Filt Switch",  "index": 9,  "min": 0,  "max": 63, "default": 53, "step": 1 },
+    { "name": "Cutoff",       "index": 10, "min": 0,  "max": 1, "default": 0.35 },
+    { "name": "Resonance",    "index": 11, "min": 0,  "max": 1, "default": 0.18 },
+    { "name": "Filter Mod",   "index": 12, "min": 0,  "max": 1, "default": 0.55 },
+    { "name": "Filt Attack",  "index": 13, "min": 0,  "max": 1, "default": 0.06 },
+    { "name": "Filt Decay",   "index": 14, "min": 0,  "max": 1, "default": 0.5 },
+    { "name": "Filt Sustain", "index": 15, "min": 0,  "max": 1, "default": 0.35 },
+    { "name": "Filt Release", "index": 16, "min": 0,  "max": 1, "default": 0.35 },
+    { "name": "Loud Attack",  "index": 17, "min": 0,  "max": 1, "default": 0.08 },
+    { "name": "Loud Decay",   "index": 18, "min": 0,  "max": 1, "default": 0.5 },
+    { "name": "Loud Sustain", "index": 19, "min": 0,  "max": 1, "default": 0.75 },
+    { "name": "Loud Release", "index": 20, "min": 0,  "max": 1, "default": 0.4 },
+    { "name": "Portamento",   "index": 21, "min": 0,  "max": 1, "default": 0.0 },
+    { "name": "Mode Switch",  "index": 22, "min": 0,  "max": 255, "default": 72, "step": 1 },
+    { "name": "Bender",       "index": 23, "min": -1, "max": 1, "default": 0 },
+    { "name": "Mod Lever",    "index": 24, "min": 0,  "max": 1, "default": 0 },
+    { "name": "Master Tune",  "index": 25, "min": -1, "max": 1, "default": 0 },
+    { "name": "Volume",       "index": 26, "min": 0,  "max": 1, "default": 0.8 }
+  ]
+}

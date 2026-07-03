@@ -1,20 +1,23 @@
 {
   "name": "Acid Bass",
   "isInstrument": true,
-  "explanation": "A monophonic squelch-bass synth: one saw<->square morphing oscillator feeding a 4-pole resonant low-pass with a fast-decaying filter envelope for the classic acid sweep. Accent boosts the filter envelope and level on hard hits, Glide slides pitch between notes (last-note priority), and high Resonance pushes toward self-oscillation while staying bounded.",
+  "explanation": "A monophonic squelch-bass synth modelled control-for-control on the Roland TB-303 Bass Line (Owner's Manual read cover to cover). ONE oscillator with the WAVEFORM switch picking the two classic 303 waves — sawtooth or square, polyBLEP band-limited — and a TUNING master tune (+/-500 cents). The signature filter is an 18 dB/oct (3-pole) diode-ladder-style resonant low-pass with CUTOFF FREQ and RESONANCE (near maximum it pushes toward self-oscillation). A single decay-only envelope (DECAY sets its time; the manual notes both the volume and the tone fade together) sweeps the filter by the ENV MOD amount. The ACCENT circuit boosts level, adds a fast extra resonant filter sweep and the characteristic accent wow, and accumulates across consecutive accents. SLIDE is a fixed-time legato glide between tied steps. A built-in 16-step, 40-300 BPM sequencer (each step carrying pitch, accent, slide and rest) auto-plays a recognisable acid line; the transport RUN/WRITE bits are packed into one host parameter and the panel drives recording via note events.",
   "assembly": "factory/plugins/acid-bass/assembly.ts",
   "out": "factory/plugins/acid-bass/x.vstai",
   "guiFile": "factory/plugins/acid-bass/gui.html",
-  "publishedAt": 1751000017000,
-  "theme": { "accent": "#c6ff3d", "accent2": "#9ae66e" },
+  "publishedAt": 1751500800000,
+  "theme": { "accent": "#ff7a1a", "accent2": "#c6ff3d" },
   "params": [
-    { "name": "Waveform",  "index": 0, "min": 0, "max": 1, "default": 0.15 },
-    { "name": "Cutoff",    "index": 1, "min": 0, "max": 1, "default": 0.35 },
-    { "name": "Resonance", "index": 2, "min": 0, "max": 1, "default": 0.78 },
-    { "name": "Env Mod",   "index": 3, "min": 0, "max": 1, "default": 0.7 },
-    { "name": "Decay",     "index": 4, "min": 0, "max": 1, "default": 0.4 },
-    { "name": "Accent",    "index": 5, "min": 0, "max": 1, "default": 0.5 },
-    { "name": "Glide",     "index": 6, "min": 0, "max": 1, "default": 0.25 },
-    { "name": "Level",     "index": 7, "min": 0, "max": 1, "default": 0.8 }
+    { "name": "Waveform",  "index": 0,  "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Tuning",    "index": 1,  "min": -1, "max": 1, "default": 0 },
+    { "name": "Cutoff",    "index": 2,  "min": 0, "max": 1, "default": 0.35 },
+    { "name": "Resonance", "index": 3,  "min": 0, "max": 1, "default": 0.75 },
+    { "name": "Env Mod",   "index": 4,  "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Decay",     "index": 5,  "min": 0, "max": 1, "default": 0.45 },
+    { "name": "Accent",    "index": 6,  "min": 0, "max": 1, "default": 0.6 },
+    { "name": "Volume",    "index": 7,  "min": 0, "max": 1, "default": 0.8 },
+    { "name": "Tempo",     "index": 8,  "min": 40, "max": 300, "default": 130 },
+    { "name": "Slide",     "index": 9,  "min": 0, "max": 1, "default": 0.3 },
+    { "name": "Transport", "index": 10, "min": 0, "max": 3, "default": 1, "step": 1 }
   ]
 }

@@ -1,0 +1,287 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patch Mono</title>
+<style>
+  :root{ --ac:#e08a2c; --ac2:#8ec07c; --pnl1:#3a3d40; --pnl2:#25272a; --ink:#e9ecef; --lgnd:#c7ccd1; --patch:#1a2b1c; }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none}
+  html,body{margin:0;min-height:100%}
+  body{font:11px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);
+    background:radial-gradient(120% 90% at 50% -10%,#242629 0%,#0b0c0d 70%,#050506 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:14px 6px}
+  .box{max-width:1240px;width:100%;border-radius:9px;overflow:hidden;
+    background:linear-gradient(180deg,var(--pnl1),var(--pnl2));
+    box-shadow:0 26px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
+    border:1px solid #0a0b0c}
+  .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:11px 16px 6px}
+  .brand{display:flex;flex-direction:column;gap:1px;min-width:190px}
+  .brand .r{font-size:8.5px;letter-spacing:.30em;font-weight:700;color:var(--ac2);text-transform:uppercase}
+  .brand .n{font-size:25px;font-weight:800;letter-spacing:.02em;color:#f2f4f6;line-height:.95}
+  .brand .n b{color:var(--ac)}
+  .brand .s{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#8b9096}
+  .led{margin-left:auto;width:9px;height:9px;border-radius:50%;background:var(--ac2);box-shadow:0 0 10px var(--ac2);align-self:center}
+  .rack{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;padding:6px 14px 12px}
+  .sec{display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,.22);border-radius:6px;padding:6px 8px 8px;
+    border:1px solid rgba(255,255,255,.05)}
+  .sec .h{font-size:8px;letter-spacing:.13em;font-weight:800;color:var(--ac2);text-transform:uppercase;text-align:center;white-space:nowrap}
+  .row{display:flex;gap:8px;align-items:flex-end}
+  /* rotary knob */
+  .kn{display:flex;flex-direction:column;align-items:center;gap:3px;width:44px}
+  .kn .dial{width:36px;height:36px;border-radius:50%;position:relative;cursor:ns-resize;touch-action:none;
+    background:radial-gradient(60% 60% at 40% 32%,#4a4d52,#1b1c1f 74%,#0c0d0f);
+    border:2px solid #050506;box-shadow:0 2px 5px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.16)}
+  .kn .notch{position:absolute;left:50%;top:3px;width:2.5px;height:13px;margin-left:-1.25px;
+    background:var(--ac);border-radius:2px;transform-origin:50% 15px;box-shadow:0 0 5px rgba(224,138,44,.8)}
+  .kn .lb{font-size:7.5px;letter-spacing:.02em;color:var(--lgnd);text-transform:uppercase;font-weight:700;text-align:center;line-height:1.05;min-height:15px}
+  /* vertical selector switch */
+  .sw{display:flex;flex-direction:column;align-items:center;gap:3px;width:52px}
+  .sw .stk{display:flex;flex-direction:column;border:1.5px solid #050506;border-radius:4px;overflow:hidden;background:#141517;width:100%}
+  .sw .stk div{padding:2.5px 2px;font-size:8px;color:#9aa0a6;cursor:pointer;text-align:center;line-height:1.15;border-top:1px solid #050506}
+  .sw .stk div:first-child{border-top:none}
+  .sw .stk div.on{background:var(--ac);color:#160c04;font-weight:800}
+  .sw .lb{font-size:7.5px;letter-spacing:.02em;color:var(--lgnd);text-transform:uppercase;font-weight:700;text-align:center;min-height:15px}
+  /* patch-bay lower deck */
+  .deck{background:linear-gradient(180deg,#182a1a,#0e1a0f);padding:9px 14px 13px;border-top:2px solid #0a0b0c}
+  .deckrow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .psec{background:rgba(0,0,0,.30);border:1px solid rgba(142,192,124,.20);border-radius:6px;padding:6px 9px 8px;display:flex;flex-direction:column;gap:5px}
+  .psec .h{font-size:8px;letter-spacing:.13em;font-weight:800;color:var(--ac2);text-transform:uppercase;text-align:center}
+  .cords{display:flex;flex-direction:column;gap:6px}
+  .cord{display:flex;align-items:flex-end;gap:6px;background:var(--patch);border:1px solid rgba(142,192,124,.18);border-radius:5px;padding:4px 7px}
+  .cord .ci{font-size:8px;color:#6f8a72;font-weight:800;width:14px;text-align:center}
+  /* stepper (patch source / dest) */
+  .st{display:flex;flex-direction:column;align-items:center;gap:3px;width:74px}
+  .st .bar{display:flex;align-items:center;width:100%;border:1.5px solid #050506;border-radius:4px;overflow:hidden;background:#101a11}
+  .st .bar b{cursor:pointer;padding:3px 4px;color:var(--ac2);background:rgba(142,192,124,.10);font-weight:800}
+  .st .bar b:hover{background:rgba(142,192,124,.25)}
+  .st .val{flex:1;text-align:center;font-size:9px;font-weight:800;color:#dfeede;padding:3px 0}
+  .st .lb{font-size:7.5px;letter-spacing:.02em;color:var(--lgnd);text-transform:uppercase;font-weight:700;text-align:center;min-height:15px}
+  .foot{padding:8px 16px 12px;background:#0b0c0d;font-size:8.5px;color:#7c828a;display:flex;gap:16px;flex-wrap:wrap}
+  .foot b{color:var(--ac2)}
+  .jack{width:9px;height:9px;border-radius:50%;background:radial-gradient(50% 50% at 50% 40%,#0a0b0c,#000);border:1.5px solid #4a4d52;align-self:center}
+</style></head><body>
+<div class="box">
+  <div class="top">
+    <div class="brand">
+      <div class="r">Semi-Modular Synthesizer</div>
+      <div class="n">Patch<b>·</b>Mono</div>
+      <div class="s">modelled on the Korg MS-20 · monophonic</div>
+    </div>
+    <div class="led"></div>
+  </div>
+  <div class="rack" id="rack"></div>
+  <div class="deck">
+    <div class="deckrow" id="deck"></div>
+  </div>
+  <div class="foot">
+    <span><b>VCO1</b> tri/saw/rect+PW/noise · <b>VCO2</b> saw/sq/pulse/ring · <b>Korg-35</b> HPF→LPF self-osc</span>
+    <span><b>MG</b> morph LFO · <b>EG1</b> delay/atk/rel · <b>EG2</b> hold/ADSR · <b>ESP</b> follower+F→V</span>
+    <span><b>PATCH BAY</b> 4 cords: any source → any destination, just like the jack field</span>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  // ---- param table (mirror of spec.json) --------------------------------
+  var PD = {};
+  function d(i,mn,mx,df){ PD[i]={min:mn,max:mx,def:df}; }
+  d(0,0,3,1);  d(1,0,1,.5);  d(2,0,3,2);  d(3,0,1,.85);
+  d(4,0,3,1);  d(5,-1,1,.02);d(6,0,3,1);  d(7,0,1,.6);
+  d(8,-1,1,0); d(9,0,1,.12);
+  d(10,0,1,0); d(11,0,1,0);
+  d(12,0,1,.15);d(13,0,1,.2);d(14,0,1,0); d(15,0,1,0);
+  d(16,0,1,.5);d(17,0,1,.45);d(18,0,1,0); d(19,0,1,.55);
+  d(20,0,1,1);
+  d(21,0,1,.35);d(22,0,1,.5);
+  d(23,0,1,0); d(24,0,1,.1); d(25,0,1,.3);
+  d(26,0,1,0); d(27,0,1,.02);d(28,0,1,.4); d(29,0,1,.35);d(30,0,1,.2);
+  d(31,0,1,.8);
+  d(32,0,1,0); d(33,0,1,.1); d(34,0,1,.2);
+  d(35,0,1,0); d(36,0,1,.2); d(37,0,1,.7); d(38,0,1,.3); d(39,0,1,.5);
+  d(40,0,10,0);d(41,0,7,0); d(42,0,1,.5);
+  d(43,0,10,0);d(44,0,7,0); d(45,0,1,.5);
+  d(46,0,10,0);d(47,0,7,0); d(48,0,1,.5);
+  d(49,0,10,0);d(50,0,7,0); d(51,0,1,.5);
+
+  var vals = {}; for (var k in PD) vals[k] = PD[k].def;
+  var listeners = {};
+  var V = window.vstai;
+
+  function push(i, v){
+    vals[i] = v;
+    if (V && V.setParam) V.setParam(+i, v);
+    var ls = listeners[i]; if (ls) for (var j=0;j<ls.length;j++) ls[j]();
+  }
+  function listen(i, fn){ (listeners[i] = listeners[i] || []).push(fn); }
+  function el(tag, cls, parent){ var e=document.createElement(tag); if(cls)e.className=cls; if(parent)parent.appendChild(e); return e; }
+
+  // ---- rotary knob ------------------------------------------------------
+  function knob(parent, idx, label, fmt){
+    var p = PD[idx];
+    var box = el("div","kn",parent);
+    var dial = el("div","dial",box);
+    var notch = el("div","notch",dial);
+    var lb = el("div","lb",box); lb.textContent = label;
+    function norm(){ return (vals[idx]-p.min)/(p.max-p.min); }
+    function paint(){ notch.style.transform = "translateX(-50%) rotate(" + (-135 + norm()*270) + "deg)"; if(fmt) lb.setAttribute("title",fmt(vals[idx])); }
+    function setN(nn){
+      nn = nn<0?0:(nn>1?1:nn);
+      var v = p.min + (p.max-p.min)*nn;
+      // snap discrete selectors (0..N-1) but leave bipolar continuous knobs smooth
+      if (p.min >= 0 && p.max-p.min >= 2 && (p.max-p.min)%1===0) v = Math.round(v);
+      push(idx, v); paint();
+    }
+    var last=0;
+    dial.addEventListener("pointerdown", function(e){ dial._d=1; last=e.clientY; dial.setPointerCapture(e.pointerId); e.preventDefault(); });
+    dial.addEventListener("pointermove", function(e){ if(!dial._d)return; var dy=last-e.clientY; last=e.clientY; setN(norm()+dy/160); });
+    dial.addEventListener("pointerup", function(){ dial._d=0; });
+    dial.addEventListener("pointercancel", function(){ dial._d=0; });
+    dial.addEventListener("dblclick", function(){ push(idx,p.def); paint(); });
+    dial.addEventListener("wheel", function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.05:-0.05)); }, {passive:false});
+    listen(idx, paint); paint();
+    return box;
+  }
+
+  // ---- vertical N-way selector (opts top->bottom = high value -> low) ----
+  function selector(parent, idx, label, opts){
+    var box = el("div","sw",parent);
+    var stk = el("div","stk",box);
+    var cells = [];
+    for (var i=0;i<opts.length;i++){
+      var v = opts.length-1-i;
+      var c = el("div","",stk); c.textContent = opts[i]; c.dataset.v = v; cells.push(c);
+      (function(val){ c.addEventListener("click", function(){ push(idx, val); paint(); }); })(v);
+    }
+    var lb = el("div","lb",box); lb.textContent = label;
+    function paint(){ var cur=Math.round(vals[idx]); for(var i=0;i<cells.length;i++) cells[i].classList.toggle("on", +cells[i].dataset.v===cur); }
+    listen(idx, paint); paint();
+    return box;
+  }
+
+  // ---- stepper (patch source / destination) -----------------------------
+  function stepper(parent, idx, label, opts){
+    var p = PD[idx];
+    var box = el("div","st",parent);
+    var bar = el("div","bar",box);
+    var dn = el("b","",bar); dn.textContent="◀";
+    var val = el("div","val",bar);
+    var up = el("b","",bar); up.textContent="▶";
+    var lb = el("div","lb",box); lb.textContent = label;
+    function set(v){ v=Math.max(p.min,Math.min(p.max,Math.round(v))); push(idx,v); paint(); }
+    dn.addEventListener("click", function(){ set(vals[idx]-1); });
+    up.addEventListener("click", function(){ set(vals[idx]+1); });
+    function paint(){ val.textContent = opts[Math.round(vals[idx])] || "?"; }
+    listen(idx, paint); paint();
+    return box;
+  }
+
+  function section(parent, title){ var s=el("div","sec",parent); el("div","h",s).textContent=title; var r=el("div","row",s); return r; }
+
+  var pct = function(v){ return Math.round(v*100)+""; };
+
+  // ================= UPPER RACK ==========================================
+  var rack = document.getElementById("rack");
+
+  // VCO 1
+  var vco1 = section(rack,"VCO 1");
+  selector(vco1,0,"Wave",["NOI","⊓","◺","∧"]); // top=noise(3) .. triangle(0)
+  selector(vco1,2,"Scale",["4'","8'","16'","32'"]);            // top=4'(3) .. 32'(0)
+  knob(vco1,1,"PW",pct);
+  // VCO 2
+  var vco2 = section(rack,"VCO 2");
+  selector(vco2,4,"Wave",["RING","⊔","⊓","◺"]); // top=ring(3) .. saw(0)
+  selector(vco2,6,"Scale",["2'","4'","8'","16'"]);            // top=2'(3) .. 16'(0)
+  knob(vco2,5,"Pitch",function(v){ return (v>=0?"+":"")+Math.round(v*12)+"st"; });
+  // MIXER
+  var mix = section(rack,"VCO Mixer");
+  knob(mix,3,"VCO1",pct);
+  knob(mix,7,"VCO2",pct);
+  // GLOBAL
+  var glob = section(rack,"Global");
+  knob(glob,8,"Tune",function(v){ return (v>=0?"+":"")+Math.round(v*100)+"c"; });
+  knob(glob,9,"Porta",pct);
+  knob(glob,31,"Volume",pct);
+
+  // FREQUENCY MODULATION (pitch)
+  var fm = section(rack,"Freq Mod");
+  knob(fm,10,"MG",pct);
+  knob(fm,11,"EG1",pct);
+  // HPF
+  var hpf = section(rack,"HP Filter");
+  knob(hpf,12,"Cutoff",pct);
+  knob(hpf,13,"Peak",pct);
+  knob(hpf,14,"MG",pct);
+  knob(hpf,15,"EG2",pct);
+  // LPF
+  var lpf = section(rack,"LP Filter");
+  knob(lpf,16,"Cutoff",pct);
+  knob(lpf,17,"Peak",pct);
+  knob(lpf,18,"MG",pct);
+  knob(lpf,19,"EG2",pct);
+  // VCA
+  var vca = section(rack,"VCA");
+  knob(vca,20,"EG2",pct);
+
+  // MG
+  var mg = section(rack,"Mod Gen");
+  knob(mg,21,"Freq",pct);
+  knob(mg,22,"Wave",function(v){ return v<0.4?"ramp↘":(v>0.6?"ramp↗":"tri"); });
+  // EG1
+  var eg1 = section(rack,"EG 1  (D/A/R)");
+  knob(eg1,23,"Delay",pct);
+  knob(eg1,24,"Attack",pct);
+  knob(eg1,25,"Release",pct);
+  // EG2
+  var eg2 = section(rack,"EG 2  (H/ADSR)");
+  knob(eg2,26,"Hold",pct);
+  knob(eg2,27,"Attack",pct);
+  knob(eg2,28,"Decay",pct);
+  knob(eg2,29,"Sustain",pct);
+  knob(eg2,30,"Release",pct);
+
+  // ================= PATCH-BAY DECK ======================================
+  var deck = document.getElementById("deck");
+
+  // WHEEL
+  var wp = el("div","psec",deck); el("div","h",wp).textContent="Control Wheel";
+  var wr = el("div","row",wp);
+  knob(wr,32,"Wheel",pct);
+  knob(wr,33,"→Pitch",pct);
+  knob(wr,34,"→LPF",pct);
+
+  // ESP
+  var ep = el("div","psec",deck); el("div","h",ep).textContent="External Signal Processor";
+  var er = el("div","row",ep);
+  knob(er,35,"Level",pct);
+  knob(er,36,"Low Cut",pct);
+  knob(er,37,"High Cut",pct);
+  knob(er,38,"Thresh",pct);
+  knob(er,39,"CV Adj",pct);
+
+  // PATCH BAY
+  var SRC = ["OFF","MG ∿","MG ⊓","EG1","EG2","S&H","NOISE","WHEEL","KBD CV","ESP-ENV","ESP-PITCH"];
+  var DST = ["OFF","PITCH","VCO2","PW","HPF","LPF","VCA","MG-RATE"];
+  var pb = el("div","psec",deck); el("div","h",pb).textContent="Patch Bay  ·  source → destination";
+  var cords = el("div","cords",pb);
+  var cordDefs = [[40,41,42],[43,44,45],[46,47,48],[49,50,51]];
+  cordDefs.forEach(function(cd,i){
+    var c = el("div","cord",cords);
+    el("div","ci",c).textContent=(i+1);
+    el("div","jack",c);
+    stepper(c,cd[0],"Source",SRC);
+    el("div","jack",c);
+    stepper(c,cd[1],"Dest",DST);
+    knob(c,cd[2],"Amount",pct);
+  });
+
+  // ---- host handshake ---------------------------------------------------
+  function ready(){
+    for (var i in vals) if (V && V.setParam) V.setParam(+i, vals[i]);
+    // Follow host-side changes (session restore, preset load, DAW automation):
+    // the host pushes (index, value) so every control repaints to the real value.
+    if (V && V.onParam) V.onParam(function(i, v){
+      if (!(i in vals)) return; vals[i] = +v;
+      var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j]();
+    });
+  }
+  if (V && V.onReady) V.onReady(ready); else ready();
+})();
+</script>
+</body></html>

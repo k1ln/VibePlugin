@@ -9,17 +9,17 @@ but same treatment: read everything, implement everything).
 |---|---|---|---|---|---|
 | x | 1 | **Fat Mono** | fat-mono | Minimoog Model D | 8 |
 | x | 1 | **Analog Poly** | analog-poly | Sequential Prophet-5 | 8 (gallery-only) |
-|   | 1 | **Nova Six** | nova-six | Roland Juno-106 | 6 |
-|   | 1 | **Jove Eight** | jove-eight | Roland Jupiter-8 | 8 (gallery-only) |
-|   | 1 | **Cinematic Poly** | cinematic-poly | Yamaha CS-80 | 8 |
-|   | 1 | **FM Tines** | fm-tines | Yamaha DX7 | 7 |
-|   | 1 | **Acid Bass** | acid-bass | Roland TB-303 | 8 |
-|   | 1 | **Mono Spark** | mono-spark | Roland SH-101 | 7 (gallery-only) |
-|   | 1 | **Patch Mono** | patch-mono | model the BEHAVIOUR of "Korg MS-20" | 8 (gallery-only) |
-|   | 1 | **Brass Eight** | brass-eight | Oberheim OB-Xa | 6 (gallery-only) |
-|   | 1 | **Oberon** | oberon | Oberheim OB-X | 7 |
-|   | 1 | **Duo Synth** | duo-synth | ARP Odyssey | 8 |
-|   | 2 | **Additive** | additive | Kawai K5 | 7 (gallery-only) |
+| x | 1 | **Nova Six** | nova-six | Roland Juno-106 | 6 |
+| x | 1 | **Jove Eight** | jove-eight | Roland Jupiter-8 | 8 (gallery-only) |
+| x | 1 | **Cinematic Poly** | cinematic-poly | Yamaha CS-80 | 8 |
+| x | 1 | **FM Tines** | fm-tines | Yamaha DX7 | 7 |
+| x | 1 | **Acid Bass** | acid-bass | Roland TB-303 | 8 |
+| x | 1 | **Mono Spark** | mono-spark | Roland SH-101 | 7 (gallery-only) |
+| x | 1 | **Patch Mono** | patch-mono | model the BEHAVIOUR of "Korg MS-20" | 8 (gallery-only) |
+| x | 1 | **Brass Eight** | brass-eight | Oberheim OB-Xa | 6 (gallery-only) |
+| x | 1 | **Oberon** | oberon | Oberheim OB-X | 7 |
+| x | 1 | **Duo Synth** | duo-synth | ARP Odyssey | 8 |
+| x | 2 | **Additive** | additive | Kawai K5 | 7 (gallery-only) |
 |   | 2 | **Aurora VA** | aurora-va | Clavia Nord Lead | 6 (gallery-only) |
 |   | 2 | **Comet Six** | comet-six | Roland Jupiter-6 | 8 |
 |   | 2 | **Cosmo Poly** | cosmo-poly | Yamaha CS-60 | 8 |
@@ -107,4 +107,4 @@ but same treatment: read everything, implement everything).
 |   | 4 | **Velvet Rhythm** | velvet-rhythm | Roland CR-78 | 6 (gallery-only) |
 |   | 4 | **Voltage Drums** | voltage-drums | true | 7 |
 
-Already at standard: Seer Six (64p), Patch Grid (59p), Progeny (42p), the 10 patchable semi-modulars (34p).
+Already at standard: Seer Six (64p), Patch Grid (59p), Quasar (patchable semi-modular, 34p).
