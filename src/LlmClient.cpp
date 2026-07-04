@@ -203,9 +203,10 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     // module plus a complete HTML GUI — and adaptive thinking at higher effort
     // spends a chunk of the budget before any text, so a low cap truncates the
     // JSON with stop_reason: max_tokens. Use each model's real output ceiling
-    // (Opus 4.x → 128K, Sonnet/Haiku 4.x → 64K). Streaming (below) avoids the
-    // HTTP timeouts these large values would otherwise risk.
-    const int maxTokens = model.startsWithIgnoreCase ("claude-opus") ? 128000 : 64000;
+    // (Fable 5 / Opus 4.x → 128K, Sonnet/Haiku 4.x → 64K). Streaming (below)
+    // avoids the HTTP timeouts these large values would otherwise risk.
+    const bool isFable   = model.startsWithIgnoreCase ("claude-fable");
+    const int  maxTokens = (isFable || model.startsWithIgnoreCase ("claude-opus")) ? 128000 : 64000;
 
     auto* body = new juce::DynamicObject();
     body->setProperty ("model", model);
@@ -213,6 +214,18 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     body->setProperty ("stream", true);
     body->setProperty ("thinking", juce::var (thinkingCfg));
     body->setProperty ("output_config", juce::var (outputConfig));
+
+    // Fable 5's safety classifiers can occasionally decline benign requests
+    // (stop_reason: refusal). Opt into the server-side fallback so a decline is
+    // transparently re-served by Opus 4.8 inside the same call instead of
+    // failing the build. (Needs the beta header added below.)
+    if (isFable)
+    {
+        auto* fb = new juce::DynamicObject();
+        fb->setProperty ("model", "claude-opus-4-8");
+        juce::Array<juce::var> fallbacks; fallbacks.add (juce::var (fb));
+        body->setProperty ("fallbacks", juce::var (fallbacks));
+    }
 
     // The system prompt is large and byte-identical on every call, so cache it:
     // `cache_control: ephemeral` makes repeat requests within the 5-min TTL read it
@@ -235,9 +248,10 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
 
     juce::URL url = juce::URL ("https://api.anthropic.com/v1/messages").withPOSTData (payload);
     const juce::String headers =
-          "content-type: application/json\r\n"
-          "anthropic-version: 2023-06-01\r\n"
-          "x-api-key: " + apiKey;
+          juce::String ("content-type: application/json\r\n")
+        + "anthropic-version: 2023-06-01\r\n"
+        + (isFable ? "anthropic-beta: server-side-fallback-2026-06-01\r\n" : "")
+        + "x-api-key: " + apiKey;
 
     // Consume the SSE stream, assembling the JSON from `text_delta` events. The
     // text block is emitted after any thinking phase, so we accumulate to the end.

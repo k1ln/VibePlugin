@@ -2,7 +2,6 @@
 #include "MacKeyUpMonitor.h"
 
 #import <AppKit/AppKit.h>
-#import <CoreGraphics/CoreGraphics.h>
 
 #if __has_feature(objc_arc)
  #error "MacKeyUpMonitor.mm is written for manual retain/release — compile without -fobjc-arc"
@@ -92,23 +91,3 @@ MacKeyUpMonitor::~MacKeyUpMonitor()
     }
 }
 
-std::vector<MacKeyStatePoller::Release> MacKeyStatePoller::pollReleases()
-{
-    std::vector<Release> released;
-
-    for (const auto& m : kKeyMap)
-    {
-        // Physical key state from the HID system — bypasses all event routing,
-        // so it works even when the host swallows the keyUp NSEvent entirely.
-        const bool down = CGEventSourceKeyState (kCGEventSourceStateCombinedSessionState,
-                                                 (CGKeyCode) m.kc);
-
-        if (primed && wasDown[m.kc] && ! down)
-            released.push_back ({ m.key, m.code });
-
-        wasDown[m.kc] = down;
-    }
-
-    primed = true;
-    return released;
-}

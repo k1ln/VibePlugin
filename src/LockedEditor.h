@@ -51,9 +51,6 @@ private:
     // WKWebView, latching GUI keyboard notes. This watches the host process's
     // keyups and re-injects them into the page (see MacKeyUpMonitor.h).
     std::unique_ptr<MacKeyUpMonitor> keyUpMonitor;
-    // ...and when FL consumes the keyup before dispatch (monitor sees nothing),
-    // this polls the physical key state each timer tick and injects the release.
-    MacKeyStatePoller keyPoller;
 #endif
 
     // Mirror host-automation param values into the on-screen controls, sending only

@@ -18,7 +18,6 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <vector>
 
 class MacKeyUpMonitor
 {
@@ -50,25 +49,4 @@ public:
 private:
     MacKeyUpMonitor() = default;
     void* monitor = nullptr;   // retained NSEvent monitor token
-};
-
-// Second, stronger layer: FL consumes some keyups before NSApplication dispatch,
-// so even a local monitor never sees them. This poller doesn't listen for events
-// at all — it reads the *physical* key state straight from the HID system
-// (CGEventSourceKeyState, no event tap, no accessibility permission). The editor
-// calls pollReleases() from its existing timer; every key that changed
-// down -> up since the last call is returned so the editor can inject the
-// synthetic keyup the page never received.
-class MacKeyStatePoller
-{
-public:
-    struct Release { std::string key, code; };   // JS vocabulary ("a" / "KeyA")
-
-    // Down->up transitions among the mapped typing keys since the last call.
-    // First call primes the state and returns nothing. Message thread only.
-    std::vector<MacKeyStatePoller::Release> pollReleases();
-
-private:
-    bool wasDown[128] = {};
-    bool primed = false;
 };

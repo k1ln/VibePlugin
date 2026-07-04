@@ -132,14 +132,6 @@ LockedEditor::provideResource (const juce::String& rawUrl)
 
 void LockedEditor::timerCallback()
 {
-#if JUCE_MAC
-    // Physical-key-state fallback for keyups FL never dispatches at all (the
-    // NSEvent monitor can't see those either) — see MacKeyUpMonitor.h.
-    for (const auto& r : keyPoller.pollReleases())
-        if (web != nullptr)
-            web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (r.key, r.code));
-#endif
-
     reflectParamsToGui();
 }
 

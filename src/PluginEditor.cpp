@@ -567,14 +567,6 @@ void VstaiAudioProcessorEditor::refreshThinkingView()
 
 void VstaiAudioProcessorEditor::timerCallback()
 {
-#if JUCE_MAC
-    // Physical-key-state fallback for keyups FL never dispatches at all (the
-    // NSEvent monitor can't see those either) — see MacKeyUpMonitor.h.
-    for (const auto& r : keyPoller.pollReleases())
-        if (web != nullptr)
-            web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (r.key, r.code));
-#endif
-
     if (! thinkingDirty) return;
     thinkingDirty = false;
     refreshThinkingView();
@@ -930,7 +922,8 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     };
 
     modelBox.addSectionHeading ("Anthropic (your key)");
-    add ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best)");
+    add ("anthropic", "claude-fable-5",    "Fable 5 (most capable, 2\xC3\x97 price)");
+    add ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best value)");
     add ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)");
 
     // GLM / Zhipu (Z.ai) — OpenAI-compatible. The exact model id must match what

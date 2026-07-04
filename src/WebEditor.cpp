@@ -47,8 +47,9 @@ namespace
     var modelCatalog (const juce::StringArray& ollama)
     {
         juce::Array<var> a;
-        a.add (modelEntry ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best)",      "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)", "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-fable-5",    "Fable 5 (most capable, 2\xC3\x97 price)", "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best value)",  "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)",   "Anthropic (your key)"));
         // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
         // (Anthropic-only for now). The backend still supports them — re-add to restore.
         // a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));
@@ -758,14 +759,6 @@ void WebEditor::resized()
 
 void WebEditor::timerCallback()
 {
-#if JUCE_MAC
-    // Physical-key-state fallback for keyups FL never dispatches at all (the
-    // NSEvent monitor can't see those either) — see MacKeyUpMonitor.h.
-    for (const auto& r : keyPoller.pollReleases())
-        if (web != nullptr)
-            web->evaluateJavascript (vstai::shim::syntheticKeyUpJs (r.key, r.code));
-#endif
-
     reflectParamsToGui();
 
     if (! thinkingDirty) return;
