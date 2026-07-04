@@ -1,0 +1,5 @@
+{
+  "name": "vstai-compiler-build",
+  "private": true,
+  "description": "Anchors npm to this directory for compiler/build.sh (deps are installed --no-save; see build.sh)"
+}

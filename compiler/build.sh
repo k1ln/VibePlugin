@@ -21,10 +21,20 @@ NODE_VERSION="${NODE_VERSION:-v22.11.0}"   # override with NODE_VERSION=vXX.Y.Z
 command -v node >/dev/null || { echo "need Node 18+ to build (not to run the plugin)"; exit 1; }
 
 echo "[1/3] installing build deps (assemblyscript, esbuild)…"
-npm install --no-save assemblyscript@^0.27.30 esbuild@^0.23 >/dev/null
+# package.json (committed) anchors npm to THIS directory — without it npm walks
+# up looking for a project root, which is environment-dependent (broke on the
+# 2026-07 GitHub runner images: install "succeeded" but ./node_modules stayed empty).
+npm install --no-save assemblyscript@^0.27.30 esbuild@^0.23
 
 echo "[2/3] bundling asc + driver into one ESM file…"
-./node_modules/.bin/esbuild asc-driver.mjs \
+ESBUILD=./node_modules/.bin/esbuild
+if [ ! -x "$ESBUILD" ]; then
+  echo "WARN: $ESBUILD missing after npm install — contents of node_modules/.bin:" >&2
+  ls node_modules/.bin 2>&1 >&2 || true
+  echo "WARN: falling back to npx esbuild" >&2
+  ESBUILD="npx --yes esbuild@0.23.1"
+fi
+$ESBUILD asc-driver.mjs \
   --bundle --platform=node --format=esm --target=node18 \
   --outfile=asc-bundle.mjs
 
