@@ -354,7 +354,19 @@ body{
     document.getElementById('pedal').style.filter=on?'':'saturate(.4) brightness(.85)';
   });
 
-  function ready(){ controls.forEach(function(c){ c.set(c.p.def,true); }); }
+  function ready(){
+    controls.forEach(function(c){ c.set(c.p.def,true); });
+    // Follow param changes made outside the GUI (session restore, automation): the
+    // host replays the restored values in here right after we register, so each knob
+    // repaints to the saved sound. Call set() without emit so we don't echo it back.
+    if(window.vstai&&window.vstai.onParam){
+      var byIndex={};
+      controls.forEach(function(c){ byIndex[c.p.index]=c; });
+      window.vstai.onParam(function(i,v){
+        var c=byIndex[i]; if(c) c.set(+v);
+      });
+    }
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

@@ -213,12 +213,15 @@
 
     var val=p.def;
     function norm(){ return (val-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function draw(){
       var nn=norm();
       // dasharray over pathLength 360, only 270 of it visible window
       fill.setAttribute("stroke-dasharray",(SWEEP*nn)+" 999");
       ptr.style.transform="rotate("+(START+SWEEP*nn)+"deg)";
       out.textContent=fmt(p,val);
+    }
+    function paint(){
+      draw();
       if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,val);
     }
     function setN(nn){ nn=nn<0?0:(nn>1?1:nn); val=p.min+(p.max-p.min)*nn; paint(); }
@@ -242,7 +245,9 @@
     },{passive:false});
 
     paint();
-    ctrls[p.index]={get:norm,raw:function(){return val;},def:p.def};
+    // set() repaints from a host push (session restore, preset, automation) via draw() —
+    // the visuals-only half of paint() — so it never echoes the value back to the host.
+    ctrls[p.index]={get:norm,raw:function(){return val;},def:p.def,set:function(x){ val=+x; draw(); }};
     return cell;
   }
 
@@ -250,6 +255,12 @@
     var rack=document.getElementById("rack");
     PARAMS.forEach(function(p){ rack.appendChild(makeKnob(p)); });
     startScope();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values right after we register, so every
+    // knob (and the scope, which reads their values) repaints to the saved sound.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var c=ctrls[i]; if(c&&c.set) c.set(v);
+    });
   }
 
   // ---- live animated filter-response + oscillator scope --------------

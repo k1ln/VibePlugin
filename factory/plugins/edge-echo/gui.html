@@ -79,6 +79,7 @@
 
   var R=33, C=2*Math.PI*R, A0=-135, A1=135;
   var wrap=document.getElementById("knobs");
+  var renderByIdx={};   // param index -> that knob's render fn
   var knobs=PARAMS.map(function(p){
     var el=document.createElement("div"); el.className="knob";
     el.innerHTML='<div class="dial"><svg viewBox="0 0 86 86">'+
@@ -105,6 +106,7 @@
     el.addEventListener("pointercancel",function(){ drag=null; });
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
     render(p.def);
+    renderByIdx[p.idx]=render;
     return {render:render};
   });
 
@@ -146,7 +148,18 @@
   }
   requestAnimationFrame(frame);
 
-  function boot(){ host=window.vstai||null; PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){
+    host=window.vstai||null;
+    PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // automation. The host replays the restored values here right after we register,
+    // so each knob repaints (and the readout follows) to the saved sound.
+    if(host && host.onParam) host.onParam(function(i,v){
+      if(!(i in vals)) return;
+      vals[i]=+v;
+      var r=renderByIdx[i]; if(r) r(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

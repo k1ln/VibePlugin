@@ -302,19 +302,25 @@
     lcdVal.textContent = fmt(state[idx]);
   }
 
-  function applyKnob(k, norm, show){
+  // visuals only: update GUI state + repaint the knob, never push to the engine.
+  function drawKnob(k, norm, show){
     var idx=+k.getAttribute("data-idx");
-    var mn=+k.getAttribute("data-min"), mx=+k.getAttribute("data-max");
     norm = norm<0?0:norm>1?1:norm;
     state[idx]=norm;
     k.style.setProperty("--val", norm.toFixed(4));
-    var real = mn + norm*(mx-mn);
-    setParam(idx, real);
     if(show!==false) showLcd(idx);
     if(idx===4){ // chorus lamp
       if(norm>0.02){ chorusLamp.classList.add("on"); chorusLamp.style.opacity="1"; }
       else { chorusLamp.classList.remove("on"); chorusLamp.style.opacity=".22"; }
     }
+  }
+
+  function applyKnob(k, norm, show){
+    var idx=+k.getAttribute("data-idx");
+    var mn=+k.getAttribute("data-min"), mx=+k.getAttribute("data-max");
+    drawKnob(k, norm, show);
+    var real = mn + state[idx]*(mx-mn);
+    setParam(idx, real);
   }
 
   knobs.forEach(function(k){
@@ -423,6 +429,20 @@
       var idx=+k.getAttribute("data-idx");
       applyKnob(k, state[idx], false);
     });
+    // Follow param changes from outside the GUI (session restore, preset load, DAW
+    // automation). The host replays the restored values right after we register, so
+    // each knob repaints to the saved sound instead of its default. Use the
+    // visuals-only path so we never echo the value back and overwrite the sound.
+    if(window.vstai && window.vstai.onParam){
+      window.vstai.onParam(function(i, v){ i=+i;
+        knobs.forEach(function(k){
+          if(+k.getAttribute("data-idx")===i){
+            var mn=+k.getAttribute("data-min"), mx=+k.getAttribute("data-max");
+            drawKnob(k, mx>mn ? (v-mn)/(mx-mn) : v, false);
+          }
+        });
+      });
+    }
   }
   if (window.vstai && typeof window.vstai.onReady === "function"){
     window.vstai.onReady(boot);

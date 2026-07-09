@@ -424,7 +424,12 @@
 
     set(def.def, false);
 
-    return { el: wrap, set: function (v) { set(v, true); }, get: function () { return value; } };
+    return {
+      el: wrap,
+      set: function (v) { set(v, true); },
+      apply: function (v) { set(v, false); },   // repaint from a host push without echoing back
+      get: function () { return value; }
+    };
   }
 
   function arcPath(cx, cy, r, a0, a1) {
@@ -467,6 +472,12 @@
   knobsHost.appendChild(rateKnob.el);
   knobsHost.appendChild(depthKnob.el);
   knobsHost.appendChild(mixKnob.el);
+
+  var knobByIndex = {};
+  knobByIndex[P.RES] = resKnob;
+  knobByIndex[P.RATE] = rateKnob;
+  knobByIndex[P.DEPTH] = depthKnob;
+  knobByIndex[P.MIX] = mixKnob;
 
   // ---------------------------------------------------------------
   //  vowel selector buttons
@@ -593,6 +604,19 @@
     rateKnob.set(rateKnob.get());
     depthKnob.set(depthKnob.get());
     mixKnob.set(mixKnob.get());
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values right after we register, so the
+    // vowel selector and knobs repaint to the saved sound instead of their defaults.
+    if (host && host.onParam) {
+      host.onParam(function (i, v) {
+        if (i === P.VOWEL) {
+          selectVowel(Math.max(0, Math.min(VOWELS.length - 1, Math.round(v))), false);
+          return;
+        }
+        var k = knobByIndex[i];
+        if (k) k.apply(v);
+      });
+    }
   }
 
   if (window.vstai && window.vstai.onReady) {

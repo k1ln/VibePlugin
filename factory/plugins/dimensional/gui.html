@@ -283,6 +283,8 @@ var SPEC = [
 var values = {};          // idx -> real value
 SPEC.forEach(function (p) { values[p.idx] = p.def; });
 
+var knobRender = {};      // idx -> repaint fn (knobs only; Mode has its own buttons)
+
 var MODE_NAMES = ["I", "II", "III", "IV"];
 
 // ---- host bridge ------------------------------------------------
@@ -445,6 +447,7 @@ function buildKnob(spec) {
     e.preventDefault();
   }, { passive: false });
 
+  knobRender[spec.idx] = render;
   render();
   return wrap;
 }
@@ -470,12 +473,16 @@ function buildModes() {
     })(i);
   }
 }
-function selectMode(m) {
-  push(P_MODE, m);
+function paintMode() {
+  var m = Math.round(values[P_MODE]);
   for (var i = 0; i < modeBtns.length; i++) {
     modeBtns[i].classList.toggle("on", i === m);
   }
   document.getElementById("modeName").textContent = "MODE " + MODE_NAMES[m];
+}
+function selectMode(m) {
+  push(P_MODE, m);
+  paintMode();
 }
 
 // ===============================================================
@@ -582,6 +589,16 @@ function start() {
   // push all defaults to the engine
   SPEC.forEach(function (p) { push(p.idx, p.def); });
   selectMode(Math.round(values[P_MODE]));
+
+  // Follow param changes from outside the GUI — session restore, preset load, DAW
+  // automation. The host replays the restored values in here right after we register,
+  // so every control repaints to the saved sound instead of its default.
+  if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+    if (!(i in values)) return;
+    values[i] = v;
+    if (i === P_MODE) paintMode();
+    else if (knobRender[i]) knobRender[i]();
+  });
 
   resize();
   requestAnimationFrame(draw);

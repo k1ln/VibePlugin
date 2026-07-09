@@ -325,6 +325,7 @@
   }
 
   var state = {}; // index -> normalized 0..1
+  var listeners = {}; // index -> repaint fn (no push back to host)
   var bloomEl = document.getElementById("bloom");
   var fluxGroup = document.getElementById("fluxGroup");
 
@@ -451,6 +452,10 @@
       reflectVisual();
     }
 
+    // Repaint (without pushing back) when the host changes this param — session
+    // restore, preset load, DAW automation.
+    listeners[p.index] = function (raw) { apply((raw - p.min) / (p.max - p.min), false); };
+
     // ---- drag interaction (vertical) ----
     var dragging = false, lastY = 0;
 
@@ -502,6 +507,12 @@
     var rack = document.getElementById("rack");
     PARAMS.forEach(function (p) { rack.appendChild(makeKnob(p)); });
     reflectVisual();
+    // The host replays every restored value right after we register here, so each
+    // knob repaints to the saved sound instead of drawing its built-in default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var fn = listeners[i];
+      if (fn) fn(+v);
+    });
   }
 
   // pause animations when hidden to stay cheap

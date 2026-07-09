@@ -837,6 +837,20 @@
   function boot() {
     pushAll();
     recompute();   // the seated matrix defines the modulation params
+    // Follow param changes made outside the GUI (session restore, automation): the
+    // host replays the restored values in here right after we register (deferred a
+    // tick, so it lands after recompute), repainting each knob to the saved sound.
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (index, value) {
+        for (var i = 0; i < PARAMS.length; i++) {
+          if (PARAMS[i].index === index) {
+            values[i] = +value;
+            if (knobEls[i] && knobEls[i].render) knobEls[i].render();
+            break;
+          }
+        }
+      });
+    }
   }
   if (window.vstai && window.vstai.onReady) {
     window.vstai.onReady(boot);

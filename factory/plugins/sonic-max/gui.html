@@ -399,7 +399,7 @@
     });
 
     render();
-    return cell;
+    return { cell: cell, render: render };
   }
 
   // -------- the animated process scope --------------------------------
@@ -487,11 +487,21 @@
   // -------- mount -----------------------------------------------------
   function mount() {
     var host = document.getElementById("controls");
+    var knobs = [];
     PARAMS.forEach(function (p, i) {
-      host.appendChild(buildKnob(p, i));
+      var k = buildKnob(p, i);
+      knobs[i] = k;
+      host.appendChild(k.cell);
     });
     // init all params to defaults
     PARAMS.forEach(function (p, i) { pushParam(i); });
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): update our state and repaint the matching knob, without pushing back.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (idx, v) {
+      for (var i = 0; i < PARAMS.length; i++) {
+        if (PARAMS[i].index === idx) { values[i] = +v; knobs[i].render(); break; }
+      }
+    });
   }
 
   if (window.vstai && window.vstai.onReady) {

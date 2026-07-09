@@ -466,6 +466,15 @@
   function boot(){
     PARAMS.forEach(function(p){ send(p.i, state[p.i]); });
     drawCurve();
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every control repaints to the saved sound instead of its default.
+    if(window.vstai && typeof window.vstai.onParam==="function"){
+      window.vstai.onParam(function(i,v){
+        PARAMS.forEach(function(p){ if(p.i===i){ state[p.i]=+v; if(p._render) p._render(); } });
+        drawCurve();
+      });
+    }
   }
   if(host && typeof host.onReady==="function"){ host.onReady(boot); } else { boot(); }
 })();

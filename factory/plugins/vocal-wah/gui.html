@@ -390,6 +390,7 @@
 
     var state = {};
     for (var k in defaults) state[k] = defaults[k];
+    var followers = {}; // param index -> fn(v) that repaints that control from an outside change
 
     // ---- host bridge ----
     function push(index, value) {
@@ -606,6 +607,12 @@
     btnManual.addEventListener("click", function () { push(P_MODE, 0); renderMode(); });
     btnAuto.addEventListener("click", function () { push(P_MODE, 1); renderMode(); });
 
+    // ---- follow host-side changes: refresh state and repaint each control ----
+    [kQ, kR, kM, kP].forEach(function (k) {
+      followers[k.index] = function (v) { state[k.index] = +v; drawKnob(k); if (k.onChange) k.onChange(); };
+    });
+    followers[P_MODE] = function (v) { state[P_MODE] = +v; renderMode(); };
+
     // ====================================================================
     //  INIT — push every param to its default
     // ====================================================================
@@ -619,6 +626,12 @@
       drawKnob(kQ); drawKnob(kR); drawKnob(kM); drawKnob(kP);
       fmtQ(); fmtRange(); fmtMix();
       renderMode();
+      // Follow param changes made outside the GUI — session restore, preset load, DAW
+      // automation. The host replays the restored values right after we register,
+      // so every control repaints to the saved sound instead of its default.
+      if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+        var f = followers[i]; if (f) f(+v);
+      });
     }
 
     if (window.vstai && window.vstai.onReady) {

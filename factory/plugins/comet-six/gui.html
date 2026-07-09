@@ -297,6 +297,9 @@ footer .sp{margin-left:auto;font-style:italic;color:var(--dim);max-width:430px;t
 
   // live normalized cache for the visuals
   var live={}; P.forEach(function(p){ live[p.name]=(p.def-p.min)/(p.max-p.min||1); });
+  // param index -> setter, so host param changes (session restore, automation) can
+  // drive the matching control. Each knob / the mode morph registers itself below.
+  var followers={};
 
   // ============ KNOBS ============
   function makeKnob(host,p){
@@ -332,6 +335,7 @@ footer .sp{margin-left:auto;font-style:italic;color:var(--dim);max-width:430px;t
     knob.addEventListener('pointercancel',end);
     knob.addEventListener('dblclick',function(){ v=p.def; paint(); });
     knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.025:-0.025)); },{passive:false});
+    followers[p.index]=function(nv){ v=+nv; paint(); };
     paint();
   }
 
@@ -377,6 +381,7 @@ footer .sp{margin-left:auto;font-style:italic;color:var(--dim);max-width:430px;t
   stepsBox.addEventListener('click',function(e){
     var s=e.target.closest('span'); if(s) setMode(+s.dataset.m);
   });
+  followers[modeP.index]=function(nv){ modeVal=Math.round(+nv); paintMode(); };
 
   // ============ FILTER CURVE (LP/BP/HP) ============
   var curve=document.getElementById('curve'), curvefill=document.getElementById('curvefill'),
@@ -470,6 +475,13 @@ footer .sp{margin-left:auto;font-style:italic;color:var(--dim);max-width:430px;t
     paintMode();
     drawCurve();
     drawWave();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      var f=followers[+i];
+      if(f) f(+v);
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

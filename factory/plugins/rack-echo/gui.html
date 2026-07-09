@@ -205,6 +205,7 @@ h1 b{color:var(--ac);font-weight:800}
     {name:"Mix",        index:4,min:0,max:1,def:0.40}
   ];
   var state={};
+  var setters={};   // param index -> fn(value) that repaints that knob (no push)
   var deck=document.getElementById('deck');
   var msv=document.getElementById('msv');
   var fbv=document.getElementById('fbv');
@@ -234,15 +235,21 @@ h1 b{color:var(--ac);font-weight:800}
     var v=p.def;
 
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       arc.style.setProperty('--n',n);
       ptr.style.setProperty('--n',n);
       val.textContent = p.index===0 ? timeMs(n)+" ms" : pct(n);
       state[p.index]=v;
-      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
       onChange();
     }
+    function paint(){
+      draw();
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
+    // repaint from a value pushed by the host (session restore / automation),
+    // refreshing this knob's closure-local copy without echoing it back.
+    setters[p.index]=function(nv){ v=nv; draw(); };
     function setNorm(n){
       n=n<0?0:n>1?1:n;
       v=p.min+(p.max-p.min)*n;
@@ -321,7 +328,15 @@ h1 b{color:var(--ac);font-weight:800}
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ onChange(); }
+  function ready(){
+    onChange();
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(idx,value){
+      var fn=setters[+idx]; if(fn) fn(+value);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

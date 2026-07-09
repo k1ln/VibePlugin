@@ -607,6 +607,19 @@
     window.addEventListener("resize", sizeCanvas);
     // push all defaults to the engine
     PARAMS.forEach(function (p, i) { pushParam(p.index, values[i]); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every rocker repaints to the saved sound instead of its default.
+    var posByIndex = {};
+    PARAMS.forEach(function (p, i) { posByIndex[p.index] = i; });
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (i, v) {
+        var pos = posByIndex[i];
+        if (pos === undefined) return;
+        values[pos] = +v;
+        paint(pos);
+      });
+    }
     requestAnimationFrame(drawStrings);
   }
 

@@ -309,15 +309,16 @@
       var sw=document.createElement("div");sw.className="switch";
       sw.innerHTML='<div class="swBody"><div class="swLever"></div><div class="swLED"></div></div>';
       cell.appendChild(lbl);cell.appendChild(sw);cell.appendChild(val);
-      function setSwitch(v){
+      function drawSwitch(v){
         v=Math.round(v); state[p.index]=v;
         sw.classList.toggle("up", v>=1);
         sw.classList.toggle("down", v<1);
         val.textContent=p.opts[v];
-        send(p.index,v); applyMode(v);
+        applyMode(v);
       }
+      function setSwitch(v){ drawSwitch(v); send(p.index,state[p.index]); }
       sw.addEventListener("click",function(){ setSwitch(state[p.index]>=1?0:1); });
-      controlRefs[p.index]={set:setSwitch};
+      controlRefs[p.index]={set:setSwitch, draw:drawSwitch};
       setSwitch(real);
     } else {
       var knob=document.createElement("div");knob.className="knob";
@@ -333,7 +334,9 @@
         state[p.index]=rv;
         val.textContent=p.fmt?p.fmt(n):(Math.round(n*100)+"%");
       }
-      function commit(n){ n=clamp(n,0,1); render(n); send(p.index,p.min+n*(p.max-p.min)); reactTo(p,n); }
+      // visuals only: repaint the knob and its motif reactions, no push to engine
+      function draw(n){ n=clamp(n,0,1); render(n); reactTo(p,n); return n; }
+      function commit(n){ n=draw(n); send(p.index,p.min+n*(p.max-p.min)); }
 
       // drag
       var dragging=false, startY=0, startN=0;
@@ -357,7 +360,8 @@
         var n=(state[p.index]-p.min)/(p.max-p.min);
         commit(n+(e.deltaY<0?0.03:-0.03));},{passive:false});
 
-      controlRefs[p.index]={set:function(v){commit((v-p.min)/(p.max-p.min));}};
+      controlRefs[p.index]={set:function(v){commit((v-p.min)/(p.max-p.min));},
+                            draw:function(v){draw((v-p.min)/(p.max-p.min));}};
       render(norm); // visual init (send happens in ready)
     }
     wrap.appendChild(cell);
@@ -435,6 +439,11 @@
       if(p.index===3) wowAmt=(v-p.min)/(p.max-p.min);
       if(p.index===4) toneAmt=(v-p.min)/(p.max-p.min);
       if(p.index===5) mixAmt=(v-p.min)/(p.max-p.min);
+    });
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): repaint the matching control from the restored value, no push back.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      if(controlRefs[i]&&controlRefs[i].draw) controlRefs[i].draw(+v);
     });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();

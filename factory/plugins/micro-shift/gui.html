@@ -212,6 +212,7 @@ h1{margin:2px 0 0;font-size:23px;font-weight:800;letter-spacing:.04em;line-heigh
     {name:"Mix",     index:4,min:0,max:1,def:0.5}
   ];
   var state={};
+  var repaint={};
   var deck=document.getElementById('deck');
 
   // ----- format helpers (real-world value readouts) -----
@@ -241,15 +242,21 @@ h1{margin:2px 0 0;font-size:23px;font-weight:800;letter-spacing:.04em;line-heigh
     var v=p.def;
 
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function render(){
       var nrm=norm();
       arc.style.setProperty('--n',nrm);
       ptr.style.setProperty('--n',nrm);
       val.textContent=fmtVal(p,v);
+    }
+    function paint(){
+      render();
       state[p.index]=v;
       if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
       onChange();
     }
+    // Follow param changes made outside the GUI (session restore, automation):
+    // adopt this knob's own value and repaint it, without pushing back to the host.
+    repaint[p.index]=function(nv){ v=nv; state[p.index]=nv; render(); };
     function setNorm(nrm){
       nrm=nrm<0?0:nrm>1?1:nrm;
       v=p.min+(p.max-p.min)*nrm;
@@ -344,7 +351,14 @@ h1{margin:2px 0 0;font-size:23px;font-weight:800;letter-spacing:.04em;line-heigh
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ requestAnimationFrame(frame); }
+  function ready(){
+    // The host replays the restored values in here right after we register, so every
+    // knob repaints to the saved sound instead of its built-in default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=repaint[i]; if(fn) fn(+v);
+    });
+    requestAnimationFrame(frame);
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

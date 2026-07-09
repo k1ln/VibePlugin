@@ -258,7 +258,9 @@ THE GUI  (single self-contained HTML document)
   top/edges; let it scroll or scale down rather than overflow).
 - The host injects window.vstai before your script runs:
       window.vstai.setParam(index, value)   // push a param to the engine
-      window.vstai.getParam(index)
+      window.vstai.getParam(index)          // current value (restored session value)
+      window.vstai.onParam(callback)        // cb(index, value) when a param changes
+                                            // outside the GUI - see the rule below
       window.vstai.onReady(callback)
       window.vstai.noteOn(noteNumber, velocity)   // synth only: play a MIDI note
       window.vstai.noteOff(noteNumber)            // synth only
@@ -282,6 +284,19 @@ THE GUI  (single self-contained HTML document)
 - For an instrument, include a playable on-screen keyboard that calls
   window.vstai.noteOn/noteOff so the user can play it without external MIDI.
 - Initialise controls to defaults and call setParam once on load.
+- RESTORE THE SAVED SOUND ON SCREEN. When the user reopens a saved project the
+  host hands back the values they saved, which are NOT your defaults. A control
+  that only ever draws itself from its built-in default will show the wrong
+  position - a knob pointing at 12 o'clock while the engine plays the saved
+  value, a toggle drawn lit while it is really off. So:
+    * Every control MUST register window.vstai.onParam((index, value) => …) and
+      repaint itself from `value` when `index` is its own. This is the same path
+      DAW automation uses, so you get automation-follow for free.
+    * Keep NO shadow copy of a control's state that onParam doesn't also update.
+      A hardcoded `var running = true;` or a class="btn on" baked into the HTML
+      is a bug: drive the lit/unlit class from the param value.
+  The host replays the current values into every onParam callback right after you
+  register it, so a control that follows this rule boots showing the real sound.
 
 ------------------------------------------------------------
 MAKE IT BEAUTIFUL  (treat this as seriously as the DSP)

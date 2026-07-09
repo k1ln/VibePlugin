@@ -347,6 +347,7 @@
   ];
 
   var values = {};      // index -> current real value
+  var followers = {};   // index -> visuals-only repaint fn (for onParam)
   var pending = [];     // [index,value] queued until vstai ready
   var ready = false;
 
@@ -361,11 +362,19 @@
 
   function flush() {
     ready = true;
-    if (!window.vstai || !window.vstai.setParam) return;
-    for (var i = 0; i < pending.length; i++) {
-      window.vstai.setParam(pending[i][0], pending[i][1]);
+    if (window.vstai && window.vstai.setParam) {
+      for (var i = 0; i < pending.length; i++) {
+        window.vstai.setParam(pending[i][0], pending[i][1]);
+      }
+      pending.length = 0;
     }
-    pending.length = 0;
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): the host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var f = followers[i];
+      if (f) f(+v);
+    });
   }
 
   // ---- knob control --------------------------------------------------
@@ -508,6 +517,11 @@
     values[p.index] = p.def;
     render(p.def);
     push(p.index, p.def);
+    followers[p.index] = function (v) {
+      v = Math.max(p.min, Math.min(p.max, v));
+      values[p.index] = v;
+      render(v);
+    };
     return cell;
   }
 
@@ -541,10 +555,14 @@
     val.className = "val";
 
     var btns = [];
-    function select(i) {
+    function draw(i) {
       for (var j = 0; j < btns.length; j++) btns[j].classList.toggle("on", j === i);
       val.textContent = p.labels[i] + " BANDS";
       bandCountEl.textContent = p.labels[i];
+      values[p.index] = i;
+    }
+    function select(i) {
+      draw(i);
       push(p.index, i);
     }
 
@@ -566,6 +584,7 @@
 
     values[p.index] = p.def;
     select(p.def | 0);
+    followers[p.index] = function (v) { draw(v | 0); };
     return cell;
   }
 

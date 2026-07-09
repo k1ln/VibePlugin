@@ -344,6 +344,7 @@ body{
   // ---------- knob deck ----------
   function fmt(v){ return Math.round(v*100)+'%'; } // params are 0..1 morphs
   var deck=document.getElementById('deck');
+  var follow={}; // param index -> setter that repaints from an outside value
 
   function makeKnob(p,i){
     var cell=document.createElement('div'); cell.className='cell';
@@ -367,14 +368,14 @@ body{
         bub=cell.querySelector('.bub');
     var val=p.def, span=(p.max-p.min)||1;
     function norm(){ return (val-p.min)/span; }
-    function paint(){
+    function draw(){
       var n=norm();
       arc.style.setProperty('--n',n);
       ptr.style.setProperty('--n',n);
       out.textContent=fmt(n);
       bub.textContent=fmt(n);
-      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,val);
     }
+    function paint(){ draw(); if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,val); }
     function setN(n){
       n=n<0?0:(n>1?1:n);
       val=p.min+span*n;
@@ -396,11 +397,18 @@ body{
     knob.addEventListener('wheel',function(e){
       e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02));
     },{passive:false});
+    follow[p.index]=function(v){ val=+v; draw(); };
     deck.appendChild(cell);
     paint();
   }
 
-  function ready(){ PARAMS.forEach(makeKnob); }
+  function ready(){
+    PARAMS.forEach(makeKnob);
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){ if(follow[i]) follow[i](v); });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

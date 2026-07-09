@@ -581,6 +581,17 @@
     // ---- init ----
     function boot() {
       for (var s = 0; s < PARAMS.length; s++) setValue(s, values[s], true);
+      // Follow param changes made outside the GUI — session restore, preset load, DAW
+      // automation. The host replays the restored values right after we register, so
+      // each knob repaints to the saved sound instead of its default (push = false so
+      // we never echo the restored value back to the host).
+      if (window.vstai && window.vstai.onParam) {
+        window.vstai.onParam(function (i, v) {
+          for (var s = 0; s < PARAMS.length; s++) {
+            if (PARAMS[s].index === i) { setValue(s, v, false); break; }
+          }
+        });
+      }
       requestAnimationFrame(render);
     }
 

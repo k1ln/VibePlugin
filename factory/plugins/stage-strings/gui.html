@@ -91,6 +91,7 @@
     {name:"Level",idx:6,def:0.8}
   ];
   var vals={}; FADERS.concat(KNOBS).forEach(function(p){ vals[p.idx]=p.def; });
+  var listeners={}; // param index -> fn(value) that repaints that control
   var host=null;
   function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
   function pct(v){ return Math.round(v*100)+"%"; }
@@ -111,6 +112,7 @@
     slot.addEventListener("pointerup",function(){ drag=null; });
     slot.addEventListener("pointercancel",function(){ drag=null; });
     slot.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    listeners[p.idx]=render;
     render(p.def);
     return {render:render};
   });
@@ -142,6 +144,7 @@
     el.addEventListener("pointerup",function(){ drag=null; });
     el.addEventListener("pointercancel",function(){ drag=null; });
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    listeners[p.idx]=render;
     render(p.def);
     return {render:render};
   });
@@ -180,6 +183,14 @@
     host=window.vstai||null;
     FADERS.forEach(function(p,i){ send(p.idx,vals[p.idx]); faderEls[i].render(vals[p.idx]); });
     KNOBS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobEls[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every fader/knob repaints to the saved sound instead of its default.
+    if(host&&host.onParam) host.onParam(function(i,v){
+      if(!(i in vals)) return;
+      vals[i]=+v;
+      var fn=listeners[i]; if(fn) fn(vals[i]);
+    });
   }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();

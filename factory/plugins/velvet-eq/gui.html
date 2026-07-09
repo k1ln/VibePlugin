@@ -243,6 +243,8 @@ body{margin:0;display:flex;align-items:center;justify-content:center;padding:22p
     return svg;
   }
 
+  var followers={}; // param index -> fn(v) that repaints that knob from an outside change
+
   function mount(p,parent,delay){
     var k=document.createElement("div"); k.className="k"; k.style.setProperty("--d",delay+"ms");
     var dw=document.createElement("div"); dw.className="dialwrap";
@@ -253,12 +255,18 @@ body{margin:0;display:flex;align-items:center;justify-content:center;padding:22p
 
     var value=p.def;
     function norm(){return (value-p.min)/((p.max-p.min)||1);}
-    function paint(){
+    function draw(){
       var n=norm(); dw.style.setProperty("--n",n);
       val.textContent=fmt(p,value);
+    }
+    function paint(){
+      draw();
       if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,value);
     }
     function setN(n){ n=n<0?0:n>1?1:n; value=p.min+(p.max-p.min)*n; paint(); }
+    // Follow host-side changes (session restore, automation): update our state and
+    // redraw the dial without pushing back.
+    followers[p.index]=function(v){ value=+v; draw(); };
 
     var sy=0, sn=0, dragging=false;
     dw.addEventListener("pointerdown",function(e){
@@ -282,6 +290,12 @@ body{margin:0;display:flex;align-items:center;justify-content:center;padding:22p
     var low=document.getElementById("low"), high=document.getElementById("high"), d=0;
     PARAMS.forEach(function(p){
       mount(p, p.sec==="low"?low:high, d); d+=70;
+    });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var f=followers[i]; if(f) f(+v);
     });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();

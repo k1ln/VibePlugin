@@ -338,10 +338,19 @@
   requestAnimationFrame(loop);
 
   // ---- init + host hook ----
+  var byIdx={}; PARAMS.forEach(function(p){ byIdx[p.index]=p; });
   function ready(){
     PARAMS.forEach(function(p){
       p._render(p.def);
       if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.index,p.def);
+    });
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // automation. The host replays the restored values here right after we register,
+    // so each knob (and the VU sim, which reads state) repaints to the saved sound.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var p=byIdx[i]; if(!p) return;
+      state[p.index]=+v;
+      p._render(+v);
     });
   }
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();

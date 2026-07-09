@@ -179,6 +179,8 @@
     {i:7, name:"Output",  def:0.5, col:"#cdd6e0",        grp:"FILT",unit:"db",  fmt:v=>v<=0.001?"-∞":fmtDb((v-0.5)*24)}
   ];
   const val = P.map(p=>p.def);
+  const byI = {};   // param index -> position in val[]
+  P.forEach((p,pi)=>{ byI[p.i]=pi; });
 
   function logmap(t,lo,hi){t=Math.max(0,Math.min(1,t));return lo*Math.exp(t*Math.log(hi/lo));}
   function fmtDb(d){return (d>=0?"+":"")+d.toFixed(1)+" dB";}
@@ -359,6 +361,14 @@
       render(i);
     }
     drawCurve();
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob (and the response curve) repaints to the saved sound.
+    if(window.vstai&&window.vstai.onParam)window.vstai.onParam(function(idx,v){
+      const pi=byI[idx];
+      if(pi===undefined)return;
+      setV(pi,v,false);
+    });
   }
   if(window.vstai&&typeof window.vstai.onReady==='function')window.vstai.onReady(start);
   else start();

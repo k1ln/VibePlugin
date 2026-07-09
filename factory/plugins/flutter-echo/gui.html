@@ -254,6 +254,7 @@ h1{
     {name:"Mix",     index:4,min:0,max:1,def:0.5}
   ];
   var state={};
+  var knobApply={};        // index -> set that knob's value and repaint
   var knobsEl=document.getElementById('knobs');
   var w1=document.getElementById('wave1');
   var w2=document.getElementById('wave2');
@@ -324,6 +325,10 @@ h1{
     });
 
     paint();
+    knobApply[p.index]=function(nv){
+      v=nv<p.min?p.min:nv>p.max?p.max:nv;
+      paint();
+    };
   }
 
   // ---- live repeat-waveform shaping from the params ----
@@ -374,7 +379,15 @@ h1{
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ onChange(); }
+  function ready(){
+    onChange();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // automation. The host replays the restored values here right after we register,
+    // so each knob (and the transport/VU, which read state) repaints to the saved sound.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=knobApply[i]; if(fn) fn(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

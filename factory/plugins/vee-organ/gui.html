@@ -68,7 +68,16 @@
     render(p.def);
     return {render:render};
   });
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); bars[i].render(vals[p.idx]); }); }
+  function boot(){
+    host=window.vstai||null;
+    P.forEach(function(p,i){ send(p.idx,vals[p.idx]); bars[i].render(vals[p.idx]); });
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every drawbar repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      for(var k=0;k<P.length;k++){ if(P[k].idx===i){ vals[i]=+v; bars[k].render(+v); break; } }
+    });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

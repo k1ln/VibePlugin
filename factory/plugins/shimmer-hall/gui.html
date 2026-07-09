@@ -337,6 +337,10 @@ body{
 
     // init at default
     paint(); send();
+
+    // Let the host push a restored/automated value straight into this dial:
+    // write our own state and repaint, without sending it back to the engine.
+    return function(nv){ val = +nv; paint(); };
   }
 
   // SVG arc path helper (start/end in degrees, 0 = top, clockwise)
@@ -351,7 +355,14 @@ body{
   }
 
   function ready(){
-    PARAMS.forEach(makeCell);
+    var setters = {};
+    PARAMS.forEach(function(p, i){ setters[p.index] = makeCell(p, i); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every dial repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(idx, v){
+      var set = setters[idx]; if(set) set(+v);
+    });
   }
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
   else ready();

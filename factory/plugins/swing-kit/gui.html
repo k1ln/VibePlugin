@@ -122,7 +122,16 @@
 
   function boot(){ host=window.vstai||null;
     P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
-    for(var v=0; v<6; v++) send(VOICES[v].idx, maskOf(v)); }
+    for(var v=0; v<6; v++) send(VOICES[v].idx, maskOf(v));
+    // Follow param changes from outside the GUI (session restore, preset load, DAW
+    // automation). The host replays the restored values right after we register, so
+    // knobs and the step grid repaint to the saved groove instead of their defaults.
+    if(window.vstai && window.vstai.onParam){
+      window.vstai.onParam(function(i, v){ i=+i;
+        for(var ki=0; ki<P.length; ki++){ if(P[ki].idx===i){ vals[i]=+v; knobs[ki].render(+v); return; } }
+        for(var vi=0; vi<VOICES.length; vi++){ if(VOICES[vi].idx===i){ var m=Math.round(+v); for(var s=0;s<16;s++) grid[vi][s]=(m>>s)&1; return; } }
+      });
+    } }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script></body></html>

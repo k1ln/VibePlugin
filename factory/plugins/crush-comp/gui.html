@@ -722,6 +722,16 @@
     requestAnimationFrame(frame);
   }
 
+  // Follow param changes made outside the GUI — session restore, preset load, DAW
+  // automation. The host replays the restored values right after we register, so
+  // every control repaints to the saved sound instead of its default.
+  if (window.vstai && window.vstai.onParam) {
+    window.vstai.onParam(function (index, v) {
+      if (PARAMS[index] === undefined) { return; }
+      setVal(index, +v, false);
+    });
+  }
+
   if (window.vstai && window.vstai.onReady) {
     window.vstai.onReady(init);
   } else {

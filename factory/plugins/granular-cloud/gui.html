@@ -243,6 +243,7 @@
   // live state used by the particle cloud
   var state = { size: 0.45, density: 0.5, pitch: 0.5, spray: 0.4, feedback: 0.35, mix: 0.6 };
   var stateKey = ["size", "density", "pitch", "spray", "feedback", "mix"];
+  var knobSetters = {}; // param index -> repaint the knob from a host-pushed value
 
   // ---- host bridge ----
   function pushParam(index, value) {
@@ -340,6 +341,13 @@
       render();
       pushParam(p.index, value);
     }
+
+    // repaint from a value pushed by the host (session restore, automation); no echo back
+    function follow(v) {
+      value = Math.max(p.min, Math.min(p.max, v));
+      render();
+    }
+    knobSetters[p.index] = follow;
 
     // ---- drag interaction ----
     var dragging = false, lastY = 0, startVal = 0;
@@ -487,6 +495,13 @@
   function boot() {
     resize();
     buildUI();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every knob repaints to the saved sound instead of its built-in default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var fn = knobSetters[i];
+      if (fn) fn(+v);
+    });
     requestAnimationFrame(step);
   }
 

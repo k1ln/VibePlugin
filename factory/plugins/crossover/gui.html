@@ -751,6 +751,30 @@
     push(PARAMS.midGain.idx,  state.midGain);
     push(PARAMS.highGain.idx, state.highGain);
 
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values right after we register,
+    // so every control repaints to the saved sound instead of its default.
+    if (window.vstai && typeof window.vstai.onParam === "function") {
+      var idxToKey = {};
+      for (var key in PARAMS) idxToKey[PARAMS[key].idx] = key;
+      var renderers = {
+        lowGain:  function () { knobs.low.render(); },
+        midGain:  function () { knobs.mid.render(); },
+        highGain: function () { knobs.high.render(); },
+        lowFreq:  function () { faders.lo.render(); },
+        highFreq: function () { faders.hi.render(); }
+      };
+      window.vstai.onParam(function (idx, v) {
+        var k = idxToKey[idx];
+        if (!k) return;
+        var p = PARAMS[k];
+        state[k] = clamp(+v, p.min, p.max);
+        if (renderers[k]) renderers[k]();
+        refreshReadouts();
+        drawScope();
+      });
+    }
+
     requestAnimationFrame(tick);
   }
 

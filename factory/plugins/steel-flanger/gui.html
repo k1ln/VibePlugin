@@ -219,6 +219,12 @@
   /* ---- init all params to default ---- */
   function init(){
     PARAMS.forEach(function(p){ state[p.index]=p.def; p._render(); send(p.index,p.def); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      for(var k=0;k<PARAMS.length;k++){ if(PARAMS[k].index===i){ state[i]=+v; PARAMS[k]._render(); break; } }
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(init); else init();
 

@@ -686,6 +686,15 @@
     for (var key in values) {
       if (values.hasOwnProperty(key)) setParam(parseInt(key, 10), values[key]);
     }
+    // Follow param changes made outside the GUI (session restore, automation). The
+    // host replays the restored values in here right after we register, so every
+    // control repaints to the saved sound instead of its default. draw()/paint()
+    // only touch visuals, never setParam.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      values[i] = v;
+      if (knobs[i]) knobs[i].draw(v);
+      if (i === 3 && window._syncRibbon) window._syncRibbon(v);
+    });
   }
   if (window.vstai && window.vstai.onReady) {
     window.vstai.onReady(pushAll);

@@ -431,6 +431,15 @@
     this.draw();
   };
 
+  // Repaint from a value pushed in from OUTSIDE the GUI (session restore, host
+  // automation). Same as commit() but without sending back to the engine.
+  Knob.prototype.setExternal = function (v) {
+    this.norm = clamp((v - this.p.min) / (this.p.max - this.p.min), 0, 1);
+    this.p.val = this.value();
+    if (this.onChange) this.onChange(this.p.val);
+    this.draw();
+  };
+
   Knob.prototype.draw = function () {
     var ctx = this.ctx;
     var W = this.c.width, H = this.c.height;
@@ -629,6 +638,16 @@
     kFb.commit();
     kMix.commit();
     setSide(P.SIDE.val);
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so each control repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      i = +i;
+      if (i === P.SHIFT.idx) kShift.setExternal(+v);
+      else if (i === P.FB.idx) kFb.setExternal(+v);
+      else if (i === P.MIX.idx) kMix.setExternal(+v);
+      else if (i === P.SIDE.idx) { P.SIDE.val = +v; paintSide(); }
+    });
   }
 
   if (window.vstai && window.vstai.onReady) {

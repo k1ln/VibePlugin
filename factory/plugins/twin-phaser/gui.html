@@ -523,6 +523,15 @@
     });
     setMode(0); // default Sum, pushes default
 
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      i = +i; v = +v;
+      if (i === 4) { setMode(v, true); return; }
+      if (knobs[i]) { state[i] = v; knobs[i].setVal(v, true); }
+    });
+
     scopes.a = makeScope("scA", "#7ad0c0");
     scopes.b = makeScope("scB", "#9ad0ff");
     requestAnimationFrame(loop);

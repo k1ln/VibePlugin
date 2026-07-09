@@ -295,6 +295,7 @@
   ];
 
   var values = {};
+  var renderers = {}; // param index -> repaint fn
 
   function vstaiReady(fn) {
     if (window.vstai && typeof window.vstai.onReady === "function") {
@@ -394,6 +395,7 @@
       ptr.setAttribute("y2", 50 + Math.sin(rad) * 24);
       val.textContent = fmt(p);
     }
+    renderers[p.index] = render;
 
     function setNorm(t) {
       t = Math.max(0, Math.min(1, t));
@@ -682,6 +684,15 @@
   // ---- push all defaults to the engine on load ----
   vstaiReady(function () {
     PARAMS.forEach(function (p) { pushParam(p); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var fn = renderers[i];
+      if (!fn) return;
+      values[i] = +v;
+      fn();
+    });
   });
 })();
 </script>

@@ -547,8 +547,14 @@
     svg.addEventListener("wheel", onWheel, { passive: false });
     svg.addEventListener("dblclick", onDbl);
 
+    // let session restore / host automation drive this knob (visuals only, no push)
+    function follow(v) {
+      norm = clamp((v - spec.min) / (spec.max - spec.min), 0, 1);
+      redraw();
+    }
+
     redraw();
-    return { cell: cell, commit: commit };
+    return { cell: cell, commit: commit, follow: follow };
   }
 
   // ---- program selector ---------------------------------------------
@@ -582,7 +588,11 @@
     }
 
     select(progDefault, false);
-    return { selectInit: function () { setParam(PROG_INDEX, progValue); } };
+    return {
+      selectInit: function () { setParam(PROG_INDEX, progValue); },
+      // repaint the lit program from a restored value, without pushing it back
+      follow: function (v) { select(Math.round(v), false); }
+    };
   }
 
   // ---- boot ---------------------------------------------------------
@@ -590,16 +600,27 @@
     var grid = document.getElementById("grid");
     var program = document.querySelector(".program");
     var knobs = [];
+    var byIndex = {};
     for (var i = 0; i < PARAMS.length; i++) {
       var k = makeKnob(PARAMS[i]);
       grid.insertBefore(k.cell, program);
       knobs.push(k);
+      byIndex[PARAMS[i].index] = k;
     }
     var prog = buildProgram();
 
     // push all defaults to the engine once on load
     for (var j = 0; j < knobs.length; j++) knobs[j].commit();
     prog.selectInit();
+
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values right after we register, so
+    // every control repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      if (i === PROG_INDEX) { prog.follow(v); return; }
+      var k = byIndex[i];
+      if (k) k.follow(v);
+    });
   }
 
   function start() {

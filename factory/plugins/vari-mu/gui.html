@@ -251,6 +251,7 @@ h1{
     {name:"Output",        index:3,min:0,max:1,def:0.5}
   ];
   var state={};
+  var listeners={};   // param index -> fn(value) that refreshes+redraws that knob
   var deck=document.getElementById('deck');
   var needle=document.getElementById('needle');
 
@@ -290,16 +291,21 @@ h1{
     var v=p.def;
 
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       arc.style.setProperty('--n',n);
       ptr.style.setProperty('--n',n);
       val.textContent=pct(n);
       state[p.index]=v;
-      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
       onChange();
     }
+    function paint(){
+      draw();
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
     function setNorm(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
+    // follow session restore / host automation: adopt the value and redraw only
+    listeners[p.index]=function(nv){ v=nv; draw(); };
 
     var drag=false,startY=0,startN=0;
     knob.addEventListener('pointerdown',function(e){
@@ -355,7 +361,15 @@ h1{
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ onChange(); requestAnimationFrame(loop); }
+  function ready(){
+    onChange(); requestAnimationFrame(loop);
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=listeners[i]; if(fn) fn(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

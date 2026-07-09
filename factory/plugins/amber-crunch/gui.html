@@ -247,6 +247,7 @@ h1{
     {name:"Mix",       index:3,min:0,max:1,def:1}
   ];
   var state={};
+  var ctls={}; // param index -> control api (so outside changes can repaint it)
   var deck=document.getElementById('deck');
   var minis=document.getElementById('minis');
   var win=document.getElementById('window');
@@ -260,8 +261,13 @@ h1{
     var v=p.def;
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
     function setNorm(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; setVis(norm()); state[p.index]=v; send(p.index,v); onChange(); }
+    // Repaint from a value pushed by the host (restore/automation): refresh the
+    // closure-local copy + shared state and redraw, but do NOT echo it back.
+    function follow(raw){ v=raw; state[p.index]=v; setVis(norm()); onChange(); }
     state[p.index]=v; send(p.index,v); setVis(norm());
-    return {p:p,norm:norm,setNorm:setNorm,reset:function(){v=p.def;setNorm(norm());}};
+    var api={p:p,norm:norm,setNorm:setNorm,follow:follow,reset:function(){v=p.def;setNorm(norm());}};
+    ctls[p.index]=api;
+    return api;
   }
 
   // ---- big chicken-head knobs: Distortion + Output ----
@@ -385,7 +391,16 @@ h1{
     document.querySelector('.fslabel').textContent=engaged?'On':'Off';
   });
 
-  function ready(){ onChange(); }
+  function ready(){
+    onChange();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob/slider (and the clip waveform) repaints to the saved
+    // sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(idx,v){
+      if(ctls[idx]) ctls[idx].follow(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

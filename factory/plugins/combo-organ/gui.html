@@ -387,6 +387,17 @@
       commit(p, p.def);   // push default to host + paint
     });
     syncVib();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    var byIndex = {};
+    P.forEach(function(p){ byIndex[p.i] = p; });
+    if(HOST && typeof HOST.onParam === "function") HOST.onParam(function(i, v){
+      var p = byIndex[+i];
+      if(!p) return;
+      commit(p, +v, false);
+      if(p.i===3 || p.i===4) syncVib();
+    });
   }
 
   if(HOST && typeof HOST.onReady === "function") HOST.onReady(start);

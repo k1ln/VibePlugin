@@ -155,6 +155,7 @@ body{font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color
   ];
   var STEP=0.001;
   var vals={}; // index -> value
+  var draws={}; // index -> visuals-only repaint
   var deck=document.getElementById('deck');
   var ft=document.getElementById('ft');
   ft.textContent="A stereo ping-pong / multi-tap delay. The wet signal cross-feeds between left and right so every repeat bounces to the opposite side; extra taps thicken the pattern, Tone darkens repeats, Width spreads the bounce, and a saturated feedback path stays bounded near max.";
@@ -180,15 +181,16 @@ body{font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color
         spark=rail.querySelector('.spark'),
         out=rail.querySelector('.val');
 
-    function paint(){
+    function draw(){
       var n=(vals[p.index]-p.min)/(p.max-p.min||1);
       var pct=(6+n*88); // keep puck inside the lane
       fill.style.setProperty('--h',pct+'%');
       slot.style.setProperty('--h',pct+'%');
       out.textContent=fmt(vals[p.index]);
-      host(p.index,vals[p.index]);
       onChange(p.index,n);
     }
+    function paint(){ draw(); host(p.index,vals[p.index]); }
+    draws[p.index]=draw;
     function setN(n){ n=n<0?0:n>1?1:n; var v=p.min+(p.max-p.min)*n;
       v=Math.round(v/STEP)*STEP; vals[p.index]=v; paint(); }
     function norm(){ return (vals[p.index]-p.min)/(p.max-p.min||1); }
@@ -280,6 +282,14 @@ body{font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color
   function ready(){
     PARAMS.forEach(makeRail);
     updateRead();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every rail repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      if(!(i in vals)) return;
+      vals[i]=+v;
+      if(draws[i]) draws[i]();
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

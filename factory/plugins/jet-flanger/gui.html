@@ -398,9 +398,20 @@
   });
 
   // ── init ──
+  // Rate has no fader; its repaint is the turbine/RPM update.
+  PARAMS[0]._render = applyMotion;
   function ready(){
     applyMotion();
     PARAMS.forEach(function(p){ if(p._render)p._render(); send(p); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values right after we register,
+    // so every control repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var p=PARAMS[i];
+      if(!p) return;
+      vals[i]=+v;
+      if(p._render) p._render();
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

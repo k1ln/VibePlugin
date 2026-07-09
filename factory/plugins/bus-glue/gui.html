@@ -246,6 +246,7 @@
   ];
 
   var state={}; // index -> value
+  var paints={}; // index -> function(v) that writes the value and repaints its knob
 
   var deck=document.getElementById('deck');
   var needle=document.getElementById('needle');
@@ -388,11 +389,18 @@
       else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-dn);e.preventDefault();}
     });
 
+    paints[p.index]=function(nv){ v=+nv; paint(); };
     paint();
   }
 
   function ready(){
     for(var i=0;i<PARAMS.length;i++) build(PARAMS[i]);
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=paints[i]; if(fn) fn(v);
+    });
     requestAnimationFrame(tick);
   }
 

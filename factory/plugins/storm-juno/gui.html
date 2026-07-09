@@ -259,6 +259,7 @@
   ];
 
   var values = PARAMS.map(function (p) { return p.def; });
+  var setters = {};   // param index -> fn(rawValue) that repaints from outside the GUI
 
   function pushParam(i) {
     if (window.vstai && window.vstai.setParam) {
@@ -359,6 +360,14 @@
       ptr.setAttribute("y2", 50 + 24 * Math.sin(rad));
       val.textContent = Math.round(t * 100) + "%";
     }
+
+    // repaint from an outside change (session restore / host automation)
+    setters[p.index] = function (v) {
+      var t = (v - p.min) / (p.max - p.min);
+      t = Math.max(0, Math.min(1, t));
+      values[i] = p.min + t * (p.max - p.min);
+      redraw();
+    };
 
     // ---- drag interaction ----
     var dragging = false, lastY = 0;
@@ -618,6 +627,13 @@
   // ---- init params to defaults -------------------------------------
   function initParams() {
     for (var i = 0; i < PARAMS.length; i++) pushParam(i);
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (idx, v) {
+      var fn = setters[idx];
+      if (fn) fn(v);
+    });
   }
   if (window.vstai && window.vstai.onReady) {
     window.vstai.onReady(initParams);

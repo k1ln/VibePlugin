@@ -91,6 +91,7 @@
 
   var R=31, C=2*Math.PI*R, A0=-135, A1=135;
   var kw=document.getElementById("knobs");
+  var knobByIdx={}; // param index -> render(v) so external changes repaint the right knob
   var knobs=PARAMS.map(function(p){
     var el=document.createElement("div"); el.className="knob";
     el.innerHTML='<div class="dial"><svg viewBox="0 0 76 76">'+
@@ -116,6 +117,7 @@
     el.addEventListener("pointercancel",function(){ drag=null; });
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
     render(p.def);
+    knobByIdx[p.idx]=render;
     return {render:render};
   });
 
@@ -145,7 +147,19 @@
   }
   requestAnimationFrame(frame);
 
-  function boot(){ host=window.vstai||null; send(0,atkV); setAtkUI(); PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){
+    host=window.vstai||null;
+    send(0,atkV); setAtkUI();
+    PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI (session restore, automation): the
+    // host replays the restored values in here right after we register, repainting
+    // the attack selector and each knob to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      i=+i; v=+v;
+      if(i===0){ atkV=v; setAtkUI(); return; }
+      if(i in vals){ vals[i]=v; var r=knobByIdx[i]; if(r) r(v); }
+    });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

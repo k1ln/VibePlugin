@@ -272,8 +272,10 @@
     ptr.setAttribute("transform","rotate("+ang+" 33 33)");
   }
 
+  var knobWraps = {};
   document.querySelectorAll(".knob-wrap").forEach(function(wrap){
     var idx = parseInt(wrap.getAttribute("data-knob"),10);
+    knobWraps[idx] = wrap;
     var holder = wrap.querySelector(".knob");
     var valEl = wrap.querySelector(".kval");
     var svg = knobSVG();
@@ -417,6 +419,15 @@
     document.querySelectorAll(".knob-wrap").forEach(function(w){ w._refresh(); });
     applyCurve(state[1], false);
     drawScope();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      i = +i;
+      if(i===1){ applyCurve(+v, false); return; }
+      var w = knobWraps[i];
+      if(w) w._set(+v, false);
+    });
   }
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

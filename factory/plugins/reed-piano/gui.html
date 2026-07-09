@@ -484,6 +484,15 @@
   function ready(){
     PARAMS.forEach(function(p,i){ p._paint(); setParam(p.index,state[i]); });
     reactGlobals();
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(idx,v){
+      idx=+idx;
+      for(var i=0;i<PARAMS.length;i++){
+        if(PARAMS[i].index===idx){ state[i]=+v; PARAMS[i]._paint(); reactGlobals(); break; }
+      }
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

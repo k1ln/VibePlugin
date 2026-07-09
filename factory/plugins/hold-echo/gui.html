@@ -541,6 +541,14 @@
     });
     document.getElementById("timeVal").textContent = fmtTime(state[0]);
     updateHoldLed(state[4]);
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every control repaints to the saved sound. push=false so we never echo back.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      for (var k = 0; k < PARAMS.length; k++) {
+        if (PARAMS[k].index === i) { PARAMS[k]._setNorm(+v, false); break; }
+      }
+    });
     draw();
   }
 

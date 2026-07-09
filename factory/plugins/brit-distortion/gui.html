@@ -249,6 +249,7 @@ body{
     {name:"Level", index:4,min:0,max:1,def:0.6}
   ];
   var state={};
+  var paints={};
   var knobsEl=document.getElementById('knobs');
   var waveEl=document.getElementById('wave');
 
@@ -309,6 +310,7 @@ body{
       else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setNorm(norm()-0.02);e.preventDefault();}
     });
 
+    paints[p.index]=function(nv){ v=+nv; paint(); };
     paint();
   }
 
@@ -350,7 +352,15 @@ body{
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ onChange(); }
+  function ready(){
+    onChange();
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=paints[i]; if(fn) fn(v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

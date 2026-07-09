@@ -216,6 +216,7 @@
   var ARC_LEN=Math.PI*1.5*38; // radius 38, 270deg sweep
   var grid=document.getElementById("grid");
   var state={}; // index -> value
+  var followers={}; // index -> fn(v) that repaints that knob from an outside change
 
   function buildKnob(p){
     var cell=document.createElement("div"); cell.className="cell";
@@ -264,6 +265,9 @@
     knob.addEventListener("pointercancel",up);
     knob.addEventListener("wheel",function(e){ e.preventDefault(); set(v-(e.deltaY>0?1:-1)*0.03); },{passive:false});
     knob.addEventListener("dblclick",function(){ set(p.def); });
+
+    // Follow host-side changes: refresh our value and repaint without pushing back.
+    followers[p.i]=function(nv){ v=+nv; paint(); };
 
     set(p.def); // init -> sends default
     return { get:function(){return v;} };
@@ -321,7 +325,14 @@
   requestAnimationFrame(frame);
 
   // host ready hook
-  function ready(){ /* defaults already sent during build */ }
+  function ready(){
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var f=followers[i]; if(f) f(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

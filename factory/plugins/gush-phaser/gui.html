@@ -274,6 +274,14 @@ body{
   function boot(){
     KNOBS.forEach(function(i){ setParam(i,state[i]); drawKnob(i); });
     setParam(2,state[2]); drawColor();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every control repaints to the saved sound instead of its built-in default.
+    if(V && V.onParam) V.onParam(function(i,v){
+      if(!(i in state)) return;
+      state[i]=+v;
+      if(i===2) drawColor(); else drawKnob(i);
+    });
     requestAnimationFrame(frame);
   }
   if(V && V.onReady) V.onReady(boot); else boot();

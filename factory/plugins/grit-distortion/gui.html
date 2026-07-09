@@ -247,6 +247,7 @@ body{
   function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
   function clamp(n){ return n<0?0:(n>1?1:n); }
   function fmt(v){ return (+v).toFixed(2); }
+  var setters={};   // param index -> repaint the control from a host-pushed value (no echo back)
   // arrow/home/end keyboard nudging for any role=slider; calls setN with the new value
   function keyNudge(el,getN,setN,coarse){
     var step=coarse?.05:.01;
@@ -268,15 +269,16 @@ body{
     var el=document.getElementById('grind'), val=+el.dataset.def, def=val, i=+el.dataset.i;
     var dv=document.getElementById('dval');
     function norm(){ return val; }
-    function paint(){
+    function paint(silent){
       root.style.setProperty('--grind',val);
       var pc=Math.round(val*100);
       dv.textContent=pc;
       el.setAttribute('aria-valuenow',pc);
       el.setAttribute('aria-valuetext',pc+'%');
-      send(i,val);
+      if(!silent) send(i,val);
     }
     function setN(n){ val=clamp(n); paint(); }
+    setters[i]=function(v){ val=clamp(v); paint(true); };
     var dy=0,n0=0,drag=0;
     el.addEventListener('pointerdown',function(e){drag=1;dy=e.clientY;n0=norm();el.setPointerCapture(e.pointerId);e.preventDefault();});
     el.addEventListener('pointermove',function(e){ if(!drag)return; setN(n0+(dy-e.clientY)/220); });
@@ -293,15 +295,16 @@ body{
     var el=document.getElementById('filt'), val=+el.dataset.def, def=val, i=+el.dataset.i;
     var muck=document.getElementById('muck'), fv=document.getElementById('fval');
     function norm(){ return val; }
-    function paint(){
+    function paint(silent){
       muck.style.height=(val*100)+'%';
       root.style.setProperty('--sludge',val);
       fv.textContent=fmt(val);
       el.setAttribute('aria-valuenow',fmt(val));
       el.setAttribute('aria-valuetext',fmt(val)+', '+(val>.5?'darker':'brighter'));
-      send(i,val);
+      if(!silent) send(i,val);
     }
     function setN(n){ val=clamp(n); paint(); }
+    setters[i]=function(v){ val=clamp(v); paint(true); };
     var drag=0;
     // bottom-up mapping: dragging up raises the value (standard fader feel),
     // the muck still fills visually from the top so "higher = more sludge = darker".
@@ -323,16 +326,17 @@ body{
         fill=document.getElementById(fillId), grip=document.getElementById(gripId), vv=document.getElementById(valId);
     var val=+el.dataset.def, def=val, i=+el.dataset.i;
     function norm(){ return val; }
-    function paint(){
+    function paint(silent){
       var pct=val*100;
       fill.style.width=pct+'%';
       grip.style.left=pct+'%';
       vv.textContent=fmt(val);
       tr.setAttribute('aria-valuenow',fmt(val));
       tr.setAttribute('aria-valuetext',fmt(val));
-      send(i,val);
+      if(!silent) send(i,val);
     }
     function setN(n){ val=clamp(n); paint(); }
+    setters[i]=function(v){ val=clamp(v); paint(true); };
     function fromX(e){ var r=tr.getBoundingClientRect(); return clamp((e.clientX-r.left)/r.width); }
     var drag=0;
     tr.addEventListener('pointerdown',function(e){drag=1;tr.setPointerCapture(e.pointerId);setN(fromX(e));e.preventDefault();});
@@ -350,6 +354,12 @@ body{
     filter();
     fader('vol','vtrack','vfill','vgrip','vval');
     fader('mix','mtrack','mfill','mgrip','mval');
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every control repaints to the saved sound instead of its built-in default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=setters[i]; if(fn) fn(+v);
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

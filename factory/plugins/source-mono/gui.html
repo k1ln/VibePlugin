@@ -77,7 +77,13 @@
     ctx.closePath(); ctx.strokeStyle="rgba(255,80,70,0.95)"; ctx.lineWidth=2; ctx.shadowColor="#ff3d3d"; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): update our state and repaint the matching knob, without sending back.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      for(var k=0;k<P.length;k++){ if(P[k].idx===i){ vals[i]=+v; knobs[k].render(+v); break; } }
+    });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

@@ -213,6 +213,7 @@
 
   var state = {}; // key -> raw value
   PARAMS.forEach(function(p){ state[p.key]=p.def; });
+  var painters = {}; // param index -> repaint fn (filled in as controls are built)
 
   function send(p, val){
     if(window.vstai && window.vstai.setParam){ window.vstai.setParam(p.i, val); }
@@ -342,6 +343,7 @@
       ringfg.setAttribute("transform","rotate(135 45 45)");
       val.textContent=valLabel(p);
     }
+    painters[p.i]=paint;
 
     function setN(n){
       n=Math.max(0,Math.min(1,n));
@@ -400,6 +402,7 @@
       var sps=dots.querySelectorAll("span");
       for(var k=0;k<sps.length;k++){ sps[k].className = (k<=idx)?"on":""; }
     }
+    painters[p.i]=paint;
     function setIdx(idx){
       idx=Math.max(0,Math.min(4,idx));
       state[p.key]=idx; send(p,idx); paint(); drawCurve();
@@ -434,6 +437,18 @@
     // push every default to the host on load
     PARAMS.forEach(function(p){ send(p, state[p.key]); });
     drawCurve();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob/selector (and the response curve) repaints to the
+    // saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      var p=null;
+      for(var k=0;k<PARAMS.length;k++){ if(PARAMS[k].i===i){ p=PARAMS[k]; break; } }
+      if(!p) return;
+      state[p.key]=+v;
+      if(painters[i]) painters[i]();
+      drawCurve();
+    });
   }
 
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(init); else init();

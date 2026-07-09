@@ -211,6 +211,7 @@ body{
     {name:"Mix",    index:3, min:0, max:1, def:0.6}
   ];
   var row=document.getElementById('row');
+  var repaint={};
 
   function fmt(v){ return Math.round(v*100)+'%'; }
 
@@ -234,14 +235,19 @@ body{
     var val=p.def;
 
     function norm(){ return (val-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       gauge.style.setProperty('--n',n);
       cap.style.setProperty('--n',n);
       var t=fmt(n);
       valEl.textContent=t; bub.textContent=t;
+    }
+    function paint(){
+      draw();
       if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,val);
     }
+    // Follow outside param changes (session restore, automation) without pushing back.
+    repaint[p.index]=function(nv){ val=nv; draw(); };
     function setN(n){
       n=n<0?0:(n>1?1:n);
       val=p.min+(p.max-p.min)*n;
@@ -271,6 +277,11 @@ body{
 
   function ready(){
     for(var i=0;i<PARAMS.length;i++) build(PARAMS[i], i*70);
+    // The host replays the restored values in here right after we register, so every
+    // knob repaints to the saved sound instead of its built-in default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=repaint[i]; if(fn) fn(+v);
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

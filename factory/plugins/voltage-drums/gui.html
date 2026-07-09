@@ -382,6 +382,7 @@
   }
 
   /* ====================== KNOB DECK ====================== */
+  var knobSetters={};
   function buildKnobs(){
     var deck=document.getElementById("deck");
     PARAMS.forEach(function(p,k){
@@ -399,13 +400,20 @@
       var val=p.def;
 
       function norm(){ return (val-p.min)/span; }
-      function paint(){
+      function draw(){
         var n=norm();
         arc.style.setProperty("--sweep",n);
         ptr.style.setProperty("--sweep",n);
+        return n;
+      }
+      function paint(){
+        var n=draw();
         send(p.index,val);
         lcd(p.name,n,fmtPct(n)+"%");
       }
+      // Repaint this knob from a value pushed by the host (session restore, preset,
+      // automation) without echoing it back — draw() is the visuals-only half of paint().
+      knobSetters[p.index]=function(v){ val=+v; draw(); };
       function setNorm(n){
         n=n<0?0:(n>1?1:n);
         val=p.min+span*n;
@@ -520,6 +528,12 @@
     document.getElementById("foot").textContent =
       "Fully-synthesized analog drum machine — seven oscillator/noise voices. " +
       "Drag knobs to shape tune, decays, snap, tone and accent. Tap pads to trigger.";
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values right after we register, so every
+    // knob repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=knobSetters[i]; if(fn) fn(v);
+    });
   }
 
   var h=host();

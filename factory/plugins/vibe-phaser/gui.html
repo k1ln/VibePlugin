@@ -299,6 +299,7 @@ body{
 function boot(){
   function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
   function fmt(v,step){ var d = step>=1?0:(step>=0.1?1:(step>=0.01?2:3)); return (+v).toFixed(d); }
+  var followers={}; // param index -> fn(v) that repaints that control from an outside change
 
   // live "optical lamp" state, driven by Rate + Depth, animated on rAF.
   var rate=0.32, depth=0.7, lampPhase=0, lastT=0;
@@ -328,7 +329,8 @@ function boot(){
     var c=lampwell, i=+c.dataset.i, mn=+c.dataset.min, mx=+c.dataset.max, def=+c.dataset.def, step=+c.dataset.step||0.001;
     var val=def;
     function norm(){ return (val-mn)/(mx-mn||1); }
-    function paint(){ rate=norm(); lamprate.textContent=fmt(val,step); send(i,val); }
+    function draw(){ rate=norm(); lamprate.textContent=fmt(val,step); }
+    function paint(){ draw(); send(i,val); }
     function setN(n){ n=n<0?0:(n>1?1:n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
     c.addEventListener('pointerdown',function(e){ c._d=1;c._y=e.clientY;c._n=norm(); c.setPointerCapture(e.pointerId); e.preventDefault(); });
     c.addEventListener('pointermove',function(e){ if(!c._d)return; setN(c._n+(c._y-e.clientY)/220); });
@@ -337,6 +339,7 @@ function boot(){
     c.addEventListener('dblclick',function(){ val=def; paint(); });
     c.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
     paint();
+    followers[i]=function(nv){ val=+nv; draw(); };
   })();
 
   // ---- the three chickenhead knobs ----
@@ -346,13 +349,13 @@ function boot(){
         beak=c.querySelector('.beak'), out=c.querySelector('.val'), bub=c.querySelector('.bub');
     var isDepth = (i===1);
     function norm(){ return (val-mn)/(mx-mn||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       ring.style.setProperty('--n',n); beak.style.setProperty('--n',n);
       var t=fmt(val,step); out.textContent=t; bub.textContent=t;
       if(isDepth) depth=n;
-      send(i,val);
     }
+    function paint(){ draw(); send(i,val); }
     function setN(n){ n=n<0?0:(n>1?1:n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
     knob.addEventListener('pointerdown',function(e){ knob._d=1;knob._y=e.clientY;knob._n=norm(); knob.classList.add('act'); knob.setPointerCapture(e.pointerId); e.preventDefault(); });
     knob.addEventListener('pointermove',function(e){ if(!knob._d)return; setN(knob._n+(knob._y-e.clientY)/200); });
@@ -361,6 +364,7 @@ function boot(){
     knob.addEventListener('dblclick',function(){ val=def; paint(); });
     knob.addEventListener('wheel',function(e){ e.preventDefault(); setN(norm()+(e.deltaY<0?0.02:-0.02)); },{passive:false});
     paint();
+    followers[i]=function(nv){ val=+nv; draw(); };
   }
   var ctls=document.querySelectorAll('.ctl');
   for(var j=0;j<ctls.length;j++) wireKnob(ctls[j]);
@@ -368,11 +372,20 @@ function boot(){
   // ---- the MODE rocker (Chorus 0 / Vibrato 1) ----
   (function(){
     var t=document.getElementById('mode'), i=+t.dataset.i, def=+t.dataset.def;
-    function set(v){ v=v?1:0; t.dataset.on=v; send(i,v); }
+    function draw(v){ t.dataset.on=v?1:0; }
+    function set(v){ v=v?1:0; draw(v); send(i,v); }
     t.addEventListener('click',function(){ set(t.dataset.on==="1"?0:1); });
     t.addEventListener('dblclick',function(e){ e.stopPropagation(); set(def); });
     set(def);
+    followers[i]=function(nv){ draw(+nv); };
   })();
+
+  // Follow param changes made outside the GUI — session restore, preset load, DAW
+  // automation. The host replays the restored values in here right after we register,
+  // so every control repaints to the saved sound instead of its default.
+  if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+    var f=followers[i]; if(f) f(+v);
+  });
 }
 if(window.vstai&&window.vstai.onReady) window.vstai.onReady(boot); else boot();
 </script>

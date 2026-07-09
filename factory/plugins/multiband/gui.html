@@ -212,6 +212,7 @@ h1{
   ];
 
   var state = {};          // index -> raw 0..1 value
+  var repaint = {};        // index -> fn(value): adopt the value and redraw its control
   var lanesEl = document.getElementById('lanes');
 
   function pushParam(index, value){
@@ -271,7 +272,7 @@ h1{
     laneRefs.push(ref);
 
     var v = b.def;
-    function paintKnob(){
+    function drawKnob(){
       ref.arc.style.setProperty('--n', v);
       ref.ptr.style.setProperty('--n', v);
       // show as a threshold in dB: 0 -> -40 dB (aggressive), 1 -> -1 dB (open)
@@ -279,8 +280,13 @@ h1{
       ref.kval.textContent = thrDb.toFixed(0)+' dB';
       // threshold guide line on the meter (top = 0 GR, lower = deeper)
       ref.thr.style.top = ((1 - v) * 70 + 6) + '%';
+    }
+    function paintKnob(){
+      drawKnob();
       pushParam(b.index, v);
     }
+    // Follow outside param changes (session restore, automation) without pushing back.
+    repaint[b.index] = function(nv){ v = nv; drawKnob(); };
     function setNorm(n){ v = n<0?0:n>1?1:n; paintKnob(); }
 
     var drag=false, startY=0, startN=0;
@@ -317,12 +323,17 @@ h1{
     var arc = knob.querySelector('.arc');
     var ptr = knob.querySelector('.ptr');
     var v = def;
-    function paint(){
+    function draw(){
       arc.style.setProperty('--n', v);
       ptr.style.setProperty('--n', v);
-      pushParam(index, v);
       onPaint(v);
     }
+    function paint(){
+      draw();
+      pushParam(index, v);
+    }
+    // Follow outside param changes (session restore, automation) without pushing back.
+    repaint[index] = function(nv){ v = nv; draw(); };
     function setNorm(n){ v = n<0?0:n>1?1:n; paint(); }
     var drag=false, startY=0, startN=0;
     knob.addEventListener('pointerdown', function(e){
@@ -434,6 +445,11 @@ h1{
     BANDS.forEach(function(b){ pushParam(b.index, state[b.index]); });
     pushParam(P.RATIO, ratioCtl.get());
     pushParam(P.OUT, outCtl.get());
+    // The host replays the restored values in here right after we register, so every
+    // control repaints to the saved sound instead of its built-in default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      var fn = repaint[i]; if (fn) fn(+v);
+    });
   }
   if (window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

@@ -226,6 +226,7 @@ body{min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI"
   var root=document.documentElement;
   // live VU drive: blend of drive*mix*output so the needle reacts to the dial
   var levels={drive:0.45,mix:1,out:0.7};
+  var setters={};   // param index -> fn(value) that repaints that knob (no push)
 
   function fmtPct(v){ return Math.round(v*100)+'%'; }
 
@@ -236,7 +237,7 @@ body{min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI"
         knob=c.querySelector('.knob'), arc=c.querySelector('.arc'),
         body=c.querySelector('.body'), out=c.querySelector('.val'), bub=c.querySelector('.bub');
     function norm(){ return (val-mn)/((mx-mn)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       arc.style.setProperty('--kn',n);
       body.style.setProperty('--kn',n);
@@ -246,8 +247,14 @@ body{min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI"
       if(cssVar==='--drive') levels.drive=n;
       if(cssVar==='--mix')   levels.mix=n;
       if(cssVar==='--out')   levels.out=n;
+    }
+    function paint(){
+      draw();
       if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,val);
     }
+    // repaint from a value pushed by the host (session restore / automation),
+    // refreshing this knob's closure-local copy without echoing it back.
+    setters[i]=function(nv){ val=nv; draw(); };
     function setN(n){ n=n<0?0:(n>1?1:n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step;
       v=v<mn?mn:(v>mx?mx:v); val=v; paint(); }
     knob.addEventListener('pointerdown',function(e){ knob._d=1; knob._y=e.clientY; knob._n=norm();
@@ -283,6 +290,12 @@ body{min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,"Segoe UI"
   function ready(){
     var cells=document.querySelectorAll('.cell');
     for(var j=0;j<cells.length;j++) bindKnob(cells[j]);
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(idx,v){
+      var fn=setters[+idx]; if(fn) fn(+v);
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

@@ -163,6 +163,7 @@ body{
   ];
   var byName={}; P.forEach(function(p){byName[p.name]=p;});
   var live={}; P.forEach(function(p){ live[p.name]=(p.def-p.min)/(p.max-p.min); });
+  var listeners={}; // param index -> fn(nativeValue) that repaints that control
 
   function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
   function fmtPct(v){ return Math.round(v*100)+"%"; }
@@ -184,8 +185,10 @@ body{
     var knob=cell.querySelector('.knob'), val=cell.querySelector('.cval');
     var v=p.def;
     function norm(){ return (v-p.min)/(p.max-p.min||1); }
-    function paint(){ var n=norm(); knob.style.setProperty('--p',n); val.textContent=labelFor(p,n); live[p.name]=n; send(p.index,v); }
+    function draw(){ var n=norm(); knob.style.setProperty('--p',n); val.textContent=labelFor(p,n); live[p.name]=n; }
+    function paint(){ draw(); send(p.index,v); }
     function setN(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
+    listeners[p.index]=function(nv){ v=nv; draw(); };
     knob.addEventListener('pointerdown',function(e){ knob._d=1;knob._y=e.clientY;knob._n=norm();knob.classList.add('act');knob.setPointerCapture(e.pointerId);e.preventDefault(); });
     knob.addEventListener('pointermove',function(e){ if(!knob._d)return; var spd=e.shiftKey?640:200; setN(knob._n+(knob._y-e.clientY)/spd); });
     function end(){ knob._d=0; knob.classList.remove('act'); }
@@ -208,10 +211,12 @@ body{
       posread=document.getElementById('posread'), wp=byName["Wave Position"];
   var wv=wp.def;
   function wnorm(){ return (wv-wp.min)/(wp.max-wp.min||1); }
-  function wpaint(){ var n=wnorm(); scan.style.setProperty('--p',n); fill.style.setProperty('--p',n);
+  function wdraw(){ var n=wnorm(); scan.style.setProperty('--p',n); fill.style.setProperty('--p',n);
     head.style.setProperty('--p',n); scanval.textContent=n.toFixed(2); posread.textContent="POS "+n.toFixed(2);
-    live["Wave Position"]=n; send(wp.index,wv); renderBank(n); }
+    live["Wave Position"]=n; renderBank(n); }
+  function wpaint(){ wdraw(); send(wp.index,wv); }
   function wsetN(n){ n=n<0?0:n>1?1:n; wv=wp.min+(wp.max-wp.min)*n; wpaint(); }
+  listeners[wp.index]=function(nv){ wv=nv; wdraw(); };
   function fromEvt(e){ var r=scan.getBoundingClientRect(); wsetN((e.clientX-r.left)/r.width); }
   scan.addEventListener('pointerdown',function(e){ scan._d=1; scan.setPointerCapture(e.pointerId); fromEvt(e); e.preventDefault(); });
   scan.addEventListener('pointermove',function(e){ if(scan._d) fromEvt(e); });
@@ -290,7 +295,15 @@ body{
   }
   requestAnimationFrame(idle);
 
-  function ready(){ wpaint(); }     // init scan + bank highlight + send default
+  function ready(){ wpaint();       // init scan + bank highlight + send default
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    // Visuals only: the listeners never push, so the saved sound is left intact.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=listeners[i]; if(fn) fn(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();</script>
 </body></html>

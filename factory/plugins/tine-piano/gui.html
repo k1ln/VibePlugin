@@ -301,6 +301,7 @@
   function rateFmt(v) { return (0.5 + v * 6.5).toFixed(1) + " Hz"; }
 
   var values = {};
+  var knobRenders = {};   // param index -> visuals-only repaint fn
   var SVGNS = "http://www.w3.org/2000/svg";
 
   // ---- host bridge ----
@@ -469,6 +470,7 @@
     });
 
     values[p.index] = p.def;
+    knobRenders[p.index] = render;
     render();
     return cell;
   }
@@ -743,6 +745,16 @@
     }
     buildHarp();
     buildKeyboard();
+    // Follow param changes from outside the GUI (session restore, preset load, DAW
+    // automation). The host replays the restored values in here right after we
+    // register, so each knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (i, v) {
+        if (!(i in values)) return;
+        values[i] = +v;
+        if (knobRenders[i]) knobRenders[i]();
+      });
+    }
     requestAnimationFrame(frame);
   }
 

@@ -442,9 +442,11 @@
   }
 
   var rack = document.getElementById("rack");
+  var knobs = {};   // param index -> knob handle, so restore/automation can redraw it
   PARAMS.forEach(function (p) {
     var k = makeKnob(p);
     rack.appendChild(k.el);
+    knobs[p.index] = k;
   });
 
   // ===== SCOPE =====================================================
@@ -664,6 +666,14 @@
     // push every param at its default
     PARAMS.forEach(function (p) {
       pushParam(p.index, values[p.index] != null ? values[p.index] : p.def);
+    });
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    // push:false so we redraw without echoing the value back to the host.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var k = knobs[i];
+      if (k) k.setValue(+v, false);
     });
     sizeCanvas();
     requestAnimationFrame(drawScope);

@@ -307,7 +307,24 @@
   function init(){
     for(var i=0;i<PARAMS.length;i++){ push(i); }
   }
+
+  // map a param index to its slot in PARAMS/state/widgets
+  var idxToPos={};
+  PARAMS.forEach(function(p,i){ idxToPos[p.index]=i; });
+
   var h=host();
+  // Follow param changes made outside the GUI — session restore, preset load, DAW
+  // automation. The host replays the restored values right after we register, so
+  // every knob repaints to the saved sound instead of its default.
+  if(h && typeof h.onParam==="function"){
+    h.onParam(function(index,v){
+      var i=idxToPos[index];
+      if(i===undefined) return;
+      var p=PARAMS[i];
+      state[i]=Math.max(p.min,Math.min(p.max,+v));
+      widgets[i].render();
+    });
+  }
   if(h && typeof h.onReady==="function"){ h.onReady(init); } else { init(); }
 })();
 </script>

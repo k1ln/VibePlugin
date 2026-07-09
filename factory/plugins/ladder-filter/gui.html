@@ -467,6 +467,17 @@
     paintScope();
     paintLadder();
 
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values right after we register,
+    // so the jacks, scope and resonance ladder all repaint to the saved sound.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i,v){
+      if(!(i in state)) return;
+      state[i] = +v;
+      jacks.forEach(function(j){ j.paint(); });
+      paintScope();
+      paintLadder();
+    });
+
     // a gentle one-time "boot sweep" of the ladder for life on load
     var boot=0;
     var id=setInterval(function(){

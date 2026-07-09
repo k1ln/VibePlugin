@@ -77,7 +77,17 @@
     ctx.globalAlpha=1;
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){
+    host=window.vstai||null;
+    P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(host && host.onParam) host.onParam(function(i,v){
+      var idx=+i;
+      for(var k=0;k<P.length;k++){ if(P[k].idx===idx){ vals[idx]=+v; knobs[k].render(+v); break; } }
+    });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

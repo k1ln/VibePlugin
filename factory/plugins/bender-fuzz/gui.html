@@ -156,6 +156,7 @@ body{
     { name:"Level", index:3, min:0, max:1, def:0.5  }
   ];
   var state = {}; // index -> normalized 0..1
+  var cells = {}; // index -> cell element (so outside changes can repaint it)
 
   // ---- knob rendering ------------------------------------------------
   var SWEEP = 270, START = -135; // degrees
@@ -239,6 +240,7 @@ body{
     cell._chick=dial.querySelector('.chicken');
     cell._arc=dial.querySelector('.arc');
     cell._val=val;
+    cells[p.index]=cell;
     buildTicks(dial.querySelector('.ticks'));
     render(cell);
 
@@ -326,6 +328,19 @@ body{
   if(host.onReady && typeof host.onReady==="function"){
     host.onReady(function(){
       PARAMS.forEach(function(p){ host.setParam(p.index, p.min+(p.max-p.min)*p.def); });
+    });
+  }
+
+  // Follow param changes from outside the GUI — session restore, preset load,
+  // DAW automation. The host replays the restored values in here right after we
+  // register, so every knob (and the gated waveform, which reads state live)
+  // repaints to the saved sound instead of its default.
+  if(window.vstai && typeof window.vstai.onParam==="function"){
+    window.vstai.onParam(function(idx, v){
+      var cell=cells[idx]; if(!cell) return;
+      var p=cell._p;
+      state[idx]=Math.max(0,Math.min(1,(+v - p.min)/((p.max-p.min)||1)));
+      render(cell);
     });
   }
 })();

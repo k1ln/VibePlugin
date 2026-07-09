@@ -32,6 +32,7 @@
   var P=[{name:"Cutoff",idx:0,def:0.5},{name:"Reso",idx:1,def:0.4},{name:"Env",idx:2,def:0.6},{name:"Osc Mod",idx:3,def:0.3},{name:"Sub",idx:4,def:0.4},{name:"Level",idx:5,def:0.8}];
   var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; }); var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
   var R=33, C=2*Math.PI*R, A0=-135, A1=135; var kw=document.getElementById("knobs");
+  var renderByIdx={};
   var knobs=P.map(function(p){ var el=document.createElement("div"); el.className="knob";
     el.innerHTML='<div class="dial"><svg viewBox="0 0 80 80"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f08a3c"/><stop offset="1" stop-color="#5ad0e0"/></linearGradient></defs><circle class="track" cx="40" cy="40" r="33"></circle><circle class="arc" cx="40" cy="40" r="33" transform="rotate(135 40 40)" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"></circle><circle class="pcap" cx="40" cy="40" r="20"></circle><line class="ptr" x1="40" y1="40" x2="40" y2="23"></line></svg></div><span class="kn">'+p.name+'</span><span class="kv"></span>';
     kw.appendChild(el); var arc=el.querySelector(".arc"), ptr=el.querySelector(".ptr"), val=el.querySelector(".kv");
@@ -40,7 +41,7 @@
     el.addEventListener("pointerdown",function(e){ drag={y:e.clientY,v:vals[p.idx]}; el.setPointerCapture(e.pointerId); e.preventDefault(); });
     el.addEventListener("pointermove",function(e){ if(!drag)return; var nv=Math.max(0,Math.min(1,drag.v+(drag.y-e.clientY)/170)); vals[p.idx]=nv; render(nv); send(p.idx,nv); });
     el.addEventListener("pointerup",function(){ drag=null; }); el.addEventListener("pointercancel",function(){ drag=null; });
-    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); render(p.def); return {render:render}; });
+    el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); }); renderByIdx[p.idx]=render; render(p.def); return {render:render}; });
   var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
   function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); } window.addEventListener("resize",resize); resize();
   function frame(ts){ ctx.clearRect(0,0,W,H); var cut=vals[0], mod=vals[3], sub=vals[4]; var mid=H*0.54;
@@ -58,7 +59,11 @@
     var a=ts/430; ctx.fillStyle="#5ad0e0"; ctx.beginPath(); ctx.arc(ox+Math.cos(a)*rr, oy+Math.sin(a)*rr, 2.6, 0, Math.PI*2); ctx.fill();
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI (session restore, automation). The host
+    // replays the restored values in here right after we register, so each knob repaints
+    // to the saved sound instead of its default. render() only redraws, never pushes back.
+    if(host&&host.onParam) host.onParam(function(i,v){ if(!(i in vals))return; vals[i]=v; if(renderByIdx[i]) renderByIdx[i](v); }); }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script></body></html>

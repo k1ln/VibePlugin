@@ -217,6 +217,7 @@ h1{
     {name:"Mix",  index:3,min:0,max:1,def:1}
   ];
   var state={};            // index -> current value
+  var knobApply={};        // index -> set that knob's value and repaint
   var deck=document.getElementById('deck');
   var waveEl=document.getElementById('wave');
 
@@ -281,6 +282,10 @@ h1{
     });
 
     paint();
+    knobApply[p.index]=function(nv){
+      v=nv<p.min?p.min:nv>p.max?p.max:nv;
+      paint();
+    };
   }
 
   // ---- live diode-clip waveform: drive sets clip hardness, tone tilts ----
@@ -320,7 +325,16 @@ h1{
     document.querySelector('.statusled').style.opacity=engaged?'':'0.25';
   });
 
-  function ready(){ onChange(); }
+  function ready(){
+    onChange();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // automation. The host replays the restored values here right after we register,
+    // so each knob (and the diode-clip waveform, which reads state) repaints to the
+    // saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=knobApply[i]; if(fn) fn(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

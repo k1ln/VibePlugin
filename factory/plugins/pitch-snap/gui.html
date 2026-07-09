@@ -65,6 +65,7 @@
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
     render(p.def); return {render:render};
   });
+  var byIdx={}; P.forEach(function(p,i){ byIdx[p.idx]=knobs[i]; });
   // note-grid with a wandering "detected" pitch that snaps toward grid lines (speed/amount)
   var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), W=0,H=0,DPR=Math.min(2,window.devicePixelRatio||1);
   function resize(){ var r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
@@ -82,7 +83,11 @@
     var dx=W-12, dy=10+(cur/(rows-1))*(H-20); ctx.fillStyle="#43e0c4"; ctx.beginPath(); ctx.arc(dx,dy,3,0,Math.PI*2); ctx.fill();
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){ var k=byIdx[i]; if(!k) return; vals[i]=+v; k.render(vals[i]); }); }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

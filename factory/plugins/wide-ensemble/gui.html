@@ -335,6 +335,14 @@
   function ready(){
     SPEC.forEach(function(p){ p._set(state[p.i]); });
     setMode(MODE.def);
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so the knobs and the mode rocker repaint to the saved sound instead
+    // of their defaults. Silent updates only; the scope reads state[] live.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      if(i===MODE.i){ setMode(+v,true); return; }
+      for(var k=0;k<SPEC.length;k++){ if(SPEC[k].i===i){ SPEC[k]._set(+v,true); return; } }
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

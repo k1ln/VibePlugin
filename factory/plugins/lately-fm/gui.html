@@ -100,7 +100,11 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes from outside the GUI (session restore, preset load, DAW
+    // automation). The host replays the restored values right after we register, so
+    // each knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){ if(!(i in vals))return; vals[i]=+v; var k=knobs[i]; if(k)k.render(+v); }); }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

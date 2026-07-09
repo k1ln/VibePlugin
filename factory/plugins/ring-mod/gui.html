@@ -282,6 +282,8 @@
 
   // ---- shared state mirror for the scope animation ----
   var state={freq:0.5,wave:0,rate:0.3,depth:0.25,mix:1};
+  // param index -> visuals-only repaint fn, so onParam can follow host changes
+  var followers={};
 
   // ============================================================
   //  ROTARY DIALS (big + minis): drag = change, dblclick = reset
@@ -328,7 +330,9 @@
     onChange(o.val,true);
 
     var dragging=false, lastY=0;
-    function apply(v){ o.val=clamp(v,min,max); setRotary(o); send(idx,o.val); onChange(o.val,false); }
+    function draw(v){ o.val=clamp(v,min,max); setRotary(o); onChange(o.val,false); }
+    function apply(v){ draw(v); send(idx,o.val); }
+    followers[idx]=draw;
     el.addEventListener('pointerdown',function(e){
       dragging=true; lastY=e.clientY; el.setPointerCapture(e.pointerId); e.preventDefault();
     });
@@ -392,6 +396,7 @@
       b.addEventListener('click',function(){ select(+b.dataset.v,false); });
     });
     seg.addEventListener('dblclick',function(){ select(def,false); });
+    followers[idx]=function(v){ select(v|0,true); };
     select(def,true); send(idx,def);
   })();
 
@@ -429,6 +434,7 @@
     f.addEventListener('pointerup',end);
     f.addEventListener('pointercancel',end);
     f.addEventListener('dblclick',function(){ setFrac((def-min)/(max-min),false); });
+    followers[idx]=function(v){ val=clamp(v,min,max); render(); };
     setFrac((def-min)/(max-min),true); send(idx,def);
   })();
 
@@ -516,6 +522,12 @@
   function ready(){
     // re-send defaults so host gets a consistent initial state
     send(0,0.5); send(1,0); send(2,0.3); send(3,0.25); send(4,1);
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): the host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var f=followers[i]; if(f) f(+v);
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

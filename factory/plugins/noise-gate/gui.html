@@ -534,6 +534,15 @@
       push(PARAMS[i].index, state[i]);
     }
     renderers.forEach(function (r) { r(); });
+    // Follow param changes made outside the GUI (session restore, automation). The
+    // host replays the restored values in here right after we register, so every knob
+    // repaints to the saved sound instead of its default. render() only redraws from
+    // state; it never pushes back to the host.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      if (!renderers[i]) return;
+      state[i] = v;
+      renderers[i]();
+    });
   }
 
   if (window.vstai && window.vstai.onReady) {

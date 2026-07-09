@@ -434,6 +434,14 @@
     PARAMS.forEach(function (p) { pushParam(p.index, state[p.index]); });
     buildTicks();
     if (!rafId) rafId = requestAnimationFrame(tick);
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      PARAMS.forEach(function (p) {
+        if (p.index === i) { state[p.index] = +v; if (p._render) p._render(); }
+      });
+    });
   }
 
   function buildOne(host, p) {
@@ -519,6 +527,7 @@
       else if (e.key === "ArrowDown" || e.key === "ArrowLeft") { commit(state[p.index] - 0.02); e.preventDefault(); }
     });
 
+    p._render = render;
     render();
   }
 

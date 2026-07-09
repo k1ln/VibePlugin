@@ -49,6 +49,7 @@
   "use strict";
   var P=[{name:"Mix",idx:0,def:0.35},{name:"Decay",idx:1,def:0.7},{name:"Tone",idx:2,def:0.7},{name:"Pre",idx:3,def:0.06},{name:"Size",idx:4,def:0.6}];
   var vals={}; P.forEach(function(p){ vals[p.idx]=p.def; });
+  var followers={}; // param index -> fn(v) that repaints that knob from an outside change
   var host=null; function send(i,v){ try{ if(host&&host.setParam) host.setParam(i,v); }catch(e){} }
   var R=33, C=2*Math.PI*R, A0=-135, A1=135;
   var kw=document.getElementById("knobs");
@@ -72,6 +73,8 @@
     el.addEventListener("pointerup",function(){ drag=null; });
     el.addEventListener("pointercancel",function(){ drag=null; });
     el.addEventListener("dblclick",function(){ vals[p.idx]=p.def; render(p.def); send(p.idx,p.def); });
+    // Follow host-side changes: refresh our value and repaint without pushing back.
+    followers[p.idx]=function(v){ vals[p.idx]=+v; render(+v); };
     render(p.def);
     return {render:render};
   });
@@ -95,7 +98,12 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){ var f=followers[i]; if(f) f(+v); });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

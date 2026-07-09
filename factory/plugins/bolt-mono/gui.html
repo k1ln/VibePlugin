@@ -419,6 +419,10 @@
     level:  { index: 6, def: 0.80, val: 0.80 }
   };
 
+  // index -> a function that writes a restored value into the param and repaints
+  // its control, so onParam can follow session restore / automation for every widget.
+  var renders = {};
+
   function push(key) {
     var p = PARAMS[key];
     if (window.vstai && window.vstai.setParam) {
@@ -481,6 +485,7 @@
     }, { passive: false });
 
     render();
+    renders[p.index] = function (v) { p.val = +v; render(); };
   }
 
   // ---- KNOBS (SVG) -----------------------------------------------------
@@ -579,6 +584,7 @@
     }, { passive: false });
 
     render();
+    renders[p.index] = function (v) { p.val = +v; render(); };
   }
 
   // ---- KEYBOARD --------------------------------------------------------
@@ -751,6 +757,12 @@
     bindKnob("k-decay", "decay");
     // initialise engine to defaults
     for (var key in PARAMS) push(key);
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every fader/knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var fn = renders[i]; if (fn) fn(v);
+    });
   }
 
   if (window.vstai && window.vstai.onReady) {

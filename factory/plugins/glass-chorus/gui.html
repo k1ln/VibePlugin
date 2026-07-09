@@ -343,6 +343,14 @@
     PARAMS.forEach(function(p){ setVal(p.index,p.def); renderKnob(p.index); });
     setVal(MODE.index, MODE.def); renderMorph();
     requestAnimationFrame(frame);
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      i = +i;
+      if(i === MODE.index){ values[i] = +v; renderMorph(); return; }
+      if(dials[i]){ values[i] = +v; renderKnob(i); }
+    });
   }
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

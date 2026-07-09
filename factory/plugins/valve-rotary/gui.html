@@ -296,6 +296,7 @@
     {name:"Mix",  index:4,min:0,max:1,def:1}
   ];
   var state={};
+  var listeners={};   // param index -> fn(value) that refreshes+redraws that knob
   var root=document.documentElement.style;
   var deck=document.getElementById('deck');
   var lampSlow=document.getElementById('lampSlow');
@@ -332,19 +333,24 @@
     var v=p.def;
 
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       knob.style.setProperty('--n',n);
       val.textContent=pct(n);
       state[p.index]=v;
-      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
       applyVisuals();
+    }
+    function paint(){
+      draw();
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
     }
     function setNorm(n){
       n=n<0?0:n>1?1:n;
       v=p.min+(p.max-p.min)*n;
       paint();
     }
+    // follow session restore / host automation: adopt the value and redraw only
+    listeners[p.index]=function(nv){ v=nv; draw(); };
 
     var drag=false,startY=0,startN=0;
     knob.addEventListener('pointerdown',function(e){
@@ -373,7 +379,15 @@
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ applyVisuals(); }
+  function ready(){
+    applyVisuals();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=listeners[i]; if(fn) fn(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

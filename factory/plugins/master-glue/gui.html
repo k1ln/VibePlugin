@@ -323,6 +323,18 @@
     PARAMS.forEach(function(p){ render(p); send(p.idx,state[p.idx]); });
     updateMeter();
     requestAnimationFrame(tick);
+
+    // Follow param changes made outside the GUI (session restore, automation): the
+    // host replays the restored values in here right after we register, so each knob
+    // (and the AUTO badge / GR meter it feeds) repaints to the saved sound instead of
+    // its default. push=false so following an external change does not echo it back.
+    if(window.vstai && typeof window.vstai.onParam==="function"){
+      var byIdx={};
+      PARAMS.forEach(function(p){ byIdx[p.idx]=p; });
+      window.vstai.onParam(function(i,v){
+        var p=byIdx[i]; if(p) setVal(p, +v, false);
+      });
+    }
   }
 
   if(window.vstai && typeof window.vstai.onReady==="function"){

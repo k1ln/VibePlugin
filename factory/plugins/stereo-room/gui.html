@@ -339,6 +339,8 @@
   ];
 
   var values = {};   // index -> normalized 0..1
+  var byIndex = {};  // param index -> descriptor
+  PARAMS.forEach(function (p) { byIndex[p.index] = p; });
 
   function pct(v)      { return Math.round(v * 100) + " %"; }
   function sizeFmt(v)  {
@@ -648,6 +650,16 @@
       pushParam(p);
     });
     updateRoom();
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var p = byIndex[i];
+      if (!p) return;
+      values[p.index] = clamp01((v - p.min) / (p.max - p.min));
+      render(p);
+      updateRoom();
+    });
   }
 
   if (window.vstai && window.vstai.onReady) {

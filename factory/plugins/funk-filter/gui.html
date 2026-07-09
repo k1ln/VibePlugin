@@ -452,6 +452,18 @@
     send(P.DIR.idx, P.DIR.val); tgDir.paint();
     send(P.MODE.idx, P.MODE.val); tgMode.paint();
     updateWinLabel();
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam){ window.vstai.onParam(function(i, v){
+      i = +i;
+      if(i === P.SENS.idx){ P.SENS.val = +v; kSens.render(); }
+      else if(i === P.RES.idx){ P.RES.val = +v; kRes.render(); }
+      else if(i === P.RANGE.idx){ P.RANGE.val = +v; kRange.render(); }
+      else if(i === P.MIX.idx){ P.MIX.val = +v; kMix.render(); }
+      else if(i === P.DIR.idx){ P.DIR.val = +v; tgDir.paint(); }
+      else if(i === P.MODE.idx){ P.MODE.val = +v; tgMode.paint(); }
+    }); }
   }
 
   if(window.vstai && window.vstai.onReady){

@@ -311,6 +311,7 @@
 
   var pedal = document.getElementById('pedal');
   var smileGlow = document.getElementById('smileGlow');
+  var regs = {};   // param index -> repaint-from-host fn (updates state, no send-back)
 
   function send(i,val){ if(window.vstai && window.vstai.setParam) window.vstai.setParam(i,val); }
 
@@ -321,16 +322,18 @@
     var iris=el.querySelector('.iris'), bub=el.querySelector('.bub');
     var val=def, dragging=false, sy=0, sn=0;
     function norm(){ return (val-mn)/((mx-mn)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       pedal.style.setProperty('--'+nv, n.toFixed(4));     // arc + glow filter
       iris.style.setProperty('--nn', n.toFixed(4));        // pointer rotation
       bub.textContent = fmt(n);
       if(i===0){ pedal.style.setProperty('--fuzzn', n.toFixed(4));
                  smileGlow.style.setProperty('--fuzzn', n.toFixed(4)); }
-      send(i,val);
     }
+    function paint(){ draw(); send(i,val); }
     function setN(n){ n=clamp(n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
+    // Repaint from a host-pushed value (session restore / automation), no send-back.
+    regs[i] = function(v){ val = v<mn?mn:(v>mx?mx:v); draw(); };
     el.addEventListener('pointerdown',function(e){
       dragging=true; sy=e.clientY; sn=norm(); el.classList.add('act');
       el.setPointerCapture(e.pointerId); e.preventDefault();
@@ -353,13 +356,15 @@
     var out=document.getElementById('v'+i);
     var val=def, dragging=false;
     function norm(){ return (val-mn)/((mx-mn)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       el.style.setProperty('--fn', n.toFixed(4));
       if(out) out.textContent=fmt(n);
-      send(i,val);
     }
+    function paint(){ draw(); send(i,val); }
     function setN(n){ n=clamp(n); var v=mn+(mx-mn)*n; v=Math.round(v/step)*step; val=v; paint(); }
+    // Repaint from a host-pushed value (session restore / automation), no send-back.
+    regs[i] = function(v){ val = v<mn?mn:(v>mx?mx:v); draw(); };
     function fromY(e){
       var r=el.getBoundingClientRect();
       // active travel is inset 10px top & bottom (slot)
@@ -384,6 +389,12 @@
     initEye(document.getElementById('eye1'));
     initFader(document.getElementById('fad2'));
     initFader(document.getElementById('fad3'));
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn = regs[+i]; if(fn) fn(+v);
+    });
   }
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

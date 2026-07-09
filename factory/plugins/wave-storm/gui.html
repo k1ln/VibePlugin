@@ -79,7 +79,15 @@
       ctx.lineWidth=(Math.abs(fr-pos)<0.07)?2.4:1.2; if(Math.abs(fr-pos)<0.07){ctx.shadowColor="#ff8a3d";ctx.shadowBlur=8;} ctx.stroke(); ctx.shadowBlur=0; }
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
-  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); }); }
+  function boot(){ host=window.vstai||null; P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default;
+    // the wavetable canvas reads vals[] live so it follows on its own.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      P.forEach(function(p,k){ if(p.idx===i){ vals[i]=+v; knobs[k].render(+v); } });
+    });
+  }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script>

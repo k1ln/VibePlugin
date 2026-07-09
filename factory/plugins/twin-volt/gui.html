@@ -607,6 +607,16 @@
     renderOsc1(); renderOsc2();
     knobRenderers.forEach(function (r) { r(); });
     pushAll();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      i = +i; if (i < 0 || i >= vals.length) return;
+      vals[i] = +v;
+      if (i === P.CUTOFF) { renderOsc1(); return; }
+      if (i === P.DETUNE) { renderOsc2(); return; }
+      for (var k = 0; k < knobDefs.length; k++) { if (knobDefs[k].idx === i) { knobRenderers[k](); return; } }
+    });
   }
 
   if (window.vstai && window.vstai.onReady) {

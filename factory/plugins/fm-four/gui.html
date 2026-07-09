@@ -431,6 +431,19 @@
     setAlgo(0);
     // push all knob defaults to host + render
     KNOBS.forEach(function(k){ sendParam(k.idx, state[k.idx]); dials[k.idx].render(); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(host && host.onParam){ host.onParam(function(i, v){
+      i = +i;
+      if(i === ALGO_IDX){
+        algo = v|0;
+        algoBtns.forEach(function(b){ b.classList.toggle("on", (+b.dataset.a)===algo); });
+        drawGraph();
+        return;
+      }
+      if(dials[i]){ state[i] = +v; dials[i].render(); }
+    }); }
     requestAnimationFrame(frame);
     var st=document.getElementById("status");
     st.textContent = host ? "HOST LINKED" : "STANDALONE";

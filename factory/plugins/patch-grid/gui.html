@@ -122,9 +122,19 @@
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
 
+  // Follow a param changed outside the GUI — session restore, preset load, DAW
+  // automation. Module knobs (0..9) repaint from vals; matrix routes (10..58) write
+  // the pin/amount arrays, which the animation loop already redraws every frame.
+  function follow(i,v){
+    if(i<10){ if(!(i in vals))return; vals[i]=v; knobs[i].render(v); return; }
+    var r=i-10; if(r<0||r>=49)return; var s=Math.floor(r/7), d=r%7;
+    amt[s][d]=v; pin[s][d]=v>0?1:0;
+  }
+
   function boot(){ host=window.vstai||null;
     P.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
-    for(var s=0;s<7;s++)for(var d=0;d<7;d++) send(midx(s,d), amt[s][d]); }
+    for(var s=0;s<7;s++)for(var d=0;d<7;d++) send(midx(s,d), amt[s][d]);
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(follow); }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } } else boot();
 })();
 </script></body></html>

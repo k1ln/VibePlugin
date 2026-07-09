@@ -419,6 +419,15 @@
   function pushAll() {
     selectWave(0, true);
     DIALS.forEach(function (d) { setDial(d.i, state[d.i], true); });
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we register,
+    // so every control repaints to the saved sound instead of its default.
+    if (window.vstai && typeof window.vstai.onParam === "function") {
+      window.vstai.onParam(function (i, v) {
+        if (i === 0) { selectWave(Math.round(v), false); }
+        else if (dialNodes[i]) { setDial(i, v, false); }
+      });
+    }
   }
 
   // init visuals immediately (no host)

@@ -112,6 +112,16 @@ Quality bar learned on Seer Six:
 - `node factory/tools/gui-check.mjs factory/plugins/<slug> --shot /tmp/<slug>.png`
   → `GUI CHECK: PASS` (0 errors, 64-or-N params pushed). Then **Read the screenshot
   and look at it** — fix overlapping labels, broken layout, invisible controls.
+- **Every control must draw the RESTORED value, not its default.** Reopening a saved
+  project hands the GUI the user's values; a control that only ever paints from its
+  built-in default shows a knob at 12 o'clock while the engine plays something else,
+  or a button lit while it is really off. So every control registers
+  `window.vstai.onParam((i, v) => …)` and repaints from `v` when `i` is its own — the
+  same path DAW automation uses. Keep **no** shadow state `onParam` doesn't update:
+  a hardcoded `var running = true;` or a `class="btn on"` baked into the markup is a bug.
+  Verify with `node factory/tools/persist-check.mjs factory/plugins/<slug>`
+  → `PERSIST CHECK: PASS` (it renders the GUI with defaults and with a perturbed
+  restore state and fails if the two look identical).
 
 ### 6. Pack + document
 - `node factory/tools/pack-vstai.mjs factory/plugins/<slug>/spec.json`
@@ -123,5 +133,6 @@ Quality bar learned on Seer Six:
 
 ### 7. Report back (to the coordinator)
 Manual (title, version, pages read) · param count & packing summary · wasm-runner
-result (all-affects? y/n) · behavior tests run & results · gui-check JSON · screenshot
+result (all-affects? y/n) · behavior tests run & results · gui-check JSON · persist-check
+verdict · screenshot
 path · list of signature "tiny bits" implemented · deviations/simplifications.

@@ -110,7 +110,20 @@ namespace vstai::shim
     onReady: function(cb){ try { cb(); } catch(e){} },
     // Register cb(index, value) to be called when a param changes from OUTSIDE the
     // GUI (host automation, another controller). Controls use this to follow along.
-    onParam: function(cb){ if (typeof cb === 'function') paramCbs.push(cb); },
+    onParam: function(cb){
+      if (typeof cb !== 'function') return;
+      paramCbs.push(cb);
+      // Hand the fresh listener the values we hold right now. A control is built
+      // from the plugin's built-in default, so after a session restore it DRAWS the
+      // default while the engine plays the saved sound. Replaying the state through
+      // the same path host automation uses repaints it to what you actually saved.
+      // Deferred a tick so the GUI's own init finishes first, and skipped once the
+      // user has started interacting so we never fight a live drag.
+      setTimeout(function(){
+        if (!booting) return;
+        for (var k in vals){ try { cb(+k, vals[k]); } catch(_){} }
+      }, 0);
+    },
     noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
     noteOff: function(n){ n = n|0; delete held[n]; send('/__vstai/note/' + n + '/0/0'); },
     loadSample: function(file, onProgress){ return loadSample(file, onProgress); }

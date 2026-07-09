@@ -268,7 +268,8 @@
   ];
 
   var state = {}; // index -> normalised 0..1
-  PARAMS.forEach(function (p) { state[p.index] = (p.def - p.min) / (p.max - p.min); });
+  var byIndex = {}; // param index -> spec
+  PARAMS.forEach(function (p) { state[p.index] = (p.def - p.min) / (p.max - p.min); byIndex[p.index] = p; });
 
   // ---- host bridge ----
   function pushParam(p) {
@@ -346,7 +347,8 @@
     var varc = svg.querySelector(".varc");
     var ptr = svg.querySelector(".ptr");
 
-    function redraw() {
+    // visuals only — never pushes, so it is safe to call from the onParam listener
+    function draw() {
       var n = state[p.index];
       var ang = A0 + n * (A1 - A0);
       // value arc from start to current
@@ -356,8 +358,11 @@
         varc.setAttribute("d", arcPath(R, A0, ang));
       }
       ptr.setAttribute("transform", "rotate(" + (ang - 270) + " 50 50)");
-      var val = pushParam(p);
-      value.textContent = (val).toFixed(2);
+      value.textContent = (p.min + n * (p.max - p.min)).toFixed(2);
+    }
+    function redraw() {
+      draw();
+      pushParam(p);
     }
 
     // ---- drag interaction ----
@@ -406,6 +411,7 @@
     });
 
     p._redraw = redraw;
+    p._draw = draw;
     redraw();
     return cell;
   }
@@ -500,6 +506,15 @@
     initUI();
     // ensure all params initialised to defaults on the engine
     PARAMS.forEach(function (p) { pushParam(p); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      var p = byIndex[i];
+      if (!p) return;
+      state[p.index] = (v - p.min) / (p.max - p.min);
+      if (p._draw) p._draw();
+    });
   }
 
   if (window.vstai && typeof window.vstai.onReady === "function") {

@@ -492,6 +492,21 @@
     if (window.vstai) HOST = window.vstai;
     var els = document.querySelectorAll(".knob");
     for (var i = 0; i < els.length; i++) initKnob(els[i]);
+    // Push each control's value to the engine on load. During the host's boot
+    // window these pushes are redirected to the restored session values.
+    for (var p = 0; p < knobs.length; p++) {
+      pushParam(parseInt(knobs[p].dataset.index, 10), parseFloat(knobs[p].dataset.value));
+    }
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (i, v) {
+        for (var k = 0; k < knobs.length; k++) {
+          if (parseInt(knobs[k].dataset.index, 10) === +i) { setKnob(knobs[k], +v, false); return; }
+        }
+      });
+    }
     buildSprings();
     animate();
   }

@@ -299,6 +299,15 @@
       if(knobEls[i]) knobEls[i]._paint();
       send(i);                       // initialise host to defaults
     }
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    // The comb sweep reads vals[] live, so it follows on its own.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i, v){
+      if(i < 0 || i >= vals.length) return;
+      vals[i] = +v;
+      if(knobEls[i]) knobEls[i]._paint();
+    });
     requestAnimationFrame(frame);
   }
 

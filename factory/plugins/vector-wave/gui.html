@@ -170,6 +170,7 @@
   "use strict";
   function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,+v); }
   function clamp(x,a,b){ return x<a?a:(x>b?b:x); }
+  var listeners={};   // param index -> fn(value) that refreshes+redraws that control
 
   // ---- single-cycle wave shapes for the previews (match the DSP corners) ----
   function shape(name,n,phase){
@@ -212,6 +213,9 @@
   pad.addEventListener('pointermove',function(e){ if(dragPad) setPadFromEvent(e); });
   pad.addEventListener('pointerup',function(){ dragPad=false; });
   pad.addEventListener('dblclick',function(){ vx=0.5; vy=0.5; send(0,vx); send(1,vy); paintPad(); });
+  // follow session restore / host automation: adopt the value and redraw only
+  listeners[0]=function(nv){ vx=clamp(nv,0,1); paintPad(); };
+  listeners[1]=function(nv){ vy=clamp(nv,0,1); paintPad(); };
 
   // ---- KNOBS (params 2..7) ----
   var defs=[
@@ -252,6 +256,8 @@
     });
     wrap.addEventListener('pointerup',function(){ dragging=false; });
     wrap.addEventListener('dblclick',function(){ val=p.def; commit(); });
+    // follow session restore / host automation: adopt the value and redraw only
+    listeners[p.i]=function(nv){ val=clamp(nv,0,1); paint(); };
     commit();
   });
 
@@ -292,6 +298,12 @@
     // push defaults to the host and paint
     send(0,vx); send(1,vy);
     paintPad();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so the pad and knobs repaint to the saved sound, not their defaults.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=listeners[i]; if(fn) fn(+v);
+    });
   }
   window.addEventListener('resize',paintPad);
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();

@@ -540,6 +540,10 @@ function attachDrag(knob, p) {
 
 PARAMS.forEach(makeKnob);
 
+// index -> param, so onParam can find the knob a host change targets
+const byIndex = {};
+PARAMS.forEach((p) => { byIndex[p.index] = p; });
+
 // ---------- step sequencer animation (visual, hypnotic) ----------
 const STEP_N = 8;
 const stepsEl = document.getElementById("steps");
@@ -764,6 +768,18 @@ function initAll() {
   stepEls[0].el.classList.add("cur");
   stepEls[0].bar.style.opacity = "1";
   startLoop();
+  // Follow param changes made outside the GUI (session restore, preset load, DAW
+  // automation): the host replays the restored values here right after we register,
+  // so every knob repaints to the saved sound instead of its default (push=false so
+  // we never write back over the saved sound).
+  if (window.vstai && typeof window.vstai.onParam === "function") {
+    window.vstai.onParam(function (i, v) {
+      const p = byIndex[i];
+      if (!p) return;
+      setParam(p, +v, false);
+      updateScopeTag();
+    });
+  }
 }
 
 if (window.vstai && typeof window.vstai.onReady === "function") {

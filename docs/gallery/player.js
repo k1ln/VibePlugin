@@ -372,7 +372,19 @@ $("octUp").addEventListener("click", () => changeOctave(1));
 // and forwards control events here via postMessage; we relay them to the worklet.
 const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script>
 (function(){
-  var vals={};
+  // Saved param values, injected as window.__vstaiRestored just before this shim
+  // (they equal the defaults for a freshly packed .vstai). Mirrors src/BridgeShim.h:
+  // the GUI re-pushes its OWN defaults when it boots, so during that boot window we
+  // redirect those pushes back to the restored value, and we replay the state into
+  // every onParam listener so the controls DRAW the saved sound instead of defaults.
+  var restored=(window.__vstaiRestored&&typeof window.__vstaiRestored==='object')?window.__vstaiRestored:{};
+  var vals={}; for(var _rk in restored) vals[_rk]=+restored[_rk];
+  var paramCbs=[];
+  var booting=true;
+  function endBoot(){ booting=false; }
+  window.addEventListener('pointerdown', endBoot, true);
+  window.addEventListener('keydown',     endBoot, true);
+  setTimeout(endBoot, 6000);
   function post(m){ try{ m.__vstai=1; parent.postMessage(m,'*'); }catch(e){} }
   async function loadSample(file,onProgress){
     if(!file) throw new Error('No file given.');
@@ -386,10 +398,23 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
     return {frames:frames, channels:channels, sampleRate:rate};
   }
   window.vstai={
-    setParam:function(i,v){ vals[i]=+v; post({type:'param', i:(i|0), v:+v}); },
+    setParam:function(i,v){ v=+v;
+      // Boot echo: the GUI is pushing its default over a different restored value.
+      if(booting&&(i in restored)&&Math.abs(v-restored[i])>1e-6) v=restored[i];
+      vals[i]=v; post({type:'param', i:(i|0), v:v}); },
     getParam:function(i){ return (i in vals)?vals[i]:0; },
     onReady:function(cb){ try{cb();}catch(e){} },
-    onParam:function(cb){},
+    onParam:function(cb){
+      if(typeof cb!=='function') return;
+      paramCbs.push(cb);
+      // Hand the fresh listener the values we hold now, so a control built from its
+      // built-in default repaints to the saved sound. Deferred a tick so the GUI's
+      // own init finishes first; skipped once the user starts interacting.
+      setTimeout(function(){
+        if(!booting) return;
+        for(var k in vals){ try{ cb(+k, vals[k]); }catch(_){} }
+      },0);
+    },
     noteOn:function(n,v){ post({type:'note', on:true, note:(n|0), vel:(v==null?1:+v)}); },
     noteOff:function(n){ post({type:'note', on:false, note:(n|0)}); },
     loadSample:function(file,onProgress){ return loadSample(file,onProgress); }
@@ -401,6 +426,19 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
 })();
 <\/script>`;
 
+// The param values the plugin was saved with, keyed by index. A .vstai written by
+// pack-vstai.mjs carries only "default", so this is the defaults for every gallery
+// plugin; one saved from the desktop app also carries "value". Same contract as
+// vstai::shim::restoredValuesJson, so the GUI boots identically in both hosts.
+function restoredValuesJson() {
+  const out = {};
+  for (const p of meta.params || []) {
+    if (!p || !Number.isInteger(p.index)) continue;
+    out[p.index] = Number.isFinite(+p.value) ? +p.value : +p.default;
+  }
+  return JSON.stringify(out);
+}
+
 let guiRendered = false;
 function renderGui() {
   if (guiRendered) return;            // render once — re-rendering would restart the intro build
@@ -408,10 +446,11 @@ function renderGui() {
   const html = meta.html || "<body style='font:14px sans-serif;color:#fff'>No GUI.</body>";
   // homepage only: tell the GUI to run its staged "build" animation
   const flag = intro ? "<script>window.__vstaiIntro=true<\/script>" : "";
+  const init = `<script>window.__vstaiRestored=${restoredValuesJson()}<\/script>`;
   const head = html.indexOf("<head>");
   const doc = head >= 0
-    ? html.slice(0, head + 6) + flag + SHIM + html.slice(head + 6)
-    : flag + SHIM + html;
+    ? html.slice(0, head + 6) + flag + init + SHIM + html.slice(head + 6)
+    : flag + init + SHIM + html;
   const f = $("gui");
   // Once the GUI document (and its arp/audiostart listener) is live, release any
   // pending audiostart. Guards the switch-back race where audio is already running.

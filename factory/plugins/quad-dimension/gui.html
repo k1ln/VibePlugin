@@ -321,12 +321,15 @@
   var modeBtns = Array.prototype.slice.call(document.querySelectorAll(".mode-btn"));
   var modeNameEl = document.getElementById("modeName");
 
-  function applyMode(m) {
+  function drawMode(m) {
     state.mode = m;
     for (var i = 0; i < modeBtns.length; i++) {
       modeBtns[i].classList.toggle("active", i === m);
     }
     modeNameEl.textContent = MODE_NAMES[m];
+  }
+  function applyMode(m) {
+    drawMode(m);
     bridge.setParam(0, m); // real value 0..3
   }
 
@@ -578,6 +581,18 @@
     kWidth.render(); bridge.setParam(1, state.width);
     kTone.render();  bridge.setParam(2, state.tone);
     kMix.render();   bridge.setParam(3, state.mix);
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (i, v) {
+        i = +i;
+        if (i === 0) { drawMode(Math.round(v)); }
+        else if (i === 1) { state.width = +v; kWidth.render(); }
+        else if (i === 2) { state.tone = +v; kTone.render(); }
+        else if (i === 3) { state.mix = +v; kMix.render(); }
+      });
+    }
   }
 
   if (window.vstai && window.vstai.onReady) {

@@ -392,6 +392,18 @@
   // ---- initialise all params to defaults on the engine ----
   function init() {
     controls.forEach((c) => pushParam(c.p.index, denorm(c.p, c.t)));
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob (and the shimmer meter, which reads ctrl.t) repaints
+    // to the saved sound instead of its default.
+    if (window.vstai && typeof window.vstai.onParam === "function") {
+      window.vstai.onParam(function (index, value) {
+        for (let k = 0; k < controls.length; k++) {
+          const c = controls[k];
+          if (c.p.index === index) { c.t = norm(c.p, +value); c.render(); return; }
+        }
+      });
+    }
   }
   if (window.vstai && typeof window.vstai.onReady === "function") {
     window.vstai.onReady(init);

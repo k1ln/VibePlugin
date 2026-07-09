@@ -214,6 +214,7 @@ h1{
     {name:"Mix",    index:4,min:0,max:1,def:1}
   ];
   var state={};
+  var followers={};   // param index -> visuals-only repaint fn (for onParam)
   var deck=document.getElementById('deck');
   var curveEl=document.getElementById('curve');
   var fillEl=document.getElementById('fill');
@@ -244,16 +245,20 @@ h1{
     var v=p.def;
 
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function draw(){
       var nn=norm();
       arc.style.setProperty('--n',nn);
       ptr.style.setProperty('--n',nn);
       val.textContent=pct(nn);
       state[p.index]=v;
-      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
       onChange();
     }
+    function paint(){
+      draw();
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
     function setNorm(nn){ nn=nn<0?0:nn>1?1:nn; v=p.min+(p.max-p.min)*nn; paint(); }
+    followers[p.index]=function(nv){ v=Math.max(p.min,Math.min(p.max,+nv)); draw(); };
 
     var drag=false,startY=0,startN=0;
     knob.addEventListener('pointerdown',function(e){
@@ -354,7 +359,14 @@ h1{
 
   PARAMS.forEach(buildKnob);
 
-  function ready(){ onChange(); }
+  function ready(){ onChange();
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): the host replays the restored values in here right after we
+    // register, so every control repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var f=followers[i]; if(f) f(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

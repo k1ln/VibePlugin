@@ -540,6 +540,19 @@
     buildKeyboard();
     // set every knob to default and push to engine
     knobEls.forEach(function (k) { k._setVal(k._param.def, true); });
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    var knobByIndex = {};
+    knobEls.forEach(function (k) { knobByIndex[k._param.index] = k; });
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (i, v) {
+        var k = knobByIndex[i];
+        if (!k) return;
+        state[i] = +v;
+        k._setVal(+v, false);
+      });
+    }
     startField();
     ready = true;
   }

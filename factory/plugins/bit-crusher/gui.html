@@ -313,7 +313,15 @@ body{
   requestAnimationFrame(frame);
 
   /* ---- host handshake: paint defaults & push every param ---- */
-  function ready(){ PARAMS.forEach(function(p){ p._paint(); }); }
+  function ready(){
+    PARAMS.forEach(function(p){ p._paint(); });
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every meter repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      for(var k=0;k<PARAMS.length;k++){ if(PARAMS[k].index===i){ state[i]=+v; PARAMS[k]._paint(); break; } }
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

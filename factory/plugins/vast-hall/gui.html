@@ -343,6 +343,13 @@
   function ready(){
     cells.forEach(function(c){ render(c); send(c); });
     updateScene();
+    // Follow param changes from outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values here right after we
+    // register, so every dial repaints to the saved sound instead of its default.
+    // push:false so we redraw without echoing the value back to the host.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      for(var k=0;k<cells.length;k++){ if(cells[k].p.index===i){ setVal(cells[k], +v, false); break; } }
+    });
   }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();

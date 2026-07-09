@@ -492,6 +492,23 @@
     for (var i = 0; i < PARAMS.length; i++) pushParam(i);
   }
 
+  // map a param index to its slot in PARAMS/values
+  var idxToPos = {};
+  PARAMS.forEach(function (p, i) { idxToPos[p.index] = i; });
+
+  // Follow param changes made outside the GUI — session restore, preset load, DAW
+  // automation. The host replays the restored values right after we register, so
+  // every knob repaints to the saved sound instead of its default.
+  if (window.vstai && window.vstai.onParam) {
+    window.vstai.onParam(function (index, v) {
+      var i = idxToPos[index];
+      if (i === undefined) return;
+      var p = PARAMS[i];
+      values[i] = Math.max(p.min, Math.min(p.max, +v));
+      renderKnob(i);
+    });
+  }
+
   if (window.vstai && window.vstai.onReady) {
     window.vstai.onReady(start);
   } else {

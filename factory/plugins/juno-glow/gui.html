@@ -552,6 +552,7 @@
     slot.addEventListener("dblclick", function () { setVal(p.def); });
 
     p._setVal = setVal;
+    p._paint = paint;
     setVal(p.def);
   });
 
@@ -697,6 +698,18 @@
   // ---- host handshake ----
   function pushAll() {
     PARAMS.forEach(function (p) { pushParam(p, values[p.index]); });
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values right after we register,
+    // so each fader (and the chorus button) repaints to the saved sound. Paint only,
+    // never push back, so we don't overwrite what the host just handed us.
+    if (window.vstai && typeof window.vstai.onParam === "function") {
+      window.vstai.onParam(function (i, v) {
+        var p = PARAMS[i];
+        if (!p || !p._paint) return;
+        values[i] = +v;
+        p._paint(+v);
+      });
+    }
   }
   if (window.vstai && typeof window.vstai.onReady === "function") {
     window.vstai.onReady(pushAll);

@@ -308,6 +308,8 @@
     return {set:setVal,get:function(){return cur;}};
   }
   var knobs=PARAMS.map(buildKnob);
+  var knobByIdx={};
+  PARAMS.forEach(function(p,i){ knobByIdx[p.index]=knobs[i]; });
 
   // ===================== MEMBRANE BUTTONS (preset waveshapes) =====================
   // Decorative tactile pad row that snaps the Shape control to characteristic
@@ -435,6 +437,15 @@
   function ready(){
     knobs.forEach(function(k,i){ send(PARAMS[i].index, k.get()); });
     refreshMembrane();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values right after we register, so
+    // every knob repaints to the saved sound instead of its default. set(v,false)
+    // updates STATE + visuals without pushing the value back to the engine.
+    if(host && host.onParam) host.onParam(function(i,v){
+      var k=knobByIdx[i]; if(!k) return;
+      k.set(v,false);
+      if(i===0) refreshMembrane();
+    });
   }
   if(host && host.onReady) host.onReady(ready); else ready();
 

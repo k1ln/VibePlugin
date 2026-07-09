@@ -703,6 +703,16 @@
   function start() {
     pushAll();
     for (var i = 0; i < knobEls.length; i++) knobEls[i].render();
+    // Follow param changes made outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values right after we register, so every
+    // knob repaints to the saved sound instead of its default (render only, no push back).
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (i, v) {
+        for (var s = 0; s < PARAMS.length; s++) {
+          if (PARAMS[s].idx === i) { values[s] = v; knobEls[s].render(); break; }
+        }
+      });
+    }
   }
   if (window.vstai && window.vstai.onReady) {
     window.vstai.onReady(start);

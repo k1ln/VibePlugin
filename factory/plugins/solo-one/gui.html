@@ -682,6 +682,13 @@
     bridge = window.vstai || null;
     // (re)push all defaults to the engine
     PARAMS.forEach(function (p) { pushParam(p.index, values[p.index]); });
+    // Follow param changes made outside the GUI (session restore, preset load, DAW
+    // automation): update our state and repaint the matching knob, without pushing back.
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      for (var j = 0; j < PARAMS.length; j++) {
+        if (PARAMS[j].index === i) { values[i] = +v; knobs[j].render(); break; }
+      }
+    });
   }
   function boot() {
     if (window.vstai && typeof window.vstai.onReady === "function") {

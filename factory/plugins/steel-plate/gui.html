@@ -329,7 +329,8 @@ h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.18em;text-transform:u
     var val=p.def;
 
     function norm(){return (val-p.min)/((p.max-p.min)||1);}
-    function paint(){
+    // visuals only — safe to call when following an external param change
+    function draw(){
       var n=norm();
       fg.style.strokeDashoffset=(ARC_LEN*(1-n)).toFixed(2);
       nut.style.transform='rotate('+((n-0.5)*SWEEP)+'deg)';
@@ -341,6 +342,9 @@ h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.18em;text-transform:u
       else if(p.index===3)pState.pd=val;
       else if(p.index===4)pState.mod=val;
       applyPlate();
+    }
+    function paint(){
+      draw();
       if(window.vstai&&window.vstai.setParam)window.vstai.setParam(p.index,val);
     }
     function setN(n){n=n<0?0:(n>1?1:n);val=p.min+(p.max-p.min)*n;paint();}
@@ -358,7 +362,7 @@ h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.18em;text-transform:u
     knob.addEventListener('dblclick',function(){val=p.def;paint();});
     knob.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?0.02:-0.02));},{passive:false});
 
-    ST[p.index]={paint:paint};
+    ST[p.index]={paint:paint,listen:function(nv){val=+nv;draw();}};
     paint();
   }
 
@@ -370,6 +374,12 @@ h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.18em;text-transform:u
       wireKnob(cell,p);
     });
     applyPlate();
+    // Follow param changes made outside the GUI — session restore, preset load,
+    // DAW automation. The host replays the restored values in here right after we
+    // register, so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam)window.vstai.onParam(function(i,v){
+      var s=ST[i]; if(s&&s.listen)s.listen(v);
+    });
   }
 
   if(window.vstai&&window.vstai.onReady)window.vstai.onReady(ready);else ready();

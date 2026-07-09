@@ -154,6 +154,7 @@ body{
     {name:"Output",index:4, min:0, max:1, def:0.7}
   ];
   var state={};
+  var listeners={};
   var root=document.documentElement;
 
   function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
@@ -186,6 +187,7 @@ body{
     knob.addEventListener('pointerup',end); knob.addEventListener('pointercancel',end);
     knob.addEventListener('dblclick',function(){val=p.def;paint();});
     knob.addEventListener('wheel',function(e){e.preventDefault();setN(norm()+(e.deltaY<0?0.02:-0.02));},{passive:false});
+    listeners[p.index]=function(v){ val=+v; paint(); };
     document.getElementById('row').appendChild(ctl);
     paint();
   }
@@ -230,6 +232,12 @@ body{
 
   function ready(){
     PARAMS.forEach(function(p,idx){ buildKnob(p,idx*60); });
+    // Follow param changes from outside the GUI — session restore, preset load, DAW
+    // automation. The host replays the restored values here right after we register,
+    // so every knob repaints to the saved sound instead of its default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=listeners[i]; if(fn) fn(v);
+    });
     reflect();
     requestAnimationFrame(tick);
   }

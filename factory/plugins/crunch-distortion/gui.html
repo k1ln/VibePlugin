@@ -222,6 +222,7 @@
     {name:"Mix",  index:3, min:0, max:1, def:1}
   ];
   var state={0:0.5,1:0.5,2:0.6,3:1};
+  var applied={}; // param index -> refresh this knob from an external value
 
   function send(i,v){ if(window.vstai&&window.vstai.setParam) window.vstai.setParam(i,v); }
   function fmt(v){ return Math.round(v*100)+"%"; }
@@ -261,6 +262,8 @@
       cur=p.min+(p.max-p.min)*n;
       paint();
     }
+    // refresh this knob's own copy from a value pushed by the host, then repaint
+    applied[p.index]=function(v){ cur=v<p.min?p.min:(v>p.max?p.max:v); paint(); };
 
     var dragging=false,startY=0,startN=0;
     knob.addEventListener('pointerdown',function(e){
@@ -348,6 +351,12 @@
 
   // ---- ready / re-sync to host defaults ----
   function ready(){ PARAMS.forEach(function(p){ send(p.index,state[p.index]); }); }
+  // Follow param changes made outside the GUI — session restore, preset load, DAW
+  // automation. The host replays the restored values right after we register, so
+  // every knob repaints to the saved sound instead of its default.
+  if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+    var fn=applied[i]; if(fn) fn(+v);
+  });
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

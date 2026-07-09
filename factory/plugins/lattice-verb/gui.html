@@ -198,6 +198,7 @@ h1{
     {name:"Pre-Delay",index:4,min:0,max:1,def:0.0}
   ];
   var state={};
+  var setters={};   // param index -> fn(newValue) that refreshes that knob from an external change
   var deck=document.getElementById('deck');
   var combsG=document.getElementById('combs');
   var rtTxt=document.getElementById('rtTxt');
@@ -276,15 +277,21 @@ h1{
     var v=p.def;
 
     function norm(){ return (v-p.min)/((p.max-p.min)||1); }
-    function paint(){
+    function repaint(){
       var n=norm();
       arc.style.setProperty('--n',n);
       ptr.style.setProperty('--n',n);
       val.textContent=fmt(p,v);
       state[p.index]=v;
-      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
       onChange();
     }
+    function paint(){
+      repaint();
+      if(window.vstai&&window.vstai.setParam) window.vstai.setParam(p.index,v);
+    }
+    // Refresh this knob from a param change made outside the GUI (session restore,
+    // automation) without echoing the value back to the host.
+    setters[p.index]=function(nv){ v=nv; repaint(); };
     function setNorm(n){ n=n<0?0:n>1?1:n; v=p.min+(p.max-p.min)*n; paint(); }
 
     var drag=false,startY=0,startN=0;
@@ -355,7 +362,14 @@ h1{
     if(document.hidden) stopLoop(); else startLoop();
   });
 
-  function ready(){ onChange(); startLoop(); }
+  function ready(){
+    onChange(); startLoop();
+    // The host replays the restored values in here right after we register, so every
+    // knob repaints to the saved sound instead of its built-in default.
+    if(window.vstai&&window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var s=setters[i]; if(s) s(+v);
+    });
+  }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>
