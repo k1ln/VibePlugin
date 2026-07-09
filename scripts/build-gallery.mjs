@@ -21,11 +21,6 @@ import { fileURLToPath } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(HERE, "..", "docs", "gallery", "data");
 
-function slug(s) {
-  return (s || "plugin").toLowerCase().replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "").slice(0, 60) || "plugin";
-}
-
 const rows = [];
 let files;
 try {
@@ -56,7 +51,11 @@ for (const f of files) {
     explanation: doc.explanation || "",
     params: Array.isArray(doc.params) ? doc.params.length : 0,
     publishedAt: doc.publishedAt || 0,
-    slug: slug(doc.name),
+    // The download URL is data/<slug>.vstai, but the file is named after `id` (the
+    // filename stem). Deriving slug from the display name diverges when the name has
+    // no separators (e.g. "VibeSynth" → "vibesynth" ≠ file "vibe-synth"), 404-ing
+    // every slug-based consumer. Key slug to the actual filename so it always resolves.
+    slug: id,
   });
 }
 

@@ -588,7 +588,9 @@ function lfoShapeVal(shp: i32, ph: f32, freqKnob: f32): f32 {
 @inline function dlRead(line: StaticArray<f32>, w: i32, delay: f32): f32 {
   let rp: f32 = f32(w) - delay;
   while (rp < 0.0) rp += f32(DL_LEN);
-  const i0: i32 = i32(rp);
+  if (rp >= f32(DL_LEN)) rp -= f32(DL_LEN); // f32(w-delay)+DL_LEN can round up to exactly DL_LEN
+  let i0: i32 = i32(rp);
+  if (i0 >= DL_LEN) i0 = DL_LEN - 1;        // guard: i32(rp) may still land on DL_LEN
   let i1: i32 = i0 + 1; if (i1 >= DL_LEN) i1 -= DL_LEN;
   const fr: f32 = rp - f32(i0);
   return line[i0] + (line[i1] - line[i0]) * fr;
