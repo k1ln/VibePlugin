@@ -619,6 +619,21 @@
       if (init === undefined || init === null || isNaN(init)) init = p.def;
       setParam(+idx, init, true);
     }
+    // Follow param changes from outside the GUI (session restore, automation).
+    // The host replays the restored values in here right after we register, so
+    // every control repaints to the saved sound instead of its built-in default.
+    // Visuals only (no push) so we never write the value straight back to the host.
+    if (window.vstai && window.vstai.onParam) {
+      window.vstai.onParam(function (idx, value) {
+        var p = PARAMS[idx];
+        if (!p) return;
+        value = Math.min(p.max, Math.max(p.min, +value));
+        if (p.step) value = Math.round(value);
+        state[idx] = value;
+        reflect(idx);
+        drawScope();
+      });
+    }
     resize();
     requestAnimationFrame(tick);
   }

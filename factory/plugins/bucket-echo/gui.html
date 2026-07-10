@@ -360,7 +360,17 @@ body{margin:0;font:13px ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#d
     requestAnimationFrame(step);
   }
 
-  function ready(){ syncFromHost(); requestAnimationFrame(loop); }
+  // Follow param changes from outside the GUI (session restore, automation). The
+  // host replays the restored values into this listener right after we register,
+  // so every knob repaints to the saved sound instead of its default. Silent
+  // read-back (setV true) so we never write the value straight back to the host.
+  function followHost(){
+    if(!(window.vstai && window.vstai.onParam)) return;
+    window.vstai.onParam(function(i,v){
+      for(var k=0;k<ctrls.length;k++){ if(ctrls[k].p.index===+i){ ctrls[k].setV(+v,true); break; } }
+    });
+  }
+  function ready(){ syncFromHost(); followHost(); requestAnimationFrame(loop); }
   if(window.vstai&&window.vstai.onReady) window.vstai.onReady(ready); else ready();
 })();
 </script>

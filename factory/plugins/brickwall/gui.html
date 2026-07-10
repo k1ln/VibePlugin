@@ -350,6 +350,8 @@
     ];
 
     var values = {};
+    var byIndex = {};
+    for (var bi = 0; bi < PARAMS.length; bi++) byIndex[PARAMS[bi].index] = PARAMS[bi];
 
     function pushParam(p, v) {
       values[p.index] = v;
@@ -643,6 +645,18 @@
         var v = (typeof init === "number" && isFinite(init)) ? init : p.def;
         values[p.index] = v;
         p._set(v, true); // initialise control + push default to engine
+      }
+      // Follow param changes from outside the GUI (session restore, automation).
+      // The host replays the restored values in here right after we register, so
+      // every knob repaints to the saved sound instead of its built-in default.
+      if (window.vstai && window.vstai.onParam) {
+        window.vstai.onParam(function (i, v) {
+          var p = byIndex[i];
+          if (!p) return;
+          values[i] = +v;
+          p._set(+v, false); // repaint visuals only, no push-back
+          if (i === 1) updateCeilingLine();
+        });
       }
       resize();
       updateCeilingLine();

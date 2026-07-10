@@ -205,6 +205,12 @@
   function boot(){
     host=window.vstai||null;
     PARAMS.forEach(function(p,i){ send(p.idx,vals[p.idx]); knobs[i].render(vals[p.idx]); });
+    // Follow param changes from outside the GUI (session restore, automation). The
+    // host replays the restored values into this listener right after we register,
+    // so every knob repaints to the saved sound instead of its built-in default.
+    if(host&&host.onParam) host.onParam(function(i,v){
+      for(var k=0;k<PARAMS.length;k++){ if(PARAMS[k].idx===+i){ vals[k]=+v; knobs[k].render(+v); if(PARAMS[k].idx===1) sizeLbl(+v); break; } }
+    });
   }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot); }catch(e){ boot(); } }
   else boot();

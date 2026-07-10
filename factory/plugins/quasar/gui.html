@@ -235,6 +235,18 @@
       if(amt===0){ for(var k=0;k<NORMALLED.length;k++) if(NORMALLED[k][0]===s&&NORMALLED[k][1]===d) amt=NORMALLED[k][2]; }
       patched[s][d]=amt; vals[idx]=amt; send(idx,amt); }
     refresh(); requestAnimationFrame(draw); setTimeout(draw,90);
+    // Follow param changes from outside the GUI (session restore, automation). The
+    // host replays the restored values into this listener right after we register,
+    // so every knob AND every patch cable repaints to the saved sound instead of
+    // its built-in default (the knobs boot from P[].d, the routes from getParam).
+    if(host&&host.onParam) host.onParam(function(i,v){
+      i=+i; v=+v;
+      if(knobEls[i]){ vals[i]=v; knobEls[i].render(v); return; }
+      if(i>=ROUTE_BASE && i<ROUTE_BASE+SRC.length*NDST){
+        var r=i-ROUTE_BASE, s=Math.floor(r/NDST), d=r%NDST;
+        vals[i]=v; patched[s][d]=v; refresh(); draw();
+      }
+    });
   }
   if(window.vstai&&window.vstai.onReady){ try{ window.vstai.onReady(boot);}catch(e){boot();} } else boot();
 })();

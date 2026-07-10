@@ -224,7 +224,8 @@
 
   function norm(p,v){ return (v-p.min)/((p.max-p.min)||1); }
 
-  function paint(p){
+  // draw = visuals only (used for host->UI read-back); paint = draw + push
+  function draw(p){
     var c=ctlMap[p.i], n=norm(p,state[p.i]);
     // arc fill: dashoffset from full(empty) to sweep
     var visible = CIRC*SWEEP*n;
@@ -235,8 +236,11 @@
     c.num.textContent = fmt(p,state[p.i]);
     c.chip.style.opacity = (0.18+0.82*n).toFixed(3);
     c.chip.style.transform = (p.i===2?'rotate(45deg) ':'')+'scale('+(0.7+0.5*n).toFixed(2)+')';
-    if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.i, state[p.i]);
     syncRoom();
+  }
+  function paint(p){
+    draw(p);
+    if(window.vstai && window.vstai.setParam) window.vstai.setParam(p.i, state[p.i]);
   }
 
   function setN(p,n){
@@ -373,6 +377,14 @@
     PARAMS.forEach(function(p){ state[p.i]=p.def; });
     PARAMS.forEach(function(p){ paint(p); });
     syncRoom();
+    // Follow param changes from outside the GUI (session restore, automation).
+    // The host replays the restored values in here right after we register, so
+    // every control repaints to the saved sound instead of its built-in default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var c=ctlMap[i]; if(!c) return;
+      state[i]=+v;
+      draw(c.p);
+    });
   }
   if(window.vstai && window.vstai.onReady) window.vstai.onReady(ready);
   else ready();

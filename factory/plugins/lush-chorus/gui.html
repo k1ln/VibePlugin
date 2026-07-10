@@ -302,6 +302,10 @@ body{
 (function(){
   "use strict";
 
+  // param index -> visuals-only setter, so host->UI read-back (session restore,
+  // automation) can repaint each control without pushing back to the host.
+  var setters = {};
+
   // ---- per-param presentation (units / blurbs) ----
   var META = {
     0:{unit:"Hz",  desc:"sweep speed of the modulated delay lines", map:function(n){return (0.05+n*5.95);}},
@@ -340,7 +344,7 @@ body{
     var val=def, drag=false, startY=0, startN=0;
 
     function norm(){ return (val-mn)/((mx-mn)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       liquid.style.height=(6+n*94)+'%';
       surf.style.bottom='calc('+(6+n*94)+'% - 7px)';
@@ -350,8 +354,9 @@ body{
       w2.style.animationDuration=(sp*1.5)+'s';
       var disp=fmtDisp(i,n);
       num.textContent=disp.num; small.textContent=disp.unit;
-      setParam(i,val);
     }
+    function paint(){ draw(); setParam(i,val); }
+    setters[i]=function(raw){ val=raw<mn?mn:(raw>mx?mx:raw); draw(); };
     function setN(n){ val=mn+(mx-mn)*clamp(n); paint(); }
 
     surf.style.position='absolute';
@@ -384,7 +389,7 @@ body{
     var val=def, drag=false;
 
     function norm(){ return (val-mn)/((mx-mn)||1); }
-    function paint(){
+    function draw(){
       var n=norm();
       iVal.textContent=Math.round(n*100);
       // ripple cadence: subtle/slow shimmer -> fast deep ensemble
@@ -396,8 +401,9 @@ body{
       voicesB.style.setProperty('--sp',sp);
       // disc glow swells
       disc.style.boxShadow='inset 0 6px 26px rgba(0,0,0,.66),inset 0 -3px 10px rgba(150,220,255,.06),0 0 '+(4+n*34)+'px rgba(106,208,255,'+(0.12+n*0.4)+')';
-      setParam(i,val);
     }
+    function paint(){ draw(); setParam(i,val); }
+    setters[i]=function(raw){ val=raw<mn?mn:(raw>mx?mx:raw); draw(); };
     function setN(n){ val=mn+(mx-mn)*clamp(n); paint(); }
 
     function fromEvent(e){
@@ -438,6 +444,13 @@ body{
 
     document.querySelectorAll('.fader').forEach(wireFader);
     wirePool();
+
+    // Follow param changes from outside the GUI (session restore, automation).
+    // The host replays the restored values in here right after we register, so
+    // every fader and the tide pool repaint to the saved sound, not their default.
+    if(window.vstai && window.vstai.onParam) window.vstai.onParam(function(i,v){
+      var fn=setters[i]; if(fn) fn(+v);
+    });
 
     document.getElementById('ft').innerHTML =
       '<b>Lush Chorus</b> — twin quadrature LFOs read interpolated delay lines into a wide, doubled image; a dark wet-path low-pass lends the soft analogue tone of a bucket-brigade.';
