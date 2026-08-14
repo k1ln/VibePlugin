@@ -86,12 +86,21 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
     auto options = juce::WebBrowserComponent::Options{}
         .withNativeIntegrationEnabled()
         .withKeepPageLoadedWhenBrowserIsHidden()
-        // Windows: WebView2 puts its user-data folder next to the *host* exe by
-        // default. DAWs install under C:\Program Files, which isn't user-writable,
-        // so the environment fails to create and the view renders WebView2's
-        // "website cannot be found" page instead of the SPA. JUCE documents this
-        // as a plugin-specific gotcha and recommends an explicit writable dir.
+        // Windows needs BOTH of the following, or the GUI renders an Internet
+        // Explorer error page instead of the SPA:
+        //
+        //  - withBackend(webview2): JUCE's Backend::defaultBackend means *IE* on
+        //    Windows, and createAndInitPlatformDependentPart only builds a WebView2
+        //    when the backend is explicitly webview2 — otherwise it silently falls
+        //    back to Win32WebView. IE cannot serve a resource provider, so the
+        //    navigation is simply cancelled. Compiling with NEEDS_WEBVIEW2 is not
+        //    enough; the backend has to be requested at runtime too.
+        //  - withUserDataFolder: WebView2 otherwise puts its user-data folder next
+        //    to the *host* exe, and DAWs live under C:\Program Files, which isn't
+        //    user-writable — the environment then fails to create. JUCE documents
+        //    this as a plugin-specific gotcha.
        #if JUCE_WINDOWS
+        .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
         .withWinWebView2Options (juce::WebBrowserComponent::Options::WinWebView2{}
             .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory)))
        #endif
