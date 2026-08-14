@@ -126,7 +126,10 @@ function failGracefully(msg) {
     return;
   }
 
-  const published = releases.filter((r) => !r.draft);
+  // Prereleases are excluded too, not just drafts: they're single-platform test
+  // builds. Letting one become `latest` would headline an unverified version and
+  // blank the cards for every platform it doesn't carry an asset for.
+  const published = releases.filter((r) => !r.draft && !r.prerelease);
   const latest = published[0];
 
   // header
