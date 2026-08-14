@@ -86,6 +86,15 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
     auto options = juce::WebBrowserComponent::Options{}
         .withNativeIntegrationEnabled()
         .withKeepPageLoadedWhenBrowserIsHidden()
+        // Windows: WebView2 puts its user-data folder next to the *host* exe by
+        // default. DAWs install under C:\Program Files, which isn't user-writable,
+        // so the environment fails to create and the view renders WebView2's
+        // "website cannot be found" page instead of the SPA. JUCE documents this
+        // as a plugin-specific gotcha and recommends an explicit writable dir.
+       #if JUCE_WINDOWS
+        .withWinWebView2Options (juce::WebBrowserComponent::Options::WinWebView2{}
+            .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory)))
+       #endif
         .withResourceProvider ([safe] (const auto& url) -> std::optional<juce::WebBrowserComponent::Resource>
         {
             if (safe == nullptr) return std::nullopt;
