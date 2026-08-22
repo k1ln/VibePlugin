@@ -61,10 +61,6 @@ private:
     void refreshOllamaModelsAsync();   // poll the Ollama server off the message thread
     void openSettings();               // "Keys…" dialog: Anthropic/GLM keys + Ollama URL
     void openAccount();                // "Account…" dialog: VibePlugin Cloud sign-in + credits
-    void openLicense();                // "License…" dialog: activate a lifetime license
-    void showNag();                    // the friendly shareware warning (joke)
-    void updateLicenseButton();        // reflect licensed/unlicensed in the toolbar
-    void revalidateLicenseAsync();     // background re-check on open (fail-open)
     void updateEffortEnablement (bool busy);
     void applyThinkingLayout();        // show/hide the live reasoning strip + relayout
     void refreshThinkingView();        // repaint the panel with the last N reasoning lines
@@ -82,7 +78,6 @@ private:
     juce::TextButton  loadButton { "Load" };
     juce::TextButton  keysButton { "Keys..." };
     juce::TextButton  accountButton { "Account..." };
-    juce::TextButton  licenseButton { "License..." };
     juce::ComboBox    modelBox;
     juce::ComboBox    effortBox;
     juce::ToggleButton thinkButton { "On" };   // GLM reasoning on/off (shares the effort slot)
@@ -125,7 +120,7 @@ private:
 
     std::unique_ptr<juce::FileChooser> chooser;
 
-    // The Keys/Account/License/nag/Manual dialogs are top-level desktop windows, not
+    // The Keys/Account/Manual dialogs are top-level desktop windows, not
     // children of this editor, so they would outlive it when the host closes the plugin
     // and stay open as orphans (and their callbacks could fire against a destroyed
     // editor). Track every one we launch and close them all in the destructor.

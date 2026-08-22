@@ -58,6 +58,14 @@ INSTRUMENT/synth modules ALSO export:
   export function noteOff(noteId: i32): void
 The host converts MIDI note numbers to frequency (Hz) and calls these.
 
+HOST TEMPO: params[63] (the last slot) is written directly by the host every
+block with the DAW's current tempo in BPM (0 if the host reports none — treat
+that as "no sync available" and fall back to a free-running rate). This is NOT
+a DAW-automatable parameter, so never declare a param at index 63 in your
+`params` list. Read it for tempo-synced LFOs, delays, or arpeggiators, e.g.:
+  const bpm: f32 = params[63] > 1.0 ? params[63] : 120.0;
+  const secPerBeat: f32 = 60.0 / bpm;
+
 OPTIONAL SAMPLE BUFFER — for plugins that load an audio FILE (samplers, granular
 engines, convolution reverbs/IRs, wavetable-from-file, etc.). Include these THREE
 exports ONLY when the plugin actually uses a user-loaded sample; otherwise omit
@@ -415,13 +423,27 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
       "required": ["explanation"]
     })JSON";
 
-    inline juce::String buildUserMessage (const juce::String& prompt,
-                                          const juce::String& currentAssembly,
-                                          const juce::String& currentHtml,
-                                          bool isSynth,
-                                          const juce::String& standardUi = {},
-                                          const juce::String& designName = {},
-                                          const juce::String& designPrinciples = {})
+    // ---------------------------------------------------------------------
+    //  The user message splits into two halves for prompt-caching reasons.
+    //
+    //  buildUserPreamble() is the STABLE half: target kind, design language and
+    //  the ~59KB component kit. Byte-identical on every request, and about 80%
+    //  of the prompt (measured: ~28K of a ~34K-token prompt). It must sit BEFORE
+    //  the cache breakpoint or that 28K is re-billed at full price every call --
+    //  which is what used to happen, since the breakpoint was on the 5.6K system
+    //  prompt and the kit rode after it in the user message.
+    //
+    //  buildUserTask() is the VOLATILE half: the current source and the change
+    //  request. It differs every call and belongs after the breakpoint.
+    //
+    //  buildUserMessage() is kept as the concatenation of the two, for the
+    //  manual/chatbot path (no caching there) and so callers that don't care
+    //  about the split are unaffected.
+    // ---------------------------------------------------------------------
+    inline juce::String buildUserPreamble (bool isSynth,
+                                           const juce::String& standardUi = {},
+                                           const juce::String& designName = {},
+                                           const juce::String& designPrinciples = {})
     {
         juce::StringArray s;
         s.add (isSynth
@@ -455,7 +477,14 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             s.add ("=== END STANDARD UI KIT ===");
             s.add ("");
         }
+        return s.joinIntoString ("\n");
+    }
 
+    inline juce::String buildUserTask (const juce::String& prompt,
+                                       const juce::String& currentAssembly,
+                                       const juce::String& currentHtml)
+    {
+        juce::StringArray s;
         if (currentAssembly.isNotEmpty())
         {
             s.add ("Here is the current plugin. Apply the change request that follows.");
@@ -475,10 +504,6 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
         }
         else if (currentHtml.isNotEmpty())
         {
-            // A shared/published/exported creation loaded without its DSP source —
-            // only the compiled WASM + GUI travelled, so there is nothing to patch.
-            // Rebuild the DSP from the GUI (its controls reveal the parameters) plus
-            // the change request, and return COMPLETE files.
             s.add ("This plugin was shared without its AssemblyScript source, so there is no");
             s.add ("DSP code to patch — only the GUI below is available. Write a COMPLETE new");
             s.add ("assembly/index.ts that realises this plugin for the GUI shown (match its");
@@ -498,6 +523,21 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             s.add (prompt);
         }
         return s.joinIntoString ("\n");
+    }
+
+    inline juce::String buildUserMessage (const juce::String& prompt,
+                                          const juce::String& currentAssembly,
+                                          const juce::String& currentHtml,
+                                          bool isSynth,
+                                          const juce::String& standardUi = {},
+                                          const juce::String& designName = {},
+                                          const juce::String& designPrinciples = {})
+    {
+        // Preamble + task, exactly as before the split. The Anthropic path sends
+        // the two halves as separate cached/uncached blocks instead (see
+        // LlmClient::callAnthropic); everything else uses this joined form.
+        return buildUserPreamble (isSynth, standardUi, designName, designPrinciples)
+             + buildUserTask (prompt, currentAssembly, currentHtml);
     }
 
     inline juce::String buildFixMessage (const juce::String& assembly,

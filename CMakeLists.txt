@@ -76,6 +76,14 @@ if(APPLE)
     list(APPEND VSTAI_SOURCES src/MacKeyUpMonitor.mm)
 endif()
 
+# A build stamp shown next to the title in the editor header, so it is obvious
+# at a glance which build a DAW actually has loaded (hosts cache plugin binaries,
+# so "did my rebuild land?" is otherwise guesswork). Regenerated on every
+# configure, and scripts/build.sh configures on every run.
+string(TIMESTAMP VSTAI_BUILD_STAMP "%Y%m%d-%H%M")
+set(VSTAI_BUILD_ID "v${PROJECT_VERSION}-${VSTAI_BUILD_STAMP}")
+message(STATUS "vstai: build id ${VSTAI_BUILD_ID}")
+
 # ---------------------------------------------------------------------------
 #  One core, two products: an effect and an instrument/synth.
 # ---------------------------------------------------------------------------
@@ -125,6 +133,7 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         JUCE_DISPLAY_SPLASH_SCREEN=0
         VSTAI_IS_SYNTH=${SYNTH_DEF}
         VSTAI_DEV_MODE=$<BOOL:${VSTAI_DEV_MODE}>
+        VSTAI_BUILD_ID="${VSTAI_BUILD_ID}"
         # Windows: defining this flips JUCE_USE_WIN_WEBVIEW2 on in juce_gui_extra,
         # which is what actually exposes WebBrowserComponent::Options::with-
         # ResourceProvider (the GUI bridge). NEEDS_WEBVIEW2 only links the static

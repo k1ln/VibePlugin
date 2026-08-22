@@ -16,7 +16,6 @@
 #include <atomic>
 #include "AppSettings.h"
 #include "CloudClient.h"
-#include "LicenseClient.h"
 
 class AccountPanel : public juce::Component
 {
@@ -208,38 +207,6 @@ private:
                 safe->historyToggle.setToggleState (storeH,   juce::dontSendNotification);
                 safe->trainToggle.setToggleState   (trainOut, juce::dontSendNotification);
 
-                // Buying credits includes a lifetime license — claim it on this
-                // machine automatically so the nag disappears (best effort).
-                const juce::String licKey = a.json.getProperty ("license_key", {}).toString();
-                if (licKey.isNotEmpty() && ! vstai::appsettings::isLicensed())
-                    safe->claimLicense (licKey);
-
-                safe->notify();
-            });
-        }).detach();
-    }
-
-    // Activate the license bundled with a credit purchase on this machine, in the
-    // background. Best effort: if it fails the user can still activate manually
-    // from the License… dialog with the key we emailed them.
-    void claimLicense (const juce::String& key)
-    {
-        const auto base    = vstai::appsettings::licenseServerUrl();
-        const auto email   = vstai::appsettings::cloudEmail();
-        const auto machine = vstai::appsettings::machineId();
-        const auto name    = juce::SystemStats::getComputerName();
-        juce::Component::SafePointer<AccountPanel> safe (this);
-        std::thread ([safe, base, key, email, machine, name]
-        {
-            auto resp = vstai::license::activate (base, key, email, machine, name);
-            if (! resp.ok()) return;
-            juce::MessageManager::callAsync ([safe, resp, key, email]
-            {
-                if (safe == nullptr) return;
-                vstai::appsettings::setLicense (key, email,
-                    resp.json.getProperty ("activation_id", {}).toString());
-                safe->setStatus ("A lifetime license came free with your credits — activated on "
-                                 "this machine. The warning is gone. Enjoy!");
                 safe->notify();
             });
         }).detach();
@@ -262,8 +229,13 @@ private:
         juce::String url = vstai::appsettings::cloudCheckoutUrl();
         if (url.isEmpty()) url = vstai::appsettings::cloudBaseUrl();
         const auto email = vstai::appsettings::cloudEmail();
+        // Polar Checkout Links accept `customer_email` as a plain query param to
+        // prefill the buyer's email — no server call needed here. The server's
+        // /webhooks/polar handler grants credits to whatever email ends up on
+        // the paid order, so this only works if the buyer doesn't edit it away
+        // from their signed-in address at checkout.
         if (email.isNotEmpty())
-            url += (url.containsChar ('?') ? "&" : "?") + juce::String ("checkout[email]=")
+            url += (url.containsChar ('?') ? "&" : "?") + juce::String ("customer_email=")
                  + juce::URL::addEscapeChars (email, true);
         juce::URL (url).launchInDefaultBrowser();
     }

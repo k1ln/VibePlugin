@@ -21,7 +21,7 @@
 // Your Anthropic API key (used for the REST call that generates plugins).
 #define VSTAI_CONFIG_API_KEY  ""
 
-// Model id. Empty -> "claude-opus-4-8".
+// Model id. Empty -> "claude-opus-5".
 #define VSTAI_CONFIG_MODEL    ""
 
 // Absolute path to the bundled AssemblyScript compiler executable
@@ -42,3 +42,14 @@
 // Empty -> $GLM_BASE_URL or the Z.ai default (https://api.z.ai/api/paas/v4).
 // Use https://open.bigmodel.cn/api/paas/v4 for the mainland-China endpoint.
 #define VSTAI_CONFIG_GLM_URL ""
+
+// Base URL of your VibePlugin cloud-credits server (sign-in + metered cloud
+// generation). Empty -> $VSTAI_CLOUD_URL or the built-in default.
+#define VSTAI_CONFIG_CLOUD_URL ""
+
+// Polar Checkout Link for credit packs (Dashboard -> Checkout Links -> New
+// Link, e.g. "https://buy.polar.sh/polar_cl_..."). The Account panel appends
+// `?customer_email=` itself, so leave that off here. Empty -> the Buy button
+// opens VSTAI_CONFIG_CLOUD_URL directly (no purchase flow). Empty here also
+// falls back to $VSTAI_CLOUD_CHECKOUT_URL.
+#define VSTAI_CONFIG_CLOUD_CHECKOUT_URL ""

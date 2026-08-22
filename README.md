@@ -102,10 +102,10 @@ are free.
 
 ## Free & fully featured
 
-VibePlugin is free and unrestricted — **the lifetime license is included for
-everyone**, so there's no nag and nothing to buy. Every feature works out of the box:
-bring your own API key, use the manual chatbot path, or buy **cloud credits** if you
-want zero-setup generation with no key. The optional credits **server** lives in a
+VibePlugin is free and unrestricted — nothing to buy, nothing to unlock. Every
+feature works out of the box: bring your own API key, use the manual chatbot path,
+or buy **cloud credits** if you want zero-setup generation with no key. The optional
+credits **server** lives in a
 separate private repo (`VibePlugin-server`, TypeScript + Fastify + Postgres) and powers
 only that cloud-credits tier — nothing here depends on it, and the plugin is fully
 usable (and offline once a plugin is generated) without it.
@@ -331,12 +331,11 @@ src/                         C++ (shared by both plugins)
   BridgeProtocol.h / BridgeShim.h   GUI<->host wire format + the injected window.vstai shim
   Prompt.h                   system prompt + output schema  ← "the prompt"
   Config.example.h           copy to Config.h to bake in the API key
-  Settings.h / AppSettings.h resolved config (compiled-in/env) + runtime keys/URLs/license/notary
+  Settings.h / AppSettings.h resolved config (compiled-in/env) + runtime keys/URLs/notary
   Designs.h                  the 10 built-in design schools (house-style kits)
   LlmClient.* / CloudClient.* raw HTTPS to Claude (your key) or the hosted Cloud proxy (credits)
   AccountPanel.h             "Account…" dialog: cloud sign-in + credits balance
   ManualPanel.h              "bring your own chatbot" dialog (copy prompt / paste reply)
-  LicenseClient.h / LicensePanel.h   license server HTTP + the "License…" dialog
   AssemblyScriptCompiler.*   execs the bundled compiler -> WASM
   WasmEngine.*               wasmtime wrapper; audio + synth notes
   VstaiDocument.*            the .vstai JSON model (+ DAW state, lock flag)
@@ -353,7 +352,7 @@ wasm-template/assembly/      reference AssemblyScript: index.ts (effect), synth.
 docs/gallery/                static web gallery — play creations live, download them as .vstai
 web/                         the default starter GUI
 
-The license/credits backend is **not** in this tree — it's a separate private repo
+The credits backend is **not** in this tree — it's a separate private repo
 (`VibePlugin-server`).
 ```
 
@@ -378,12 +377,11 @@ website) is free software under the **GNU Affero General Public License v3.0**
 distribute a modified version — or run one as a network service — you must make
 your complete source available under the same license.
 
-The hosted backend that powers the optional paid tiers (**cloud credits** and the
-**lifetime license** — API-key proxying, payments, activation) is **not** covered
-by this license and lives in a separate **private** repository
-(`VibePlugin-server`). Nothing here depends on it: bring your own API key, or use
-the manual chatbot path, and everything works (and runs offline after a plugin is
-generated).
+The hosted backend that powers the optional paid tier (**cloud credits** — API-key
+proxying and payments) is **not** covered by this license and lives in a separate
+**private** repository (`VibePlugin-server`). Nothing here depends on it: bring
+your own API key, or use the manual chatbot path, and everything works (and runs
+offline after a plugin is generated).
 
 **Commercial / dual licensing.** AGPL-3.0 requires derivative and networked works
 to be released under the AGPL too. If you want to build on VibePlugin in a
