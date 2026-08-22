@@ -31,12 +31,6 @@
 #ifndef VSTAI_CONFIG_GLM_URL
  #define VSTAI_CONFIG_GLM_URL ""
 #endif
-#ifndef VSTAI_CONFIG_LICENSE_URL
- #define VSTAI_CONFIG_LICENSE_URL ""
-#endif
-#ifndef VSTAI_CONFIG_CHECKOUT_URL
- #define VSTAI_CONFIG_CHECKOUT_URL ""
-#endif
 #ifndef VSTAI_CONFIG_CLOUD_URL
  #define VSTAI_CONFIG_CLOUD_URL ""
 #endif
@@ -82,34 +76,18 @@ namespace vstai::settings
         return u;
     }
 
-    // Base URL of the VibePlugin license server (activate / validate a lifetime key).
-    inline juce::String licenseServerUrl()
-    {
-        juce::String u (VSTAI_CONFIG_LICENSE_URL);
-        if (u.isEmpty()) u = juce::SystemStats::getEnvironmentVariable ("VSTAI_LICENSE_URL", {});
-        if (u.isEmpty()) u = "https://api.vst3ai.app";
-        return u;
-    }
-
-    // Lemon Squeezy checkout URL for the lifetime license. Empty -> opens the server.
-    inline juce::String licenseCheckoutUrl()
-    {
-        juce::String u (VSTAI_CONFIG_CHECKOUT_URL);
-        if (u.isEmpty()) u = juce::SystemStats::getEnvironmentVariable ("VSTAI_CHECKOUT_URL", {});
-        return u;
-    }
-
     // Base URL of the VibePlugin cloud-credits server (sign-in + metered generation).
-    // It is the same deployment as the license server by default.
     inline juce::String cloudBaseUrl()
     {
         juce::String u (VSTAI_CONFIG_CLOUD_URL);
         if (u.isEmpty()) u = juce::SystemStats::getEnvironmentVariable ("VSTAI_CLOUD_URL", {});
-        if (u.isEmpty()) u = "https://api.vst3ai.app";
+        if (u.isEmpty()) u = "https://api.1ln.de";
         return u;
     }
 
-    // Lemon Squeezy checkout URL for credit packs. Empty -> opens the server.
+    // Polar Checkout Link for credit packs (e.g. https://buy.polar.sh/polar_cl_...).
+    // Empty -> opens the server's base URL directly. AccountPanel appends
+    // `?customer_email=` when the user has entered/signed in with an email.
     inline juce::String cloudCheckoutUrl()
     {
         juce::String u (VSTAI_CONFIG_CLOUD_CHECKOUT_URL);
@@ -121,7 +99,7 @@ namespace vstai::settings
     {
         juce::String m (VSTAI_CONFIG_MODEL);
         if (m.isEmpty()) m = juce::SystemStats::getEnvironmentVariable ("VSTAI_MODEL", {});
-        if (m.isEmpty()) m = "claude-opus-4-8";
+        if (m.isEmpty()) m = "claude-opus-5";
         return m;
     }
 

@@ -42,8 +42,24 @@ namespace
                            .withHttpRequestCmd ("POST")
                            .withStatusCode (&statusCode);
 
+        // Granular timing: a stall here is invisible otherwise -- the caller only
+        // logs once this whole function returns, so a hung connect or a stream that
+        // never delivers a first byte looks like "nothing happened" for the entire
+        // timeout window.
+        const auto t0 = juce::Time::getMillisecondCounter();
+        VSTAI_LOG ("http: opening stream (timeout " + juce::String (timeoutMs / 1000) + "s)...");
+
         std::unique_ptr<juce::InputStream> stream (url.createInputStream (options));
-        if (stream == nullptr) return false;
+
+        const auto tOpen = juce::Time::getMillisecondCounter();
+        if (stream == nullptr)
+        {
+            VSTAI_LOG ("http: createInputStream FAILED after "
+                       + juce::String ((tOpen - t0) / 1000.0, 1) + "s");
+            return false;
+        }
+        VSTAI_LOG ("http: stream open after " + juce::String ((tOpen - t0) / 1000.0, 1)
+                   + "s, HTTP " + juce::String (statusCode));
 
         if (statusCode < 200 || statusCode >= 300)
         {
@@ -51,9 +67,19 @@ namespace
             return true;
         }
 
+        int  events = 0;
+        bool firstSeen = false;
+
         while (! stream->isExhausted())
         {
             const juce::String line = stream->readNextLine();
+
+            if (! firstSeen && line.isNotEmpty())
+            {
+                firstSeen = true;
+                VSTAI_LOG ("http: first bytes after "
+                           + juce::String ((juce::Time::getMillisecondCounter() - t0) / 1000.0, 1) + "s");
+            }
             if (! line.startsWith ("data:")) continue;   // skip event:/ping/blank framing
             const juce::String data = line.fromFirstOccurrenceOf ("data:", false, false).trim();
             // OpenAI-style streams (GLM/Ollama) send a literal "[DONE]" sentinel and
@@ -63,9 +89,23 @@ namespace
             if (data.isNotEmpty())
             {
                 const juce::var ev = juce::JSON::parse (data);
-                if (ev.isObject()) onData (ev);
+                if (ev.isObject())
+                {
+                    onData (ev);
+
+                    // Anthropic never sends "[DONE]" -- it ends with message_stop and
+                    // then closes. Waiting for the close instead of stopping here means
+                    // that if the socket lingers (keep-alive, a proxy) readNextLine
+                    // blocks until the 10-minute timeout with the reply already fully
+                    // received: the request appears to hang forever after finishing.
+                    ++events;
+                    if (ev.getProperty ("type", {}).toString() == "message_stop") break;
+                }
             }
         }
+        VSTAI_LOG ("http: stream ended after " + juce::String (events) + " events, "
+                   + juce::String ((juce::Time::getMillisecondCounter() - t0) / 1000.0, 1) + "s"
+                   + (stream->isExhausted() ? " (exhausted)" : " (message_stop)"));
         return true;
     }
 
@@ -184,12 +224,32 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
                                juce::var& artifactOut,
                                juce::String& errorOut)
 {
-    auto* format = new juce::DynamicObject();
-    format->setProperty ("type", "json_schema");
-    format->setProperty ("schema", schema);
-
     auto* outputConfig = new juce::DynamicObject();
-    outputConfig->setProperty ("format", juce::var (format));
+
+    // Structured outputs are attached for NEW BUILDS only.
+    //
+    // For EDIT requests the json_schema actively breaks the reply: an `edits`
+    // entry needs a long, byte-exact `find` snippet copied out of the source,
+    // full of escaped newlines and quotes, and under constrained decoding the
+    // model cannot get that through. Measured on "add a reverb" against a 9.3K
+    // synth -- with the schema: 0 edits, an explanation-only reply, and often a
+    // runaway that burns the whole output ceiling emitting newlines, with
+    // fragments of the structure it was trying to build ("\find:none",
+    // "(unreplaced)", "(see edits)") leaking into the explanation string.
+    // Without the schema, the same request returns 6 clean edits that all match
+    // exactly once, in 7K tokens instead of 32K. Restating the requirement in
+    // the prompt does not help; only removing the schema does.
+    //
+    // A whole-file reply has no such problem (one big plain string), which is
+    // why builds are reliable with the schema on. Replies are parsed leniently
+    // below, so a fenced or prose-wrapped answer still resolves.
+    if (structuredOutput)
+    {
+        auto* format = new juce::DynamicObject();
+        format->setProperty ("type", "json_schema");
+        format->setProperty ("schema", schema);
+        outputConfig->setProperty ("format", juce::var (format));
+    }
     if (effort.isNotEmpty())
         outputConfig->setProperty ("effort", effort);   // cost/quality: low|medium|high|max
 
@@ -206,7 +266,12 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     // (Fable 5 / Opus 4.x → 128K, Sonnet/Haiku 4.x → 64K). Streaming (below)
     // avoids the HTTP timeouts these large values would otherwise risk.
     const bool isFable   = model.startsWithIgnoreCase ("claude-fable");
-    const int  maxTokens = (isFable || model.startsWithIgnoreCase ("claude-opus")) ? 128000 : 64000;
+    // Opus 5 and Fable 5 can decline a benign request (stop_reason: refusal); both
+    // support the server-side fallback that re-serves it inside the same call.
+    const bool wantsFallback = isFable || model.startsWithIgnoreCase ("claude-opus-5");
+    const int  modelCeiling = (isFable || model.startsWithIgnoreCase ("claude-opus")) ? 128000 : 64000;
+    const int  maxTokens    = maxOutputTokens > 0 ? juce::jmin (maxOutputTokens, modelCeiling)
+                                                  : modelCeiling;
 
     auto* body = new juce::DynamicObject();
     body->setProperty ("model", model);
@@ -215,11 +280,11 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     body->setProperty ("thinking", juce::var (thinkingCfg));
     body->setProperty ("output_config", juce::var (outputConfig));
 
-    // Fable 5's safety classifiers can occasionally decline benign requests
+    // Fable 5 / Opus 5 safety classifiers can occasionally decline benign requests
     // (stop_reason: refusal). Opt into the server-side fallback so a decline is
     // transparently re-served by Opus 4.8 inside the same call instead of
     // failing the build. (Needs the beta header added below.)
-    if (isFable)
+    if (wantsFallback)
     {
         auto* fb = new juce::DynamicObject();
         fb->setProperty ("model", "claude-opus-4-8");
@@ -227,14 +292,19 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
         body->setProperty ("fallbacks", juce::var (fallbacks));
     }
 
-    // The system prompt is large and byte-identical on every call, so cache it:
-    // `cache_control: ephemeral` makes repeat requests within the 5-min TTL read it
-    // at ~0.1x input cost instead of re-billing the whole prompt each fix/edit turn.
+    // The system prompt is large (~5.6K tokens) and byte-identical on every call,
+    // so cache it. TTL is 1h, NOT the 5-minute default: a generate that compiles
+    // first time is a single API call, so with the default TTL the entry always
+    // expired before the user's next generate -- every request paid the 1.25x
+    // write premium and never once got a 0.1x read, making caching a net LOSS.
+    // A 1h write costs 2x but survives a whole editing session; break-even is the
+    // third request, and iterating on a plugin is far more than three.
     // (Anthropic-only; the per-request current source rides in the user message,
     // after this cached prefix, so it doesn't break the cache.)
     {
         auto* cc = new juce::DynamicObject();
         cc->setProperty ("type", "ephemeral");
+        cc->setProperty ("ttl", "1h");
         auto* sysBlock = new juce::DynamicObject();
         sysBlock->setProperty ("type", "text");
         sysBlock->setProperty ("text", juce::String (vstai::kSystemPrompt));
@@ -242,7 +312,67 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
         juce::Array<juce::var> sys; sys.add (juce::var (sysBlock));
         body->setProperty ("system", juce::var (sys));
     }
-    body->setProperty ("messages", juce::var (juce::Array<juce::var> (messages)));
+    // ---- message caching ------------------------------------------------
+    //  Two breakpoints, for two different reasons:
+    //
+    //  1. The PREAMBLE (design language + the ~59KB component kit) is identical
+    //     on every request and is ~80% of the prompt. It gets a 1h breakpoint at
+    //     the front of the first user message. Previously it rode *after* the
+    //     only breakpoint (which sat on the 5.6K system prompt), so all ~28K
+    //     tokens of it were re-billed at full price on every single call.
+    //
+    //  2. The LAST message gets a default (5-minute) breakpoint so the
+    //     compile-fix loop -- which re-sends the whole transcript, each assistant
+    //     turn carrying a full plugin source -- reads the history at ~0.1x on the
+    //     next retry instead of paying for it again.
+    //
+    //  Caching is input-only; output tokens are always billed in full, which is
+    //  what the `edits` patch in Prompt.h exists to reduce.
+    {
+        juce::Array<juce::var> msgs (messages);
+
+        auto textBlock = [] (const juce::String& text, const char* ttl) -> juce::var
+        {
+            auto* b = new juce::DynamicObject();
+            b->setProperty ("type", "text");
+            b->setProperty ("text", text);
+            if (ttl != nullptr)
+            {
+                auto* cc = new juce::DynamicObject();
+                cc->setProperty ("type", "ephemeral");
+                if (*ttl != 0) cc->setProperty ("ttl", ttl);
+                b->setProperty ("cache_control", juce::var (cc));
+            }
+            return juce::var (b);
+        };
+
+        const int last = msgs.size() - 1;
+
+        for (int i = 0; i <= last; ++i)
+        {
+            auto* src = msgs.getReference (i).getDynamicObject();
+            if (src == nullptr) continue;
+
+            const bool isFirst = (i == 0);
+            const bool isLast  = (i == last);
+            if (! isFirst && ! isLast) continue;   // middle turns need no breakpoint
+
+            juce::Array<juce::var> blocks;
+            if (isFirst && cachedPreamble.isNotEmpty())
+                blocks.add (textBlock (cachedPreamble, "1h"));
+            blocks.add (textBlock (src->getProperty ("content").toString(),
+                                   isLast ? "" : nullptr));
+
+            // Replace rather than mutate: juce::var shares the DynamicObject with
+            // the caller's array, which is reused across fix-loop iterations.
+            auto* m = new juce::DynamicObject();
+            m->setProperty ("role",    src->getProperty ("role"));
+            m->setProperty ("content", juce::var (blocks));
+            msgs.set (i, juce::var (m));
+        }
+
+        body->setProperty ("messages", juce::var (msgs));
+    }
 
     const juce::String payload = juce::JSON::toString (juce::var (body), true);
 
@@ -250,7 +380,7 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     const juce::String headers =
           juce::String ("content-type: application/json\r\n")
         + "anthropic-version: 2023-06-01\r\n"
-        + (isFable ? "anthropic-beta: server-side-fallback-2026-06-01\r\n" : "")
+        + (wantsFallback ? "anthropic-beta: server-side-fallback-2026-06-01\r\n" : "")
         + "x-api-key: " + apiKey;
 
     // Consume the SSE stream, assembling the JSON from `text_delta` events. The
@@ -259,12 +389,27 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     juce::StringArray blockTypes;
     int statusCode = 0;
 
+    // Cache accounting. `message_start` carries the input side (uncached remainder,
+    // cache write, cache read); `message_delta` carries the running output count.
+    // Total prompt size is inputTok + cacheWrite + cacheRead -- inputTok alone is
+    // only the part that missed the cache, so a small number there is the goal.
+    int inputTok = 0, outputTok = 0, cacheWrite = 0, cacheRead = 0;
+
+    const auto startMs = juce::Time::getMillisecondCounter();
+
     const bool reached = httpStreamSse (url, headers, statusCode, 600000,
         [&] (const juce::var& ev)
         {
             const juce::String type = ev.getProperty ("type", {}).toString();
 
-            if (type == "content_block_start")
+            if (type == "message_start")
+            {
+                const auto u = ev.getProperty ("message", {}).getProperty ("usage", {});
+                inputTok   = (int) u.getProperty ("input_tokens", 0);
+                cacheWrite = (int) u.getProperty ("cache_creation_input_tokens", 0);
+                cacheRead  = (int) u.getProperty ("cache_read_input_tokens", 0);
+            }
+            else if (type == "content_block_start")
                 blockTypes.add (ev.getProperty ("content_block", {})
                                   .getProperty ("type", {}).toString());
             else if (type == "content_block_delta")
@@ -281,6 +426,7 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
                 const juce::String sr = ev.getProperty ("delta", {})
                                           .getProperty ("stop_reason", {}).toString();
                 if (sr.isNotEmpty()) stopReason = sr;
+                outputTok = (int) ev.getProperty ("usage", {}).getProperty ("output_tokens", outputTok);
             }
             else if (type == "error")
                 apiError = ev.getProperty ("error", {}).getProperty ("message", "unknown").toString();
@@ -290,6 +436,17 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     VSTAI_LOG ("anthropic HTTP " + juce::String (statusCode)
                + ", stop_reason=" + (stopReason.isEmpty() ? juce::String ("(none)") : stopReason)
                + ", " + juce::String (jsonText.length()) + " text bytes");
+
+    // cache_read 0 on a retry means something invalidated the prefix (the system
+    // prompt or an earlier turn changed) -- the whole history is being re-billed.
+    VSTAI_LOG ("elapsed: " + juce::String ((juce::Time::getMillisecondCounter() - startMs) / 1000.0, 1)
+               + "s  (effort=" + effort + ", model=" + model + ")");
+
+    VSTAI_LOG ("tokens: in=" + juce::String (inputTok)
+               + " cache_write=" + juce::String (cacheWrite)
+               + " cache_read="  + juce::String (cacheRead)
+               + " out="         + juce::String (outputTok)
+               + "  (prompt total " + juce::String (inputTok + cacheWrite + cacheRead) + ")");
 
     if (! reached)
     {
@@ -324,8 +481,36 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
         return false;
     }
 
-    artifactOut = juce::JSON::parse (jsonText);
+    // A truncated reply is almost never valid JSON, and "did not return valid
+    // JSON" sends you looking in the wrong place. Name the real cause.
+    if (stopReason == "max_tokens")
+    {
+        errorOut = "the model hit its output limit (" + juce::String (maxTokens)
+                 + " tokens) before finishing, so the reply was cut off mid-JSON. "
+                   "Try a smaller, more specific change.";
+        return false;
+    }
+
+    artifactOut = parseLooseJson (jsonText);
     if (! artifactOut.isObject()) { errorOut = "model did not return valid JSON"; return false; }
+
+    // Log which top-level keys came back. A reply carrying only "explanation"
+    // (no edits, no assembly) is the signature of an edit that silently does
+    // nothing, and is otherwise invisible -- the build still "succeeds".
+    if (auto* ro = artifactOut.getDynamicObject())
+    {
+        juce::StringArray keys;
+        for (auto& kv : ro->getProperties())
+        {
+            const auto v = kv.value;
+            juce::String n = kv.name.toString();
+            if (auto* arr = v.getArray())        n += "[" + juce::String (arr->size()) + "]";
+            else if (v.isString())               n += "(" + juce::String (v.toString().length()) + "ch)";
+            keys.add (n);
+        }
+        VSTAI_LOG ("reply keys: " + keys.joinIntoString (", "));
+        if (jsonText.length() < 1200) VSTAI_LOG ("reply body: " + jsonText);
+    }
     return true;
 }
 

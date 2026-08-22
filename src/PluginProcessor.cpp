@@ -150,6 +150,17 @@ void VstaiAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 {
     juce::ScopedNoDenormals noDenormals;
 
+    // Mirror the DAW's tempo into the reserved param slot every block, so tempo-
+    // synced DSP (arps, synced delays/LFOs) can read it. 0 if the host reports none.
+    {
+        float bpm = 0.0f;
+        if (auto* ph = getPlayHead())
+            if (const auto pos = ph->getPosition())
+                if (const auto hostBpm = pos->getBpm())
+                    bpm = (float) *hostBpm;
+        engine.setParam (vstai::kHostTempoParamIndex, bpm);
+    }
+
     pushHostParamsToEngine();   // apply host automation before the DSP runs
 
     if (kIsSynth)
@@ -367,6 +378,21 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
         llm.setProvider (provider);
         llm.setModel    (genModel);
         llm.setEffort   (genEffort);
+        // Full 128K output ceiling for builds AND edits, so a genuinely large
+        // change (a whole new effect section, a GUI rework) has room to land.
+        //
+        // Edits were briefly capped at 32K while runaway replies were burning the
+        // entire ceiling -- 128,000 tokens, 16 minutes, ~$3, truncated JSON. That
+        // turned out to be the json_schema blocking the `edits` array (see
+        // setStructuredOutput below); with the schema off the same edit needs
+        // ~7K tokens. The cap treated the symptom, so it is lifted. The plumbing
+        // stays: setMaxOutputTokens(n) re-caps if a runaway ever returns, and a
+        // truncated reply now reports "hit its output limit" rather than
+        // "invalid JSON".
+        llm.setMaxOutputTokens (0);   // 0 = the model's own ceiling (128K on Opus)
+        // Schema ON for a new build, OFF for an edit (it prevents the model from
+        // emitting the `edits` array at all -- see callAnthropic).
+        llm.setStructuredOutput (curAssembly.isEmpty());
         llm.setApiKey   (genKey);
         llm.setBaseUrl  (provider == LlmClient::Provider::cloud ? cloudUrl
                        : provider == LlmClient::Provider::glm   ? glmUrl
@@ -408,8 +434,23 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             m->setProperty ("content", content);
             messages.add (juce::var (m));
         };
-        addMsg ("user", vstai::buildUserMessage (prompt, curAssembly, curHtml, isSynth, genStandardUi,
-                                                 genDesignName, genDesignPrinciples));
+        // Split the user message: the stable preamble (design language + component
+        // kit, ~80% of the prompt) goes to the LLM client as a cached block; only
+        // the volatile task (current source + change request) rides in the message.
+        // Providers without prompt caching get them joined back together.
+        const auto preamble = vstai::buildUserPreamble (isSynth, genStandardUi,
+                                                        genDesignName, genDesignPrinciples);
+        const auto task     = vstai::buildUserTask (prompt, curAssembly, curHtml);
+
+        if (provider == LlmClient::Provider::anthropic)
+        {
+            llm.setCachedPreamble (preamble);
+            addMsg ("user", task);
+        }
+        else
+        {
+            addMsg ("user", preamble + task);
+        }
 
         VSTAI_LOG ("calling " + LlmClient::providerToString (provider) + " (" + genModel + ")...");
         reportProgress ("Generating with AI...");
@@ -433,14 +474,62 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             {
                 VSTAI_LOG ("edit patch didn't apply: " + rerr + " — requesting full files");
                 reportProgress ("Refining the edit...");
+                streamThinking ("\n[build] edit patch did not apply (" + rerr
+                                + ") - requesting full files...\n");
                 addMsg ("assistant", juce::JSON::toString (artifact, true));
                 addMsg ("user", vstai::buildEditFallbackMessage (rerr));
                 if (! llm.callMessages (messages, artifact, error)) return false;
                 if (! vstai::resolveEdits (fullAsm, fullHtml, artifact, rerr))
                     { error = "the AI's edit could not be applied: " + rerr; return false; }
             }
+            // FIRST, before backfilling anything: did the model actually send a
+            // change? A reply with no edits, no assembly and no html changed
+            // nothing -- and the backfill below would then hand back the untouched
+            // current source, which compiles fine and reports success, so the user
+            // sees "done" while the DSP is byte-identical and their edit silently
+            // vanished. Only "explanation" is required by the output schema, so
+            // this happens in practice. (resolveEdits has already written the
+            // patched sources in when it applied an edits array, so a real patch
+            // still looks like a change here.)
+            if (auto* ao = artifact.getDynamicObject())
+            {
+                auto* eds = ao->getProperty ("edits").getArray();
+                const bool gotEdits = (eds != nullptr && ! eds->isEmpty());
+                const bool gotFiles = ao->getProperty ("assembly").toString().isNotEmpty()
+                                   || ao->getProperty ("html").toString().isNotEmpty();
+
+                if (! gotEdits && ! gotFiles)
+                {
+                    const auto why = artifact.getProperty ("explanation", {}).toString();
+                    error = "the AI replied without any code change"
+                            + (why.isEmpty() ? juce::String()
+                                             : juce::String (" — it said: \"") + why.trim() + "\"")
+                            + ". Try rephrasing, or ask for the complete files.";
+                    VSTAI_LOG ("no-op reply: neither edits nor assembly/html present");
+                    streamThinking ("\n[build] the model returned no code change - stopping.\n");
+                    return false;
+                }
+            }
+
             fullAsm  = artifact.getProperty ("assembly", fullAsm).toString();
             fullHtml = artifact.getProperty ("html",     fullHtml).toString();
+
+            if (fullAsm.trim().isEmpty())
+            {
+                // `error` (not the lambda-local rerr) is what the caller reports.
+                error = "the AI returned no AssemblyScript and there was no existing "
+                        "source to patch.";
+                return false;
+            }
+
+            // Backfill the resolved sources so everything downstream (the compile
+            // loop, finishOnUi, the saved document) sees complete files even when
+            // the reply only carried one of the two.
+            if (auto* ao = artifact.getDynamicObject())
+            {
+                ao->setProperty ("assembly", fullAsm);
+                ao->setProperty ("html",     fullHtml);
+            }
             return true;
         };
         if (! resolvePatch()) { finishOnUi (false, error, {}, {}, prompt); return; }
@@ -454,15 +543,32 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
                        + juce::String (asmSrc.length()) + " chars of AssemblyScript)...");
             reportProgress (attempt == 1 ? juce::String ("Compiling...")
                                          : "Compiling (retry " + juce::String (attempt - 1) + ")...");
+
+            // Mirror the compile pipeline into the "See reasoning" panel, so a long
+            // build reads as a sequence of steps rather than a frozen status line.
+            streamThinking (attempt == 1
+                ? "\n\n[build] compiling AssemblyScript (" + juce::String (asmSrc.length()) + " chars)...\n"
+                : "\n[build] RECOMPILING - attempt " + juce::String (attempt)
+                      + " of " + juce::String (maxFix + 1) + " ("
+                      + juce::String (asmSrc.length()) + " chars)...\n");
+
             if (comp->compile (asmSrc, wasm, diag))
             {
                 VSTAI_LOG ("compiled OK -> " + juce::String ((int) wasm.size()) + " bytes of wasm");
+                streamThinking ("[build] compiled OK -> " + juce::String ((int) wasm.size())
+                                + " bytes of wasm\n");
                 reportProgress ("Installing...");
                 finishOnUi (true, {}, artifact, wasm, prompt);
                 return;
             }
 
             VSTAI_LOG ("compile failed: " + diag.substring (0, 300));
+            {
+                // First diagnostic line only -- the full text goes to the error panel.
+                auto first = juce::StringArray::fromLines (diag.trim());
+                streamThinking ("[build] compile FAILED: "
+                                + (first.isEmpty() ? juce::String ("(no diagnostic)") : first[0]) + "\n");
+            }
             if (attempt > maxFix)
             {
                 finishOnUi (false, "AssemblyScript failed to compile:\n" + diag, {}, {}, prompt);
@@ -472,6 +578,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             addMsg ("assistant", juce::JSON::toString (artifact, true));
             addMsg ("user", vstai::buildFixMessage (asmSrc, diag));
             reportProgress ("Fixing errors with AI...");
+            streamThinking ("[build] asking the model to fix the compile errors...\n");
             if (! llm.callMessages (messages, artifact, error))
             {
                 finishOnUi (false, error, {}, {}, prompt);
@@ -499,7 +606,23 @@ void VstaiAudioProcessor::requestBuildFromArtifact (const juce::String& prompt, 
         return;
     }
 
+    // Same trap as the API path: a reply carrying neither "edits" nor "assembly"
+    // (an explanation-only paste) would otherwise compile an empty module -- which
+    // asc accepts -- leaving a silent plugin and a blank source in the editor.
+    if (auto* ao = artifact.getDynamicObject())
+    {
+        if (ao->getProperty ("assembly").toString().isEmpty()) ao->setProperty ("assembly", document.assembly);
+        if (ao->getProperty ("html").toString().isEmpty())     ao->setProperty ("html",     document.html);
+    }
+
     const juce::String asmSrc = artifact.getProperty ("assembly", {}).toString();
+    if (asmSrc.trim().isEmpty())
+    {
+        if (done) done (false, "That reply contained no AssemblyScript (and there is no "
+                               "existing source to patch). Paste the complete `assembly` "
+                               "and `html`, or an `edits` patch.");
+        return;
+    }
     VSTAI_LOG ("manual build requested (" + juce::String (asmSrc.length()) + " chars of AssemblyScript)");
 
     auto aliveToken = alive;
@@ -600,6 +723,18 @@ void VstaiAudioProcessor::requestRecompile (const juce::String& assembly, const 
         });
     };
 
+    // Manual recompiles report into the same "See reasoning" panel as generated
+    // builds, so hand-edited source and AI builds leave a consistent trail.
+    auto thinkingCb    = onThinkingDelta;   // snapshot the UI sink on the message thread
+    auto streamThinking = [aliveToken, thinkingCb] (const juce::String& delta)
+    {
+        if (thinkingCb == nullptr) return;
+        juce::MessageManager::callAsync ([aliveToken, thinkingCb, delta]
+        {
+            if (aliveToken->load()) thinkingCb (delta);
+        });
+    };
+
     // On success, swap in the edited source on the message thread and reload.
     auto finishOnUi = [this, aliveToken, done] (bool ok, juce::String diag,
                                                 juce::String asmSrc, juce::String htmlSrc,
@@ -623,7 +758,7 @@ void VstaiAudioProcessor::requestRecompile (const juce::String& assembly, const 
             });
     };
 
-    std::thread ([assembly, html, comp, finishOnUi, reportProgress]
+    std::thread ([assembly, html, comp, finishOnUi, reportProgress, streamThinking]
     {
         if (! comp->isAvailable())
         {
@@ -634,17 +769,25 @@ void VstaiAudioProcessor::requestRecompile (const juce::String& assembly, const 
         }
 
         reportProgress ("Compiling...");
+        streamThinking ("\n[manual] RECOMPILING edited source ("
+                        + juce::String (assembly.length()) + " chars)...\n");
+
         std::vector<uint8_t> wasm;
         juce::String diag;
         if (comp->compile (assembly, wasm, diag))
         {
             VSTAI_LOG ("manual recompile OK -> " + juce::String ((int) wasm.size()) + " bytes");
+            streamThinking ("[manual] compiled OK -> " + juce::String ((int) wasm.size())
+                            + " bytes of wasm\n");
             reportProgress ("Installing...");
             finishOnUi (true, {}, assembly, html, wasm);
         }
         else
         {
             VSTAI_LOG ("manual recompile failed: " + diag.substring (0, 300));
+            auto first = juce::StringArray::fromLines (diag.trim());
+            streamThinking ("[manual] compile FAILED: "
+                            + (first.isEmpty() ? juce::String ("(no diagnostic)") : first[0]) + "\n");
             finishOnUi (false, diag, {}, {}, {});
         }
     }).detach();

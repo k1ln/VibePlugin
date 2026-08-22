@@ -7,9 +7,7 @@
 #include "WebAssets.h"
 #include "Prompt.h"
 #include "LlmClient.h"
-#include "LicenseClient.h"
 #include "AccountPanel.h"
-#include "LicensePanel.h"
 
 using juce::var;
 using VarArray = juce::Array<juce::var>;
@@ -48,7 +46,7 @@ namespace
     {
         juce::Array<var> a;
         a.add (modelEntry ("anthropic", "claude-fable-5",    "Fable 5 (most capable, 2\xC3\x97 price)", "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best value)",  "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-opus-5",     "Opus 5 (best value)",    "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)",   "Anthropic (your key)"));
         // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
         // (Anthropic-only for now). The backend still supports them — re-add to restore.
@@ -86,6 +84,24 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
     auto options = juce::WebBrowserComponent::Options{}
         .withNativeIntegrationEnabled()
         .withKeepPageLoadedWhenBrowserIsHidden()
+        // Windows needs BOTH of the following, or the GUI renders an Internet
+        // Explorer error page instead of the SPA:
+        //
+        //  - withBackend(webview2): JUCE's Backend::defaultBackend means *IE* on
+        //    Windows, and createAndInitPlatformDependentPart only builds a WebView2
+        //    when the backend is explicitly webview2 — otherwise it silently falls
+        //    back to Win32WebView. IE cannot serve a resource provider, so the
+        //    navigation is simply cancelled. Compiling with NEEDS_WEBVIEW2 is not
+        //    enough; the backend has to be requested at runtime too.
+        //  - withUserDataFolder: WebView2 otherwise puts its user-data folder next
+        //    to the *host* exe, and DAWs live under C:\Program Files, which isn't
+        //    user-writable — the environment then fails to create. JUCE documents
+        //    this as a plugin-specific gotcha.
+       #if JUCE_WINDOWS
+        .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
+        .withWinWebView2Options (juce::WebBrowserComponent::Options::WinWebView2{}
+            .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory)))
+       #endif
         .withResourceProvider ([safe] (const auto& url) -> std::optional<juce::WebBrowserComponent::Resource>
         {
             if (safe == nullptr) return std::nullopt;
@@ -459,6 +475,52 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             complete (vstai::appsettings::standardUi());
         })
         // ---- settings + design schools ---------------------------------
+        // Diagnostics: the in-memory log ring plus the technical facts you would
+        // otherwise have to dig out of a log file on disk. A DAW gives the user no
+        // stdout, so the plugin has to be able to show its own state.
+        .withNativeFunction ("getDiagnostics", [safe] (const VarArray&, Completion complete)
+        {
+            auto* o = new juce::DynamicObject();
+            o->setProperty ("log", vstai::dev::ring().text());
+
+           #ifdef VSTAI_BUILD_ID
+            o->setProperty ("build", VSTAI_BUILD_ID);
+           #else
+            o->setProperty ("build", "(unknown)");
+           #endif
+            o->setProperty ("devMode",    vstai::dev::enabled);
+            o->setProperty ("logFile",    vstai::dev::logFilePath());
+            o->setProperty ("juce",       juce::SystemStats::getJUCEVersion());
+            o->setProperty ("os",         juce::SystemStats::getOperatingSystemName());
+            o->setProperty ("cpu",        juce::SystemStats::getNumCpus());
+
+            if (safe != nullptr)
+            {
+                auto& p = safe->processor;
+                o->setProperty ("kind",      p.isInstrument() ? "instrument" : "effect");
+                o->setProperty ("provider",  p.getGenerationProvider());
+                o->setProperty ("model",     p.getGenerationModel());
+                o->setProperty ("effort",    p.getGenerationEffort());
+                o->setProperty ("thinking",  p.getGenerationThinking());
+                o->setProperty ("asmChars",  p.getDocument().assembly.length());
+                o->setProperty ("htmlChars", p.getDocument().html.length());
+                o->setProperty ("wasmBytes", (int) p.getDocument().wasm.size());
+            }
+
+            auto res = juce::File::getSpecialLocation (juce::File::currentExecutableFile)
+                         .getParentDirectory().getParentDirectory().getChildFile ("Resources");
+            o->setProperty ("resourceDir", res.getFullPathName());
+            o->setProperty ("uiFound",     res.getChildFile ("ui/shell.html").existsAsFile());
+            o->setProperty ("compilerFound", res.getChildFile ("asc-bundle.mjs").existsAsFile());
+
+            complete (var (o));
+        })
+        .withNativeFunction ("clearDiagnostics", [] (const VarArray&, Completion complete)
+        {
+            vstai::dev::ring().clear();
+            VSTAI_LOG ("diagnostics log cleared by user");
+            complete (var());
+        })
         .withNativeFunction ("getSettings", [] (const VarArray&, Completion complete)
         {
             auto* o = new juce::DynamicObject();
@@ -599,26 +661,9 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             if (safe != nullptr)
             {
                 auto panel = std::make_unique<AccountPanel>();
-                panel->onChanged = [safe] { if (safe) safe->updateLicenseState(); };
                 juce::DialogWindow::LaunchOptions o;
                 o.content.setOwned (panel.release());
                 o.dialogTitle = "VibePlugin Cloud credits";
-                o.dialogBackgroundColour = juce::Colour (0xff141a24);
-                o.escapeKeyTriggersCloseButton = true;
-                o.useNativeTitleBar = true;
-                safe->trackDialog (o.launchAsync());
-            }
-            complete (var());
-        })
-        .withNativeFunction ("openLicense", [safe] (const VarArray&, Completion complete)
-        {
-            if (safe != nullptr)
-            {
-                auto panel = std::make_unique<LicensePanel>();
-                panel->onChanged = [safe] { if (safe) safe->updateLicenseState(); };
-                juce::DialogWindow::LaunchOptions o;
-                o.content.setOwned (panel.release());
-                o.dialogTitle = "VibePlugin license";
                 o.dialogBackgroundColour = juce::Colour (0xff141a24);
                 o.escapeKeyTriggersCloseButton = true;
                 o.useNativeTitleBar = true;
@@ -714,16 +759,6 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
     web->goToURL (juce::WebBrowserComponent::getResourceProviderRoot());
 
     refreshOllamaModelsAsync();
-
-    // Shareware: once the editor is on screen, either re-validate a license in the
-    // background (fail-open) or pop the friendly nag once per DAW process.
-    static std::atomic<bool> nagShownThisSession { false };
-    juce::MessageManager::callAsync ([safe]
-    {
-        if (safe == nullptr) return;
-        if (vstai::appsettings::isLicensed())          safe->revalidateLicenseAsync();
-        else if (! nagShownThisSession.exchange (true)) safe->showNag();
-    });
 }
 
 WebEditor::~WebEditor()
@@ -811,16 +846,6 @@ void WebEditor::emitEvent (const juce::Identifier& id, const var& payload)
     if (web != nullptr && pageReady) web->emitEventIfBrowserIsVisible (id, payload);
 }
 
-void WebEditor::updateLicenseState()
-{
-    auto* o = new juce::DynamicObject();
-    o->setProperty ("licensed", vstai::appsettings::isLicensed());
-    o->setProperty ("signedIn", vstai::appsettings::isSignedIn());
-    o->setProperty ("email",    vstai::appsettings::isLicensed() ? vstai::appsettings::licenseEmail()
-                                                                 : vstai::appsettings::cloudEmail());
-    emitEvent ("licenseChanged", var (o));
-}
-
 void WebEditor::refreshOllamaModelsAsync()
 {
     const juce::String baseUrl = vstai::appsettings::ollamaBaseUrl();
@@ -838,73 +863,6 @@ void WebEditor::refreshOllamaModelsAsync()
     }).detach();
 }
 
-void WebEditor::revalidateLicenseAsync()
-{
-    const auto base    = vstai::appsettings::licenseServerUrl();
-    const auto key     = vstai::appsettings::licenseKey();
-    const auto machine = vstai::appsettings::machineId();
-    if (key.isEmpty()) return;
-
-    juce::Component::SafePointer<WebEditor> safe (this);
-    std::thread ([safe, base, key, machine]
-    {
-        auto resp = vstai::license::validate (base, key, machine);
-        const bool reachable = resp.transportOk && resp.status >= 200 && resp.status < 300 && resp.json.isObject();
-        const bool invalid   = reachable && ! (bool) resp.json.getProperty ("valid", true);
-        if (! invalid) return;
-
-        juce::MessageManager::callAsync ([safe]
-        {
-            vstai::appsettings::clearLicense();
-            if (safe != nullptr) safe->updateLicenseState();
-        });
-    }).detach();
-}
-
-void WebEditor::showNag()
-{
-    if (vstai::appsettings::isLicensed()) return;
-
-    auto* aw = new juce::AlertWindow (
-        "A friendly warning (this is a joke, mostly)",
-        juce::String::fromUTF8 (
-        "Some people pay good money \xE2\x80\x94 actual dollars \xE2\x80\x94 for a plugin that writes "
-        "plugins.\n\nYou? You're running it for free. We're not mad. Honestly, a little impressed.\n\n"
-        "A one-time lifetime license makes this warning vanish forever \xE2\x80\x94 and buying any pack of "
-        "cloud credits includes that license for free. Open the Account\xE2\x80\xA6 dialog to buy credits."
-        "\n\nNo pressure \xE2\x80\x94 every feature works either way."),
-        juce::MessageBoxIconType::NoIcon);
-
-    aw->addButton ("Buy lifetime license", 1);
-    aw->addButton ("I already have one",   2);
-    aw->addButton ("Maybe later",          0, juce::KeyPress (juce::KeyPress::escapeKey));
-
-    juce::Component::SafePointer<WebEditor> safe (this);
-    aw->enterModalState (true, juce::ModalCallbackFunction::create ([safe] (int r)
-    {
-        if (r == 1)
-        {
-            juce::String url = vstai::appsettings::licenseCheckoutUrl();
-            if (url.isEmpty()) url = vstai::appsettings::licenseServerUrl();
-            juce::URL (url).launchInDefaultBrowser();
-        }
-        else if (r == 2 && safe != nullptr)
-        {
-            // "I already have one" — open the native License dialog directly.
-            auto panel = std::make_unique<LicensePanel>();
-            panel->onChanged = [safe] { if (safe) safe->updateLicenseState(); };
-            juce::DialogWindow::LaunchOptions o;
-            o.content.setOwned (panel.release());
-            o.dialogTitle = "VibePlugin license";
-            o.dialogBackgroundColour = juce::Colour (0xff141a24);
-            o.escapeKeyTriggersCloseButton = true;
-            o.useNativeTitleBar = true;
-            safe->trackDialog (o.launchAsync());
-        }
-    }), true);
-    trackDialog (aw);
-}
-
 juce::var WebEditor::currentState() const
 {
     const auto& d = processor.getDocument();
@@ -919,10 +877,7 @@ juce::var WebEditor::currentState() const
     o->setProperty ("name",      d.name);
     o->setProperty ("assembly",  d.assembly);
     o->setProperty ("html",      d.html.isNotEmpty() ? d.html : processor.getDisplayHtml());
-    o->setProperty ("licensed",  vstai::appsettings::isLicensed());
     o->setProperty ("signedIn",  vstai::appsettings::isSignedIn());
-    o->setProperty ("email",     vstai::appsettings::isLicensed() ? vstai::appsettings::licenseEmail()
-                                                                  : vstai::appsettings::cloudEmail());
     o->setProperty ("building",  processor.isBuilding());
     o->setProperty ("stage",     processor.getBuildStage());
     o->setProperty ("designId",  vstai::appsettings::selectedDesignId());
@@ -962,6 +917,16 @@ WebEditor::provideResource (const juce::String& rawUrl)
         html = html.replace ("\"shell.css\"",                       "\"shell.css" + v + "\"")
                    .replace ("\"shell.js\"",                        "\"shell.js" + v + "\"")
                    .replace ("\"vendor/monaco/vs/loader.js\"",      "\"vendor/monaco/vs/loader.js" + v + "\"");
+
+        // Stamp the header with the build this binary came from. DAWs cache plugin
+        // binaries, so without this there is no way to tell from the GUI whether a
+        // rebuild actually got loaded or the host is still running the old one.
+       #ifdef VSTAI_BUILD_ID
+        html = html.replace ("__VSTAI_BUILD__", VSTAI_BUILD_ID);
+       #else
+        html = html.replace ("__VSTAI_BUILD__", "dev");
+       #endif
+
         return juce::WebBrowserComponent::Resource { toBytes (html), "text/html;charset=UTF-8" };
     }
 

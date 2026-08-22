@@ -37,6 +37,13 @@ public:
     void setApiKey  (const juce::String& key)   { apiKey = key; }
     void setModel   (const juce::String& m)      { if (m.isNotEmpty()) model = m; }
     void setEffort  (const juce::String& e)      { if (e.isNotEmpty()) effort = e; }   // anthropic thinking depth
+    void setMaxOutputTokens (int n)              { maxOutputTokens = n; }
+    // Stable prompt half (design language + component kit). Sent as the first
+    // block of the first user message with a 1h cache breakpoint after it.
+    void setCachedPreamble (const juce::String& p) { cachedPreamble = p; }
+    // Structured outputs (output_config.format json_schema). ON for new builds.
+    // MUST be OFF for edit requests -- see the note in callAnthropic.
+    void setStructuredOutput (bool b) { structuredOutput = b; }
     void setBaseUrl (const juce::String& u)      { if (u.isNotEmpty()) baseUrl = u; }  // ollama / glm / cloud server
     void setToken   (const juce::String& t)      { token = t; }                        // cloud session token
     void setSynth   (bool b)                     { synth = b; }                        // cloud: tag stored history
@@ -77,8 +84,16 @@ private:
 
     Provider     provider { Provider::anthropic };
     juce::String apiKey;
-    juce::String model   { "claude-opus-4-8" };
+    juce::String model   { "claude-opus-5" };
     juce::String effort  { "medium" };   // low|medium|high|max (anthropic only)
+    // Output ceiling. A from-scratch build legitimately needs the model's full
+    // 128K (a whole DSP module + GUI); a small edit does not, and leaving the
+    // ceiling that high lets a runaway patch burn the entire budget -- measured:
+    // 128,000 output tokens, 16 minutes and ~$3 for one "add a reverb" that
+    // returned truncated, unparseable JSON. The caller lowers this for edits.
+    int          maxOutputTokens { 0 };  // 0 = pick from the model's ceiling
+    juce::String cachedPreamble;         // anthropic: cached first block
+    bool         structuredOutput { true };
     juce::String baseUrl { "http://localhost:11434" };
     juce::String token;                  // cloud session token
     bool         synth { false };        // cloud: is_synth tag

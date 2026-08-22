@@ -26,6 +26,14 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
 
     auto options = juce::WebBrowserComponent::Options{}
         .withKeepPageLoadedWhenBrowserIsHidden()
+        // See WebEditor.cpp: on Windows the backend must be requested explicitly
+        // (defaultBackend is IE, which can't serve a resource provider), and
+        // WebView2 needs a writable user-data folder outside C:\Program Files.
+       #if JUCE_WINDOWS
+        .withBackend (juce::WebBrowserComponent::Options::Backend::webview2)
+        .withWinWebView2Options (juce::WebBrowserComponent::Options::WinWebView2{}
+            .withUserDataFolder (juce::File::getSpecialLocation (juce::File::tempDirectory)))
+       #endif
         .withResourceProvider ([safe] (const auto& url) -> std::optional<juce::WebBrowserComponent::Resource>
         {
             if (safe == nullptr) return std::nullopt;

@@ -30,14 +30,15 @@ window.addEventListener("unhandledrejection", function (e) {
   <!-- ===== Header ===================================================== -->
   <header class="bar">
     <div class="brand"><span class="dot"></span><h1>VibePlugin</h1>
+      <!-- Replaced by WebEditor::provideResource with the CMake build id, so you
+           can see at a glance which build the DAW actually loaded. -->
+      <span class="ver" id="buildVer" title="Build this editor was compiled from">__VSTAI_BUILD__</span>
       <span class="sub" id="kindSub">plugin generator</span>
       <span class="plugin-name" id="pluginName" hidden></span></div>
     <div class="spacer"></div>
     <div class="group" id="headerBtns">
       <button class="btn ghost" id="keysBtn"    title="API keys, design &amp; settings">Settings</button>
       <button class="btn ghost" id="accountBtn" title="Cloud credits">Account</button>
-      <!-- Lifetime is always included — no license to buy/activate, so this is hidden. -->
-      <button class="btn ghost" id="licenseBtn" title="License" hidden>Unlicensed</button>
     </div>
     <button class="btn ghost" id="collapseBtn" title="Hide the editor — show just the plugin GUI">Hide editor ▴</button>
   </header>
@@ -130,6 +131,21 @@ window.addEventListener("unhandledrejection", function (e) {
             <button class="btn" id="exportDesignBtn" title="Save the selected design to a file you can share or re-import">Export selected…</button>
             <span id="designStatus" class="muted"></span>
           </div>
+        </section>
+        <section class="set-block">
+          <h3>Diagnostics</h3>
+          <p class="muted">Everything the plugin logged this session — generation, token/cache counts,
+            timings, compiles and errors. A DAW hides stdout, so this is the place to look when
+            something hangs or a change doesn&rsquo;t take effect. Newest at the bottom.</p>
+          <div class="diag-facts" id="diagFacts"></div>
+          <div class="row">
+            <button class="btn" id="diagRefreshBtn">Refresh</button>
+            <button class="btn" id="diagCopyBtn">Copy all</button>
+            <button class="btn" id="diagClearBtn">Clear</button>
+            <label class="lbl chk"><input type="checkbox" id="diagAutoChk" checked/> Auto-refresh</label>
+            <span id="diagStatus" class="muted"></span>
+          </div>
+          <pre class="diag-log" id="diagLog"></pre>
         </section>
       </div>
     </div>

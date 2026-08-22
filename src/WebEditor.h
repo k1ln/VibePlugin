@@ -6,7 +6,7 @@
 //  native-integration bridge (withNativeFunction / emitEvent).
 //
 //  Native bits that must stay native: the OS file dialogs (Save/Load) and
-//  the Keys / Account / License dialogs (reused from the legacy editor).
+//  the Keys / Account dialogs (reused from the legacy editor).
 //  The generated plugin GUI is sandboxed in an <iframe> (served at /preview)
 //  so AI-generated JS can't reach the shell.
 //
@@ -37,7 +37,7 @@ private:
     std::optional<juce::WebBrowserComponent::Resource> provideResource (const juce::String& url);
 
     // Snapshot of everything the SPA needs to render itself (model list, current
-    // selection, licence/account state, document source for the editors).
+    // selection, account state, document source for the editors).
     juce::var currentState() const;
 
     // Push an event to the SPA (no-op if the browser isn't visible).
@@ -46,11 +46,8 @@ private:
     void timerCallback() override;   // throttles the live "thinking" stream
 
     void refreshOllamaModelsAsync(); // poll the Ollama server off the message thread
-    void revalidateLicenseAsync();   // background re-check on open (fail-open)
-    void showNag();                  // friendly shareware warning (native dialog)
-    void updateLicenseState();       // emit "licenseChanged" so the SPA refreshes
 
-    // The native dialogs (Keys/Account/License/nag) are top-level desktop windows,
+    // The native dialogs (Keys/Account) are top-level desktop windows,
     // not children of this editor, so they would outlive it when the host closes the
     // plugin — and their callbacks would then fire against a destroyed WebBrowser /
     // editor and crash the DAW. We track every one we launch and close them all in

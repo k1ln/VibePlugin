@@ -6,7 +6,6 @@
 #include "LlmClient.h"
 #include "AppSettings.h"
 #include "AccountPanel.h"
-#include "LicensePanel.h"
 #include "ManualPanel.h"
 #include <thread>
 
@@ -141,15 +140,12 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     loadButton.onClick     = [this] { doLoad(); };
     keysButton.onClick     = [this] { openSettings(); };
     accountButton.onClick  = [this] { openAccount(); };
-    licenseButton.onClick  = [this] { openLicense(); };
     addAndMakeVisible (generateButton);
     addAndMakeVisible (newButton);
     addAndMakeVisible (saveButton);
     addAndMakeVisible (loadButton);
     addAndMakeVisible (keysButton);
     addAndMakeVisible (accountButton);
-    addAndMakeVisible (licenseButton);
-    updateLicenseButton();
 
     // Cost controls: model + thinking effort. IDs map to API strings.
     modelLabel.setText ("Model", juce::dontSendNotification);
@@ -344,21 +340,6 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     // If a build is still running (window was closed and reopened mid-generation),
     // restore the spinner + status so it doesn't look like the generation vanished.
     syncBuildState();
-
-    // Shareware: pop the friendly warning once the editor is on screen (unless
-    // licensed). A licensed install quietly re-validates in the background.
-    // The nag fires once per DAW process (static flag), not on every plugin/window
-    // open — re-opening or adding more instances won't re-trigger it.
-    static std::atomic<bool> nagShownThisSession { false };
-    juce::Component::SafePointer<VstaiAudioProcessorEditor> safe (this);
-    juce::MessageManager::callAsync ([safe]
-    {
-        if (safe == nullptr) return;
-        if (vstai::appsettings::isLicensed())
-            safe->revalidateLicenseAsync();
-        else if (! nagShownThisSession.exchange (true))
-            safe->showNag();
-    });
 }
 
 VstaiAudioProcessorEditor::~VstaiAudioProcessorEditor()
@@ -520,7 +501,6 @@ void VstaiAudioProcessorEditor::setBusy (bool busy, const juce::String& status)
     loadButton.setEnabled (! busy);
     keysButton.setEnabled (! busy);
     accountButton.setEnabled (! busy);
-    licenseButton.setEnabled (! busy);
     compileButton.setEnabled (! busy);
     fixButton.setEnabled     (! busy);
     revertButton.setEnabled  (! busy);
@@ -778,7 +758,7 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     if (processor.getGenerationProvider() == "manual")
     {
         processor.setGenerationProvider ("anthropic");
-        processor.setGenerationModel    ("claude-opus-4-8");
+        processor.setGenerationModel    ("claude-opus-5");
         currentProvider = "anthropic";
     }
 
@@ -790,7 +770,7 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
 
     modelBox.addSectionHeading ("Anthropic (your key)");
     add ("anthropic", "claude-fable-5",    "Fable 5 (most capable, 2\xC3\x97 price)");
-    add ("anthropic", "claude-opus-4-8",   "Opus 4.8 (best value)");
+    add ("anthropic", "claude-opus-5",     "Opus 5 (best value)");
     add ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)");
 
     // GLM / Zhipu (Z.ai) — OpenAI-compatible. The exact model id must match what
@@ -908,7 +888,6 @@ void VstaiAudioProcessorEditor::openAccount()
     panel->onChanged = [safe]
     {
         if (safe == nullptr) return;
-        safe->updateLicenseButton();   // claiming the bundled license flips the toolbar
         safe->statusLabel.setText (vstai::appsettings::isSignedIn()
                                        ? ("Cloud: signed in as " + vstai::appsettings::cloudEmail())
                                        : juce::String ("Cloud: signed out"),
@@ -923,105 +902,6 @@ void VstaiAudioProcessorEditor::openAccount()
     o.useNativeTitleBar = true;
     o.resizable = false;
     trackDialog (o.launchAsync());
-}
-
-void VstaiAudioProcessorEditor::openLicense()
-{
-    auto panel = std::make_unique<LicensePanel>();
-    juce::Component::SafePointer<VstaiAudioProcessorEditor> safe (this);
-    panel->onChanged = [safe]
-    {
-        if (safe == nullptr) return;
-        safe->updateLicenseButton();
-        safe->statusLabel.setText (vstai::appsettings::isLicensed()
-                                       ? ("Licensed to " + vstai::appsettings::licenseEmail())
-                                       : juce::String ("Unlicensed (shareware)"),
-                                   juce::dontSendNotification);
-    };
-
-    juce::DialogWindow::LaunchOptions o;
-    o.content.setOwned (panel.release());
-    o.dialogTitle = "VibePlugin license";
-    o.dialogBackgroundColour = juce::Colour (0xff141a24);
-    o.escapeKeyTriggersCloseButton = true;
-    o.useNativeTitleBar = true;
-    o.resizable = false;
-    trackDialog (o.launchAsync());
-}
-
-void VstaiAudioProcessorEditor::updateLicenseButton()
-{
-    const bool licensed = vstai::appsettings::isLicensed();
-    licenseButton.setButtonText (licensed ? "Licensed \xE2\x9C\x93" : "Unlicensed");
-    licenseButton.setColour (juce::TextButton::textColourOffId,
-                             licensed ? juce::Colour (0xff9fdca0) : juce::Colour (0xffe0b050));
-}
-
-void VstaiAudioProcessorEditor::showNag()
-{
-    if (vstai::appsettings::isLicensed()) return;
-
-    auto* aw = new juce::AlertWindow (
-        "A friendly warning (this is a joke, mostly)",
-        "Some people pay good money \xE2\x80\x94 actual dollars \xE2\x80\x94 for a plugin that writes "
-        "plugins.\n\nYou? You're running it for free. We're not mad. Honestly, a little impressed.\n\n"
-        "If this warning ever starts to feel like it's judging you (it isn't, it's just a label), a "
-        "one-time lifetime license makes it vanish forever and funds roughly half a coffee for the "
-        "developer. \xE2\x98\x95\n\n"
-        "And here's the deal: buying any pack of cloud credits includes that lifetime license for "
-        "free \xE2\x80\x94 the warning disappears the moment you sign in. Open the Account\xE2\x80\xA6 dialog to buy credits."
-        "\n\nNo pressure \xE2\x80\x94 every feature works either way.",
-        juce::MessageBoxIconType::NoIcon);
-
-    aw->addButton ("Buy lifetime license", 1);
-    aw->addButton ("I already have one",   2);
-    aw->addButton ("Maybe later",          0, juce::KeyPress (juce::KeyPress::escapeKey));
-
-    juce::Component::SafePointer<VstaiAudioProcessorEditor> safe (this);
-    aw->enterModalState (true,
-        juce::ModalCallbackFunction::create ([safe, aw] (int result)
-        {
-            if (result == 1)
-            {
-                juce::String url = vstai::appsettings::licenseCheckoutUrl();
-                if (url.isEmpty()) url = vstai::appsettings::licenseServerUrl();
-                juce::URL (url).launchInDefaultBrowser();
-            }
-            else if (result == 2 && safe != nullptr)
-            {
-                safe->openLicense();
-            }
-        }),
-        true);
-    trackDialog (aw);
-}
-
-void VstaiAudioProcessorEditor::revalidateLicenseAsync()
-{
-    const auto base    = vstai::appsettings::licenseServerUrl();
-    const auto key     = vstai::appsettings::licenseKey();
-    const auto machine = vstai::appsettings::machineId();
-    if (key.isEmpty()) return;
-
-    juce::Component::SafePointer<VstaiAudioProcessorEditor> safe (this);
-    std::thread ([safe, base, key, machine]
-    {
-        auto resp = vstai::license::validate (base, key, machine);
-        // Fail-open: only clear when the server is reachable AND says invalid.
-        const bool reachable = resp.transportOk && resp.status >= 200 && resp.status < 300
-                            && resp.json.isObject();
-        const bool invalid   = reachable && ! (bool) resp.json.getProperty ("valid", true);
-        if (! invalid) return;
-
-        juce::MessageManager::callAsync ([safe]
-        {
-            vstai::appsettings::clearLicense();
-            if (safe == nullptr) return;
-            safe->updateLicenseButton();
-            safe->statusLabel.setText ("Your license is no longer valid on this machine.",
-                                       juce::dontSendNotification);
-        });
-    }).detach();
 }
 
 void VstaiAudioProcessorEditor::onEffortChanged()
@@ -1111,7 +991,7 @@ void VstaiAudioProcessorEditor::resized()
 
     bar.removeFromTop (10);
 
-    // Row 2: New / Save / Load / Keys / Account / License  +  Model & Thinking.
+    // Row 2: New / Save / Load / Keys / Account  +  Model & Thinking.
     auto row2 = bar.removeFromTop (28);
     newButton.setBounds  (row2.removeFromLeft (60));
     row2.removeFromLeft (6);
@@ -1122,8 +1002,6 @@ void VstaiAudioProcessorEditor::resized()
     keysButton.setBounds (row2.removeFromLeft (66));
     row2.removeFromLeft (6);
     accountButton.setBounds (row2.removeFromLeft (84));
-    row2.removeFromLeft (6);
-    licenseButton.setBounds (row2.removeFromLeft (96));
 
     effortBox.setBounds   (row2.removeFromRight (130));
     thinkButton.setBounds (effortBox.getBounds());   // same slot; only one is visible

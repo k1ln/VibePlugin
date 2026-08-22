@@ -64,7 +64,7 @@ public:
 
     // Generation settings (persisted so a reopened project keeps your choice).
     juce::String              provider = "anthropic";       // anthropic | glm | ollama | cloud
-    juce::String              model  = "claude-opus-4-8";   // claude-* / glm-* / an Ollama model
+    juce::String              model  = "claude-opus-5";   // claude-* / glm-* / an Ollama model
     juce::String              effort = "medium";            // low | medium | high | max (anthropic)
     bool                      thinking = true;              // glm: reasoning on/off
 

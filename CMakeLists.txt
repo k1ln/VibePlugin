@@ -35,16 +35,20 @@ endif()
 find_path(WASMTIME_INCLUDE_DIR wasmtime.h PATHS "${WASMTIME_DIR}/include" REQUIRED)
 find_library(WASMTIME_LIB NAMES wasmtime libwasmtime PATHS "${WASMTIME_DIR}/lib" REQUIRED)
 
-# On Windows the c-api links dynamically (wasmtime.dll.lib is an import lib for
-# wasmtime.dll). The DLL must sit next to the plugin binary at runtime or the
-# plugin loads but the DSP engine can't start. macOS/Linux link the static .a,
-# so this is Windows-only. Located here, copied per-format in add_vstai_plugin.
-if(WIN32)
-    find_file(WASMTIME_DLL NAMES wasmtime.dll PATHS "${WASMTIME_DIR}/lib" "${WASMTIME_DIR}/bin" NO_DEFAULT_PATH)
-    if(NOT WASMTIME_DLL)
-        message(WARNING "wasmtime.dll not found under ${WASMTIME_DIR} (lib/ or bin/) — "
-                        "the Windows plugin will fail to load until it's shipped beside the binary.")
-    endif()
+# Windows links wasmtime STATICALLY (lib/wasmtime.lib), not via wasmtime.dll.
+# Shipping the DLL inside the bundle does not work: Windows resolves a DLL's
+# dependencies against the *host application's* directory (the DAW's folder),
+# System32 and PATH — never the loaded DLL's own directory. So a wasmtime.dll
+# in Contents/x86_64-win is invisible and the plugin silently fails to load
+# (FL Studio just never lists it). Static linking removes the dependency.
+#
+# The static lib needs WASM_API_EXTERN/WASI_API_EXTERN defined empty so the
+# headers stop emitting __declspec(dllimport), plus the Win32 system libs
+# linked below in add_vstai_plugin — both per wasmtime.h's own instructions.
+if(WIN32 AND WASMTIME_LIB MATCHES "wasmtime\\.dll\\.lib$")
+    message(WARNING "WASMTIME_LIB points at the import lib (${WASMTIME_LIB}). "
+                    "Use lib/wasmtime.lib instead — a DLL shipped in the bundle "
+                    "is not on Windows' DLL search path and the plugin won't load.")
 endif()
 
 # The plugin calls https://api.anthropic.com directly. macOS/Windows use native
@@ -71,6 +75,14 @@ set(VSTAI_SOURCES
 if(APPLE)
     list(APPEND VSTAI_SOURCES src/MacKeyUpMonitor.mm)
 endif()
+
+# A build stamp shown next to the title in the editor header, so it is obvious
+# at a glance which build a DAW actually has loaded (hosts cache plugin binaries,
+# so "did my rebuild land?" is otherwise guesswork). Regenerated on every
+# configure, and scripts/build.sh configures on every run.
+string(TIMESTAMP VSTAI_BUILD_STAMP "%Y%m%d-%H%M")
+set(VSTAI_BUILD_ID "v${PROJECT_VERSION}-${VSTAI_BUILD_STAMP}")
+message(STATUS "vstai: build id ${VSTAI_BUILD_ID}")
 
 # ---------------------------------------------------------------------------
 #  One core, two products: an effect and an instrument/synth.
@@ -121,11 +133,15 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         JUCE_DISPLAY_SPLASH_SCREEN=0
         VSTAI_IS_SYNTH=${SYNTH_DEF}
         VSTAI_DEV_MODE=$<BOOL:${VSTAI_DEV_MODE}>
+        VSTAI_BUILD_ID="${VSTAI_BUILD_ID}"
         # Windows: defining this flips JUCE_USE_WIN_WEBVIEW2 on in juce_gui_extra,
         # which is what actually exposes WebBrowserComponent::Options::with-
         # ResourceProvider (the GUI bridge). NEEDS_WEBVIEW2 only links the static
         # loader; it does NOT define this. No-op on macOS/Linux.
-        $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>)
+        $<$<PLATFORM_ID:Windows>:JUCE_USE_WIN_WEBVIEW2_WITH_STATIC_LINKING=1>
+        # Statically-linked wasmtime: drop the headers' __declspec(dllimport).
+        $<$<PLATFORM_ID:Windows>:WASM_API_EXTERN=>
+        $<$<PLATFORM_ID:Windows>:WASI_API_EXTERN=>)
 
     target_include_directories(${TARGET} PRIVATE ${WASMTIME_INCLUDE_DIR})
 
@@ -175,14 +191,9 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
                         $<TARGET_FILE_DIR:${TARGET}_${FMT}>/../Resources/ui
                 VERBATIM)
 
-            # Windows: ship wasmtime.dll beside the plugin binary (Contents/x86_64-win/)
-            # so the dynamically-linked DSP engine resolves at load time.
-            if(WIN32 AND WASMTIME_DLL)
-                add_custom_command(TARGET ${TARGET}_${FMT} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                            "${WASMTIME_DLL}" "$<TARGET_FILE_DIR:${TARGET}_${FMT}>"
-                    VERBATIM)
-            endif()
+            # (No wasmtime.dll copy here: Windows links wasmtime statically — see
+            # the WASMTIME_LIB note at the top. A DLL beside the plugin binary is
+            # never found, because Windows searches the host app's directory.)
         endif()
     endforeach()
 

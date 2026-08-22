@@ -39,6 +39,12 @@
 //  as the audio buffers, but with capacity kMaxSampleFrames per channel) and then
 //  calls setSampleInfo() with the valid length, channel count and the sample's
 //  OWN sample rate. A module that doesn't load audio simply omits these exports.
+//
+//  HOST TEMPO: params[kHostTempoParamIndex] (63, the last slot) is written by the
+//  host every block with the DAW's current tempo in BPM (0 if the host reports
+//  none, e.g. a bare monitoring plug-in with no transport). This is a direct
+//  memory write, not a DAW-automatable parameter — modules that want tempo-synced
+//  LFOs/delays/arps just read it; they must NOT declare a param at index 63.
 // =====================================================================
 
 #pragma once
@@ -48,6 +54,7 @@ namespace vstai
     static constexpr int kMaxFrames   = 8192;  // max block size per channel
     static constexpr int kMaxChannels = 2;     // stereo
     static constexpr int kMaxParams   = 64;    // params region capacity
+    static constexpr int kHostTempoParamIndex = 63;  // reserved: host BPM, see below
 
     // Sample-buffer capacity, per channel. ~5 minutes at up to 48 kHz. This is a
     // fixed StaticArray baked into modules that opt into the sample exports, so it
