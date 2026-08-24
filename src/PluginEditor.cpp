@@ -5,6 +5,7 @@
 #include "BridgeShim.h"
 #include "LlmClient.h"
 #include "AppSettings.h"
+#include "Utf8.h"
 #include "AccountPanel.h"
 #include "ManualPanel.h"
 #include <thread>
@@ -103,7 +104,7 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     juce::Desktop::getInstance().addFocusChangeListener (this);
 
     // Header brand strip.
-    titleLabel.setText ("\xE2\x97\x88  VibePlugin", juce::dontSendNotification);
+    titleLabel.setText (vstai::u8 ("\xE2\x97\x88  VibePlugin"), juce::dontSendNotification);
     titleLabel.setFont (juce::Font (juce::FontOptions (17.0f).withStyle ("Semibold")));
     titleLabel.setColour (juce::Label::textColourId, theme::accent);
     titleLabel.setTooltip ("Describe a plugin in plain language; the AI builds and installs it.");
@@ -131,8 +132,8 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     chatbotButton.onClick = [this] { doGenerateManual(); };
     chatbotButton.setColour (juce::TextButton::buttonColourId, theme::accent2);
     chatbotButton.setColour (juce::TextButton::textColourOffId, juce::Colours::white);
-    chatbotButton.setTooltip ("No API key needed \xE2\x80\x94 copies a ready-made prompt to your clipboard "
-                              "for ChatGPT / Claude / Gemini, then paste the reply back to build it.");
+    chatbotButton.setTooltip (vstai::u8 ("No API key needed \xE2\x80\x94 copies a ready-made prompt to your clipboard "
+                                    "for ChatGPT / Claude / Gemini, then paste the reply back to build it."));
     addAndMakeVisible (chatbotButton);
 
     newButton.onClick      = [this] { doNew(); };
@@ -290,7 +291,7 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     standardPanel->onSave = [this]
     {
         vstai::appsettings::setStandardUi (standardPanel->getText());
-        statusLabel.setText ("Standard UI saved \xE2\x80\x94 it's now the house style for new generations.",
+        statusLabel.setText (vstai::u8 ("Standard UI saved \xE2\x80\x94 it's now the house style for new generations."),
                              juce::dontSendNotification);
         if (! processor.getDocument().hasPlugin()) refreshWebView();   // update the live preview
     };
@@ -534,7 +535,7 @@ void VstaiAudioProcessorEditor::doGenerateManual()
     o.useNativeTitleBar = true;
     o.resizable = true;
     trackDialog (o.launchAsync());
-    statusLabel.setText ("Prompt copied — paste it into a chatbot, then paste the reply back.",
+    statusLabel.setText (vstai::u8 ("Prompt copied — paste it into a chatbot, then paste the reply back."),
                          juce::dontSendNotification);
 }
 
@@ -560,7 +561,7 @@ void VstaiAudioProcessorEditor::doGenerate()
                 safe->promptBox.clear();
                 const bool hasNotes = message.trim().isNotEmpty();
                 if (hasNotes) safe->setProblems (message, false);   // full explanation in the Notes tab
-                safe->setBusy (false, hasNotes ? "Done \xE2\x80\x94 the AI's notes are in the Notes tab."
+                safe->setBusy (false, hasNotes ? vstai::u8 ("Done \xE2\x80\x94 the AI's notes are in the Notes tab.")
                                                : juce::String ("Done."));
             }
             else
@@ -605,7 +606,7 @@ void VstaiAudioProcessorEditor::doSaveCompile()
 
     if (asmSrc.trim().isEmpty())
     {
-        setProblems ("Nothing to compile — the DSP (AssemblyScript) tab is empty.", true);
+        setProblems (vstai::u8 ("Nothing to compile — the DSP (AssemblyScript) tab is empty."), true);
         tabs.setCurrentTabIndex (3);
         return;
     }
@@ -622,7 +623,7 @@ void VstaiAudioProcessorEditor::doSaveCompile()
             if (ok)
             {
                 safe->setBusy (false, "Compiled OK.");
-                safe->setProblems ("Compiled successfully — the plugin has been updated.", false);
+                safe->setProblems (vstai::u8 ("Compiled successfully — the plugin has been updated."), false);
             }
             else
             {
@@ -641,7 +642,7 @@ void VstaiAudioProcessorEditor::doFixWithAI()
 
     if (asmSrc.trim().isEmpty())
     {
-        setProblems ("Nothing for the AI to fix — write or generate some DSP first.", true);
+        setProblems (vstai::u8 ("Nothing for the AI to fix — write or generate some DSP first."), true);
         tabs.setCurrentTabIndex (3);
         return;
     }
@@ -671,7 +672,7 @@ void VstaiAudioProcessorEditor::doFixWithAI()
         o.useNativeTitleBar = true;
         o.resizable = true;
         trackDialog (o.launchAsync());
-        setProblems ("Fix prompt copied — paste it into a chatbot, then paste the reply back.", false);
+        setProblems (vstai::u8 ("Fix prompt copied — paste it into a chatbot, then paste the reply back."), false);
         return;
     }
 
@@ -740,8 +741,7 @@ void VstaiAudioProcessorEditor::updateEffortEnablement (bool busy)
 
 void VstaiAudioProcessorEditor::applyThinkingLayout()
 {
-    thinkingToggle.setButtonText (juce::String (juce::CharPointer_UTF8 (
-                                      thinkingExpanded ? "\xe2\x96\xbe" : "\xe2\x96\xb8"))
+    thinkingToggle.setButtonText (vstai::u8 (thinkingExpanded ? "\xe2\x96\xbe" : "\xe2\x96\xb8")
                                   + " See UI progress");
     thinkingView.setVisible (thinkingToggle.isVisible() && thinkingExpanded);
     resized();
@@ -769,7 +769,7 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     };
 
     modelBox.addSectionHeading ("Anthropic (your key)");
-    add ("anthropic", "claude-fable-5",    "Fable 5 (most capable, 2\xC3\x97 price)");
+    add ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"));
     add ("anthropic", "claude-opus-5",     "Opus 5 (best value)");
     add ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)");
 
@@ -782,10 +782,10 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     // VibePlugin Cloud: no key needed — buy credits + sign in (Account…). Generation
     // runs on our keys and is metered against your balance.
     modelBox.addSectionHeading ("VibePlugin Cloud (credits)");
-    add ("cloud", "glm-5.2",           "Cloud · GLM-5.2 (cheapest)");
-    add ("cloud", "claude-haiku-4-5",  "Cloud · Haiku 4.5");
-    add ("cloud", "claude-sonnet-4-6", "Cloud · Sonnet 4.6");
-    add ("cloud", "claude-opus-4-8",   "Cloud · Opus 4.8 (best)");
+    add ("cloud", "glm-5.2",           vstai::u8 ("Cloud · GLM-5.2 (cheapest)"));
+    add ("cloud", "claude-haiku-4-5",  vstai::u8 ("Cloud · Haiku 4.5"));
+    add ("cloud", "claude-sonnet-4-6", vstai::u8 ("Cloud · Sonnet 4.6"));
+    add ("cloud", "claude-opus-4-8",   vstai::u8 ("Cloud · Opus 4.8 (best)"));
 
     if (! ollamaModels.isEmpty())
     {

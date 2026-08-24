@@ -47,6 +47,9 @@ const params = [
   ["Arp", 36, 0, 1, 1], ["Arp Rate", 37, 0, 1, 0.5], ["Arp Chord", 38, 0, 9, 1],
   ["Arp Gate", 39, 0.1, 1, 0.55], ["Arp Mode", 40, 0, 3, 2],
   ["Arp Up", 41, 1, 6, 3], ["Arp Down", 42, 0, 6, 0],
+  // when on, Arp Rate snaps to musical divisions of the host's tempo (params[63],
+  // written by the host every block, see WasmAbi.h) instead of running freely
+  ["Arp Sync", 43, 0, 1, 1],
 ].map(([name, index, min, max, def]) => ({ name, index, min, max, default: def, value: def }));
 
 const doc = {

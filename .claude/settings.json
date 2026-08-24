@@ -15,7 +15,22 @@
       "Bash(node scripts/seeds/pack-references.mjs)",
       "Bash(python3 rewrite_dates_to_weekend.py --all /Users/k/projects/VibePlugin /Users/k/projects/synflow)",
       "Bash(python3 rewrite_dates_to_weekend.py --apply --all /Users/k/projects/VibePlugin /Users/k/projects/synflow)",
-      "Bash(grep -vE \"^Rewrite [0-9a-f]{40}|WARNING: git-filter-branch|warning:|cannot be used with|on top of|please use an alternative|Proceeding|^\\\\s*$\")"
+      "Bash(grep -vE \"^Rewrite [0-9a-f]{40}|WARNING: git-filter-branch|warning:|cannot be used with|on top of|please use an alternative|Proceeding|^\\\\s*$\")",
+      "Bash(git commit *)",
+      "Bash(gh workflow *)",
+      "Bash(gh run *)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(unzip -q -o VibePlugin-windows/windows-vst3-load-windows.zip -d x)",
+      "Bash(gh release *)",
+      "Bash(mv windows-vst3-load-windows *)",
+      "Bash(zip -r -q -X ../../VibePlugin-v0.4.4-win-test-windows.zip VibePlugin-v0.4.4-win-test-windows)",
+      "Bash(gh release create v0.4.4-win-test --prerelease --target fix/windows-vst3-load --title 'v0.4.4-win-test — Windows load fixes \\(TEST BUILD\\)' --notes 'Windows-only test build to verify two fixes. **Not a general release** — macOS and Linux are not included. *)",
+      "Bash(cmake --build build --target VibePlugin_Synth -j)",
+      "Bash(rm -rf /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/win2)",
+      "Bash(unzip -q -o VibePlugin-windows/*.zip -d y)",
+      "Bash(rm -f /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/VibePlugin-v0.4.4-win-test-windows.zip)",
+      "Bash(zip -r -q -X /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/VibePlugin-v0.4.4-win-test-windows.zip VibePlugin-v0.4.4-win-test-windows)"
     ],
     "additionalDirectories": [
       "/private/tmp/claude-501/-Users-k-projects-VibePlugin/8768562d-d4aa-4287-93ac-8bdafdf5bcd3/scratchpad"

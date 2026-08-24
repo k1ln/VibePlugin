@@ -112,6 +112,11 @@ window.addEventListener("unhandledrejection", function (e) {
         <section class="set-block">
           <h3>API &amp; Services</h3>
           <p class="muted">Stored locally on this machine. Leave blank to fall back to a compiled-in / environment value.</p>
+          <div style="margin:0 0 12px;display:flex;flex-direction:column;gap:5px">
+            <label class="field-label">Generation source</label>
+            <label class="lbl chk"><input type="radio" name="genSource" id="srcCloud" value="cloud"/> VibePlugin Cloud (store tokens — sign in required)</label>
+            <label class="lbl chk"><input type="radio" name="genSource" id="srcAnthropic" value="anthropic"/> My own Anthropic API key</label>
+          </div>
           <label class="field">Anthropic API key
             <input id="setAnthropic" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"/></label>
           <label class="field">Publish server URL

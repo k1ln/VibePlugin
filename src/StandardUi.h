@@ -15,6 +15,7 @@
 
 #include <juce_core/juce_core.h>
 #include "WebAssets.h"
+#include "Utf8.h"
 
 namespace vstai
 {
@@ -919,6 +920,30 @@ function makeKeyboard(host){
   // release on pointercancel/blur. Mirrors the makeMomentary workaround above.
   addEventListener("pointerup",release,true); addEventListener("mouseup",release,true);
   addEventListener("pointercancel",release,true); addEventListener("blur",release);
+
+  // Computer-keyboard piano: ASDFGHJKL... like a hardware "typing piano" (the
+  // same layout hosts offer for computer-keyboard-to-MIDI input). preventDefault()
+  // on a mapped, unmodified key stops WKWebView from forwarding the keydown up to
+  // the host - without it the host's own typing-piano fires too and the note
+  // plays twice (see MacKeyUpMonitor.h). Routes through the same noteOn/noteOff
+  // as the on-screen keys, so the existing held-note safety net (blur,
+  // visibilitychange) already covers these.
+  const KBD_NOTES={KeyA:0,KeyW:1,KeyS:2,KeyE:3,KeyD:4,KeyF:5,KeyT:6,KeyG:7,KeyY:8,KeyH:9,KeyU:10,KeyJ:11,KeyK:12,KeyO:13,KeyL:14,KeyP:15,Semicolon:16};
+  const kbdHeld={};
+  const isEditable=t=>t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable);
+  const kbdRelease=code=>{ const n=kbdHeld[code]; if(n==null) return; delete kbdHeld[code];
+    noteOff(n); host.querySelector(`[data-note="${n}"]`)?.classList.remove("down"); };
+  document.addEventListener("keydown",e=>{
+    if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || isEditable(e.target)) return;
+    const semi=KBD_NOTES[e.code];
+    if (semi==null || kbdHeld[e.code]!=null) return;
+    e.preventDefault();
+    const n=base+semi; kbdHeld[e.code]=n;
+    noteOn(n,100); host.querySelector(`[data-note="${n}"]`)?.classList.add("down");
+  });
+  document.addEventListener("keyup",e=>kbdRelease(e.code));
+  addEventListener("blur",()=>Object.keys(kbdHeld).forEach(kbdRelease));
+
   onParam(()=>{});  // (real builds may light keys from engine note events)
 }
 
@@ -986,7 +1011,7 @@ whenReady(()=>{
         static const juce::String html = []
         {
             auto fromFile = vstai::webassets::readText ("standard.html");
-            return fromFile.isNotEmpty() ? fromFile : juce::String (bakedStandardUiHtml());
+            return fromFile.isNotEmpty() ? fromFile : vstai::u8 (bakedStandardUiHtml());
         }();
         return html;
     }

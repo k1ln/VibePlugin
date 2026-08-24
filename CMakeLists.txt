@@ -143,6 +143,12 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         $<$<PLATFORM_ID:Windows>:WASM_API_EXTERN=>
         $<$<PLATFORM_ID:Windows>:WASI_API_EXTERN=>)
 
+    # MSVC defaults to the system codepage for both the source and the compiled
+    # string literals; without this, the em dashes/ellipses/bullets embedded as
+    # literal UTF-8 in the source (e.g. AccountPanel.h) get mis-decoded and show
+    # up as mojibake in the UI. No-op on Clang/GCC, which already assume UTF-8.
+    target_compile_options(${TARGET} PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+
     target_include_directories(${TARGET} PRIVATE ${WASMTIME_INCLUDE_DIR})
 
     target_link_libraries(${TARGET} PRIVATE

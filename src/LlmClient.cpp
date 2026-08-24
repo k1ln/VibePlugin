@@ -2,6 +2,7 @@
 #include "LlmClient.h"
 #include "Prompt.h"
 #include "DevLog.h"
+#include "Utf8.h"
 
 namespace
 {
@@ -133,7 +134,7 @@ namespace
 
 LlmClient::LlmClient()
 {
-    schema = juce::JSON::parse (vstai::kOutputSchemaJson);
+    schema = juce::JSON::parse (vstai::u8 (vstai::kOutputSchemaJson));
 }
 
 bool LlmClient::callMessages (const juce::Array<juce::var>& messages,
@@ -143,8 +144,8 @@ bool LlmClient::callMessages (const juce::Array<juce::var>& messages,
     if (needsApiKey() && apiKey.isEmpty())
     {
         errorOut = provider == Provider::glm
-                       ? "GLM API key is not set (open the Keys… dialog or set GLM_API_KEY)."
-                       : "Anthropic API key is not set (open the Keys… dialog or set ANTHROPIC_API_KEY).";
+                       ? vstai::u8 ("GLM API key is not set (open the Keys… dialog or set GLM_API_KEY).")
+                       : vstai::u8 ("Anthropic API key is not set (open the Keys… dialog or set ANTHROPIC_API_KEY).");
         return false;
     }
 
@@ -152,7 +153,7 @@ bool LlmClient::callMessages (const juce::Array<juce::var>& messages,
     {
         if (token.isEmpty())
         {
-            errorOut = "Sign in to VibePlugin Cloud first (open the Account… dialog).";
+            errorOut = vstai::u8 ("Sign in to VibePlugin Cloud first (open the Account… dialog).");
             return false;
         }
         return callCloud (messages, artifactOut, errorOut);
@@ -307,7 +308,7 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
         cc->setProperty ("ttl", "1h");
         auto* sysBlock = new juce::DynamicObject();
         sysBlock->setProperty ("type", "text");
-        sysBlock->setProperty ("text", juce::String (vstai::kSystemPrompt));
+        sysBlock->setProperty ("text", vstai::u8 (vstai::kSystemPrompt));
         sysBlock->setProperty ("cache_control", juce::var (cc));
         juce::Array<juce::var> sys; sys.add (juce::var (sysBlock));
         body->setProperty ("system", juce::var (sys));
@@ -475,7 +476,7 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
                    + " blocks=[" + blockTypes.joinIntoString (", ") + "]");
         errorOut = (stopReason == "max_tokens")
             ? "the model ran out of output tokens before returning JSON (stop_reason: "
-              "max_tokens) — lower the effort setting or raise max_tokens"
+              + vstai::u8 ("max_tokens) — lower the effort setting or raise max_tokens")
             : "response contained no text block (stop_reason: "
               + (stopReason.isEmpty() ? juce::String ("none") : stopReason) + ")";
         return false;
@@ -533,13 +534,13 @@ bool LlmClient::callOpenAiCompat (const juce::Array<juce::var>& messages,
     // Build messages: a system prompt that pins the exact JSON schema (these
     // providers don't take Anthropic's output_config), then the conversation.
     const juce::String systemPrompt =
-        juce::String (vstai::kSystemPrompt) +
+        vstai::u8 (vstai::kSystemPrompt) +
         "\n\n============================================================\n"
         "OUTPUT FORMAT (STRICT)\n"
         "============================================================\n"
-        "Respond with ONE JSON object and nothing else — no prose, no markdown, no code\n"
+        + vstai::u8 ("Respond with ONE JSON object and nothing else — no prose, no markdown, no code\n") +
         "fences. It MUST conform exactly to this JSON schema:\n"
-        + juce::String (vstai::kOutputSchemaJson) +
+        + vstai::u8 (vstai::kOutputSchemaJson) +
         "\nReturn only that JSON object.";
 
     juce::Array<juce::var> full;
@@ -585,7 +586,7 @@ bool LlmClient::callOpenAiCompat (const juce::Array<juce::var>& messages,
             errorOut = isGlm
                 ? ("could not reach the GLM server at " + trimSlashes (baseUrl) + " (network/TLS error)")
                 : ("could not reach the Ollama server at " + normaliseOllamaUrl (baseUrl)
-                   + " — is `ollama serve` running?");
+                   + vstai::u8 (" — is `ollama serve` running?"));
             return false;
         }
 
@@ -622,7 +623,7 @@ bool LlmClient::callOpenAiCompat (const juce::Array<juce::var>& messages,
         {
             errorOut = c0.getProperty ("finish_reason", {}).toString() == "length"
                 ? "the model hit its output-token limit before returning an answer "
-                  "(a reasoning model can spend the whole budget thinking) — try a simpler request"
+                  + vstai::u8 ("(a reasoning model can spend the whole budget thinking) — try a simpler request")
                 : "model returned an empty message";
             return false;
         }
@@ -687,9 +688,9 @@ bool LlmClient::callOpenAiCompat (const juce::Array<juce::var>& messages,
     {
         errorOut = jsonText.isEmpty()
             ? "the model hit its output-token limit before returning an answer "
-              "(reasoning used the whole budget) — turn Thinking off or simplify the request"
+              + vstai::u8 ("(reasoning used the whole budget) — turn Thinking off or simplify the request")
             : "the model hit its output-token limit before finishing the JSON "
-              "(reasoning used too much of the budget) — turn Thinking off or simplify the request";
+              + vstai::u8 ("(reasoning used too much of the budget) — turn Thinking off or simplify the request");
         return false;
     }
 

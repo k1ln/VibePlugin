@@ -1,12 +1,14 @@
 // CloudClient.h
 // =====================================================================
 //  Synchronous helpers for the VibePlugin cloud account/auth endpoints
-//  (device-code sign-in, account/credits, consent). Call from a background
+//  (device-code sign-in, account/credits). Call from a background
 //  thread; the editor's Account dialog marshals results back to the UI.
 //  Generation goes through LlmClient (Provider::cloud), not here.
 // =====================================================================
 
 #pragma once
+
+#include "DevLog.h"
 
 #include <juce_core/juce_core.h>
 
@@ -56,11 +58,27 @@ namespace vstai::cloud
                            .withStatusCode (&status);
 
         Response r;
+
+        // Logged because a failure here surfaces to the user as a bare "could not
+        // reach the server" with nothing behind it -- no status, no timing, no way
+        // to tell a DNS/TLS problem from a cold start or a 500.
+        const auto t0 = juce::Time::getMillisecondCounter();
+        VSTAI_LOG ("cloud: " + method + " " + url + " ...");
+
         std::unique_ptr<juce::InputStream> stream (u.createInputStream (options));
-        if (stream == nullptr) return r;            // transportOk stays false
+        const auto ms = juce::Time::getMillisecondCounter() - t0;
+
+        if (stream == nullptr)
+        {
+            VSTAI_LOG ("cloud: NO CONNECTION after " + juce::String (ms / 1000.0, 1)
+                       + "s (dns/tls/firewall, or the 15s timeout on a cold start)");
+            return r;                               // transportOk stays false
+        }
         r.transportOk = true;
         r.status = status;
         r.json = juce::JSON::parse (stream->readEntireStreamAsString());
+        VSTAI_LOG ("cloud: HTTP " + juce::String (status) + " in "
+                   + juce::String (ms / 1000.0, 1) + "s");
         return r;
     }
 
@@ -81,10 +99,5 @@ namespace vstai::cloud
     inline Response account (const juce::String& base, const juce::String& token)
     {
         return send ("GET", trimUrl (base) + "/v1/account", token, juce::var());
-    }
-
-    inline Response patchAccount (const juce::String& base, const juce::String& token, const juce::var& body)
-    {
-        return send ("PATCH", trimUrl (base) + "/v1/account", token, body);
     }
 }

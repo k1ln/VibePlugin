@@ -1,11 +1,11 @@
 // AccountPanel.h
 // =====================================================================
 //  The "Account…" dialog for VibePlugin Cloud credits: passwordless sign-in
-//  (device code + emailed magic link), credit balance display, the
-//  data-collection consent toggles, and a Buy-credits button. Cloud
-//  generation runs on the server's keys and is metered against this
-//  balance. Network work runs on a background thread and is marshalled
-//  back via a SafePointer.
+//  (device code + emailed magic link), credit balance display, and a
+//  Buy-credits button. Nothing is stored on the server for the user, so the
+//  dialog carries no data-collection consent toggles. Cloud generation runs
+//  on the server's keys and is metered against this balance. Network work
+//  runs on a background thread and is marshalled back via a SafePointer.
 // =====================================================================
 
 #pragma once
@@ -16,6 +16,7 @@
 #include <atomic>
 #include "AppSettings.h"
 #include "CloudClient.h"
+#include "Utf8.h"
 
 class AccountPanel : public juce::Component
 {
@@ -51,14 +52,7 @@ public:
         addChildComponent (refreshButton);
         addChildComponent (signOutButton);
 
-        historyToggle.setColour (juce::ToggleButton::textColourId, juce::Colours::lightgrey);
-        trainToggle.setColour   (juce::ToggleButton::textColourId, juce::Colours::lightgrey);
-        historyToggle.onClick = [this] { patchConsent(); };
-        trainToggle.onClick   = [this] { patchConsent(); };
-        addChildComponent (historyToggle);
-        addChildComponent (trainToggle);
-
-        setSize (400, 320);
+        setSize (400, 260);
         updateState();
         if (vstai::appsettings::isSignedIn()) doRefresh();
     }
@@ -89,9 +83,6 @@ public:
             refreshButton.setBounds (row.removeFromLeft (80));
             row.removeFromLeft (6);
             signOutButton.setBounds (row.removeFromLeft (80));
-            r.removeFromTop (10);
-            historyToggle.setBounds (r.removeFromTop (24));
-            trainToggle.setBounds   (r.removeFromTop (24));
         }
 
         r.removeFromTop (8);
@@ -112,10 +103,8 @@ private:
         buyButton.setVisible (in);
         refreshButton.setVisible (in);
         signOutButton.setVisible (in);
-        historyToggle.setVisible (in);
-        trainToggle.setVisible (in);
         if (in)
-            infoLabel.setText (vstai::appsettings::cloudEmail() + "  —  (refreshing…)", juce::dontSendNotification);
+            infoLabel.setText (vstai::appsettings::cloudEmail() + vstai::u8 ("  —  (refreshing…)"), juce::dontSendNotification);
         resized();
     }
 
@@ -126,7 +115,7 @@ private:
         if (signingIn.exchange (true)) return;
 
         signInButton.setEnabled (false);
-        setStatus ("Sending sign-in link…");
+        setStatus (vstai::u8 ("Sending sign-in link…"));
 
         juce::Component::SafePointer<AccountPanel> safe (this);
         const auto base = baseUrl;
@@ -140,13 +129,13 @@ private:
             if (interval < 1) interval = 3;
 
             juce::MessageManager::callAsync ([safe]
-                { if (safe != nullptr) safe->setStatus ("Check your email and click the link, then wait here…"); });
+                { if (safe != nullptr) safe->setStatus (vstai::u8 ("Check your email and click the link, then wait here…")); });
 
             for (int i = 0; i < 120; ++i)
             {
                 std::this_thread::sleep_for (std::chrono::seconds (interval));
                 auto p = vstai::cloud::poll (base, deviceCode);
-                if (p.status == 404) { finishSignIn (safe, "Sign-in link expired — try again.", false); return; }
+                if (p.status == 404) { finishSignIn (safe, vstai::u8 ("Sign-in link expired — try again."), false); return; }
                 if (p.ok() && p.json.getProperty ("status", {}).toString() == "approved")
                 {
                     vstai::appsettings::signIn (p.json.getProperty ("token", {}).toString(),
@@ -188,40 +177,23 @@ private:
                 if (a.status == 401)
                 {
                     vstai::appsettings::signOut();
-                    safe->setStatus ("Session expired — please sign in again.");
+                    safe->setStatus (vstai::u8 ("Session expired — please sign in again."));
                     safe->updateState();
                     safe->notify();
                     return;
                 }
                 if (! a.ok()) { safe->setStatus ("Could not refresh: " + a.error()); return; }
 
-                const int  credits  = (int)  a.json.getProperty ("credits", 0);
-                const bool storeH   = (bool) a.json.getProperty ("store_history", true);
-                const bool trainOut = (bool) a.json.getProperty ("train_opt_out", false);
+                const int credits = (int) a.json.getProperty ("credits", 0);
 
                 safe->infoLabel.setText (vstai::appsettings::cloudEmail()
-                                         + "   ·   " + juce::String (credits) + " credits",
+                                         + vstai::u8 ("   ·   ") + juce::String (credits) + " credits",
                                          juce::dontSendNotification);
                 safe->setStatus (credits > 0 ? juce::String()
-                                             : "Out of credits — Buy credits to generate in the cloud.");
-                safe->historyToggle.setToggleState (storeH,   juce::dontSendNotification);
-                safe->trainToggle.setToggleState   (trainOut, juce::dontSendNotification);
-
+                                             : vstai::u8 ("Out of credits — Buy credits to generate in the cloud."));
                 safe->notify();
             });
         }).detach();
-    }
-
-    void patchConsent()
-    {
-        if (! vstai::appsettings::isSignedIn()) return;
-        auto* o = new juce::DynamicObject();
-        o->setProperty ("store_history", historyToggle.getToggleState());
-        o->setProperty ("train_opt_out", trainToggle.getToggleState());
-        const juce::var body (o);
-        const auto base = baseUrl;
-        const auto token = vstai::appsettings::cloudToken();
-        std::thread ([base, token, body] { vstai::cloud::patchAccount (base, token, body); }).detach();
     }
 
     void doBuy()
@@ -249,8 +221,6 @@ private:
     juce::TextButton buyButton     { "Buy credits" };
     juce::TextButton refreshButton { "Refresh" };
     juce::TextButton signOutButton { "Sign out" };
-    juce::ToggleButton historyToggle { "Store my creations on the server (history)" };
-    juce::ToggleButton trainToggle   { "Don't use my data for training" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AccountPanel)
 };

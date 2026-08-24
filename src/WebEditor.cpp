@@ -8,6 +8,7 @@
 #include "Prompt.h"
 #include "LlmClient.h"
 #include "AccountPanel.h"
+#include "Utf8.h"
 
 using juce::var;
 using VarArray = juce::Array<juce::var>;
@@ -30,12 +31,12 @@ namespace
         return var (o);
     }
 
-    var modelEntry (const char* provider, const char* id, const char* label, const char* group)
+    var modelEntry (const char* provider, const char* id, const juce::String& label, const char* group)
     {
         auto* o = new juce::DynamicObject();
         o->setProperty ("provider", juce::String::fromUTF8 (provider));
         o->setProperty ("id",       juce::String::fromUTF8 (id));
-        o->setProperty ("label",    juce::String::fromUTF8 (label));   // labels contain "·"
+        o->setProperty ("label",    label);   // labels contain "·" — wrap them in vstai::u8()
         o->setProperty ("group",    juce::String::fromUTF8 (group));
         return var (o);
     }
@@ -45,7 +46,7 @@ namespace
     var modelCatalog (const juce::StringArray& ollama)
     {
         juce::Array<var> a;
-        a.add (modelEntry ("anthropic", "claude-fable-5",    "Fable 5 (most capable, 2\xC3\x97 price)", "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"), "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-opus-5",     "Opus 5 (best value)",    "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)",   "Anthropic (your key)"));
         // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
@@ -53,9 +54,9 @@ namespace
         // a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));
         // a.add (modelEntry ("glm", "glm-4.6", "GLM-4.6", "GLM / Z.ai (your key)"));
         // a.add (modelEntry ("cloud", "glm-5.2",           "Cloud · GLM-5.2 (cheapest)", "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-haiku-4-5",  "Cloud · Haiku 4.5",          "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-sonnet-4-6", "Cloud · Sonnet 4.6",         "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-opus-4-8",   "Cloud · Opus 4.8 (best)",    "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-haiku-4-5",  vstai::u8 ("Cloud · Haiku 4.5"),          "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-sonnet-4-6", vstai::u8 ("Cloud · Sonnet 4.6"),         "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-opus-4-8",   vstai::u8 ("Cloud · Opus 4.8 (best)"),    "VibePlugin Cloud (credits)"));
         // for (const auto& m : ollama)
         // {
         //     auto* o = new juce::DynamicObject();
@@ -131,6 +132,31 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             }
             complete (safe != nullptr ? safe->currentState() : var());
         })
+        .withNativeFunction ("setGenerationSource", [safe] (const VarArray& a, Completion complete)
+        {
+            if (safe != nullptr)
+            {
+                const auto src = argStr (a, 0);
+                vstai::appsettings::setGenerationSource (src);
+                // Auto-pick the first model in the newly active group so a stale
+                // cross-mode provider/model pair never lingers after switching.
+                const auto cat = modelCatalog (safe->ollamaModels);
+                if (auto* arr = cat.getArray())
+                for (const auto& m : *arr)
+                {
+                    if (auto* mo = m.getDynamicObject())
+                    {
+                        if (mo->getProperty ("provider").toString() == src)
+                        {
+                            safe->processor.setGenerationProvider (src);
+                            safe->processor.setGenerationModel (mo->getProperty ("id").toString());
+                            break;
+                        }
+                    }
+                }
+            }
+            complete (safe != nullptr ? safe->currentState() : var());
+        })
         .withNativeFunction ("setEffort", [safe] (const VarArray& a, Completion complete)
         {
             if (safe != nullptr) safe->processor.setGenerationEffort (argStr (a, 0));
@@ -175,7 +201,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         {
             if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
             const auto base = vstai::appsettings::publishUrl().trim();
-            if (base.isEmpty()) { complete (result (false, "Set a Publish server URL first — open Keys…")); return; }
+            if (base.isEmpty()) { complete (result (false, vstai::u8 ("Set a Publish server URL first — open Keys…"))); return; }
             if (! safe->processor.getDocument().hasPlugin())
             { complete (result (false, "Generate or compile a plugin first.")); return; }
 
@@ -183,7 +209,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             // chosen name is baked into the document so the catalogue entry carries it.
             const auto current = safe->processor.getDocument().name;
             auto* aw = new juce::AlertWindow ("Publish to the catalogue",
-                "Name this creation — it's how players will find it in the web catalogue.",
+                vstai::u8 ("Name this creation — it's how players will find it in the web catalogue."),
                 juce::MessageBoxIconType::NoIcon);
             aw->addTextEditor ("name", current == "Untitled" ? juce::String() : current, "Name");
             aw->addButton ("Publish", 1, juce::KeyPress (juce::KeyPress::returnKey));
@@ -224,7 +250,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                         // On success, open the PR so the submitter can track review/publish status.
                         if (ok && link.isNotEmpty()) juce::URL (link).launchInDefaultBrowser();
                         complete (result (ok,
-                            ok ? ("Submitted “" + name + "” — it will be tested & reviewed before publishing."
+                            ok ? (vstai::u8 ("Submitted “") + name + vstai::u8 ("” — it will be tested & reviewed before publishing.")
                                   + (link.isNotEmpty() ? " Tracking the PR in your browser." : juce::String()))
                                : ("Publish failed (HTTP " + juce::String (status)
                                   + "). Is the publish proxy reachable at " + base + "?")));
@@ -467,7 +493,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             // refresh it so the edit is visible immediately.
             if (safe != nullptr && ! safe->processor.getDocument().hasPlugin())
                 safe->emitEvent ("documentChanged", safe->currentState());
-            complete (result (true, "Standard UI saved — it's now the house style for new generations."));
+            complete (result (true, vstai::u8 ("Standard UI saved — it's now the house style for new generations.")));
         })
         .withNativeFunction ("resetStandardUi", [] (const VarArray&, Completion complete)
         {
@@ -530,6 +556,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             o->setProperty ("designId",      vstai::appsettings::selectedDesignId());
             o->setProperty ("designTheme",
                             vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
+            o->setProperty ("generationSource", vstai::appsettings::generationSource());
             complete (var (o));
         })
         .withNativeFunction ("saveSettings", [] (const VarArray& a, Completion complete)
@@ -878,6 +905,7 @@ juce::var WebEditor::currentState() const
     o->setProperty ("assembly",  d.assembly);
     o->setProperty ("html",      d.html.isNotEmpty() ? d.html : processor.getDisplayHtml());
     o->setProperty ("signedIn",  vstai::appsettings::isSignedIn());
+    o->setProperty ("generationSource", vstai::appsettings::generationSource());
     o->setProperty ("building",  processor.isBuilding());
     o->setProperty ("stage",     processor.getBuildStage());
     o->setProperty ("designId",  vstai::appsettings::selectedDesignId());

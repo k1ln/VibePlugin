@@ -13,6 +13,7 @@ source "$(dirname "$0")/common.sh"
 
 ensure_compiler
 ensure_wasmtime
+"$(dirname "$0")/check-utf8.sh"
 echo "▶ building Release…"
 configure_and_build build Release
 sign_installed

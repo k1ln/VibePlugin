@@ -224,4 +224,16 @@ namespace vstai::appsettings
         file().saveIfNeeded();
     }
 
+    // Which model catalog group the user wants: "cloud" (VibePlugin store tokens,
+    // requires isSignedIn()) or "anthropic" (their own key, see anthropicKey()).
+    // Defaults to whichever the user is already set up for, so this new preference
+    // doesn't change behavior for existing users on first launch.
+    inline juce::String generationSource()
+    {
+        auto v = file().getValue ("generationSource");
+        if (v.isNotEmpty()) return v;
+        return isSignedIn() ? "cloud" : "anthropic";
+    }
+    inline void setGenerationSource (const juce::String& v) { file().setValue ("generationSource", v); file().saveIfNeeded(); }
+
 }

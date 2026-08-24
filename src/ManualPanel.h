@@ -19,6 +19,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginProcessor.h"
 #include "Prompt.h"
+#include "Utf8.h"
 
 class ManualPanel : public juce::Component
 {
@@ -26,7 +27,7 @@ public:
     ManualPanel (VstaiAudioProcessor& p, juce::String userPrompt)
         : processor (p), prompt (std::move (userPrompt))
     {
-        title.setText ("Generate with any chatbot — free, no API key", juce::dontSendNotification);
+        title.setText (vstai::u8 ("Generate with any chatbot — free, no API key"), juce::dontSendNotification);
         title.setFont (juce::Font (juce::FontOptions (16.0f)));
         title.setColour (juce::Label::textColourId, juce::Colour (0xff9fb4d8));
         addAndMakeVisible (title);
@@ -36,7 +37,7 @@ public:
         intro.setText ("1.  The prompt is on your clipboard. Paste it into ChatGPT, Claude, Gemini "
                        "or any chatbot.\n"
                        "2.  Paste the chatbot's FULL reply into the box below.\n"
-                       "3.  Click “Apply pasted result”.",
+                       + vstai::u8 ("3.  Click “Apply pasted result”."),
                        juce::dontSendNotification);
         addAndMakeVisible (intro);
 
@@ -49,7 +50,7 @@ public:
         pasteBox.setFont (juce::Font (juce::FontOptions()
                                           .withName (juce::Font::getDefaultMonospacedFontName())
                                           .withHeight (12.0f)));
-        pasteBox.setTextToShowWhenEmpty ("Paste the chatbot's reply here…", juce::Colours::grey);
+        pasteBox.setTextToShowWhenEmpty (vstai::u8 ("Paste the chatbot's reply here…"), juce::Colours::grey);
         pasteBox.setColour (juce::TextEditor::backgroundColourId, juce::Colour (0xff0c0f16));
         pasteBox.setColour (juce::TextEditor::outlineColourId,    juce::Colour (0xff2a3344));
         addAndMakeVisible (pasteBox);
@@ -104,13 +105,13 @@ private:
         const auto& d = processor.getDocument();
         const auto text = vstai::buildManualPrompt (prompt, d.assembly, d.html, processor.isInstrument());
         juce::SystemClipboard::copyTextToClipboard (text);
-        setStatus ("Prompt copied to clipboard — paste it into a chatbot.");
+        setStatus (vstai::u8 ("Prompt copied to clipboard — paste it into a chatbot."));
     }
 
     void copyFix()
     {
         juce::SystemClipboard::copyTextToClipboard (vstai::buildManualFixPrompt (failedAssembly, lastDiag));
-        setStatus ("Fix request copied — paste it back into the SAME chat, then paste its new reply above.");
+        setStatus (vstai::u8 ("Fix request copied — paste it back into the SAME chat, then paste its new reply above."));
     }
 
     void apply()
@@ -129,7 +130,7 @@ private:
         failedAssembly = artifact.getProperty ("assembly", {}).toString();
         applyBtn.setEnabled (false);
         copyFixBtn.setVisible (false);
-        setStatus ("Compiling pasted code…");
+        setStatus (vstai::u8 ("Compiling pasted code…"));
 
         juce::Component::SafePointer<ManualPanel> safe (this);
         processor.requestBuildFromArtifact (prompt, artifact,
@@ -140,7 +141,7 @@ private:
                 safe->applyBtn.setEnabled (true);
                 if (ok)
                 {
-                    safe->setStatus ("Done — your plugin was built and installed. "
+                    safe->setStatus (vstai::u8 ("Done — your plugin was built and installed. ")
                                      + message + "\nYou can close this window.");
                     safe->copyFixBtn.setVisible (false);
                 }
@@ -148,7 +149,7 @@ private:
                 {
                     safe->lastDiag = message;
                     safe->setStatus ("It didn't compile:\n" + message
-                                     + "\n\nClick “Copy fix request”, paste it back to the chatbot, "
+                                     + vstai::u8 ("\n\nClick “Copy fix request”, paste it back to the chatbot, ") +
                                        "then paste the new reply above.", true);
                     safe->copyFixBtn.setVisible (true);
                     safe->resized();
@@ -164,7 +165,7 @@ private:
     juce::TextButton copyPromptBtn { "Copy prompt again" };
     juce::TextEditor pasteBox;
     juce::TextButton applyBtn   { "Apply pasted result" };
-    juce::TextButton copyFixBtn { "Copy fix request →" };
+    juce::TextButton copyFixBtn { vstai::u8 ("Copy fix request →") };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ManualPanel)
 };

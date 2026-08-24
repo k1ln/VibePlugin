@@ -70,7 +70,14 @@ const P_ARP_GATE: i32 = 39;   // 0.1..1 note length (fraction of a step)
 const P_ARP_MODE: i32 = 40;   // 0 up, 1 down, 2 up-down, 3 random
 const P_ARP_UP: i32 = 41;     // 1..6 chord tones from the root upward (incl. the root)
 const P_ARP_DOWN: i32 = 42;   // 0..6 chord tones below the root
-const NUM_PARAMS: i32 = 43;
+const P_ARP_SYNC: i32 = 43;   // 0/1: lock the arp to host tempo instead of the free rate
+const NUM_PARAMS: i32 = 44;
+
+const P_HOST_BPM: i32 = 63;   // reserved: host writes tempo here every block (see WasmAbi.h)
+// Arp Rate, when synced, snaps through these musical divisions (beats per step)
+// instead of running freely: whole, 1/2, 1/4, 1/4T, 1/8, 1/8T, 1/16, 1/16T, 1/32.
+const arpDivBeats: StaticArray<f32> =
+  StaticArray.fromArray<f32>([ 4.0, 2.0, 1.0, 0.66667, 0.5, 0.33333, 0.25, 0.16667, 0.125 ]);
 
 let sampleRate: f32 = 44100;
 
@@ -305,7 +312,14 @@ export function process(n: i32): void {
       if (stackN == 0) {
         if (arpVoice == 1) { aStage = 4; fStage = 4; arpVoice = 0; }   // no notes held -> release
       } else {
-        const stepLen: f32 = sampleRate / (2.0 + params[P_ARP_RATE] * 16.0);   // ~2..18 steps/sec
+        let stepLen: f32;
+        if (params[P_ARP_SYNC] > 0.5) {
+          const bpm: f32 = params[P_HOST_BPM] > 1.0 ? params[P_HOST_BPM] : 120.0;
+          const divIdx: i32 = <i32>(params[P_ARP_RATE] * 8.0 + 0.5);   // 0..8 into arpDivBeats
+          stepLen = sampleRate * (60.0 / bpm) * arpDivBeats[divIdx];
+        } else {
+          stepLen = sampleRate / (2.0 + params[P_ARP_RATE] * 16.0);   // free-running, ~2..18 steps/sec
+        }
         if (arpVoice == 1) { arpGate -= 1.0; if (arpGate <= 0.0) { aStage = 4; fStage = 4; arpVoice = 0; } }
         arpClock -= 1.0;
         if (arpClock <= 0.0) {

@@ -302,7 +302,7 @@ function buildMod(){
 /* ---- arpeggiator UI — the arpeggiator itself lives in the WASM/DSP (moog.ts) so it
    follows DAW MIDI and keeps running when this window is closed. Here we only set its
    parameters; the on-screen keyboard and the DAW feed it the held notes to step. ---- */
-const P_ARP_ON=36, P_ARP_RATE=37, P_ARP_CHORD=38, P_ARP_GATE=39, P_ARP_MODE=40, P_ARP_UP=41, P_ARP_DOWN=42;
+const P_ARP_ON=36, P_ARP_RATE=37, P_ARP_CHORD=38, P_ARP_GATE=39, P_ARP_MODE=40, P_ARP_UP=41, P_ARP_DOWN=42, P_ARP_SYNC=43;
 const CHORD_NAMES=['Major','Minor','Maj7','Min7','Dom7','Sus2','Sus4','Dim','Power','Octaves'];
 let arpOn=true;
 function segBtns(labels,def,onPick){
@@ -330,6 +330,11 @@ function buildArp(){
   const onb=document.createElement('button'); onb.className='arp-on on'; onb.textContent='ON';
   onb.onclick=()=>{ arpOn=!arpOn; onb.classList.toggle('on',arpOn); onb.textContent=arpOn?'ON':'OFF'; setP(P_ARP_ON,arpOn?1:0); };
   row.append(arpField('Arp',onb));
+  let arpSync=true;
+  const syncb=document.createElement('button'); syncb.className='arp-on on'; syncb.textContent='SYNC';
+  syncb.title='Locked to host tempo: Rate snaps to musical divisions (1/1..1/32) instead of running freely';
+  syncb.onclick=()=>{ arpSync=!arpSync; syncb.classList.toggle('on',arpSync); syncb.textContent=arpSync?'SYNC':'FREE'; setP(P_ARP_SYNC,arpSync?1:0); };
+  row.append(arpField('Tempo',syncb));
   row.append(arpField('Chord', chordSelect()));
   row.append(arpField('Direction', segBtns(['↑','↓','↑↓','✶'],2,(i)=>setP(P_ARP_MODE,i))));
   const knobs=document.createElement('div'); knobs.className='knobs arp-knobs';
@@ -339,7 +344,7 @@ function buildArp(){
   knobs.append(knob({label:'Gate',min:0.1,max:1,def:0.55,set:(v)=>setP(P_ARP_GATE,v)}));
   row.append(knobs); el.append(row);
   const hint=document.createElement('div'); hint.className='arp-hint';
-  hint.textContent='ON: hold a note → it arpeggiates the chord (set Chord + Notes Up/Dn + Direction) · OFF: play normally · runs with this window closed';
+  hint.textContent='ON: hold a note → it arpeggiates the chord (set Chord + Notes Up/Dn + Direction) · SYNC: Rate locks to host tempo (1/1..1/32 note divisions), FREE: Rate runs at its own Hz · runs with this window closed';
   el.append(hint); return el;
 }
 

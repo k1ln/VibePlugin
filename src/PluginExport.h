@@ -21,6 +21,7 @@
 #include <juce_core/juce_core.h>
 #include <functional>
 #include "VstaiDocument.h"
+#include "Utf8.h"
 
 namespace vstai::pluginexport
 {
@@ -229,7 +230,7 @@ namespace vstai::pluginexport
         if (! runProcess ({ "ditto", "-c", "-k", "--keepParent", bundle.getFullPathName(), zip.getFullPathName() }, out))
         { errOut = "could not zip for notarization: " + out; return false; }
 
-        if (progress) progress ("Notarizing with Apple — this can take a few minutes…");
+        if (progress) progress (vstai::u8 ("Notarizing with Apple — this can take a few minutes…"));
         runProcess ({ "xcrun", "notarytool", "submit", zip.getFullPathName(),
                       "--keychain-profile", profile, "--wait", "--timeout", "20m" }, out);
         zip.deleteFile();
@@ -237,13 +238,13 @@ namespace vstai::pluginexport
         if (! out.contains ("status: Accepted"))
         {
             errOut = out.containsIgnoreCase ("could not find") || out.containsIgnoreCase ("no keychain")
-                ? ("notary profile \"" + profile + "\" not set up — run: xcrun notarytool store-credentials "
+                ? ("notary profile \"" + profile + vstai::u8 ("\" not set up — run: xcrun notarytool store-credentials ")
                    + profile + " --apple-id <you> --team-id 8P7SXGP62N --password <app-specific>")
-                : ("Apple did not accept it — `xcrun notarytool log` for details. " + out.substring (0, 300));
+                : (vstai::u8 ("Apple did not accept it — `xcrun notarytool log` for details. ") + out.substring (0, 300));
             return false;
         }
 
-        if (progress) progress ("Stapling the notarization ticket…");
+        if (progress) progress (vstai::u8 ("Stapling the notarization ticket…"));
         if (! runProcess ({ "xcrun", "stapler", "staple", bundle.getFullPathName() }, out))
         { errOut = "notarized but stapling failed: " + out; return false; }
         return true;
@@ -442,7 +443,7 @@ namespace vstai::pluginexport
         }
         if (! doc.hasPlugin())
         {
-            messageOut = "nothing to export yet — generate a plugin first.";
+            messageOut = vstai::u8 ("nothing to export yet — generate a plugin first.");
             return false;
         }
 
@@ -453,7 +454,7 @@ namespace vstai::pluginexport
         }
         destBundle.getParentDirectory().createDirectory();
 
-        note ("Copying the plugin…");
+        note (vstai::u8 ("Copying the plugin…"));
         if (! copyBundle (srcBundle, destBundle, messageOut))
             return false;
 
@@ -485,7 +486,7 @@ namespace vstai::pluginexport
         }
 
         // A locked product needs neither the compiler nor the authoring shell.
-        note ("Slimming the bundle…");
+        note (vstai::u8 ("Slimming the bundle…"));
         stripUnusedForLocked (destBundle);
 
         setBundleDisplayName (destBundle, baked.name);
@@ -499,7 +500,7 @@ namespace vstai::pluginexport
         // Sign last so the seal covers the baked doc, the slimmed Resources, and the
         // patched binary + moduleinfo. Hardened runtime => notarizable.
         const bool willNotarize = notaryProfile.isNotEmpty();
-        note ("Signing (Developer ID, hardened runtime)…");
+        note (vstai::u8 ("Signing (Developer ID, hardened runtime)…"));
         if (! signForExport (destBundle, willNotarize, messageOut))
             return false;
 
@@ -508,18 +509,18 @@ namespace vstai::pluginexport
 
         const juce::String idPart = uniqueId
             ? ("its own identity (id " + newCode + ")")
-            : ("VibePlugin's shared id — " + idWarn);
+            : (vstai::u8 ("VibePlugin's shared id — ") + idWarn);
 
         juce::String trust;
         if (notarized)
-            trust = "Notarized — it loads cleanly on any Mac.";
+            trust = vstai::u8 ("Notarized — it loads cleanly on any Mac.");
         else if (notaryProfile.isEmpty())
             trust = "Signed with your Developer ID (hardened runtime). Not notarized: set a notary "
                     "profile in Settings to auto-notarize, or recipients clear quarantine once.";
         else
             trust = "Signed, but notarization did not complete: " + notaryOut;
 
-        messageOut = "Exported \xE2\x80\x9C" + baked.name + "\xE2\x80\x9D with " + idPart
+        messageOut = vstai::u8 ("Exported \xE2\x80\x9C") + baked.name + vstai::u8 ("\xE2\x80\x9D with ") + idPart
                    + ", locked to just the GUI. " + trust;
         return true;
     }

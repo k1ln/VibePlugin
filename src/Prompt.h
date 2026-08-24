@@ -10,6 +10,7 @@
 
 #include <juce_core/juce_core.h>
 #include <vector>
+#include "Utf8.h"
 
 namespace vstai
 {
@@ -450,7 +451,17 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             ? juce::String ("TARGET: INSTRUMENT / SYNTH. Ignore the input buffer; synthesize "
                             "into the output buffer. Export noteOn(noteId, freq, velocity) and "
                             "noteOff(noteId) - the host converts MIDI notes to Hz and calls them. "
-                            "Include a playable on-screen keyboard in the GUI.")
+                            "Include a playable on-screen keyboard in the GUI. Also wire the "
+                            "computer keyboard to it like a hardware 'typing piano': on keydown, "
+                            "map code KeyA..Semicolon to one chromatic octave+ (KeyA=C, KeyW=C#, "
+                            "KeyS=D, KeyE=D#, KeyD=E, KeyF=F, KeyT=F#, KeyG=G, KeyY=G#, KeyH=A, "
+                            "KeyU=A#, KeyJ=B, KeyK=C, KeyO=C#, KeyL=D, KeyP=D#, Semicolon=E) and "
+                            "call noteOn/noteOff through the SAME path as the on-screen keys, "
+                            "highlighting them the same way. Ignore repeat keydowns and any with "
+                            "metaKey/ctrlKey/altKey held or a text input/contenteditable focused. "
+                            "Call event.preventDefault() on every key you handle - the host has its "
+                            "own computer-keyboard-to-MIDI feature, and an unhandled keydown gets "
+                            "forwarded to it, which plays the note a second time in the host.")
             : juce::String ("TARGET: AUDIO EFFECT. Read the input buffer and write the processed "
                             "output buffer."));
         s.add ("");
@@ -498,14 +509,14 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             s.add ("=== CHANGE REQUEST ===");
             s.add (prompt);
             s.add ("");
-            s.add ("Return an `edits` patch (find/replace snippets), NOT the whole files — this");
+            s.add (vstai::u8 ("Return an `edits` patch (find/replace snippets), NOT the whole files — this"));
             s.add ("is a small change to existing code and resending full files wastes output.");
             s.add ("Resend a complete file ONLY if the change rewrites most of it; if so, say why.");
         }
         else if (currentHtml.isNotEmpty())
         {
             s.add ("This plugin was shared without its AssemblyScript source, so there is no");
-            s.add ("DSP code to patch — only the GUI below is available. Write a COMPLETE new");
+            s.add (vstai::u8 ("DSP code to patch — only the GUI below is available. Write a COMPLETE new"));
             s.add ("assembly/index.ts that realises this plugin for the GUI shown (match its");
             s.add ("controls to the SAME parameter indices they already use), then apply the");
             s.add ("change request. Return full files (assembly + html + params), not an edits patch.");
@@ -623,7 +634,7 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
         s.add ("Each edit's \"find\" must match the CURRENT source EXACTLY (byte for byte,");
         s.add ("including whitespace) and EXACTLY ONCE.");
         s.add ("");
-        s.add ("Reply AGAIN — this time return the COMPLETE updated files in \"assembly\" and");
+        s.add (vstai::u8 ("Reply AGAIN — this time return the COMPLETE updated files in \"assembly\" and"));
         s.add ("\"html\" (do NOT use an \"edits\" array). Keep the parameter indices stable.");
         return s.joinIntoString ("\n");
     }
@@ -704,8 +715,8 @@ Do NOT put AssemblyScript or HTML inside the JSON block (other than inside the
                                            const juce::String& designPrinciples = {})
     {
         juce::StringArray s;
-        s.add (kSystemPrompt);
-        s.add (kManualFormat);
+        s.add (vstai::u8 (kSystemPrompt));
+        s.add (vstai::u8 (kManualFormat));
         s.add ("");
         s.add ("============================================================");
         s.add ("YOUR TASK");
@@ -728,14 +739,14 @@ Do NOT put AssemblyScript or HTML inside the JSON block (other than inside the
         s.add ("the current AssemblyScript and HTML above, so do NOT ask me to paste them again.");
         s.add ("Keep parameter indices stable and keep the plugin's type the same.");
         s.add ("");
-        s.add ("RETURN AN `edits` PATCH — a single ```json block with an `edits` array of");
+        s.add (vstai::u8 ("RETURN AN `edits` PATCH — a single ```json block with an `edits` array of"));
         s.add ("find/replace snippets, and nothing else. This is important: resending whole");
         s.add ("files wastes output and risks the reply being cut off. Resend a complete file");
         s.add ("ONLY if the change rewrites most of it, and if so say which file and why.");
         s.add ("");
         s.add ("=== CHANGE REQUEST ===");
         s.add (prompt.isNotEmpty() ? prompt : juce::String ("(describe the change you want)"));
-        s.add (kManualFormat);
+        s.add (vstai::u8 (kManualFormat));
         return s.joinIntoString ("\n");
     }
 
@@ -753,7 +764,7 @@ Do NOT put AssemblyScript or HTML inside the JSON block (other than inside the
         s.add ("");
         s.add ("=== THE AssemblyScript THAT FAILED ===");
         s.add (assembly);
-        s.add (kManualFormat);
+        s.add (vstai::u8 (kManualFormat));
         return s.joinIntoString ("\n");
     }
 
@@ -782,7 +793,7 @@ Do NOT put AssemblyScript or HTML inside the JSON block (other than inside the
 
         if (blocks.empty())
         {
-            errorOut = "No code blocks found. Paste the chatbot's full reply — it should contain "
+            errorOut = vstai::u8 ("No code blocks found. Paste the chatbot's full reply — it should contain ") +
                        "```assemblyscript, ```html and ```json blocks.";
             return false;
         }

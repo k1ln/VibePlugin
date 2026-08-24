@@ -4,7 +4,7 @@
 #import <AppKit/AppKit.h>
 
 #if __has_feature(objc_arc)
- #error "MacKeyUpMonitor.mm is written for manual retain/release — compile without -fobjc-arc"
+ #error "MacKeyUpMonitor.mm is written for manual retain/release - compile without -fobjc-arc"
 #endif
 
 namespace

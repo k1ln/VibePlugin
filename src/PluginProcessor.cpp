@@ -11,6 +11,7 @@
 #include "Settings.h"
 #include "AppSettings.h"
 #include <thread>
+#include "Utf8.h"
 
 namespace
 {
@@ -103,7 +104,7 @@ void VstaiAudioProcessor::maybeLoadBakedDocument()
     if (vstai::pluginexport::forceLocked())
     {
         lockedFromBundle = true;          // lock the current (normal) doc for testing
-        VSTAI_LOG ("VSTAI_FORCE_LOCKED set — opening in locked product mode");
+        VSTAI_LOG (vstai::u8 ("VSTAI_FORCE_LOCKED set — opening in locked product mode"));
     }
 }
 
@@ -404,15 +405,15 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
 
         if (provider == LlmClient::Provider::cloud && genToken.isEmpty())
         {
-            finishOnUi (false, "Sign in to VibePlugin Cloud first — open the Account… dialog.", {}, {}, prompt);
+            finishOnUi (false, vstai::u8 ("Sign in to VibePlugin Cloud first — open the Account… dialog."), {}, {}, prompt);
             return;
         }
         if (llm.needsApiKey() && ! llm.hasApiKey())
         {
             finishOnUi (false,
                 provider == LlmClient::Provider::glm
-                    ? "GLM API key is not set. Open “Keys…”, paste your GLM key, or set GLM_API_KEY."
-                    : "Anthropic API key is not set. Open “Keys…”, paste your key, or set "
+                    ? vstai::u8 ("GLM API key is not set. Open “Keys…”, paste your GLM key, or set GLM_API_KEY.")
+                    : vstai::u8 ("Anthropic API key is not set. Open “Keys…”, paste your key, or set ") +
                       "ANTHROPIC_API_KEY.",
                 {}, {}, prompt);
             return;
@@ -472,7 +473,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             juce::String rerr;
             if (! vstai::resolveEdits (fullAsm, fullHtml, artifact, rerr))
             {
-                VSTAI_LOG ("edit patch didn't apply: " + rerr + " — requesting full files");
+                VSTAI_LOG ("edit patch didn't apply: " + rerr + vstai::u8 (" — requesting full files"));
                 reportProgress ("Refining the edit...");
                 streamThinking ("\n[build] edit patch did not apply (" + rerr
                                 + ") - requesting full files...\n");
@@ -503,7 +504,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
                     const auto why = artifact.getProperty ("explanation", {}).toString();
                     error = "the AI replied without any code change"
                             + (why.isEmpty() ? juce::String()
-                                             : juce::String (" — it said: \"") + why.trim() + "\"")
+                                             : juce::String (vstai::u8 (" — it said: \"")) + why.trim() + "\"")
                             + ". Try rephrasing, or ask for the complete files.";
                     VSTAI_LOG ("no-op reply: neither edits nor assembly/html present");
                     streamThinking ("\n[build] the model returned no code change - stopping.\n");
@@ -871,7 +872,7 @@ juce::String VstaiAudioProcessor::getDisplayHtml() const
     // No plugin yet: show the (editable) standard component kit live, so the user
     // can see and play the house style. Falls back to kDefaultHtml only if empty.
     auto std = vstai::appsettings::standardUi();
-    juce::String kit = std.isNotEmpty() ? std : juce::String (kDefaultHtml);
+    juce::String kit = std.isNotEmpty() ? std : vstai::u8 (kDefaultHtml);
 
     // This kit is just the house style — there's no DSP behind it, so make clear it
     // isn't a working instrument (display only; the generation house-style seed and a
@@ -882,8 +883,8 @@ juce::String VstaiAudioProcessor::getDisplayHtml() const
         R"HTML(padding:9px 14px;text-align:center">Style preview — a GUI example, not a real synth (no sound). )HTML"
         R"HTML(Type a prompt and press Generate, or Load a .vstai, to make a working plugin.</div>)HTML";
     const int b = kit.indexOfIgnoreCase ("<body>");
-    return b >= 0 ? (kit.substring (0, b + 6) + banner + kit.substring (b + 6))
-                  : (juce::String (banner) + kit);
+    return b >= 0 ? (kit.substring (0, b + 6) + vstai::u8 (banner) + kit.substring (b + 6))
+                  : (vstai::u8 (banner) + kit);
 }
 
 void VstaiAudioProcessor::newPlugin()
