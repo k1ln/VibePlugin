@@ -74,6 +74,13 @@ body.mono{font-family:var(--mono)}
   margin-left:4px;border-left:1px solid var(--line-2);max-width:240px;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
 
+/* Cloud-credits balance for the signed-in account (header, next to Account). */
+#headerBtns{display:flex;align-items:center;gap:6px}
+.credits{align-self:center;color:var(--ink-2);font-size:11px;font-weight:600;
+  font-variant-numeric:tabular-nums;padding:3px 9px;border:1px solid var(--line-2);
+  border-radius:999px;white-space:nowrap}
+.credits.low{color:var(--danger);border-color:var(--danger)}
+
 /* ---- collapsed mode: hide the authoring chrome, keep header + GUI ---- */
 body.collapsed .prompt,
 body.collapsed .toolbar,

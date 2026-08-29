@@ -48,14 +48,14 @@ namespace
         juce::Array<var> a;
         a.add (modelEntry ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"), "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-opus-5",     "Opus 5 (best value)",    "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)",   "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-sonnet-5",   "Sonnet 5 (cheaper)",     "Anthropic (your key)"));
         // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
         // (Anthropic-only for now). The backend still supports them — re-add to restore.
         // a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));
         // a.add (modelEntry ("glm", "glm-4.6", "GLM-4.6", "GLM / Z.ai (your key)"));
         // a.add (modelEntry ("cloud", "glm-5.2",           "Cloud · GLM-5.2 (cheapest)", "VibePlugin Cloud (credits)"));
         a.add (modelEntry ("cloud", "claude-haiku-4-5",  vstai::u8 ("Cloud · Haiku 4.5"),          "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-sonnet-4-6", vstai::u8 ("Cloud · Sonnet 4.6"),         "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-sonnet-5",   vstai::u8 ("Cloud · Sonnet 5"),           "VibePlugin Cloud (credits)"));
         a.add (modelEntry ("cloud", "claude-opus-4-8",   vstai::u8 ("Cloud · Opus 4.8 (best)"),    "VibePlugin Cloud (credits)"));
         // for (const auto& m : ollama)
         // {
@@ -162,6 +162,14 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             if (safe != nullptr) safe->processor.setGenerationEffort (argStr (a, 0));
             complete (var());
         })
+        // The "Use Settings design" checkbox next to Generate. On: the build
+        // prompt carries the Settings design school (kit + language). Off: no
+        // house style at all — the model designs the GUI freely.
+        .withNativeFunction ("setApplyDesignStyle", [safe] (const VarArray& a, Completion complete)
+        {
+            vstai::appsettings::setApplyDesignStyle (a.size() > 0 && (bool) a[0]);
+            complete (safe != nullptr ? safe->currentState() : var());
+        })
         .withNativeFunction ("setThinking", [safe] (const VarArray& a, Completion complete)
         {
             if (safe != nullptr) safe->processor.setGenerationThinking (a.size() > 0 && (bool) a[0]);
@@ -182,10 +190,11 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         {
             if (safe == nullptr) { complete (var()); return; }
             const auto& d = safe->processor.getDocument();
+            const auto style = vstai::appsettings::resolvedBuildStyle();
             complete (vstai::buildManualPrompt (argStr (a, 0), d.assembly, d.html,
                                                 safe->processor.isInstrument(),
-                                                vstai::appsettings::selectedDesignName(),
-                                                vstai::appsettings::selectedDesignPrinciples()));
+                                                style.designName,
+                                                style.designPrinciples));
         })
         // Short follow-up prompt for iterating in the SAME chat (no re-paste of the
         // system rules or current code — the chat already holds them).
@@ -557,6 +566,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             o->setProperty ("designTheme",
                             vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
             o->setProperty ("generationSource", vstai::appsettings::generationSource());
+            o->setProperty ("applyDesignStyle", vstai::appsettings::applyDesignStyle());
             complete (var (o));
         })
         .withNativeFunction ("saveSettings", [] (const VarArray& a, Completion complete)
@@ -564,11 +574,18 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             auto parsed = juce::JSON::parse (argStr (a, 0));
             if (auto* o = parsed.getDynamicObject())
             {
+                // A blank "anthropicKey" removes the stored key (setAnthropicKey).
                 vstai::appsettings::setAnthropicKey  (o->getProperty ("anthropicKey").toString().trim());
                 vstai::appsettings::setPublishUrl    (o->getProperty ("publishUrl").toString().trim());
                 vstai::appsettings::setNotaryProfile (o->getProperty ("notaryProfile").toString().trim());
             }
             complete (result (true, "Settings saved."));
+        })
+        .withNativeFunction ("clearAnthropicKey", [] (const VarArray&, Completion complete)
+        {
+            vstai::appsettings::clearAnthropicKey();
+            VSTAI_LOG ("anthropic API key deleted by user");
+            complete (result (true, "Anthropic key deleted."));
         })
         .withNativeFunction ("getDesigns", [] (const VarArray&, Completion complete)
         {
@@ -683,11 +700,52 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             complete (safe != nullptr ? safe->currentState() : var());
         })
         // ---- native dialogs (reused) -----------------------------------
+        // Cloud account snapshot for the header credits chip: { signedIn, email,
+        // ok, credits }. Hits the server (/v1/account) on a worker thread; drops
+        // the local session if it comes back 401.
+        .withNativeFunction ("getAccount", [safe] (const VarArray&, Completion complete)
+        {
+            if (safe == nullptr) { complete (var()); return; }
+            if (! vstai::appsettings::isSignedIn())
+            {
+                auto* o = new juce::DynamicObject();
+                o->setProperty ("signedIn", false);
+                complete (juce::var (o));
+                return;
+            }
+            juce::Component::SafePointer<WebEditor> s2 (safe);
+            const auto base  = vstai::appsettings::cloudBaseUrl();
+            const auto token = vstai::appsettings::cloudToken();
+            std::thread ([s2, complete, base, token]() mutable
+            {
+                auto a = vstai::cloud::account (base, token);
+                const bool ok      = a.ok();
+                const bool expired = (a.status == 401);
+                const int  credits = (int) a.json.getProperty ("credits", 0);
+                juce::MessageManager::callAsync ([s2, complete, ok, expired, credits]() mutable
+                {
+                    if (s2 == nullptr) return;
+                    if (expired) vstai::appsettings::signOut();
+                    auto* o = new juce::DynamicObject();
+                    o->setProperty ("signedIn", vstai::appsettings::isSignedIn());
+                    o->setProperty ("email",    vstai::appsettings::cloudEmail());
+                    o->setProperty ("ok",       ok);
+                    if (ok) o->setProperty ("credits", credits);
+                    complete (juce::var (o));
+                });
+            }).detach();
+        })
         .withNativeFunction ("openAccount", [safe] (const VarArray&, Completion complete)
         {
             if (safe != nullptr)
             {
                 auto panel = std::make_unique<AccountPanel>();
+                // Sign-in / sign-out / balance refresh in the dialog → nudge the
+                // shell to re-pull the header credits chip.
+                panel->onChanged = [safe]
+                {
+                    if (safe != nullptr) safe->emitEvent ("accountChanged", var());
+                };
                 juce::DialogWindow::LaunchOptions o;
                 o.content.setOwned (panel.release());
                 o.dialogTitle = "VibePlugin Cloud credits";
@@ -711,8 +769,9 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             // aw->addTextEditor ("glmurl",    vstai::appsettings::rawGlmUrl(),       "GLM URL (blank = Z.ai)");
             // aw->addTextEditor ("ollama",    vstai::appsettings::ollamaBaseUrl(),   "Ollama URL");
             aw->addTextEditor ("publish",   vstai::appsettings::rawPublishUrl(),   "Publish server URL (blank = default proxy)");
-            aw->addButton ("Save",   1, juce::KeyPress (juce::KeyPress::returnKey));
-            aw->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
+            aw->addButton ("Save",       1, juce::KeyPress (juce::KeyPress::returnKey));
+            aw->addButton ("Delete key", 2);
+            aw->addButton ("Cancel",     0, juce::KeyPress (juce::KeyPress::escapeKey));
             aw->enterModalState (true, juce::ModalCallbackFunction::create ([safe, aw, complete] (int r)
             {
                 // If the editor is gone the WebView bridge behind `complete` is dead too —
@@ -720,6 +779,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 if (safe == nullptr) return;
                 if (r == 1)
                 {
+                    // Blank field => the key is removed (see setAnthropicKey).
                     vstai::appsettings::setAnthropicKey (aw->getTextEditorContents ("anthropic").trim());
                     // GLM / Ollama fields hidden — leave their stored values untouched.
                     // vstai::appsettings::setGlmKey       (aw->getTextEditorContents ("glm").trim());
@@ -727,7 +787,14 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                     // vstai::appsettings::setOllamaUrl    (aw->getTextEditorContents ("ollama").trim());
                     vstai::appsettings::setPublishUrl   (aw->getTextEditorContents ("publish").trim());
                 }
-                complete (result (r == 1, r == 1 ? "Settings saved." : "Cancelled."));
+                else if (r == 2)
+                {
+                    vstai::appsettings::clearAnthropicKey();
+                }
+                complete (result (r != 0,
+                                  r == 2 ? juce::String ("Anthropic key deleted.")
+                                         : r == 1 ? juce::String ("Settings saved.")
+                                                  : juce::String ("Cancelled.")));
             }), true);
             safe->trackDialog (aw);
         });
@@ -906,6 +973,7 @@ juce::var WebEditor::currentState() const
     o->setProperty ("html",      d.html.isNotEmpty() ? d.html : processor.getDisplayHtml());
     o->setProperty ("signedIn",  vstai::appsettings::isSignedIn());
     o->setProperty ("generationSource", vstai::appsettings::generationSource());
+    o->setProperty ("applyDesignStyle", vstai::appsettings::applyDesignStyle());
     o->setProperty ("building",  processor.isBuilding());
     o->setProperty ("stage",     processor.getBuildStage());
     o->setProperty ("designId",  vstai::appsettings::selectedDesignId());

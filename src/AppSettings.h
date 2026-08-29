@@ -56,12 +56,29 @@ namespace vstai::appsettings
     inline void setNotaryProfile (const juce::String& v) { file().setValue ("notaryProfile", v); file().saveIfNeeded(); }
 
     inline void setPublishUrl   (const juce::String& v) { file().setValue ("publishUrl", v); file().saveIfNeeded(); }
-    inline void setAnthropicKey (const juce::String& v) { file().setValue ("anthropicApiKey", v); file().saveIfNeeded(); }
     inline void setOllamaUrl    (const juce::String& v) { file().setValue ("ollamaBaseUrl",   v); file().saveIfNeeded(); }
-    inline void setGlmKey       (const juce::String& v) { file().setValue ("glmApiKey",       v); file().saveIfNeeded(); }
     inline void setGlmUrl       (const juce::String& v) { file().setValue ("glmBaseUrl",       v); file().saveIfNeeded(); }
     inline void setStandardUi   (const juce::String& v) { file().setValue ("standardUi",       v); file().saveIfNeeded(); }
     inline void resetStandardUi ()                      { file().removeValue ("standardUi");      file().saveIfNeeded(); }
+
+    // API-key overrides: an empty value REMOVES the stored key (rather than
+    // storing "") so the resolver falls back to Config.h/env — and so a user
+    // can actually delete a key they pasted earlier. clear*Key() is the explicit
+    // form for a "Delete key" button.
+    inline void setAnthropicKey (const juce::String& v)
+    {
+        if (v.isEmpty()) file().removeValue ("anthropicApiKey");
+        else             file().setValue    ("anthropicApiKey", v);
+        file().saveIfNeeded();
+    }
+    inline void clearAnthropicKey () { setAnthropicKey ({}); }
+    inline void setGlmKey (const juce::String& v)
+    {
+        if (v.isEmpty()) file().removeValue ("glmApiKey");
+        else             file().setValue    ("glmApiKey", v);
+        file().saveIfNeeded();
+    }
+    inline void clearGlmKey () { setGlmKey ({}); }
 
     // ---- resolved values (override, else Config.h/env) ----------------------
     inline juce::String anthropicKey()
@@ -192,6 +209,24 @@ namespace vstai::appsettings
     {
         auto v = rawStandardUi();
         return v.isNotEmpty() ? v : selectedDesignKitHtml();
+    }
+
+    // ===== Build style ====================================================
+    //  The "Use Settings design" checkbox next to Generate. OFF by default:
+    //  generations get NO house style and NO design language, so the model
+    //  designs the GUI freely. ON: the design school chosen in Settings (its
+    //  component kit + design language) is injected into the build prompt.
+    inline bool applyDesignStyle()           { return file().getBoolValue ("applyDesignStyle", false); }
+    inline void setApplyDesignStyle (bool b) { file().setValue ("applyDesignStyle", b); file().saveIfNeeded(); }
+
+    // The resolved design inputs for a generation. Empty when the checkbox is
+    // off. Snapshot this on the message thread before a build worker starts.
+    struct BuildStyle { juce::String kitHtml, designName, designPrinciples; };
+    inline BuildStyle resolvedBuildStyle()
+    {
+        if (! applyDesignStyle())
+            return {};
+        return { standardUi(), selectedDesignName(), selectedDesignPrinciples() };
     }
 
     // Which editor chrome to use: the new WebView shell (default) or the legacy

@@ -22,6 +22,7 @@ fi
 
 ensure_compiler
 ensure_wasmtime
+bump_version
 echo "▶ building Debug + VSTAI_DEV_MODE…"
 configure_and_build build-dev Debug -DVSTAI_DEV_MODE=ON
 sign_installed

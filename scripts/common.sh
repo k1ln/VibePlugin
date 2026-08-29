@@ -42,6 +42,24 @@ ensure_wasmtime() {
   echo "  wasmtime ${tag} -> $WASMTIME_DIR"
 }
 
+# Bump the patch component of project(VibePlugin VERSION x.y.z) in CMakeLists.txt.
+# Run on every local build (build.sh / dev.sh): hosts cache plugin metadata by
+# version, so a fresh version makes "did my rebuild land?" unambiguous. The
+# build-id stamp (VSTAI_BUILD_ID) already helps in the editor header, but the
+# version is what a DAW actually keys on. The change is git-tracked on purpose —
+# it rides along with the next real commit.
+bump_version() {
+  local f="$REPO/CMakeLists.txt" cur new
+  cur=$(sed -n 's/^project(VibePlugin VERSION \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$f")
+  if [ -z "$cur" ]; then
+    echo "⚠ no 'project(VibePlugin VERSION x.y.z)' in CMakeLists.txt — skipping version bump"
+    return
+  fi
+  new="${cur%.*}.$(( ${cur##*.} + 1 ))"
+  perl -i -pe "s/^(project\\(VibePlugin VERSION )\\Q$cur\\E\\b/\${1}$new/" "$f"
+  echo "▶ version $cur → $new"
+}
+
 # Configure + build.   $1=build dir   $2=build type   $3..=extra cmake args
 configure_and_build() {
   local dir="$1" type="$2"; shift 2

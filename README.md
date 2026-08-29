@@ -73,8 +73,8 @@ The **Model** dropdown picks who writes the plugin. Three paths are offered toda
 | Option | Models | Key / account | How |
 |---|---|---|---|
 | **Manual** (free) | any chatbot you have | **none** | copy the prompt → paste into ChatGPT/Claude/etc → paste the reply back |
-| **Anthropic — your key** | Opus 4.8, Sonnet 4.6 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
-| **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 4.6 / Opus 4.8 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
+| **Anthropic — your key** | Fable 5, Opus 5, Sonnet 5 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
+| **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 5 / Opus 4.8 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
 
 **Manual ("bring your own chatbot")** is the free, no-API-key, no-account path. Click
 **Copy to chatbot** and a dialog copies a self-contained prompt to your clipboard.

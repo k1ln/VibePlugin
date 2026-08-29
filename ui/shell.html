@@ -38,7 +38,8 @@ window.addEventListener("unhandledrejection", function (e) {
     <div class="spacer"></div>
     <div class="group" id="headerBtns">
       <button class="btn ghost" id="keysBtn"    title="API keys, design &amp; settings">Settings</button>
-      <button class="btn ghost" id="accountBtn" title="Cloud credits">Account</button>
+      <span class="credits" id="creditsChip" hidden title="VibePlugin Cloud credits left for the signed-in account — click Account to top up"></span>
+      <button class="btn ghost" id="accountBtn" title="Cloud credits — sign in, buy, check balance">Account</button>
     </div>
     <button class="btn ghost" id="collapseBtn" title="Hide the editor — show just the plugin GUI">Hide editor ▴</button>
   </header>
@@ -50,6 +51,8 @@ window.addEventListener("unhandledrejection", function (e) {
     <div class="prompt-actions">
       <button class="btn primary"  id="generateBtn">Generate</button>
       <button class="btn accent2"  id="chatbotBtn" title="No API key needed — copy a prompt to any chatbot">Copy to chatbot</button>
+      <label class="lbl chk" id="styleWrap" title="On: the build prompt carries the design school from Settings (its kit + design language). Off: no design template is sent — the AI designs the GUI freely.">
+        <input type="checkbox" id="styleChk"/> Use Settings design</label>
     </div>
   </section>
 

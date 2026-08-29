@@ -64,8 +64,22 @@ VstaiAudioProcessor::VstaiAudioProcessor()
 {
     vstai::dev::initLog (getName());
     setupHostParameters();   // fixed pool of host-automatable params (stable VST3 interface)
-    document.model    = vstai::settings::model();   // Config.h/env default; dropdown overrides
-    document.provider = LlmClient::providerToString (LlmClient::providerForModel (document.model));
+    // Default generation target. When a model is explicitly pinned (Config.h /
+    // $VSTAI_MODEL) honour it and infer its provider; otherwise default to the
+    // metered VibePlugin Cloud path — no key, pay with the signed-in account.
+    // The dropdown overrides both.
+    const bool modelPinned = juce::String (VSTAI_CONFIG_MODEL).isNotEmpty()
+                          || juce::SystemStats::getEnvironmentVariable ("VSTAI_MODEL", {}).isNotEmpty();
+    if (modelPinned)
+    {
+        document.model    = vstai::settings::model();
+        document.provider = LlmClient::providerToString (LlmClient::providerForModel (document.model));
+    }
+    else
+    {
+        document.provider = "cloud";
+        document.model    = "claude-opus-4-8";
+    }
     compiler = std::make_shared<AssemblyScriptCompiler>();
     // API key + model come from the compiled-in Config.h (or env); the
     // compiler executable is resolved from Config.h / env / the plugin bundle.
@@ -297,9 +311,13 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
     const juce::String genModel    = document.model;
     const juce::String genEffort   = document.effort;
     const bool         genThinking = document.thinking;
-    const juce::String genStandardUi = vstai::appsettings::standardUi();   // house style for the prompt
-    const juce::String genDesignName       = vstai::appsettings::selectedDesignName();
-    const juce::String genDesignPrinciples = vstai::appsettings::selectedDesignPrinciples();
+    // What visual guidance this build gets: the design school chosen in
+    // Settings, or nothing at all when the "Use Settings design" checkbox next
+    // to Generate is off (the model then designs the GUI freely).
+    const auto style = vstai::appsettings::resolvedBuildStyle();
+    const juce::String genStandardUi       = style.kitHtml;           // house style for the prompt
+    const juce::String genDesignName       = style.designName;
+    const juce::String genDesignPrinciples = style.designPrinciples;
     auto               aliveToken  = alive;     // shared_ptr copy keeps the flag alive
     auto               comp        = compiler;  // shared_ptr: reused JIT'd asc module
 

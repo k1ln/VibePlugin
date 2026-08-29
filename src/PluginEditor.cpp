@@ -771,7 +771,7 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     modelBox.addSectionHeading ("Anthropic (your key)");
     add ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"));
     add ("anthropic", "claude-opus-5",     "Opus 5 (best value)");
-    add ("anthropic", "claude-sonnet-4-6", "Sonnet 4.6 (cheaper)");
+    add ("anthropic", "claude-sonnet-5",   "Sonnet 5 (cheaper)");
 
     // GLM / Zhipu (Z.ai) — OpenAI-compatible. The exact model id must match what
     // your plan exposes; glm-4.6 is the known-good fallback if glm-5.2 isn't live yet.
@@ -784,7 +784,7 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     modelBox.addSectionHeading ("VibePlugin Cloud (credits)");
     add ("cloud", "glm-5.2",           vstai::u8 ("Cloud · GLM-5.2 (cheapest)"));
     add ("cloud", "claude-haiku-4-5",  vstai::u8 ("Cloud · Haiku 4.5"));
-    add ("cloud", "claude-sonnet-4-6", vstai::u8 ("Cloud · Sonnet 4.6"));
+    add ("cloud", "claude-sonnet-5",   vstai::u8 ("Cloud · Sonnet 5"));
     add ("cloud", "claude-opus-4-8",   vstai::u8 ("Cloud · Opus 4.8 (best)"));
 
     if (! ollamaModels.isEmpty())
@@ -856,8 +856,9 @@ void VstaiAudioProcessorEditor::openSettings()
     aw->addTextEditor ("glmurl",    vstai::appsettings::rawGlmUrl(),       "GLM URL (blank = Z.ai)");
     aw->addTextEditor ("ollama",    vstai::appsettings::ollamaBaseUrl(),   "Ollama URL");
 
-    aw->addButton ("Save",   1, juce::KeyPress (juce::KeyPress::returnKey));
-    aw->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
+    aw->addButton ("Save",       1, juce::KeyPress (juce::KeyPress::returnKey));
+    aw->addButton ("Delete keys", 2);
+    aw->addButton ("Cancel",     0, juce::KeyPress (juce::KeyPress::escapeKey));
 
     juce::Component::SafePointer<VstaiAudioProcessorEditor> safe (this);
     aw->enterModalState (true,
@@ -865,6 +866,7 @@ void VstaiAudioProcessorEditor::openSettings()
         {
             if (result == 1)
             {
+                // A blank key field removes the stored key (see setAnthropicKey / setGlmKey).
                 vstai::appsettings::setAnthropicKey (aw->getTextEditorContents ("anthropic").trim());
                 vstai::appsettings::setGlmKey       (aw->getTextEditorContents ("glm").trim());
                 vstai::appsettings::setGlmUrl       (aw->getTextEditorContents ("glmurl").trim());
@@ -875,6 +877,13 @@ void VstaiAudioProcessorEditor::openSettings()
                     safe->statusLabel.setText ("Settings saved.", juce::dontSendNotification);
                     safe->refreshOllamaModelsAsync();   // re-scan with the (possibly new) URL
                 }
+            }
+            else if (result == 2)
+            {
+                vstai::appsettings::clearAnthropicKey();
+                vstai::appsettings::clearGlmKey();
+                if (safe != nullptr)
+                    safe->statusLabel.setText ("Stored API keys deleted.", juce::dontSendNotification);
             }
         }),
         true);   // delete the AlertWindow when dismissed (after this callback runs)
