@@ -65,11 +65,13 @@ rows.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0) || a.name.locale
 // Too-light builds keep their .vstai in data/ but are not listed until
 // rebuilt to the deep-detail standard (factory/REBUILD.md).
 let visible = rows;
+let pinned = [];
 try {
   const gate = JSON.parse(await fs.readFile(path.join(HERE, "..", "factory", "quality-gate.json"), "utf8"));
   const hideFx = new Set(gate.hideEffects || []);
   const always = new Set(gate.alwaysShow || []);
   const minP = gate.instrumentMinParams || 0;
+  pinned = Array.isArray(gate.pinned) ? gate.pinned : [];
   // alwaysShow lists deep-detail rebuilds that are faithful but have few controls
   // (e.g. a TB-303 has ~9 knobs) — they'd fail the param count but are complete.
   visible = rows.filter((r) =>
@@ -79,6 +81,18 @@ try {
   if (hidden > 0) console.log(`quality gate: ${hidden} too-light plugin${hidden === 1 ? "" : "s"} not displayed (rebuild queue: factory/REBUILD-QUEUE.md).`);
 } catch {
   // no gate file — list everything
+}
+
+// ---- pinned (quality-gate.json "pinned") ----------------------------
+// Ids listed here float to the top of the catalogue in the order given,
+// ahead of the publishedAt sort — so the gallery leads with them.
+if (pinned.length) {
+  const rank = new Map(pinned.map((id, i) => [id, i]));
+  visible.sort((a, b) => {
+    const ra = rank.has(a.id) ? rank.get(a.id) : Infinity;
+    const rb = rank.has(b.id) ? rank.get(b.id) : Infinity;
+    return ra - rb; // stable: everything else keeps its existing order
+  });
 }
 
 await fs.writeFile(path.join(DATA, "index.json"), JSON.stringify(visible, null, 0) + "\n");
