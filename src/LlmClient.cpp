@@ -167,28 +167,107 @@ bool LlmClient::callMessages (const juce::Array<juce::var>& messages,
 //  Cloud — POST {baseUrl}/v1/generate to the VibePlugin proxy (Bearer token).
 //  The proxy injects the system prompt + provider key, meters tokens, charges
 //  credits, and returns { content, credits_charged, balance, model_used }.
+//
+//  We ask for `stream: true` and consume the proxy's SSE stream so the model's
+//  reasoning summary surfaces live (same panel as direct GLM/Anthropic). The
+//  stream carries `{"type":"thinking","text":…}` deltas, then one terminal
+//  `{"type":"done", …}` or `{"type":"error","error":…}`, then
+//  `{"type":"message_stop"}`. An older proxy that doesn't understand `stream`
+//  replies with one buffered JSON object instead — detected by the absence of a
+//  terminal event, and retried without streaming.
 // ---------------------------------------------------------------------------
 bool LlmClient::callCloud (const juce::Array<juce::var>& messages,
                            juce::var& artifactOut,
                            juce::String& errorOut)
 {
-    auto* body = new juce::DynamicObject();
-    body->setProperty ("model",    model);
-    body->setProperty ("effort",   effort);
-    body->setProperty ("is_synth", synth);
-    body->setProperty ("thinking", thinking);   // honoured for GLM models server-side
-    body->setProperty ("messages", juce::var (juce::Array<juce::var> (messages)));
-
-    const juce::String payload = juce::JSON::toString (juce::var (body), true);
+    auto buildPayload = [&] (bool stream) -> juce::String
+    {
+        auto* body = new juce::DynamicObject();
+        body->setProperty ("model",    model);
+        body->setProperty ("effort",   effort);
+        body->setProperty ("is_synth", synth);
+        body->setProperty ("thinking", thinking);   // honoured for GLM models server-side
+        body->setProperty ("stream",   stream);
+        body->setProperty ("messages", juce::var (juce::Array<juce::var> (messages)));
+        return juce::JSON::toString (juce::var (body), true);
+    };
 
     juce::String base = baseUrl;
     while (base.endsWithChar ('/')) base = base.dropLastCharacters (1);
-    juce::URL url = juce::URL (base + "/v1/generate").withPOSTData (payload);
-    const juce::String headers = "content-type: application/json\r\nAuthorization: Bearer " + token;
+    const juce::String endpoint   = base + "/v1/generate";
+    const juce::String authHeader = "Authorization: Bearer " + token;
 
-    int statusCode = 0;
-    const juce::String responseText = httpRequest (url, headers, true, statusCode, 600000);
-    VSTAI_LOG ("cloud HTTP " + juce::String (statusCode) + ", "
+    // ---- parse a finished { content, ... } object into artifactOut ----------
+    auto acceptContent = [&] (const juce::String& content) -> bool
+    {
+        if (content.isEmpty()) { errorOut = "VibePlugin Cloud returned an empty result"; return false; }
+        artifactOut = parseLooseJson (content);
+        if (! artifactOut.isObject()) { errorOut = "VibePlugin Cloud did not return valid JSON"; return false; }
+        return true;
+    };
+
+    // ---- streaming attempt: live reasoning via SSE -------------------------
+    juce::String streamedContent, streamedError, errorBody;
+    bool sawTerminal = false;
+    int  statusCode  = 0;
+
+    const juce::URL    streamUrl     = juce::URL (endpoint).withPOSTData (buildPayload (true));
+    const juce::String streamHeaders = "content-type: application/json\r\n" + authHeader
+                                     + "\r\nAccept: text/event-stream";
+
+    const bool reached = httpStreamSse (streamUrl, streamHeaders, statusCode, 600000,
+        [&] (const juce::var& ev)
+        {
+            const juce::String type = ev.getProperty ("type", {}).toString();
+            if (type == "thinking")
+            {
+                if (onThinking)
+                    onThinking (ev.getProperty ("text", {}).toString());   // live reasoning summary
+            }
+            else if (type == "done")
+            {
+                sawTerminal     = true;
+                streamedContent = ev.getProperty ("content", {}).toString();
+            }
+            else if (type == "error")
+            {
+                sawTerminal  = true;
+                streamedError = ev.getProperty ("error", "unknown").toString();
+            }
+        },
+        errorBody);
+
+    VSTAI_LOG ("cloud stream HTTP " + juce::String (statusCode)
+               + ", reached=" + juce::String ((int) reached)
+               + (sawTerminal ? ", terminal" : ", no-terminal")
+               + ", " + juce::String (streamedContent.length()) + " content bytes");
+
+    // Non-2xx from the pre-flight gate (auth / credits / unknown model): the body
+    // is a single JSON error object, not a stream.
+    if (reached && errorBody.isNotEmpty())
+    {
+        const juce::var err = juce::JSON::parse (errorBody);
+        errorOut = "Cloud: " + err.getProperty ("error", "unknown").toString();
+        return false;
+    }
+
+    if (sawTerminal)
+    {
+        if (streamedError.isNotEmpty()) { errorOut = "Cloud: " + streamedError; return false; }
+        return acceptContent (streamedContent);
+    }
+
+    // No terminal event — either the connection never opened (some TLS stacks
+    // reject a chunked SSE POST) or the proxy predates streaming and sent one
+    // buffered JSON object. Retry buffered; reasoning won't stream, but the
+    // generation still completes.
+    VSTAI_LOG ("cloud: no SSE terminator; falling back to a buffered POST");
+
+    int bufStatus = 0;
+    const juce::String responseText =
+        httpRequest (juce::URL (endpoint).withPOSTData (buildPayload (false)),
+                     "content-type: application/json\r\n" + authHeader, true, bufStatus, 600000);
+    VSTAI_LOG ("cloud buffered HTTP " + juce::String (bufStatus) + ", "
                + juce::String (responseText.length()) + " bytes");
 
     if (responseText.isEmpty())
@@ -200,7 +279,7 @@ bool LlmClient::callCloud (const juce::Array<juce::var>& messages,
     const juce::var response = juce::JSON::parse (responseText);
     if (! response.isObject())
     {
-        errorOut = "unexpected response from VibePlugin Cloud (HTTP " + juce::String (statusCode) + ")";
+        errorOut = "unexpected response from VibePlugin Cloud (HTTP " + juce::String (bufStatus) + ")";
         return false;
     }
 
@@ -210,12 +289,7 @@ bool LlmClient::callCloud (const juce::Array<juce::var>& messages,
         return false;
     }
 
-    const juce::String content = response.getProperty ("content", {}).toString();
-    if (content.isEmpty()) { errorOut = "VibePlugin Cloud returned an empty result"; return false; }
-
-    artifactOut = parseLooseJson (content);
-    if (! artifactOut.isObject()) { errorOut = "VibePlugin Cloud did not return valid JSON"; return false; }
-    return true;
+    return acceptContent (response.getProperty ("content", {}).toString());
 }
 
 // ---------------------------------------------------------------------------

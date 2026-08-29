@@ -728,12 +728,14 @@ void VstaiAudioProcessorEditor::updateEffortEnablement (bool busy)
     effortLabel.setColour (juce::Label::textColourId,
                            any ? juce::Colours::grey : juce::Colours::darkgrey);
 
-    // The live-reasoning panel applies to the direct, streaming providers: GLM when
-    // its thinking toggle is on, and Anthropic (Claude always reasons via adaptive
-    // thinking). Cloud is buffered server-side, so there are no deltas to stream.
+    // The live-reasoning panel applies wherever reasoning streams: Anthropic
+    // (Claude always reasons via adaptive thinking), GLM when its thinking toggle
+    // is on, and Cloud — the proxy now streams the model's reasoning summary over
+    // SSE (Claude always; a GLM model only when thinking is on).
     const auto prov = processor.getGenerationProvider();
     const bool canStreamThinking = (prov == "anthropic")
-                                || (prov == "glm" && processor.getGenerationThinking());
+                                || (prov == "glm" && processor.getGenerationThinking())
+                                || (prov == "cloud" && (isClaude || processor.getGenerationThinking()));
     thinkingToggle.setVisible (canStreamThinking);
     if (! canStreamThinking) thinkingExpanded = false;
     applyThinkingLayout();
