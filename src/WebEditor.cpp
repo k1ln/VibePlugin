@@ -113,6 +113,19 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         {
             complete (safe != nullptr ? safe->currentState() : var());
         })
+        // The exact document /preview serves, handed over the native-integration
+        // channel instead of the resource provider. The shell uses it to render the
+        // GUI inline (iframe srcdoc) on WebViews that won't load our custom URL
+        // scheme in a subframe — see reloadPreview() in ui/shell.js. Native
+        // integration is a different mechanism from the resource provider and is
+        // provably working by the time the SPA can call this, so it is the fallback
+        // that cannot itself be blocked by the same bug.
+        .withNativeFunction ("getPreviewHtml", [safe] (const VarArray&, Completion complete)
+        {
+            if (safe == nullptr) { complete (var()); return; }
+            complete (var (withBridge (safe->processor.getDisplayHtml(),
+                                       vstai::shim::restoredValuesJson (safe->processor))));
+        })
         // The SPA calls this once its JUCE bridge (window.__JUCE__.backend) is up;
         // until then C++ must not emit events (they'd hit an undefined backend).
         .withNativeFunction ("ready", [safe] (const VarArray&, Completion complete)

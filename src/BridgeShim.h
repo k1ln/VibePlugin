@@ -50,9 +50,77 @@ namespace vstai::shim
   window.addEventListener('pointerdown', endBoot, true);
   window.addEventListener('keydown',     endBoot, true);
   setTimeout(endBoot, 6000);
-  function send(path){
-    try { fetch(path + '?_=' + Date.now() + '_' + Math.random(), { cache: 'no-store' }); } catch(e){}
+  // ---- host transport --------------------------------------------------
+  // Normally the GUI reaches C++ with a plain fetch() on its own origin, which the
+  // WebView's resource provider answers. That fails on WebViews that refuse to serve
+  // a custom URL scheme inside a SUBFRAME (notably WKWebView before macOS 12), and
+  // the authoring editor shows this document in a /preview iframe — the fetch never
+  // arrives, so knobs and keys go dead while the page itself looks fine. So: probe
+  // once, and if the direct path can't reach the host, relay every call through the
+  // parent editor shell over postMessage. The shell lives in the top frame, where
+  // the scheme always works. The locked product editor serves this document
+  // full-window, so it is never framed and always takes the direct path.
+  var inFrame = false;
+  try { inFrame = !!(window.parent && window.parent !== window); } catch(e){ inFrame = true; }
+  var relay  = false;       // true once direct fetch is known not to reach the host
+  var probed = !inFrame;    // a top-level document needs no probe
+  var queued = [];          // calls made while the probe was still in flight
+  var relayN = 0, relayCbs = {};
+
+  function direct(path){
+    return fetch(path + (path.indexOf('?') < 0 ? '?' : '&') + '_=' + Date.now() + '_' + Math.random(),
+                 { cache: 'no-store' }).then(function(r){ return r.text(); });
   }
+  function viaParent(path){
+    return new Promise(function(resolve, reject){
+      var id = ++relayN;
+      var t = setTimeout(function(){ delete relayCbs[id]; reject(new Error('bridge relay timed out')); }, 20000);
+      relayCbs[id] = function(m){ clearTimeout(t); m.ok ? resolve(m.text || '') : reject(new Error(m.error || 'bridge relay failed')); };
+      try { window.parent.postMessage({ type: 'vstai:bridge', id: id, path: path }, '*'); }
+      catch(e){ clearTimeout(t); delete relayCbs[id]; reject(e); }
+    });
+  }
+  // Every GUI->host call goes through here; resolves with the reply body.
+  function call(path){
+    if (probed) return (relay ? viaParent : direct)(path);
+    return new Promise(function(resolve, reject){ queued.push({ path: path, resolve: resolve, reject: reject }); });
+  }
+  // Fire-and-forget (params, notes): a transport error must never reach the GUI.
+  function send(path){ try { call(path).catch(function(){}); } catch(e){} }
+
+  if (!probed){
+    // Anything other than a prompt "ok" — a rejection, a WebView error page, or
+    // silence — means this frame cannot see the resource provider. Falling back
+    // when we didn't have to is harmless (the relay works everywhere), so the
+    // probe is deliberately quick to give up.
+    var settle = function(useRelay){
+      if (probed) return;
+      probed = true; relay = useRelay;
+      var q = queued; queued = [];
+      for (var i = 0; i < q.length; i++)
+        (function(j){ (relay ? viaParent : direct)(j.path).then(j.resolve, j.reject); })(q[i]);
+    };
+    var probeTimer = setTimeout(function(){ settle(true); }, 1500);
+    direct('/__vstai/ping').then(
+      function(txt){ clearTimeout(probeTimer); settle(txt.indexOf('ok') !== 0); },
+      function(){    clearTimeout(probeTimer); settle(true); });
+  }
+
+  // Liveness beacon. The editor shell watches for this after (re)loading the
+  // preview frame; silence means the frame never loaded at all (a blocked scheme
+  // shows the WebView's own "couldn't be reached" page), and the shell re-renders
+  // this GUI inline instead. Repeated because the shell may still be booting when
+  // this script first runs; it acks to stop the beacon, and we stop regardless
+  // after a few seconds so a locked/unframed GUI never keeps a timer alive.
+  var helloTimer = null;
+  function hello(){ if (inFrame) { try { window.parent.postMessage({ type: 'vstai:hello' }, '*'); } catch(e){} } }
+  function stopHello(){ if (helloTimer){ clearInterval(helloTimer); helloTimer = null; } }
+  if (inFrame){
+    hello();
+    helloTimer = setInterval(hello, 250);
+    setTimeout(stopHello, 4000);
+  }
+
   var paramCbs = [];
   var held = {};   // note numbers currently sounding from the on-screen GUI
   // base64url-encode a byte chunk (no '+' '/' '=' so it is safe in a URL path).
@@ -75,8 +143,7 @@ namespace vstai::shim
     var frames = audio.length;
     var rate = Math.round(audio.sampleRate);
     // begin -> host replies with the module's per-channel capacity; clamp to it.
-    var capResp = await fetch('/__vstai/sample/begin/' + channels + '/' + frames + '/' + rate + '?_=' + Date.now(), { cache: 'no-store' });
-    var cap = parseInt(await capResp.text(), 10) || 0;
+    var cap = parseInt(await call('/__vstai/sample/begin/' + channels + '/' + frames + '/' + rate), 10) || 0;
     if (cap <= 0) throw new Error('This plugin has no sample buffer.');
     if (frames > cap) frames = cap;
     // Build one planar f32 byte blob: all of channel 0, then channel 1.
@@ -90,10 +157,10 @@ namespace vstai::shim
     var CHUNK = 32768;
     for (var off = 0; off < blob.length; off += CHUNK){
       var part = blob.subarray(off, Math.min(off + CHUNK, blob.length));
-      await fetch('/__vstai/sample/data/' + b64url(part) + '?_=' + Date.now(), { cache: 'no-store' });
+      await call('/__vstai/sample/data/' + b64url(part));
       if (onProgress) { try { onProgress(Math.min(1, (off + CHUNK) / blob.length)); } catch(e){} }
     }
-    var endTxt = await (await fetch('/__vstai/sample/end?_=' + Date.now(), { cache: 'no-store' })).text();
+    var endTxt = await call('/__vstai/sample/end');
     if (endTxt.indexOf('ERR:') === 0) throw new Error(endTxt.substring(4));
     return { frames: frames, channels: channels, sampleRate: rate };
   }
@@ -143,9 +210,17 @@ namespace vstai::shim
   window.addEventListener('blur',        allNotesOff);
   document.addEventListener('visibilitychange', function(){ if (document.hidden) allNotesOff(); });
   // The host pushes param updates via the editor shell, which postMessages them in.
+  // The shell also answers relayed bridge calls and acks the liveness beacon here.
   window.addEventListener('message', function(e){
     var d = e.data;
-    if (!d || d.type !== 'vstai:params' || !d.values) return;
+    if (!d) return;
+    if (d.type === 'vstai:hello:ack'){ stopHello(); return; }
+    if (d.type === 'vstai:bridge:result'){
+      var cb = relayCbs[d.id];
+      if (cb){ delete relayCbs[d.id]; cb(d); }
+      return;
+    }
+    if (d.type !== 'vstai:params' || !d.values) return;
     for (var k in d.values){ var idx = +k, val = +d.values[k]; vals[idx] = val;
       for (var j = 0; j < paramCbs.length; j++){ try { paramCbs[j](idx, val); } catch(_){} } }
   });
@@ -225,6 +300,11 @@ namespace vstai::shim
     inline std::optional<Resource> handleBridgeFetch (VstaiAudioProcessor& processor,
                                                       const juce::String& url)
     {
+        // Reachability probe. The shim calls this once from a framed GUI to find out
+        // whether a direct fetch actually lands here; a reply of anything but "ok"
+        // (including the WebView's own error page) makes it relay through the shell.
+        if (url.startsWith ("/__vstai/ping"))
+            return Resource { toBytes (juce::String ("ok")), "text/plain;charset=UTF-8" };
         if (url.startsWith ("/__vstai/param/"))
         {
             const auto m = vstai::bridge::parseParam (url);
