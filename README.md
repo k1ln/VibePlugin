@@ -1,389 +1,226 @@
 # VibePlugin
 
-Two VST3 plugins — an **effect** (`VibePlugin FX`) and an **instrument/synth**
-(`VibePlugin Synth`) — whose DSP and GUI are **written by Claude at runtime**. You
-type a prompt ("a warm tape saturator with drive and tone"), Claude generates an
-**AssemblyScript** DSP module and an **HTML** GUI, the AssemblyScript is compiled
-to **WebAssembly** by a compiler that **ships inside the plugin**, the WASM runs
-under **wasmtime**, and the HTML is shown in an embedded WebView. Each plugin
-saves to a portable **`.vstai`** file and reloads later — and you can keep
-talking to it to evolve it.
+**Describe an audio plugin in a sentence. Get a working one back.**
+
+VibePlugin is two VST3 plugins for your DAW — an effect (**VibePlugin FX**) and a
+synth (**VibePlugin Synth**) — that have no fixed sound of their own. You type a
+prompt like *“a warm tape saturator with drive and tone”*, and Claude writes the
+audio code **and** the interface on the spot. A few seconds later you have a real
+plugin with real knobs, playing in your project. Don’t like it? Tell it what to
+change and it rewrites itself.
+
+Every plugin you make saves to a small `.vstai` file you can reopen, share, or
+turn into a standalone plugin to hand to someone else. Once a plugin is made, it
+runs entirely offline.
 
 ![A generated VibePlugin GUI](docs/screenshots/gui.png)
 
-### 10 built-in design schools
+- **Website & downloads:** <https://k1ln.github.io/VibePlugin/>
+- **All releases:** <https://github.com/k1ln/VibePlugin/releases>
+- **Try creations in your browser first:** the [gallery](https://k1ln.github.io/VibePlugin/gallery/) plays shared plugins live
 
-Every generated GUI is built from a house-style component kit that ships in **ten
-distinct visual languages**. Pick one in **Settings** — it becomes the live house
-style *and* is described to Claude in the build prompt, so generated plugins follow
-the look. You can also export a design and import your own.
+---
 
-![The ten built-in design schools](docs/screenshots/design-schools.png)
+## Install
 
-```
-        ┌──────────────────────────── VibePlugin (C++ / JUCE) ────────────────────────────┐
-prompt ▶│  Editor (WebView GUI + prompt bar)                                            │
-        │     │ window.vstai.setParam / noteOn / noteOff                                │
-        │     ▼                                                                         │
-        │  AudioProcessor ──▶ WasmEngine (wasmtime) ◀── plugin.wasm (the DSP)            │
-        │     │                                                                         │
-        │     ├─ LlmClient ─── HTTPS ──▶ Claude (your key) or VibePlugin Cloud credits  │
-        │     │       │ { assembly, html, params }  (structured / JSON output)         │
-        │     │       ▼                                                                 │
-        │     └─ AssemblyScriptCompiler ──▶ execs bundled vstai-asc ──▶ plugin.wasm     │
-        │             (direct exec, no shell; compile errors fed back to the model ≤3×) │
-        └───────────────────────────────────────────────────────────────────────────────┘
-```
+VibePlugin is a **VST3 plugin**. It loads in any DAW that supports VST3 (FL
+Studio, Ableton Live, Reaper, Bitwig, Studio One, Cubase, and others).
 
-## How AssemblyScript gets compiled (no toolchain on the user's machine)
+### 1. Download
 
-`asc` (the AssemblyScript compiler) is JavaScript, and its optimizer backend
-**Binaryen is a WASM module that needs a real `WebAssembly` engine**. A JS engine
-compiled to WASM (QuickJS/Javy) has none, so `asc` can't run inside wasmtime
-(verified: it aborts with *"no native wasm support detected"*). So the compiler
-ships as a **self-contained JS runtime (V8) with `asc` baked in** — one file
-`vstai-asc` (via `deno`/`bun --compile`), or `vstai-node` + `asc-bundle.mjs`. The
-plugin **execs it directly** (JUCE `ChildProcess`, no shell) — AssemblyScript file
-in, compiled WASM out — and feeds any compile error back to Claude (≤3×). Build it
-once with [`compiler/build.sh`](compiler/build.sh); see [compiler/README.md](compiler/README.md).
+Grab the build for your system from the
+[Downloads page](https://k1ln.github.io/VibePlugin/releases.html) or straight
+from [GitHub Releases](https://github.com/k1ln/VibePlugin/releases/latest):
 
-The generated DSP still runs under **wasmtime**. The only network use is
-generating a *new* plugin; a saved `.vstai` runs with no network.
-
-## Compiled-in config (API key baked into the binary)
-
-Copy [`src/Config.example.h`](src/Config.example.h) → `src/Config.h` (gitignored)
-and fill in your key:
-
-```cpp
-#define VSTAI_CONFIG_API_KEY  "sk-ant-..."
-#define VSTAI_CONFIG_MODEL    ""            // empty -> claude-opus-4-8
-#define VSTAI_CONFIG_COMPILER ""            // empty -> found next to the plugin
-```
-
-It's compiled into the plugin, so no environment is needed at runtime. Any empty
-value falls back to the env var (`ANTHROPIC_API_KEY` / `VSTAI_MODEL` /
-`VSTAI_COMPILER`). You can also enter keys at runtime — see *Providers* below. ⚠️ The key is embedded in clear text (extractable with
-`strings`) — only ship a scoped key you're comfortable distributing.
-
-## Generation (Manual / Anthropic / Cloud)
-
-The **Model** dropdown picks who writes the plugin. Three paths are offered today:
-
-| Option | Models | Key / account | How |
-|---|---|---|---|
-| **Manual** (free) | any chatbot you have | **none** | copy the prompt → paste into ChatGPT/Claude/etc → paste the reply back |
-| **Anthropic — your key** | Fable 5, Opus 5, Sonnet 5 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
-| **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 5 / Opus 4.8 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
-
-**Manual ("bring your own chatbot")** is the free, no-API-key, no-account path. Click
-**Copy to chatbot** and a dialog copies a self-contained prompt to your clipboard.
-Paste it into any chatbot, paste the full reply back, and click
-**Apply** — the plugin extracts the fenced `assemblyscript` / `html` / `json` blocks
-and compiles them. This prompt is deliberately **different** from the API prompt:
-there's no JSON output schema to enforce, so it asks for clearly fenced blocks
-instead. If the DSP doesn't compile, the dialog shows the error and a **Copy fix
-request** button — paste that back, paste the new reply, and try again. See
-[`Prompt.h`](src/Prompt.h) (`buildManualPrompt` / `parseManualReply`).
-
-**Anthropic (your key)** — open **Settings** and paste your `sk-ant-…` key (stored
-in your user settings, taking precedence over `Config.h` / `ANTHROPIC_API_KEY`).
-A **Thinking** depth control applies to Claude models. The ≤3× compile-error retry
-loop applies to every API generation.
-
-**VibePlugin Cloud (credits)** — click **Account**, sign in, and generations are
-billed against pay-as-you-go credits, proxied by the hosted server so you never
-handle an API key. Credits are the only paid-only feature; the key and manual paths
-are free.
-
-> The `LlmClient` backend also speaks **GLM (Z.ai)** and local **Ollama**, but both
-> are currently **hidden from the dropdown** (Anthropic-only for now). Re-enable them
-> in `modelCatalog` ([`src/WebEditor.cpp`](src/WebEditor.cpp)) to restore them.
-
-## Free & fully featured
-
-VibePlugin is free and unrestricted — nothing to buy, nothing to unlock. Every
-feature works out of the box: bring your own API key, use the manual chatbot path,
-or buy **cloud credits** if you want zero-setup generation with no key. The optional
-credits **server** lives in a
-separate private repo (`VibePlugin-server`, TypeScript + Fastify + Postgres) and powers
-only that cloud-credits tier — nothing here depends on it, and the plugin is fully
-usable (and offline once a plugin is generated) without it.
-
-## Effect vs. instrument
-
-One core, two products (set by `VSTAI_IS_SYNTH` at build time):
-
-| | `VibePlugin FX` | `VibePlugin Synth` |
+| System | File | Notes |
 |---|---|---|
-| Type | audio effect | instrument (`IS_SYNTH`) |
-| Buses | stereo in + out | stereo out, MIDI in |
-| DSP ABI | reads input, writes output | `noteOn(id, freq, vel)` / `noteOff(id)` + writes output |
-| Notes | — | host converts MIDI note→Hz; GUI keyboard via `window.vstai.noteOn/noteOff` |
+| **macOS** | `VibePlugin-<version>-macos.zip` | Apple Silicon & Intel |
+| **Windows** | `VibePlugin-<version>-windows.zip` | Windows 10 / 11, 64-bit |
+| **Linux** | `VibePlugin-<version>-linux.zip` | x86-64 |
 
-## The `.vstai` file
+### 2. Unzip and copy the `.vst3` bundles into your VST3 folder
 
-Plain JSON, saveable anywhere and reloadable; the same JSON is the DAW session
-state, so reopening a project restores the exact plugin:
+| System | Folder |
+|---|---|
+| macOS | `~/Library/Audio/Plug-Ins/VST3` |
+| Windows | `C:\Program Files\Common Files\VST3` |
+| Linux | `~/.vst3` |
 
-```jsonc
-{
-  "format": 1, "name": "Tape Saturator", "isInstrument": false,
-  "promptHistory": ["a warm tape saturator…", "add wow & flutter"],
-  "assembly": "…AssemblyScript source…",
-  "html": "…GUI document…",
-  "wasmBase64": "AGFzbQ…",          // the compiled WASM, base64
-  "params": [{ "name": "Drive", "index": 0, "min": 0, "max": 1, "default": 0.3, "value": 0.5 }],
-  "explanation": "…",
-  "locked": false                   // true in an exported/whitelabel plugin (opens locked, no editor)
-}
-```
+### 3. Rescan plugins in your DAW
 
-"Talking again" sends `assembly` + `html` back to Claude with the new prompt, so
-it edits in place.
+They show up as **VibePlugin FX** (effect) and **VibePlugin Synth** (instrument).
+In FL Studio: *Options ▸ Manage plugins ▸ Find plugins*.
 
-## Export & share a creation
-
-Three ways to get a creation out of the plugin:
-
-- **Save `.vstai`** — the portable JSON above. Anyone running VibePlugin can **Load** it.
-- **Publish** to the web **gallery** — the **Publish** button uploads the `.vstai`
-  to the catalogue; each entry plays live in the browser (the WASM in an
-  AudioWorklet) and is **downloadable as a `.vstai`**. The gallery is a static site
-  under [`docs/gallery/`](docs/gallery/).
-- **Export plugin… (whitelabel)** — turn the loaded creation into a **standalone,
-  locked `.vst3`**. It opens straight into the product GUI — no prompt, no editor,
-  no way out (see [`LockedEditor`](src/LockedEditor.h)) — so you can hand a finished
-  instrument to anyone. It **copies the running bundle** (no rebuild), bakes the
-  creation in, gives the copy its **own VST3 id + product name** (an in-place
-  binary patch, so it coexists with VibePlugin and other exports), **strips** the
-  bundled compiler + editor shell it no longer needs (≈170 MB → ≈30 MB), and
-  re-signs. With a **notarytool profile** set in **Settings** it also notarizes +
-  staples, so the export loads on any Mac with no Gatekeeper prompt. See
-  [`src/PluginExport.h`](src/PluginExport.h).
-
-## Editing the code by hand
-
-The editor is an HTML single-page app served from the bundle and shown in a
-WebView ([`WebEditor.*`](src/WebEditor.cpp) + [`ui/`](ui/); the legacy native JUCE
-editor [`PluginEditor.*`](src/PluginEditor.cpp) is still there as a fallback,
-toggled by the `useWebShell` setting). It is tabbed:
-
-- **GUI** — the live plugin (the generated GUI, sandboxed in an `<iframe>`).
-- **DSP (AssemblyScript)** / **GUI HTML** — Monaco editors for the `index.ts` DSP
-  and the GUI document.
-- **Notes** — the model's explanation + the latest compiler diagnostics.
-- **History** — the prompt browser: every version (generate / AI-fix / hand-compile).
-- **Standard UI** / **Settings** — edit the house-style component kit, pick a design
-  school, and set keys / publish URL / notarization profile.
-
-Edit either source and **Save & Compile** (or `Cmd/Ctrl+S` in the editor): the
-AssemblyScript is recompiled to WASM and, on success, the engine + GUI reload
-live. On failure the previous plugin keeps playing and the compiler errors show
-up in **Problems**. **Fix with AI** hands the current source (plus any compiler
-errors) to the selected model to repair — using the same ≤3× compile-retry loop
-as generation. **Revert** restores the last compiled source. The code editors are
-**Monaco**, shipped offline inside the bundle (the legacy native editor uses JUCE's
-built-in highlighter); no external editor and no network either way.
-
-The **History** tab is a prompt browser: every successful version (generate,
-AI-fix, or hand-compile) is snapshotted onto an append-only timeline. Pick any
-entry and **Restore** (or double-click) to load it — engine, GUI, and editors
-all roll back. The timeline never truncates, so generating again after stepping
-back just branches; a bad generation never costs you earlier work. The last ~25
-snapshots are kept in the `.vstai` file and the DAW session.
+> **macOS:** if the Mac refuses to load it (“can’t be opened / unidentified
+> developer”), right-click the `.vst3` ▸ **Open**, or run once in Terminal:
+> `xattr -dr com.apple.quarantine "VibePlugin FX.vst3"`
 
 ---
 
-## Build & run
+## Make your first plugin
 
-### Quick start — scripts (macOS)
+1. Add **VibePlugin FX** to an audio track (or **VibePlugin Synth** to an
+   instrument track).
+2. Open its window. Type a prompt in the bar at the top — e.g.
+   *“punchy drum bus compressor with attack, release and mix”*.
+3. Press **Generate**. It writes the code, compiles it, and loads it live —
+   usually a few seconds.
+4. Play your track. Turn the knobs it made you.
+5. **Save** to a `.vstai` file anywhere on disk so you can reopen it later.
 
-Two scripts build everything and **publish to your local VST3 folder, signed**
-so a DAW will load them. They auto-build the bundled compiler and auto-download
-the wasmtime c-api on first run.
+### Keep talking to it
 
-```bash
-./scripts/build.sh     # Release  -> ~/Library/Audio/Plug-Ins/VST3, code-signed
-./scripts/dev.sh       # Debug + file logging (development mode), same place
-./scripts/dev.sh --tail  # follow the dev log
-```
-
-Then in **FL Studio**: *Options ▸ Manage plugins ▸ Find plugins* to rescan, and
-the plugins appear as **VibePlugin FX** (effect) and **VibePlugin Synth** (instrument).
-(There's also a Standalone `.app` under `build*/…/Standalone/` for quick testing
-without a DAW.)
-
-Signing identity: the scripts prefer a **Developer ID Application** cert, else the
-first code-signing identity, else ad-hoc (local-only). Override with
-`VSTAI_SIGN_ID="Developer ID Application: …" ./scripts/build.sh`. See
-[Signing](#signing--gatekeeper-macos) for the one-time keychain setup.
-
-### Development mode
-
-`scripts/dev.sh` builds with `-DVSTAI_DEV_MODE=ON`, which turns on a file logger
-(`src/DevLog.h`) tracing the whole generate → compile → load pipeline (the prompt,
-the Claude HTTP status, the exact compiler command, compile diagnostics, wasm
-size). In a DAW you can't see stdout, so it writes to:
-
-```
-~/Library/Logs/VibePlugin/VibePlugin FX.log
-~/Library/Logs/VibePlugin/VibePlugin Synth.log
-```
-
-`VSTAI_LOG(...)` compiles to nothing in release builds. Dev and release use
-separate build dirs (`build-dev` / `build`); installing one replaces the other
-in the VST3 folder, so rescan after switching.
-
-### Testing the knobs (no DAW)
-
-`scripts/test.sh` drives the real `WasmEngine` headlessly to verify the
-knob/note path that runs between the GUI and the DSP:
-
-```bash
-./scripts/test.sh                 # regression tests: protocol + reference effect/synth
-./scripts/test.sh MyPlugin.vstai  # sweep every param of a saved plugin
-```
-
-The reference run asserts the bridge URL protocol parses, and that the gain,
-cutoff, and synth-level knobs actually change the audio. The `.vstai` run sweeps
-each parameter min→max and reports `OK affects audio` / `DEAD does nothing` /
-`?? no audio`, so before shipping a generated plugin you can **Save** it and
-confirm every knob is wired (a `DEAD` knob is one to ask the AI to fix). It exits
-non-zero if any knob is dead, so it also works as a CI gate. The GUI↔host wire
-format lives in one header, `src/BridgeProtocol.h`, used by both the plugin and
-the test.
-
-### Signing / Gatekeeper (macOS)
-
-On Apple Silicon a plugin must be code-signed to load. The scripts sign for you;
-the one-time setup is just getting a valid signing identity:
-
-- An **Apple Development** cert (Xcode ▸ Settings ▸ Accounts ▸ Manage
-  Certificates) is enough for local use. Verify with
-  `security find-identity -v -p codesigning` (must show ≥ 1 identity).
-- If signing fails with *"unable to build chain to self-signed root"*, your
-  keychain is missing Apple's CA certs — import the current **WWDR G3**
-  intermediate and **Apple Root CA** from <https://www.apple.com/certificateauthority/>.
-- The dev build signs with **no hardened runtime**: the DSP (wasmtime) and the
-  bundled compiler (V8) both JIT, which hardened runtime blocks without extra
-  entitlements — fine for local use.
-- For **distribution**, **Export plugin…** handles this for you: it hardened-runtime
-  signs the export (Developer ID + JIT entitlements) and, with a notarytool profile
-  in Settings, notarizes + staples it — so a whitelabel export loads on any Mac.
-  (The locked export carries only the WASM, so wasmtime is the only JIT'ing binary
-  left to entitle.)
-
-### Manual build
-
-### 1. Build the bundled compiler once (dev-time; needs Node 18+ to build)
-
-```bash
-cd compiler && ./build.sh
-```
-
-`build.sh` **downloads a portable Node runtime for the system you run it on**
-(official single-binary build — your local/Homebrew node is only used to run the
-bundler), and bundles `asc` into `asc-bundle.mjs`. Output is `vstai-node` +
-`asc-bundle.mjs` (~124 MB), or a single `vstai-asc` if you have `deno`/`bun`
-installed. See [compiler/README.md](compiler/README.md).
-
-### 2. Put your Claude key in (compiled into the plugin)
-
-```bash
-cp src/Config.example.h src/Config.h   # then edit src/Config.h
-```
-
-Set `VSTAI_CONFIG_API_KEY "sk-ant-..."` in `src/Config.h`. It's baked into the
-binary, so the plugin needs no environment at runtime. `Config.h` is gitignored.
-Leave it empty to use the `ANTHROPIC_API_KEY` env var instead. ⚠️ A compiled-in
-key is extractable from the binary with `strings` — use a scoped key you're OK
-shipping.
-
-### 3. Build the plugins (CMake + JUCE 8 + wasmtime)
-
-Download a prebuilt **wasmtime c-api** release for your platform from
-<https://github.com/bytecodealliance/wasmtime/releases> (the `…-c-api` asset),
-extract it, then:
-
-```bash
-cmake -B build -DWASMTIME_DIR=/path/to/wasmtime-vXX.X.X-<platform>-c-api
-cmake --build build --config Release
-```
-
-JUCE is fetched automatically. Both products build (VST3 + Standalone). Ship the
-compiler from step 1 next to the plugin (or point `VSTAI_CONFIG_COMPILER` /
-`$VSTAI_COMPILER` at it). (On Linux, HTTPS links libcurl automatically.)
-
-### 4. Use it
-
-Type a prompt, press **Generate**. Tweak with the generated controls; the synth's
-GUI keyboard plays via `window.vstai.noteOn/noteOff`. **Save** to a `.vstai`
-anywhere; **Load** to bring one back; or send another prompt to evolve it.
+The prompt bar doesn’t go away. Send another line — *“add wow and flutter”*,
+*“make the tone control darker”*, *“give it a VU meter”* — and it edits the
+plugin you already have instead of starting over. The **History** tab keeps every
+version, so you can always step back.
 
 ---
 
-## Layout
+## What it costs
 
-```
-src/                         C++ (shared by both plugins)
-  WasmAbi.h                  the host<->WASM contract (source of truth)
-  BridgeProtocol.h / BridgeShim.h   GUI<->host wire format + the injected window.vstai shim
-  Prompt.h                   system prompt + output schema  ← "the prompt"
-  Config.example.h           copy to Config.h to bake in the API key
-  Settings.h / AppSettings.h resolved config (compiled-in/env) + runtime keys/URLs/notary
-  Designs.h                  the 10 built-in design schools (house-style kits)
-  LlmClient.* / CloudClient.* raw HTTPS to Claude (your key) or the hosted Cloud proxy (credits)
-  AccountPanel.h             "Account…" dialog: cloud sign-in + credits balance
-  ManualPanel.h              "bring your own chatbot" dialog (copy prompt / paste reply)
-  AssemblyScriptCompiler.*   execs the bundled compiler -> WASM
-  WasmEngine.*               wasmtime wrapper; audio + synth notes
-  VstaiDocument.*            the .vstai JSON model (+ DAW state, lock flag)
-  PluginProcessor.*          audio/MIDI + state + generate/compile loop + export
-  WebEditor.* + WebAssets.h  the default editor: an HTML/Monaco WebView shell (loads ui/)
-  LockedEditor.*             product-only editor for an exported/whitelabel plugin
-  PluginExport.h             "Export plugin…": copy + bake + re-identify + sign a standalone .vst3
-  PluginEditor.* / SourceEditor.h / HistoryPanel.h   legacy native editor (fallback)
-ui/                          the WebView editor SPA (shell.html/js/css + Monaco) and designs/
-compiler/                    builds the bundled AssemblyScript compiler
-  asc-driver.mjs             <in.ts> in, <out.wasm> out
-  build.sh                   esbuild + (deno/bun/node) -> vstai-asc
-wasm-template/assembly/      reference AssemblyScript: index.ts (effect), synth.ts
-docs/gallery/                static web gallery — play creations live, download them as .vstai
-web/                         the default starter GUI
+VibePlugin itself is **free and open source** — nothing to buy, no license key,
+no trial. What can cost money is the AI that writes the plugins, and even that is
+optional. You pick how you generate from the **Model** dropdown.
 
-The credits backend is **not** in this tree — it's a separate private repo
-(`VibePlugin-server`).
-```
+**Use whichever of these suits you — in this order:**
 
-## Notes & limits
+1. **Already have an Anthropic API key?** Paste it into **Settings** and you're
+   done. Generations go straight to Anthropic and you pay them directly for what
+   you use — nothing passes through us.
+2. **Don't have a key, or just trying it out?** Use **Bring your own chatbot**
+   first. It's completely free: the plugin copies a prompt to your clipboard, you
+   paste it into any AI chat you already use (ChatGPT, Claude, Gemini…), paste
+   the reply back, and it builds. Every feature works this way.
+3. **Don't want a key and don't want to copy-paste?** Then — and only then —
+   buy **VibePlugin Cloud** credits from us. It's pay-as-you-go, no subscription,
+   no API key to manage; we run the request on our key and bill you for the
+   usage. This is the option that opens a payment page.
 
-- ABI: planar f32, ≤ 8192 frames/block, ≤ 2 channels, ≤ 64 params (see
-  `WasmAbi.h`). Generated modules are sandboxed (no imports, no host calls).
-- If no module is loaded (or while one swaps in), audio passes through.
-- Generated GUIs are offline/self-contained (no CDN/network) — they only talk to
-  the host through `window.vstai`.
-- The REST calls are non-streaming with a 10-minute timeout; switch
-  `LlmClient` to streaming for very large generations. Very large GUIs are best
-  generated with the strongest model (Opus 4.8).
-- Treat generated code as untrusted: DSP runs in the WASM sandbox, the GUI in an
-  embedded WebView. Don't paste secrets into prompts.
+| Option | What you need | Cost |
+|---|---|---|
+| **Your own Anthropic API key** | A key from [console.anthropic.com](https://console.anthropic.com) | You pay Anthropic directly for what you use. Nothing goes through us. |
+| **Bring your own chatbot** *(Manual)* | Any AI chat you already use | **Free.** Copy the prompt out, paste the reply back. |
+| **VibePlugin Cloud** | A free account — click **Account**, sign in | **Pay-as-you-go credits, bought from us.** No key to manage. The convenience option. |
+
+### How VibePlugin Cloud pricing works
+
+It is **not a subscription** and **not a flat fee per prompt**. You buy a balance
+of credits up front, and each generation costs a small amount based on how much
+work the AI actually did (how long the code and interface are, how much the model
+had to think).
+
+- **1 credit = $0.01.** Packs are bought through our payments provider (Polar) —
+  that’s the “pay website” you saw.
+- A typical full plugin costs **roughly $0.15–$0.40** (about 15–40 credits) on
+  the standard model. Small tweaks cost less. The most powerful model costs a few
+  times more; the cheapest model roughly half.
+- After every generation the plugin shows you exactly what it charged and your
+  remaining balance — you’re never guessing.
+- Run out and generation simply pauses until you top up. Plugins you’ve already
+  made keep working.
+
+**Don't want to pay us anything?** You never have to. Use your own Anthropic key,
+or the *Bring your own chatbot* path — both have every feature. Cloud credits
+only exist as a convenience for people who want neither.
+
+---
+
+## 10 built-in design styles
+
+Every interface VibePlugin generates is built from a house component kit that
+comes in **ten visual styles** — minimal, vintage analog, brutalist, neon,
+glassmorphism, and more. Pick one in **Settings**; it becomes the live look and
+is also described to the AI so new plugins match it. You can export a style and
+import your own.
+
+![The ten built-in design styles](docs/screenshots/design-schools.png)
+
+---
+
+## Save, reopen, and share
+
+- **`.vstai` file** — every creation saves to a small portable file. Anyone
+  running VibePlugin can **Load** it. Your DAW project also stores it, so
+  reopening a session brings the exact plugin back.
+- **Publish to the gallery** — the **Publish** button uploads your creation to
+  the [web gallery](https://k1ln.github.io/VibePlugin/gallery/), where it plays
+  live in the browser and others can download it.
+- **Export as a standalone plugin** — **Export plugin…** turns the loaded
+  creation into its own locked `.vst3` with its own name. It opens straight to
+  the finished interface with no prompt bar and no editor, so you can give a
+  finished instrument to someone who doesn’t care how it was made. On macOS,
+  add a notarization profile in **Settings** and it’ll be ready to run on any
+  Mac with no warnings.
+
+---
+
+## Editing by hand (optional)
+
+You don’t have to touch code, but you can. The plugin window has tabs for the
+**DSP** source and the **interface** source in a full editor. Change either and
+press **Save & Compile** — it rebuilds and reloads live, and if it doesn’t
+compile, your current sound keeps playing while the errors show up. **Fix with
+AI** hands the errors back to the model to repair.
+
+---
+
+## Troubleshooting
+
+**The interface didn’t appear — it said “juce.backend couldn’t be reached”, but
+sound worked and I could see the code.**
+This was a limitation of the embedded browser on **older operating systems**
+(notably macOS before version 12), which refuses to load the live-interface panel.
+As of the current release the plugin detects this and renders the interface a
+different way automatically, so it should just work. If you still see it on an
+up-to-date VibePlugin, please
+[open an issue](https://github.com/k1ln/VibePlugin/issues) with your OS and DAW —
+and in the meantime the plugin is still usable: the sound runs and you can view
+and edit the interface in the **GUI HTML** tab.
+
+**Trying to generate opened a payment website.**
+You had **VibePlugin Cloud** selected in the Model dropdown, which is the
+pay-as-you-go option. Switch to **Bring your own chatbot** (free) or enter your
+own Anthropic API key in Settings — see [What it costs](#what-it-costs).
+
+**The plugin doesn’t show up in my DAW.**
+Confirm the `.vst3` is in the correct folder (above) and rescan. On macOS, clear
+the quarantine flag (above). Some DAWs cache plugin scans — force a full rescan.
+
+**Does it need internet?**
+Only to *generate or edit* a plugin. A saved `.vstai` runs fully offline, and so
+does every exported standalone plugin.
+
+**Where do my creations go?**
+Wherever you **Save** the `.vstai` file. The plugin keeps no hidden library; the
+file and your DAW session are the only copies.
+
+---
+
+## Building from source & how it works
+
+VibePlugin is open source. The compiler that turns AI-written code into a running
+plugin **ships inside the plugin** — there’s no toolchain to install on the
+user’s machine. If you want to build it yourself, understand the architecture, or
+contribute, see **[docs/DEVELOPING.md](docs/DEVELOPING.md)**.
+
+The paid **VibePlugin Cloud** tier is powered by a small separate server
+(`VibePlugin-server`, a private repo). Nothing in this repository depends on it —
+the plugin is fully usable with your own key or the free chatbot path.
+
+---
 
 ## License
 
-VibePlugin (this repository — the plugins, DSP/GUI engine, bundled compiler and
-website) is free software under the **GNU Affero General Public License v3.0**
-([LICENSE](LICENSE)). You may use, study, modify and redistribute it; if you
+VibePlugin is free software under the **GNU Affero General Public License v3.0**
+([LICENSE](LICENSE)). You may use, study, modify, and redistribute it; if you
 distribute a modified version — or run one as a network service — you must make
 your complete source available under the same license.
 
-The hosted backend that powers the optional paid tier (**cloud credits** — API-key
-proxying and payments) is **not** covered by this license and lives in a separate
-**private** repository (`VibePlugin-server`). Nothing here depends on it: bring
-your own API key, or use the manual chatbot path, and everything works (and runs
-offline after a plugin is generated).
+The hosted backend for the optional paid tier (cloud credits — API-key proxying
+and payments) is **not** covered by this license and lives in a separate private
+repository.
 
-**Commercial / dual licensing.** AGPL-3.0 requires derivative and networked works
-to be released under the AGPL too. If you want to build on VibePlugin in a
-closed-source or commercial product without those obligations, a separate
+**Commercial / dual licensing.** If you want to build on VibePlugin in a
+closed-source or commercial product without the AGPL’s obligations, a separate
 commercial license is available — contact <k@1ln.de>.
