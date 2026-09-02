@@ -122,9 +122,9 @@ had to think).
 
 - **1 credit = $0.01.** Packs are bought through our payments provider (Polar) —
   that’s the “pay website” you saw.
-- A typical full plugin costs **roughly $0.15–$0.40** (about 15–40 credits) on
-  the standard model. Small tweaks cost less. The most powerful model costs a few
-  times more; the cheapest model roughly half.
+- A full plugin costs **roughly $0.40–$1.50** (about 40–150 credits), and more
+  for an elaborate one. Small tweaks cost much less. Haiku sits at the bottom of
+  that range, Opus at the top and past it on complex plugins.
 - After every generation the plugin shows you exactly what it charged and your
   remaining balance — you’re never guessing.
 - Run out and generation simply pauses until you top up. Plugins you’ve already
