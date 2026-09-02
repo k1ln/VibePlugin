@@ -129,12 +129,12 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     generateButton.setColour (juce::TextButton::buttonColourId, theme::accent);
     generateButton.setColour (juce::TextButton::textColourOffId, juce::Colours::white);
 
-    // Free, no-key path: copy the prompt into any chatbot, paste the reply back.
+    // Free, no-key path: copy the prompt into Claude, paste the reply back.
     chatbotButton.onClick = [this] { doGenerateManual(); };
     chatbotButton.setColour (juce::TextButton::buttonColourId, theme::accent2);
     chatbotButton.setColour (juce::TextButton::textColourOffId, juce::Colours::white);
     chatbotButton.setTooltip (vstai::u8 ("No API key needed \xE2\x80\x94 copies a ready-made prompt to your clipboard "
-                                    "for ChatGPT / Claude / Gemini, then paste the reply back to build it."));
+                                    "for Claude (Opus recommended), then paste the reply back to build it."));
     addAndMakeVisible (chatbotButton);
 
     newButton.onClick      = [this] { doNew(); };

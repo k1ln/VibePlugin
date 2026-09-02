@@ -217,8 +217,8 @@
         <b>Read this first:</b> VibePlugin doesn't contain an AI — it writes plugins by asking
         one, so nothing will generate until you've picked how it should reach a model. There are
         three ways, and one of them is free:
-        <strong><a href="#route-chatbot">any chatbot you already use</a></strong> (copy a prompt
-        out, paste the reply back — no key, no account),
+        <strong><a href="#route-chatbot">Claude in your browser</a></strong> (copy a prompt
+        out, paste the reply back — no key, no card),
         <strong><a href="#route-key">your own Anthropic API key</a></strong> (one click, billed
         by Anthropic), or
         <strong><a href="#route-cloud">VibePlugin Cloud credits</a></strong> (one click, bought
@@ -411,9 +411,9 @@
         </div>
         <div class="path c">
           <div class="tagline">Route 2</div>
-          <h3>Any chatbot you already use</h3>
-          <p>Copy a prompt out, paste the reply back. No key, no account, no signup.</p>
-          <div class="cost"><strong>Completely free.</strong> Every feature works.</div>
+          <h3>Claude in your browser</h3>
+          <p>Copy a prompt out of the plugin, paste Claude's reply back. No key, no card.</p>
+          <div class="cost"><strong>Free on claude.ai.</strong> Every feature works.</div>
         </div>
         <div class="path $">
           <div class="tagline">Route 3</div>
@@ -492,12 +492,20 @@
       </ol>
 
       <!-- ---- route 2 ---- -->
-      <h3 id="route-chatbot">Route 2 · Any chatbot, completely free</h3>
+      <h3 id="route-chatbot">Route 2 · Claude in your browser, free</h3>
       <p>
-        This route needs <strong>no API key and no account</strong>. VibePlugin writes the prompt
-        for you; you paste it into whatever AI chat you already use — ChatGPT, Claude, Gemini,
-        anything — and paste the reply back. Every feature of the plugin works this way.
+        This route needs <strong>no API key and no card</strong>. VibePlugin writes the prompt for
+        you; you paste it into <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a>
+        and paste the reply back. Every feature of the plugin works this way.
       </p>
+      <div class="notice">
+        <b>Use Claude, and prefer Opus.</b> The plugin's button says "chatbot", but in practice
+        this route only works reliably with Claude — <strong>Opus</strong> is what VibePlugin is
+        built and tested against, and what the prompt is written for. The reply has to be three
+        complete code blocks of working AssemblyScript DSP, and other assistants routinely
+        truncate them, reformat them, or return code that won't compile. If a paste keeps failing
+        to build, the model is the first thing to change.
+      </div>
       <ol class="walk">
         <li>
           <h4>Type your description, then press <span class="ui accent">Copy to chatbot</span></h4>
@@ -506,29 +514,31 @@
             description and copied to your clipboard.
           </p>
           <figure class="shot">
-            <img src="screenshots/tutorial-chatbot.png" alt="The 'Generate with any chatbot' dialog: the generated prompt in a box with a Copy prompt button, and a larger box below for pasting the chatbot's reply.">
+            <img src="screenshots/tutorial-chatbot.png" alt="The 'Generate with Claude' dialog: the generated prompt in a box with a Copy prompt button, and a larger box below for pasting Claude's reply.">
             <figcaption>
-              The chatbot dialog. Step 1 holds the prompt (already copied); step 2 is where the
-              reply goes. <span class="ui">One response</span> is the normal mode —
-              <span class="ui">Three parts</span> is for chatbots that split long answers up.
+              The chatbot dialog. Step 1 holds the prompt (already copied); step 2 is where
+              Claude's reply goes. <span class="ui">One response</span> is the normal mode —
+              <span class="ui">Three parts</span> is for when a long answer arrives split up.
             </figcaption>
           </figure>
         </li>
         <li>
-          <h4>Paste it into your chatbot</h4>
+          <h4>Paste it into Claude</h4>
           <p>
-            Open a <em>new</em> conversation and paste. The prompt tells the model exactly what to
-            produce: three fenced code blocks — the audio code, the interface, and the parameter
-            list. Let it finish completely; these replies are long.
+            Open a <em>new</em> conversation at
+            <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a>, pick
+            <strong>Opus</strong>, and paste. The prompt tells the model exactly what to produce:
+            three fenced code blocks — the audio code, the interface, and the parameter list. Let
+            it finish completely; these replies are long.
           </p>
         </li>
         <li>
           <h4>Copy the whole reply back</h4>
           <p>
             Select the entire response and paste it into the big box in the dialog. You don't need
-            to pick the code blocks out yourself — VibePlugin finds them. If your chatbot cut the
-            answer into pieces, ask it to continue and use the <span class="ui">Three parts</span>
-            mode to paste each block separately.
+            to pick the code blocks out yourself — VibePlugin finds them. If the answer got cut
+            off, ask it to continue and use the <span class="ui">Three parts</span> mode to paste
+            each block separately.
           </p>
         </li>
         <li>
@@ -542,8 +552,8 @@
         </li>
       </ol>
       <div class="notice">
-        <b>Keep the same chat open.</b> To refine a plugin later, use the same conversation — the
-        chatbot still has the context of what it built, so "make the tone darker" works the way
+        <b>Keep the same chat open.</b> To refine a plugin later, use the same conversation —
+        Claude still has the context of what it built, so "make the tone darker" works the way
         you'd expect.
       </div>
 
@@ -710,7 +720,7 @@
                   diagnostics.</td></tr>
           <tr><td><span class="ui">Account</span></td>
               <td>Only relevant for the paid cloud route — sign in, check your balance, top up. If
-                  you use your own key or the chatbot route, you never need it.</td></tr>
+                  you use your own key or the Claude copy-paste route, you never need it.</td></tr>
           <tr><td><span class="ui">Hide editor ▴</span></td>
               <td>Collapses the whole generator away so the window shows <strong>just your plugin's
                   interface</strong>, like a normal plugin. Press it again to bring the editor back.
@@ -727,8 +737,8 @@
                   a plain <kbd>Enter</kbd> makes a new line.</td></tr>
           <tr><td><span class="ui accent">Copy to chatbot</span></td>
               <td>The free route. Builds a complete prompt, copies it to your clipboard, and opens
-                  the paste-back dialog. No API key involved — see
-                  <a href="#route-chatbot">route 2</a>.</td></tr>
+                  the paste-back dialog. No API key involved. Despite the label, paste it into
+                  <strong>Claude</strong> — see <a href="#route-chatbot">route 2</a>.</td></tr>
           <tr><td><span class="ui">Use Settings design</span></td>
               <td>When ticked, the design school you picked in Settings is described to the AI, so
                   new interfaces match that house style. Untick it to let the AI design the
@@ -1361,10 +1371,12 @@
       <h4>Generation fails, or the reply won't build</h4>
       <p>
         Open <strong>Notes</strong> for the compiler errors, and press
-        <span class="ui">Fix with AI</span> — repairing a failed build is what it's for. On the
-        chatbot route, use <strong>Copy fix request</strong> and paste it into the
-        <em>same</em> conversation. If a chatbot truncated its answer, ask it to continue and use
-        <span class="ui">Three parts</span> mode to paste each block separately. Your previous
+        <span class="ui">Fix with AI</span> — repairing a failed build is what it's for. On
+        <a href="#route-chatbot">route 2</a>, use <strong>Copy fix request</strong> and paste it
+        into the <em>same</em> conversation. If the answer was truncated, ask it to continue and
+        use <span class="ui">Three parts</span> mode to paste each block separately. If replies
+        repeatedly fail to build, check <em>which model wrote them</em>: this route is built for
+        <strong>Claude Opus</strong>, and other assistants often return code that won't compile. Your previous
         working plugin keeps playing throughout; a failed build can't break what you had.
       </p>
 
@@ -1406,7 +1418,7 @@
     <div class="wrap" style="text-align:center">
       <h2 style="margin:0 0 14px">Ready to make something?</h2>
       <p class="lead" style="margin:0 auto 24px;max-width:46ch;color:var(--ink-2)">
-        Free and open source. Start with a chatbot you already have — no key, no account.
+        Free and open source. Start free by pasting into Claude — no key, no card.
       </p>
       <a class="btn primary lg" href="releases.html">Download VibePlugin</a>
     </div>

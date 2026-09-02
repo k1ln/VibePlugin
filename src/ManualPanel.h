@@ -6,7 +6,7 @@
 //    1. The prompt (built with vstai::buildManualPrompt — DIFFERENT from the
 //       API prompt: it asks for fenced code blocks, not a JSON schema) is
 //       copied to the clipboard the moment the dialog opens.
-//    2. The user pastes it into ChatGPT / Claude / any chatbot and pastes the
+//    2. The user pastes it into Claude (claude.ai) and pastes the
 //       full reply back into the box here.
 //    3. "Apply" parses the fenced blocks (vstai::parseManualReply) and compiles
 //       them via the processor. If the DSP doesn't compile, the compiler output
@@ -34,9 +34,9 @@ public:
 
         intro.setColour (juce::Label::textColourId, juce::Colours::lightgrey);
         intro.setJustificationType (juce::Justification::topLeft);
-        intro.setText ("1.  The prompt is on your clipboard. Paste it into ChatGPT, Claude, Gemini "
-                       "or any chatbot.\n"
-                       "2.  Paste the chatbot's FULL reply into the box below.\n"
+        intro.setText ("1.  The prompt is on your clipboard. Paste it into claude.ai "
+                       "(Opus recommended).\n"
+                       "2.  Paste Claude's FULL reply into the box below.\n"
                        + vstai::u8 ("3.  Click “Apply pasted result”."),
                        juce::dontSendNotification);
         addAndMakeVisible (intro);

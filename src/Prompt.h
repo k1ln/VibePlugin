@@ -641,7 +641,7 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
 
     // =====================================================================
     //  "Bring your own chatbot" — the free, no-API-key, no-token path.
-    //  The user copies a prompt into ChatGPT / Claude / any chatbot, then
+    //  The user copies a prompt into Claude (claude.ai), then
     //  pastes the reply back. There is no enforced JSON output schema here,
     //  so the prompt is DIFFERENT from the API one: it asks for clearly
     //  fenced code blocks we can extract robustly even when the chatbot

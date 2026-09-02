@@ -63,7 +63,7 @@ The **Model** dropdown picks who writes the plugin.
 
 | Option | Models | Key / account | How |
 |---|---|---|---|
-| **Manual** (free) | any chatbot you have | **none** | copy the prompt → paste into ChatGPT/Claude/etc → paste the reply back |
+| **Manual** (free) | a free claude.ai account | **none** | copy the prompt → paste into Claude (Opus recommended) → paste the reply back |
 | **Anthropic — your key** | Fable 5, Opus 5, Sonnet 5 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
 | **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 5 / Opus 4.8 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
 

@@ -97,9 +97,11 @@ optional. You pick how you generate from the **Model** dropdown.
    done. Generations go straight to Anthropic and you pay them directly for what
    you use — nothing passes through us.
 2. **Don't have a key, or just trying it out?** Use **Bring your own chatbot**
-   first. It's completely free: the plugin copies a prompt to your clipboard, you
-   paste it into any AI chat you already use (ChatGPT, Claude, Gemini…), paste
-   the reply back, and it builds. Every feature works this way.
+   first. It's free: the plugin copies a prompt to your clipboard, you paste it
+   into [claude.ai](https://claude.ai), paste the reply back, and it builds.
+   Every feature works this way. Use **Claude, ideally Opus** — the prompt is
+   written and tested against it, and other assistants tend to return code that
+   won't compile.
 3. **Don't want a key and don't want to copy-paste?** Then — and only then —
    buy **VibePlugin Cloud** credits from us. It's pay-as-you-go, no subscription,
    no API key to manage; we run the request on our key and bill you for the
@@ -108,7 +110,7 @@ optional. You pick how you generate from the **Model** dropdown.
 | Option | What you need | Cost |
 |---|---|---|
 | **Your own Anthropic API key** | A key from [console.anthropic.com](https://console.anthropic.com) | You pay Anthropic directly for what you use. Nothing goes through us. |
-| **Bring your own chatbot** *(Manual)* | Any AI chat you already use | **Free.** Copy the prompt out, paste the reply back. |
+| **Bring your own chatbot** *(Manual)* | A free [claude.ai](https://claude.ai) account — Opus recommended | **Free.** Copy the prompt out, paste the reply back. |
 | **VibePlugin Cloud** | A free account — click **Account**, sign in | **Pay-as-you-go credits, bought from us.** No key to manage. The convenience option. |
 
 ### How VibePlugin Cloud pricing works

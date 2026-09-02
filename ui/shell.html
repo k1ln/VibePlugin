@@ -50,7 +50,7 @@ window.addEventListener("unhandledrejection", function (e) {
       placeholder="Describe the plugin you want, or a change to make  (Cmd/Ctrl+Enter to generate)"></textarea>
     <div class="prompt-actions">
       <button class="btn primary"  id="generateBtn">Generate</button>
-      <button class="btn accent2"  id="chatbotBtn" title="No API key needed — copy a prompt to any chatbot">Copy to chatbot</button>
+      <button class="btn accent2"  id="chatbotBtn" title="No API key needed — copy a prompt to paste into Claude (Opus recommended)">Copy to chatbot</button>
       <label class="lbl chk" id="styleWrap" title="On: the build prompt carries the design school from Settings (its kit + design language). Off: no design template is sent — the AI designs the GUI freely.">
         <input type="checkbox" id="styleChk"/> Use Settings design</label>
     </div>
@@ -173,10 +173,10 @@ window.addEventListener("unhandledrejection", function (e) {
   <div class="modal" id="chatModal" hidden>
     <div class="sheet">
       <div class="sheet-head">
-        <h2>Generate with any chatbot</h2>
+        <h2>Generate with Claude</h2>
         <button class="iconbtn" id="chatCloseBtn" title="Close">✕</button>
       </div>
-      <p class="muted">Free — no API key. It's copied to your clipboard; paste it into ChatGPT, Claude or Gemini, then paste the full reply back here.</p>
+      <p class="muted">Free — no API key. It's copied to your clipboard; paste it into <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a> (Opus recommended), then paste the full reply back here. Other assistants often return code that won't compile.</p>
 
       <label class="field-label">1 · The prompt</label>
       <textarea id="promptCopyArea" rows="5" readonly></textarea>
