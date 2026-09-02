@@ -156,6 +156,9 @@ a { color: inherit; text-decoration: none; }
     order: 3; width: 100%;
     overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
     margin: 0 -24px; padding: 0 24px;      /* bleed, so the rail ends at the edge */
+    /* soft right edge, so a cut-off link reads as "scroll me" */
+    -webkit-mask-image: linear-gradient(90deg, #000 86%, transparent);
+            mask-image: linear-gradient(90deg, #000 86%, transparent);
   }
   .nav .links::-webkit-scrollbar { display: none; }
   .nav .links a { white-space: nowrap; }

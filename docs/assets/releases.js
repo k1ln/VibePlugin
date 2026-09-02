@@ -1,12 +1,12 @@
 /* =====================================================================
-   Releases page — pulls assets live from the GitHub Releases API and
-   sorts them into the macOS / Windows / Linux cards. OS-detected card is
-   highlighted. Falls back gracefully to "coming soon" when a platform has
-   no asset yet, and to a GitHub link if the API is unreachable / rate-limited.
+   Releases page — sorts the assets of the latest release into the macOS /
+   Windows / Linux cards; the OS-detected card is highlighted. The release
+   list itself is fetched once by site.js and shared via window.vstaiReleases.
+   Falls back gracefully to "coming soon" when a platform has no asset yet,
+   and to a GitHub link if the API is unreachable / rate-limited.
    ===================================================================== */
 
 const REPO = "k1ln/VibePlugin";
-const API = `https://api.github.com/repos/${REPO}/releases`;
 
 const OS_KEYS = {
   macos:   [/mac/i, /osx/i, /darwin/i, /\.dmg$/i, /\.pkg$/i],
@@ -115,12 +115,11 @@ function failGracefully(msg) {
 }
 
 (async function load() {
+  // site.js already fetches (and sessionStorage-caches) this list to fill the
+  // brand version pill — share that one request rather than asking twice.
   let releases;
   try {
-    const res = await fetch(API, { headers: { Accept: "application/vnd.github+json" } });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    releases = await res.json();
-    if (!Array.isArray(releases)) throw new Error("unexpected response");
+    releases = await window.vstaiReleases;
   } catch (e) {
     failGracefully("Couldn’t reach the GitHub API (it may be rate-limited).");
     return;
@@ -132,14 +131,12 @@ function failGracefully(msg) {
   const published = releases.filter((r) => !r.draft && !r.prerelease);
   const latest = published[0];
 
-  // header
+  // header — the nav pill is site.js's job, on every page.
   const lv = document.getElementById("latestVer");
   const lw = document.getElementById("latestWhen");
-  const nv = document.getElementById("navVer");
   if (latest) {
     if (lv) lv.textContent = latest.tag_name || latest.name || "";
     if (lw) lw.textContent = latest.published_at ? " · " + fmtDate(latest.published_at) : "";
-    if (nv) nv.textContent = latest.tag_name || "downloads";
   } else {
     if (lv) lv.textContent = "coming soon";
   }

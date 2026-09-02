@@ -24,6 +24,54 @@ window.vstaiOS = detectOS();
   if (hero) hero.lastChild.textContent = " " + label;
 })();
 
+/* ---- latest release, shared by every page ----------------------------
+   The brand pill used to be hard-coded ("v0.2") and went stale the moment a
+   release shipped. It's now filled from the GitHub Releases API instead.
+
+   One fetch per page load, exposed as window.vstaiReleases so releases.js
+   (which needs the whole list, not just the tag) reuses it rather than
+   asking twice, and memoised in sessionStorage so clicking around the site
+   doesn't burn the 60-per-hour unauthenticated GitHub rate limit.
+
+   The pill starts hidden and is only revealed once a real tag arrives — a
+   missing pill is harmless, a wrong version number is not. */
+const VP_REPO  = "k1ln/VibePlugin";
+const VP_CACHE = "vstai:releases";
+const VP_TTL   = 30 * 60 * 1000;
+
+window.vstaiReleases = (async function fetchReleases() {
+  try {
+    const hit = JSON.parse(sessionStorage.getItem(VP_CACHE) || "null");
+    if (hit && Date.now() - hit.at < VP_TTL) return hit.data;
+  } catch (e) { /* private mode, or junk in the slot — just refetch */ }
+
+  const res = await fetch(`https://api.github.com/repos/${VP_REPO}/releases`,
+                          { headers: { Accept: "application/vnd.github+json" } });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error("unexpected response");
+  try { sessionStorage.setItem(VP_CACHE, JSON.stringify({ at: Date.now(), data })); }
+  catch (e) { /* over quota — the in-page promise still shares it */ }
+  return data;
+})();
+// Consumers below attach their own handling; this keeps a page that has no
+// consumer (or a rate-limited API) from logging an unhandled rejection.
+window.vstaiReleases.catch(() => {});
+
+/* Prereleases are single-platform test builds — same exclusion releases.js
+   makes, so the pill and the downloads page never disagree. */
+window.vstaiLatest = (rels) => rels.filter((r) => !r.draft && !r.prerelease)[0];
+
+(function navVersion() {
+  const pills = document.querySelectorAll("[data-navver]");
+  if (!pills.length) return;
+  window.vstaiReleases.then((rels) => {
+    const latest = window.vstaiLatest(rels);
+    if (!latest || !latest.tag_name) return;
+    pills.forEach((p) => { p.textContent = latest.tag_name; p.hidden = false; });
+  }).catch(() => { /* leave the pill hidden */ });
+})();
+
 /* ---- scroll reveal --------------------------------------------------- */
 (function reveal() {
   const els = document.querySelectorAll(".reveal");

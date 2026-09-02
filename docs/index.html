@@ -15,10 +15,11 @@
 
   <!-- ============================================================ nav
        Shared top bar. Keep this block byte-identical across index.html,
-       releases.html, tutorial.html and thanks.html — only three things are
-       allowed to differ per page: the brand .tag, which link carries
-       aria-current="page", and whether the section anchors are bare (#how,
-       on index) or absolute (index.html#how, everywhere else). -->
+       releases.html, tutorial.html and thanks.html — only two things are
+       allowed to differ per page: which link carries aria-current="page",
+       and whether the section anchors are bare (#how, on index) or absolute
+       (index.html#how, everywhere else). The brand pill is filled with the
+       latest release tag by site.js; it stays hidden if the API is down. -->
   <nav class="nav">
     <div class="wrap">
       <a class="brand" href="./index.html">
@@ -27,7 +28,7 @@
           <path d="M7 16h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
         <span><b>Vibe</b>Plugin</span>
-        <span class="tag">v0.2</span>
+        <span class="tag" data-navver hidden></span>
       </a>
       <div class="spacer"></div>
       <div class="links">
