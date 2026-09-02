@@ -15,6 +15,9 @@ runs entirely offline.
 
 ![A generated VibePlugin GUI](docs/screenshots/gui.png)
 
+- **📖 Full tutorial:** <https://k1ln.github.io/VibePlugin/tutorial.html> — the complete guide to
+  running it as a VST3: per-DAW install and rescanning, FX vs Synth, every control in the window,
+  writing prompts that work, automation and MIDI, rendering, saving and export, troubleshooting.
 - **Website & downloads:** <https://k1ln.github.io/VibePlugin/>
 - **All releases:** <https://github.com/k1ln/VibePlugin/releases>
 - **Try creations in your browser first:** the [gallery](https://k1ln.github.io/VibePlugin/gallery/) plays shared plugins live
@@ -67,6 +70,11 @@ In FL Studio: *Options ▸ Manage plugins ▸ Find plugins*.
    usually a few seconds.
 4. Play your track. Turn the knobs it made you.
 5. **Save** to a `.vstai` file anywhere on disk so you can reopen it later.
+
+> **Want the detailed version?** The
+> [full tutorial](https://k1ln.github.io/VibePlugin/tutorial.html) covers all of this properly —
+> which plugin goes on which track, what every button does, how to write a prompt that gets you the
+> knobs you wanted, and how automation, MIDI, bouncing and export behave in your DAW.
 
 ### Keep talking to it
 
@@ -194,6 +202,12 @@ does every exported standalone plugin.
 **Where do my creations go?**
 Wherever you **Save** the `.vstai` file. The plugin keeps no hidden library; the
 file and your DAW session are the only copies.
+
+---
+
+More problems and fixes — per-DAW rescanning, Windows WebView2, stuck notes, dry bounces,
+automation slots — are covered in the
+[full tutorial's troubleshooting section](https://k1ln.github.io/VibePlugin/tutorial.html#trouble).
 
 ---
 

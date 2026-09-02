@@ -273,5 +273,25 @@
   </footer>
 
   <script src="assets/site.js"></script>
+
+<script>
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    var vw = document.documentElement.clientWidth, out = [];
+    document.querySelectorAll('*').forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.right > vw + 1 && r.width > 0) {
+        out.push(Math.round(r.right) + 'px  ' + el.tagName.toLowerCase() +
+                 (el.id ? '#' + el.id : '') +
+                 (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : ''));
+      }
+    });
+    var d = document.createElement('pre');
+    d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000;color:#0f0;font:11px monospace;padding:8px;margin:0;overflow:hidden;white-space:pre-wrap';
+    d.textContent = 'viewport ' + vw + '  scrollWidth ' + document.documentElement.scrollWidth + '\n\n' + out.slice(0, 40).join('\n');
+    document.body.appendChild(d);
+  }, 900);
+});
+</script>
 </body>
 </html>

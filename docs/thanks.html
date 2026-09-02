@@ -12,6 +12,12 @@
 </head>
 <body>
 
+  <!-- ============================================================ nav
+       Shared top bar. Keep this block byte-identical across index.html,
+       releases.html, tutorial.html and thanks.html — only three things are
+       allowed to differ per page: the brand .tag, which link carries
+       aria-current="page", and whether the section anchors are bare (#how,
+       on index) or absolute (index.html#how, everywhere else). -->
   <nav class="nav">
     <div class="wrap">
       <a class="brand" href="./index.html">
@@ -26,9 +32,13 @@
       <div class="links">
         <a href="index.html#how">How it works</a>
         <a href="index.html#features">Features</a>
+        <a href="index.html#plugins">Plugins</a>
+        <a href="gallery/index.html">Gallery</a>
+        <a href="tutorial.html">Tutorial</a>
         <a href="releases.html">Downloads</a>
         <a href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">GitHub</a>
       </div>
+      <a class="btn primary" href="releases.html" id="navDownload">Download</a>
     </div>
   </nav>
 
@@ -82,6 +92,8 @@
     </div>
   </section>
 
+  <!-- ========================================================= footer
+       Shared footer — keep identical across all four pages. -->
   <footer>
     <div class="wrap">
       <a class="brand" href="./index.html">
@@ -92,7 +104,12 @@
         <span><b>Vibe</b>Plugin</span>
       </a>
       <div class="spacer"></div>
-      <span class="muted">© 2026 VibePlugin</span>
+      <a class="f" href="tutorial.html">Tutorial</a>
+      <a class="f" href="gallery/index.html">Gallery</a>
+      <a class="f" href="releases.html">Downloads</a>
+      <a class="f" href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">GitHub</a>
+      <a class="f" href="https://github.com/k1ln/VibePlugin/issues" target="_blank" rel="noopener">Issues</a>
+      <span class="muted">&copy; 2026 VibePlugin</span>
     </div>
   </footer>
 

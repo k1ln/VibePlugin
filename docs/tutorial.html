@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutorial — VibePlugin</title>
+  <meta name="description" content="The complete guide to using VibePlugin as a VST3 plugin: installing and rescanning in every DAW, FX vs Synth, every control in the window, writing prompts that work, automation and MIDI, rendering, saving and export, and troubleshooting.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f8dff'/%3E%3Cpath d='M7 16h3l2-7 4 14 3-9 2 4h4' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/styles.css">
+  <style>
+    /* ---- tutorial-only layout ------------------------------------- */
+    .tut { max-width: 78ch; }
+    .tut h2 { font-size: clamp(24px, 3.2vw, 33px); letter-spacing: -.02em; margin: 0 0 14px; }
+    .tut h3 { font-size: 20px; margin: 34px 0 10px; }
+    .tut h4 { font-size: 16px; margin: 24px 0 8px; color: var(--ink); }
+    .tut p  { color: var(--ink-2); font-size: 15.5px; line-height: 1.75; margin: 0 0 16px; }
+    .tut li { color: var(--ink-2); font-size: 15.5px; line-height: 1.75; margin: 0 0 9px; }
+    .tut ul, .tut ol { padding-left: 22px; margin: 0 0 18px; }
+    .tut strong { color: var(--ink); }
+    .tut code {
+      font-family: var(--mono); font-size: 13px; background: var(--bg-2);
+      padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); color: var(--ink);
+    }
+    .tut a { color: var(--accent); }
+
+    /* section rhythm */
+    .tut-sec { padding: 54px 0; border-top: 1px solid var(--line); }
+    .tut-sec:first-of-type { border-top: 0; }
+
+    /* a UI button referenced in prose, drawn like the real one */
+    .ui {
+      font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--ink);
+      background: var(--surface-2); border: 1px solid var(--line-2);
+      border-radius: 7px; padding: 2px 8px; white-space: nowrap;
+    }
+    .ui.primary { background: rgba(62,131,255,.16); border-color: rgba(62,131,255,.5); color: #8fb8ff; }
+    .ui.accent  { background: rgba(168,107,255,.14); border-color: rgba(168,107,255,.45); color: #c49cff; }
+
+    /* screenshots */
+    figure.shot { margin: 22px 0 26px; }
+    figure.shot img {
+      width: 100%; display: block; border-radius: 12px;
+      border: 1px solid var(--line-2); box-shadow: 0 24px 60px -28px rgba(0,0,0,.9);
+    }
+    figure.shot figcaption {
+      margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6;
+    }
+
+    /* the three generation paths */
+    .paths { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 0 0 10px; }
+    .path {
+      padding: 24px 22px; border-radius: var(--r-lg); border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--surface), rgba(20,22,28,.4)); position: relative;
+    }
+    .path.k  { border-top: 2px solid rgba(62,131,255,.75); }
+    .path.c  { border-top: 2px solid rgba(47,217,162,.75); }
+    .path.$  { border-top: 2px solid rgba(168,107,255,.75); }
+    .path .tagline { font-family: var(--mono); font-size: 11.5px; letter-spacing: .13em;
+                     text-transform: uppercase; color: var(--muted); }
+    .path.k .tagline { color: #5b97ff; }
+    .path.c .tagline { color: var(--mint); }
+    .path.$ .tagline { color: #b585ff; }
+    .path h3 { margin: 8px 0 8px; font-size: 18px; }
+    .path p  { margin: 0 0 12px; font-size: 14px; color: var(--muted); line-height: 1.65; }
+    .path .cost { font-size: 13.5px; color: var(--ink-2); border-top: 1px solid var(--line);
+                  padding-top: 12px; margin-top: auto; }
+
+    /* tables */
+    .tut-table-wrap { overflow-x: auto; margin: 0 0 22px; }
+    table.tut-table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 460px; }
+    table.tut-table th, table.tut-table td {
+      text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--ink-2);
+      vertical-align: top;
+    }
+    table.tut-table th { color: var(--muted); font-size: 12px; letter-spacing: .09em;
+                         text-transform: uppercase; font-weight: 600; }
+    table.tut-table td strong { color: var(--ink); }
+    table.tut-table tr:last-child td { border-bottom: 0; }
+    table.tut-table code { white-space: nowrap; }
+
+    /* the model dropdown contents, shown as a list because a native OS
+       select popup can't be captured in a screenshot */
+    .optlist { border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden;
+               background: var(--bg-2); margin: 0 0 22px; }
+    .optlist .grp {
+      padding: 9px 15px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); background: rgba(255,255,255,.03); border-bottom: 1px solid var(--line);
+      font-weight: 600;
+    }
+    .optlist .opt { display: flex; gap: 14px; align-items: baseline; padding: 11px 15px 11px 26px;
+                    border-bottom: 1px solid var(--line); font-size: 14.5px; color: var(--ink); }
+    .optlist .opt:last-child { border-bottom: 0; }
+    .optlist .opt .note { color: var(--muted); font-size: 13.5px; margin-left: auto; text-align: right; }
+
+    /* numbered walkthrough */
+    ol.walk { list-style: none; padding: 0; counter-reset: w; margin: 0 0 20px; }
+    ol.walk > li {
+      counter-increment: w; position: relative; padding: 0 0 22px 46px; margin: 0;
+      border-left: 1px solid var(--line); margin-left: 15px;
+    }
+    ol.walk > li:last-child { border-left-color: transparent; padding-bottom: 0; }
+    ol.walk > li::before {
+      content: counter(w); position: absolute; left: -15px; top: -3px;
+      width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+      font-family: var(--mono); font-size: 13px; font-weight: 700;
+      color: var(--accent); background: #0f1219; border: 1px solid rgba(62,131,255,.45);
+    }
+    ol.walk > li h4 { margin: 3px 0 7px; }
+
+    /* on-this-page */
+    .toc { border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+           padding: 20px 24px; margin: 0 0 10px; }
+    .toc div { font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+               color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+    .toc ol { margin: 0; padding-left: 20px; }
+    .toc li { margin: 0 0 7px; font-size: 14.5px; }
+
+    @media (max-width: 860px) {
+      .paths { grid-template-columns: 1fr; }
+      .tut-sec { padding: 40px 0; }
+    }
+
+    /* ---- added for the in-depth sections ---------------------------- */
+    kbd {
+      font-family: var(--mono); font-size: 12px; color: var(--ink);
+      background: var(--bg-2); border: 1px solid var(--line-2);
+      border-bottom-width: 2px; border-radius: 6px; padding: 2px 7px; white-space: nowrap;
+    }
+    /* reference table of every control in the window */
+    table.ref-table td:first-child { white-space: nowrap; width: 1%; }
+    table.ref-table td:first-child .ui { display: inline-block; }
+    /* a "do this / not that" pair for the prompt-writing section */
+    .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 22px; }
+    .vs > div { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+                background: var(--surface); }
+    .vs .lbl { font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em;
+               text-transform: uppercase; margin: 0 0 9px; }
+    .vs .no  { border-top: 2px solid rgba(230,110,100,.6); }
+    .vs .no .lbl  { color: #e2796f; }
+    .vs .yes { border-top: 2px solid rgba(47,217,162,.7); }
+    .vs .yes .lbl { color: var(--mint); }
+    .vs p { font-size: 14px; margin: 0 0 8px; }
+    .vs p:last-child { margin-bottom: 0; }
+    .vs code { font-size: 12.5px; }
+    /* a green "good news" variant of .notice */
+    .notice.ok { border-left-color: var(--mint); background: rgba(47,217,162,.05); }
+    @media (max-width: 860px) { .vs { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================ nav
+       Shared top bar. Keep this block byte-identical across index.html,
+       releases.html, tutorial.html and thanks.html — only three things are
+       allowed to differ per page: the brand .tag, which link carries
+       aria-current="page", and whether the section anchors are bare (#how,
+       on index) or absolute (index.html#how, everywhere else). -->
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="./index.html">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#4f8dff"/>
+          <path d="M7 16h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <span><b>Vibe</b>Plugin</span>
+        <span class="tag">tutorial</span>
+      </a>
+      <div class="spacer"></div>
+      <div class="links">
+        <a href="index.html#how">How it works</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#plugins">Plugins</a>
+        <a href="gallery/index.html">Gallery</a>
+        <a href="tutorial.html" aria-current="page">Tutorial</a>
+        <a href="releases.html">Downloads</a>
+        <a href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <a class="btn primary" href="releases.html" id="navDownload">Download</a>
+    </div>
+  </nav>
+
+  <header class="hero" style="padding-bottom:0;min-height:auto">
+    <div class="wrap" style="text-align:center">
+      <span class="eyebrow">Tutorial</span>
+      <h1 style="margin:14px auto 12px;max-width:20ch">Making plugins with <span class="grad">VibePlugin</span></h1>
+      <p class="lead" style="margin:0 auto;max-width:60ch;color:var(--ink-2)">
+        The complete guide: getting it into your DAW, describing a plugin that comes out
+        right, and living with it afterwards — automation, MIDI, rendering, saving and
+        handing finished plugins to other people.
+      </p>
+    </div>
+  </header>
+
+  <section style="padding-top:44px">
+    <div class="wrap tut">
+      <div class="toc">
+        <div>On this page</div>
+        <ol>
+          <li><a href="#install">Install it, and make your DAW see it</a></li>
+          <li><a href="#which">FX or Synth — which one, on what track</a></li>
+          <li><a href="#first">Make your first plugin</a></li>
+          <li><a href="#window">The plugin window, part by part</a> — every button explained</li>
+          <li><a href="#prompts">Writing prompts that actually work</a></li>
+          <li><a href="#three">The three ways to generate</a> — and what they cost</li>
+          <li><a href="#refine">Refining, and the History timeline</a></li>
+          <li><a href="#daw">Living in your DAW</a> — automation, MIDI, rendering</li>
+          <li><a href="#saving">Saving, recall, and what your project stores</a></li>
+          <li><a href="#code">Editing the code by hand</a></li>
+          <li><a href="#share">Publishing, the gallery, and standalone export</a></li>
+          <li><a href="#diag">Diagnostics: seeing what it's doing</a></li>
+          <li><a href="#trouble">Troubleshooting</a></li>
+        </ol>
+      </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 1 -->
+  <section class="tut-sec" id="install">
+    <div class="wrap tut">
+      <span class="eyebrow">Step one</span>
+      <h2>Install it, and make your DAW see it</h2>
+      <p>
+        VibePlugin is a <strong>VST3 plugin</strong>. It loads in any DAW that supports
+        VST3 — FL Studio, Ableton Live, Reaper, Bitwig, Studio One, Cubase and others.
+        There are two of them: <strong>VibePlugin FX</strong> for audio tracks, and
+        <strong>VibePlugin Synth</strong> for instrument tracks.
+      </p>
+
+      <ol class="walk">
+        <li>
+          <h4>Download the build for your system</h4>
+          <p>Grab it from the <a href="releases.html">Downloads page</a>. macOS builds are
+             signed and notarized by Apple, so there is no security warning to click through.</p>
+        </li>
+        <li>
+          <h4>Unzip it and copy both <code>.vst3</code> bundles into your VST3 folder</h4>
+          <div class="tut-table-wrap">
+            <table class="tut-table">
+              <tr><td><strong>macOS</strong></td><td><code>~/Library/Audio/Plug-Ins/VST3</code></td></tr>
+              <tr><td><strong>Windows</strong></td><td><code>C:\Program Files\Common Files\VST3</code></td></tr>
+              <tr><td><strong>Linux</strong></td><td><code>~/.vst3</code></td></tr>
+            </table>
+          </div>
+        </li>
+        <li>
+          <h4>Rescan plugins in your DAW</h4>
+          <p>Every DAW keeps a cached list of the plugins it knows about, so it will not notice a
+             new one until you tell it to look again. Find your DAW below:</p>
+          <div class="tut-table-wrap">
+            <table class="tut-table">
+              <tr><th>DAW</th><th>Where to rescan</th></tr>
+              <tr><td><strong>FL Studio</strong></td>
+                  <td>Options ▸ Manage plugins ▸ <em>Find more plugins</em>. Tick
+                      <em>Verify plugins</em> if it still doesn't show up. Newly found plugins
+                      land in the <em>Installed ▸ New</em> list.</td></tr>
+              <tr><td><strong>Ableton Live</strong></td>
+                  <td>Settings ▸ Plug-Ins ▸ turn on <em>Use VST3 Plug-In System Folders</em>,
+                      then press <em>Rescan</em>.</td></tr>
+              <tr><td><strong>Reaper</strong></td>
+                  <td>Options ▸ Preferences ▸ Plug-ins ▸ VST ▸ <em>Re-scan</em>
+                      (use <em>Clear cache and re-scan</em> if it's stubborn).</td></tr>
+              <tr><td><strong>Bitwig Studio</strong></td>
+                  <td>Settings ▸ Locations ▸ Plug-in Locations ▸ <em>Rescan Plug-ins</em>.</td></tr>
+              <tr><td><strong>Studio One</strong></td>
+                  <td>Studio One ▸ Options/Preferences ▸ Locations ▸ VST Plug-Ins ▸
+                      <em>Reset Blocklist</em>, then restart.</td></tr>
+              <tr><td><strong>Cubase / Nuendo</strong></td>
+                  <td>Studio ▸ VST Plug-in Manager ▸ the refresh icon. Check the
+                      <em>Blocklist</em> tab too.</td></tr>
+              <tr><td><strong>Logic Pro</strong></td>
+                  <td><strong>Not supported.</strong> Logic loads only Audio Units, and VibePlugin
+                      is VST3 only. Run it in any other DAW on the same Mac, or use an
+                      AU-wrapper host inside Logic.</td></tr>
+            </table>
+          </div>
+          <p>
+            They appear as <strong>VibePlugin FX</strong> under effects and
+            <strong>VibePlugin Synth</strong> under instruments, both from the manufacturer
+            <em>VibePlugin</em>. Search your plugin browser for <code>vibe</code> — that's the
+            fastest way to check the scan worked.
+          </p>
+        </li>
+      </ol>
+
+      <h4>If your DAW still can't see it</h4>
+      <ul>
+        <li><strong>Check you copied the whole bundle.</strong> On macOS a <code>.vst3</code> is a
+            <em>folder</em> that looks like a file. Copy it whole; don't open it and copy the
+            contents.</li>
+        <li><strong>macOS quarantine.</strong> Downloads are tagged by the system. Current releases
+            are signed and notarized by Apple so this shouldn't bite, but if the Mac refuses to
+            load it, run:<br>
+            <code>xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/"VibePlugin FX.vst3"</code></li>
+        <li><strong>Windows.</strong> Use the standard
+            <code>C:\Program Files\Common Files\VST3</code> folder. If you put it somewhere
+            custom, add that folder to your DAW's VST3 search paths.</li>
+        <li><strong>32-bit hosts won't work.</strong> VibePlugin is 64-bit only.</li>
+        <li><strong>Blocklists.</strong> If a DAW ever failed to scan it (an old, broken build,
+            for instance) it may have permanently blocklisted it. Clear the blocklist and
+            rescan — this is the single most common reason a correct install stays invisible.</li>
+      </ul>
+
+      <div class="notice ok">
+        <b>No toolchain required.</b> You do not need to install Node, Python, a compiler, or
+        anything else — and there is no license key or activation. Everything needed to turn
+        AI-written code into a running plugin ships inside VibePlugin itself.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 1b -->
+  <section class="tut-sec" id="which">
+    <div class="wrap tut">
+      <span class="eyebrow">Before you start</span>
+      <h2>FX or Synth — which one, on what track</h2>
+      <p>
+        The download contains <strong>two separate plugins</strong>. They share the same editor and
+        the same AI, but your DAW treats them completely differently, and picking the wrong one is
+        the most common reason a first attempt makes no sound.
+      </p>
+
+      <div class="tut-table-wrap">
+        <table class="tut-table">
+          <tr><th></th><th>VibePlugin FX</th><th>VibePlugin Synth</th></tr>
+          <tr><td><strong>Type</strong></td><td>Audio effect</td><td>Instrument</td></tr>
+          <tr><td><strong>Goes on</strong></td><td>An audio / mixer track that already has sound
+              running through it</td><td>An instrument track that you play with MIDI</td></tr>
+          <tr><td><strong>Audio in</strong></td><td>Stereo in, stereo out</td>
+              <td>None — it generates sound</td></tr>
+          <tr><td><strong>Responds to MIDI notes</strong></td><td>No</td><td>Yes</td></tr>
+          <tr><td><strong>Ask it for</strong></td>
+              <td>Saturators, delays, reverbs, compressors, filters, distortion, choruses,
+                  bitcrushers, transient shapers…</td>
+              <td>Synths, drum machines, samplers, pad generators, arpeggiators, noise
+                  boxes…</td></tr>
+        </table>
+      </div>
+
+      <p>
+        Both are <strong>stereo</strong>. A mono track feeds the same signal to both channels, which
+        is fine — but there is no mono-only or multi-out version, and there is no sidechain input.
+        If you want a ducking effect, ask for an envelope follower on the main input rather than a
+        sidechain.
+      </p>
+
+      <h4>Getting notes into VibePlugin Synth</h4>
+      <p>
+        It's an ordinary instrument: put it on an instrument track, point a MIDI clip or your
+        keyboard at that track, and play. The host converts note numbers to frequency for the
+        generated code, so anything it makes is automatically playable across the whole keyboard.
+      </p>
+      <ul>
+        <li><strong>FL Studio:</strong> the plugin loads into a Channel Rack slot; draw notes in its
+            piano roll.</li>
+        <li><strong>Ableton Live:</strong> drop it on a MIDI track; arm the track to play live.</li>
+        <li><strong>Reaper:</strong> add it as the first FX on a track, arm the track for MIDI input
+            and enable input monitoring.</li>
+      </ul>
+      <p>
+        Generated interfaces often include an on-screen keyboard as well — clicking it plays notes
+        directly, which is handy for auditioning without arming anything.
+      </p>
+
+      <div class="notice">
+        <b>No sound from the Synth?</b> Check the track is actually receiving MIDI before blaming
+        the plugin — the generated interface will happily sit there in silence if no notes arrive.
+        And on a fresh, ungenerated instance there is no instrument yet at all: the window shows a
+        style demo, not a playable synth, until you generate something.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 2 -->
+  <section class="tut-sec" id="first">
+    <div class="wrap tut">
+      <span class="eyebrow">Step two</span>
+      <h2>Make your first plugin</h2>
+      <p>
+        Add <strong>VibePlugin FX</strong> to an audio track that's playing something — a drum
+        loop or a guitar part is ideal, because you'll hear the effect immediately. Open the
+        plugin window and you'll see this:
+      </p>
+
+      <figure class="shot">
+        <img src="screenshots/tutorial-main.png" alt="The VibePlugin editor window: a prompt box at the top, a toolbar, and the live plugin interface filling the lower half.">
+        <figcaption>
+          The editor. The prompt box is at the top, the generated plugin's own interface fills
+          the <strong>GUI</strong> tab below, and the tabs let you look at the code, the history
+          and the settings. (Shown here with a tape saturator already loaded.)
+        </figcaption>
+      </figure>
+
+      <ol class="walk">
+        <li>
+          <h4>Describe the plugin you want</h4>
+          <p>
+            Type it into the box at the top in plain language. Be specific about the
+            <em>controls</em> you want — that is what becomes the knobs. For example:
+          </p>
+          <p><code>a warm tape saturator with drive, tone and a wow-and-flutter control</code></p>
+          <figure class="shot">
+            <img src="screenshots/tutorial-prompt.png" alt="The prompt box filled in with a description of a tape saturator, next to the Generate and Copy to chatbot buttons.">
+            <figcaption>
+              A good prompt names the effect and the controls. <span class="ui primary">Generate</span>
+              builds it; <span class="ui accent">Copy to chatbot</span> is the free route covered below.
+            </figcaption>
+          </figure>
+        </li>
+        <li>
+          <h4>Press <span class="ui primary">Generate</span></h4>
+          <p>
+            Or press <kbd>Cmd</kbd>+<kbd>Enter</kbd> (<kbd>Ctrl</kbd>+<kbd>Enter</kbd> on Windows
+            and Linux). A plain <kbd>Enter</kbd> just adds a new line, so you can write a long
+            multi-line description without setting a build off half-way through.
+            VibePlugin asks the AI for the audio code and an
+            interface, compiles the result, and loads it live. This usually takes a few seconds
+            to about a minute depending on the model and how complex the plugin is. You can watch
+            the model's reasoning by clicking <em>See reasoning</em> under the status line.
+          </p>
+        </li>
+        <li>
+          <h4>Play your track and turn the knobs</h4>
+          <p>
+            The interface in the <strong>GUI</strong> tab is live and wired to the audio. Your DAW
+            can automate the knobs too — they show up as normal plugin parameters.
+          </p>
+        </li>
+        <li>
+          <h4>Save it</h4>
+          <p>
+            <span class="ui">Save</span> writes a small <code>.vstai</code> file anywhere on disk,
+            which you can reopen later with <span class="ui">Load</span>. Your DAW project also
+            stores the plugin, so reopening the session brings it back exactly as it was — no
+            need to save separately just to keep your work.
+          </p>
+        </li>
+      </ol>
+
+      <div class="notice">
+        <b>Nothing to lose.</b> If a generation comes out wrong, the plugin you had before keeps
+        playing until the new one compiles successfully — and every version is kept in the
+        <strong>History</strong> tab, so you can always go back.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 2b -->
+  <section class="tut-sec" id="window">
+    <div class="wrap tut">
+      <span class="eyebrow">Reference</span>
+      <h2>The plugin window, part by part</h2>
+      <p>
+        Everything in the window, top to bottom. You can ignore most of it and still make plugins —
+        this section is here for when you want to know what a particular button does.
+      </p>
+
+      <h3>The header</h3>
+      <div class="tut-table-wrap">
+        <table class="tut-table ref-table">
+          <tr><td><span class="ui">VibePlugin v0.4.8</span></td>
+              <td>The version badge next to the name is the <strong>exact build the DAW loaded</strong>.
+                  Worth checking after an update — DAWs sometimes keep an old copy cached.</td></tr>
+          <tr><td><span class="ui">Settings</span></td>
+              <td>Opens the Settings tab: API keys, generation source, design school and
+                  diagnostics.</td></tr>
+          <tr><td><span class="ui">Account</span></td>
+              <td>Only relevant for the paid cloud route — sign in, check your balance, top up. If
+                  you use your own key or the chatbot route, you never need it.</td></tr>
+          <tr><td><span class="ui">Hide editor ▴</span></td>
+              <td>Collapses the whole generator away so the window shows <strong>just your plugin's
+                  interface</strong>, like a normal plugin. Press it again to bring the editor back.
+                  This is how you'll want it once a plugin is finished.</td></tr>
+        </table>
+      </div>
+
+      <h3>The prompt row</h3>
+      <div class="tut-table-wrap">
+        <table class="tut-table ref-table">
+          <tr><td><span class="ui primary">Generate</span></td>
+              <td>Builds (or edits) the plugin using the selected model.
+                  <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>Enter</kbd> in the prompt box does the same;
+                  a plain <kbd>Enter</kbd> makes a new line.</td></tr>
+          <tr><td><span class="ui accent">Copy to chatbot</span></td>
+              <td>The free route. Builds a complete prompt, copies it to your clipboard, and opens
+                  the paste-back dialog. No API key involved — see
+                  <a href="#route-chatbot">route 2</a>.</td></tr>
+          <tr><td><span class="ui">Use Settings design</span></td>
+              <td>When ticked, the design school you picked in Settings is described to the AI, so
+                  new interfaces match that house style. Untick it to let the AI design the
+                  interface however it likes — better for a one-off with a strong visual idea,
+                  worse for a consistent-looking collection.</td></tr>
+        </table>
+      </div>
+
+      <h3>The toolbar</h3>
+      <div class="tut-table-wrap">
+        <table class="tut-table ref-table">
+          <tr><td><span class="ui">New</span></td>
+              <td>Clears the current creation and starts from nothing. Save first if you want to
+                  keep what's loaded.</td></tr>
+          <tr><td><span class="ui">Save</span> / <span class="ui">Load</span></td>
+              <td>Writes or reads a <code>.vstai</code> file — the whole plugin (code, interface,
+                  parameters) in one small portable file.</td></tr>
+          <tr><td><span class="ui">Gallery</span></td>
+              <td>Browses the online gallery from inside the plugin and loads any example straight
+                  into this instance. The fastest way to hear what the thing can do, and to study
+                  prompts that worked.</td></tr>
+          <tr><td><span class="ui accent">Publish</span></td>
+              <td>Uploads your creation to the public web gallery, where it plays live in a
+                  browser.</td></tr>
+          <tr><td><span class="ui accent">Export plugin…</span></td>
+              <td>Bakes the current creation into its own standalone, locked <code>.vst3</code> —
+                  see <a href="#share">export</a>.</td></tr>
+          <tr><td><strong>Model</strong></td>
+              <td>Which AI writes the code. The list changes depending on the generation source
+                  selected in Settings.</td></tr>
+          <tr><td><strong>Thinking</strong></td>
+              <td><em>Low / Medium / High / Max</em> — how long the model reasons before answering.
+                  Higher means better results on complicated plugins, slower, and more expensive.
+                  <em>Medium</em> is a good default; raise it for a full synth, lower it for
+                  "make the knob bigger".</td></tr>
+        </table>
+      </div>
+
+      <h3>The status line</h3>
+      <p>
+        Under the toolbar. It tells you what's happening — <em>Generating…</em>, <em>Compiling…</em>,
+        <em>Ready.</em> — and after a cloud generation, what it charged. When a model has been
+        thinking, a <span class="ui">▸ See reasoning</span> link appears: click it to read how the
+        model approached your request. That's often the quickest way to understand why you got
+        something you didn't expect.
+      </p>
+
+      <h3>The seven tabs</h3>
+      <div class="tut-table-wrap">
+        <table class="tut-table ref-table">
+          <tr><td><strong>GUI</strong></td>
+              <td>Your plugin's live interface. Not a preview — this is the real thing, wired to
+                  the audio engine.</td></tr>
+          <tr><td><strong>DSP (AssemblyScript)</strong></td>
+              <td>The audio code the AI wrote, in a full editor. Edit and recompile if you
+                  like.</td></tr>
+          <tr><td><strong>GUI HTML</strong></td>
+              <td>The interface source — HTML, CSS and JavaScript. Same deal.</td></tr>
+          <tr><td><strong>Notes</strong></td>
+              <td>The AI's explanation of what it built, plus compiler output and any errors. Read
+                  this when a build fails.</td></tr>
+          <tr><td><strong>History</strong></td>
+              <td>Every version this instance has had, newest first, each restorable.</td></tr>
+          <tr><td><strong>Standard UI</strong></td>
+              <td>The house component kit — the knobs, sliders and meters generated interfaces are
+                  built from. Editable, so you can change the look of everything you generate from
+                  here on.</td></tr>
+          <tr><td><strong>Settings</strong></td>
+              <td>Keys and generation source, the ten design schools, and the diagnostics log.</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 2c -->
+  <section class="tut-sec" id="prompts">
+    <div class="wrap tut">
+      <span class="eyebrow">The skill</span>
+      <h2>Writing prompts that actually work</h2>
+      <p>
+        This is the part that decides whether you get something great or something disappointing.
+        The model is writing real audio code from scratch — it will make whatever you describe, so
+        the more precisely you describe it, the less you'll have to fix afterwards.
+      </p>
+
+      <h3>Name the controls you want</h3>
+      <p>
+        The single highest-value habit. Controls you name become knobs; controls you don't name get
+        guessed at, or baked in as fixed values you can't change afterwards.
+      </p>
+      <div class="vs">
+        <div class="no">
+          <div class="lbl">Vague</div>
+          <p><code>make it sound warm</code></p>
+          <p>You'll get <em>something</em>, but you have no idea which parameters you'll be able to
+             adjust — and "warm" means five different things.</p>
+        </div>
+        <div class="yes">
+          <div class="lbl">Specific</div>
+          <p><code>a tape saturator with Drive (0–100%), a Tone tilt-EQ knob, Wow &amp; Flutter
+             depth, and a Mix knob for parallel blending</code></p>
+          <p>Four named knobs, and each one does a thing you can hear.</p>
+        </div>
+      </div>
+
+      <h3>Say what the ranges and units are</h3>
+      <p>
+        If a control has a natural unit, give it. <code>a delay time knob from 20 ms to 2 seconds,
+        with a tempo-sync switch</code> gets you a usable range; "a delay knob" might get you
+        0–100&nbsp;ms and nothing useful. This matters more than it sounds, because those ranges
+        become the ranges your DAW automates over.
+      </p>
+
+      <h3>Describe the sound, not just the category</h3>
+      <p>
+        Reference points work well — the model knows what famous gear is supposed to sound like.
+        <code>a bucket-brigade style analogue delay: dark repeats that get murkier each pass, gentle
+        wow on the delay line, self-oscillates when feedback goes past 90%</code> gives it far more
+        to work with than "an analogue delay".
+      </p>
+
+      <h3>Ask for the interface you want</h3>
+      <p>
+        The look is generated too, so it's fair game: <code>lay it out as three big knobs in a row
+        with a VU meter above them</code>, <code>vintage cream-and-brown faceplate with chunky
+        metal knobs</code>, <code>add a waveform display showing the incoming signal</code>. If you'd
+        rather it match a consistent house style, pick a design school in Settings and leave
+        <span class="ui">Use Settings design</span> ticked.
+      </p>
+
+      <h3>Build in layers</h3>
+      <p>
+        Don't try to specify a 30-knob synth in one prompt. Get the core sound working, then add to
+        it one message at a time — refinements are faster, cheaper and much more likely to land
+        than one enormous request. A good sequence looks like:
+      </p>
+      <ol class="walk">
+        <li><h4>Core</h4><p><code>a two-oscillator subtractive synth with a resonant lowpass filter,
+            ADSR envelope, and detune between the oscillators</code></p></li>
+        <li><h4>Character</h4><p><code>add an LFO that can modulate pitch or filter cutoff, with
+            rate and depth knobs and a destination switch</code></p></li>
+        <li><h4>Polish</h4><p><code>add a simple stereo chorus after the filter with a bypass
+            switch, and make the whole panel darker with amber accents</code></p></li>
+      </ol>
+
+      <h3>Things worth knowing before you ask</h3>
+      <ul>
+        <li><strong>Tempo sync works.</strong> The plugin feeds your DAW's current BPM to the audio
+            code every block, so <code>delay time synced to the host tempo, in note values</code> or
+            a tempo-locked LFO is a reasonable thing to ask for.</li>
+        <li><strong>Samplers can load your own audio.</strong> Ask for a sampler, granular engine or
+            convolution reverb and the generated interface can include a file picker or drop zone;
+            it decodes the file and hands it to the audio code. Roughly five minutes of stereo audio
+            fits.</li>
+        <li><strong>Up to 63 knobs.</strong> That's the hard limit on automatable parameters. Plenty
+            for anything reasonable, but a giant modular monster will hit it.</li>
+        <li><strong>Stereo in, stereo out.</strong> No sidechain input, no multi-out, no surround.</li>
+        <li><strong>It can't call the internet or read your disk.</strong> The generated code runs in
+            a sandbox: audio in, audio out, plus a sample you explicitly load. This is also why a
+            finished plugin is safe to hand to someone else.</li>
+      </ul>
+
+      <div class="notice">
+        <b>If a result is wrong, say what's wrong — don't start over.</b> "The filter resonance
+        crackles at high settings" or "the release is way too short, make it up to 4 seconds" gets a
+        targeted fix. Pressing <span class="ui">New</span> and rewriting the prompt throws away a
+        working starting point.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 3 -->
+  <section class="tut-sec" id="three">
+    <div class="wrap tut">
+      <span class="eyebrow">The important part</span>
+      <h2>The three ways to generate</h2>
+      <p>
+        VibePlugin itself is free and open source. What can cost money is the AI that writes the
+        plugins — and even that is optional. There are three routes, and you pick between them
+        with the <strong>Model</strong> dropdown in the toolbar and the
+        <strong>Generation source</strong> setting.
+      </p>
+
+      <div class="paths">
+        <div class="path k">
+          <div class="tagline">Route 1</div>
+          <h3>Your own Anthropic key</h3>
+          <p>One-click generation. Requests go straight from the plugin to Anthropic.</p>
+          <div class="cost">You pay Anthropic directly. Nothing goes through us.</div>
+        </div>
+        <div class="path c">
+          <div class="tagline">Route 2</div>
+          <h3>Any chatbot you already use</h3>
+          <p>Copy a prompt out, paste the reply back. No key, no account, no signup.</p>
+          <div class="cost"><strong>Completely free.</strong> Every feature works.</div>
+        </div>
+        <div class="path $">
+          <div class="tagline">Route 3</div>
+          <h3>VibePlugin Cloud credits</h3>
+          <p>One-click generation with no API key to manage. We run it on our key.</p>
+          <div class="cost">Pay-as-you-go credits, bought from us.</div>
+        </div>
+      </div>
+
+      <p>
+        If you already have an Anthropic API key, use <strong>route 1</strong>. If you don't, try
+        <strong>route 2</strong> first — it's free and complete. <strong>Route 3</strong> exists
+        only for people who want neither a key nor the copy-paste step.
+      </p>
+
+      <h4>What's in the Model dropdown</h4>
+      <p>
+        The dropdown shows the models for whichever generation source is selected in
+        <strong>Settings</strong>. These are the options:
+      </p>
+      <div class="optlist">
+        <div class="grp">Anthropic (your key)</div>
+        <div class="opt">Fable 5 <span class="note">most capable · 2× price</span></div>
+        <div class="opt">Opus 5 <span class="note">best value · the default</span></div>
+        <div class="opt">Sonnet 5 <span class="note">cheaper and faster</span></div>
+        <div class="grp">VibePlugin Cloud (credits)</div>
+        <div class="opt">Cloud · Haiku 4.5 <span class="note">cheapest, good for small edits</span></div>
+        <div class="opt">Cloud · Sonnet 5 <span class="note">the balanced choice</span></div>
+        <div class="opt">Cloud · Opus 4.8 <span class="note">best results on complex plugins</span></div>
+      </div>
+      <p>
+        There is also a <strong>Thinking</strong> control next to it. More thinking gives better
+        results on complicated plugins and costs more; <em>Medium</em> is a sensible default.
+        Big, elaborate interfaces are worth generating with the strongest model.
+      </p>
+
+      <!-- ---- route 1 ---- -->
+      <h3 id="route-key">Route 1 · Your own Anthropic API key</h3>
+      <p>
+        The most direct option if you already have an Anthropic account. The plugin talks to
+        Anthropic directly and you're billed by them for exactly what you use.
+      </p>
+      <ol class="walk">
+        <li>
+          <h4>Get a key</h4>
+          <p>
+            Create one at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.
+            It looks like <code>sk-ant-…</code>. You'll need some credit on that Anthropic account.
+          </p>
+        </li>
+        <li>
+          <h4>Open <span class="ui">Settings</span> and paste it in</h4>
+          <p>
+            Set <strong>Generation source</strong> to <em>My own Anthropic API key</em>, paste the
+            key into the <strong>Anthropic API key</strong> field, and press
+            <span class="ui primary">Save settings</span>. The key is stored locally on your machine
+            and never sent anywhere except Anthropic.
+          </p>
+          <figure class="shot">
+            <img src="screenshots/tutorial-settings.png" alt="The Settings tab, showing the Generation source radio buttons with 'My own Anthropic API key' selected, and the API key field below it.">
+            <figcaption>
+              Settings ▸ API &amp; Services. Pick the generation source at the top, then paste your key.
+              The design schools further down the same tab set the house style for generated interfaces.
+            </figcaption>
+          </figure>
+        </li>
+        <li>
+          <h4>Pick a model and generate</h4>
+          <p>
+            The <strong>Model</strong> dropdown now lists the Anthropic models. Type a prompt and
+            press <span class="ui primary">Generate</span>. That's the whole loop from now on.
+          </p>
+        </li>
+      </ol>
+
+      <!-- ---- route 2 ---- -->
+      <h3 id="route-chatbot">Route 2 · Any chatbot, completely free</h3>
+      <p>
+        This route needs <strong>no API key and no account</strong>. VibePlugin writes the prompt
+        for you; you paste it into whatever AI chat you already use — ChatGPT, Claude, Gemini,
+        anything — and paste the reply back. Every feature of the plugin works this way.
+      </p>
+      <ol class="walk">
+        <li>
+          <h4>Type your description, then press <span class="ui accent">Copy to chatbot</span></h4>
+          <p>
+            A dialog opens with a complete, self-contained prompt already built from your
+            description and copied to your clipboard.
+          </p>
+          <figure class="shot">
+            <img src="screenshots/tutorial-chatbot.png" alt="The 'Generate with any chatbot' dialog: the generated prompt in a box with a Copy prompt button, and a larger box below for pasting the chatbot's reply.">
+            <figcaption>
+              The chatbot dialog. Step 1 holds the prompt (already copied); step 2 is where the
+              reply goes. <span class="ui">One response</span> is the normal mode —
+              <span class="ui">Three parts</span> is for chatbots that split long answers up.
+            </figcaption>
+          </figure>
+        </li>
+        <li>
+          <h4>Paste it into your chatbot</h4>
+          <p>
+            Open a <em>new</em> conversation and paste. The prompt tells the model exactly what to
+            produce: three fenced code blocks — the audio code, the interface, and the parameter
+            list. Let it finish completely; these replies are long.
+          </p>
+        </li>
+        <li>
+          <h4>Copy the whole reply back</h4>
+          <p>
+            Select the entire response and paste it into the big box in the dialog. You don't need
+            to pick the code blocks out yourself — VibePlugin finds them. If your chatbot cut the
+            answer into pieces, ask it to continue and use the <span class="ui">Three parts</span>
+            mode to paste each block separately.
+          </p>
+        </li>
+        <li>
+          <h4>Press <span class="ui primary">Apply &amp; build</span></h4>
+          <p>
+            VibePlugin extracts the code, compiles it, and loads the plugin — exactly as if it had
+            called an API. If the code doesn't compile, the dialog shows the error and gives you a
+            <strong>Copy fix request</strong> button: paste that back into the <em>same</em>
+            conversation, paste the new reply, and try again.
+          </p>
+        </li>
+      </ol>
+      <div class="notice">
+        <b>Keep the same chat open.</b> To refine a plugin later, use the same conversation — the
+        chatbot still has the context of what it built, so "make the tone darker" works the way
+        you'd expect.
+      </div>
+
+      <!-- ---- route 3 ---- -->
+      <h3 id="route-cloud">Route 3 · VibePlugin Cloud credits</h3>
+      <p>
+        The convenience option: one-click generation, no API key to create or manage. Your requests
+        run on our key and are billed against a prepaid credit balance.
+      </p>
+      <ol class="walk">
+        <li>
+          <h4>Click <span class="ui">Account</span> and sign in</h4>
+          <p>
+            The Account button is in the top-right of the plugin window. Create an account or sign
+            in to an existing one. Your remaining credits are then shown in the header, next to the
+            button.
+          </p>
+          <figure class="shot" id="acctShot">
+            <img src="screenshots/tutorial-account.png" alt="The Account dialog, showing sign-in fields and the current credit balance."
+                 onerror="this.closest('figure').hidden=true">
+            <figcaption>The Account dialog: sign in, check your balance, and buy credits.</figcaption>
+          </figure>
+        </li>
+        <li>
+          <h4>Buy credits</h4>
+          <p>
+            With an empty balance, <strong>Buy credits</strong> opens a checkout page. Pick a pack
+            and pay; your balance updates against the email you signed up with.
+          </p>
+        </li>
+        <li>
+          <h4>Choose a <em>Cloud ·</em> model and generate</h4>
+          <p>
+            Set <strong>Generation source</strong> to <em>VibePlugin Cloud</em> in Settings, then
+            pick one of the <em>Cloud ·</em> entries in the Model dropdown. Generate as normal.
+          </p>
+        </li>
+      </ol>
+
+      <h4>What a generation actually costs</h4>
+      <p>
+        It is <strong>not a subscription</strong> and <strong>not a flat fee per prompt</strong>.
+        You buy a balance up front, and each generation costs an amount based on how much work the
+        AI actually did — how long the code and interface came out, and how much the model had to
+        think.
+      </p>
+      <div class="tut-table-wrap">
+        <table class="tut-table">
+          <tr><th>What</th><th>Roughly</th></tr>
+          <tr><td><strong>1 credit</strong></td><td>$0.01</td></tr>
+          <tr><td><strong>A complete plugin</strong> on the standard model</td><td>about <strong>$0.15 – $0.40</strong> (15–40 credits)</td></tr>
+          <tr><td><strong>A small edit</strong> ("make the tone darker")</td><td>considerably less</td></tr>
+          <tr><td><strong>Opus 4.8</strong>, the strongest model</td><td>a few times more</td></tr>
+          <tr><td><strong>Haiku 4.5</strong>, the cheapest</td><td>roughly half</td></tr>
+        </table>
+      </div>
+      <p>
+        After every generation the plugin tells you exactly what it charged and what your balance
+        is, so you're never guessing. If you run out, generation pauses until you top up —
+        <strong>plugins you already made keep working</strong>, and so does everything else in the
+        app.
+      </p>
+      <div class="notice">
+        <b>You never have to pay us anything.</b> Routes 1 and 2 have every feature that route 3
+        has. Cloud credits exist purely so you can skip both the API key and the copy-paste step.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ 4 -->
+  <section class="tut-sec" id="refine">
+    <div class="wrap tut">
+      <span class="eyebrow">Step three</span>
+      <h2>Refining, and the History timeline</h2>
+      <p>
+        The prompt box doesn't go away after the first generation. Send another line and VibePlugin
+        edits the plugin you already have instead of starting over. Useful things to say:
+      </p>
+      <ul>
+        <li><code>add a mix knob so I can blend it with the dry signal</code></li>
+        <li><code>the drive is too subtle — make it much more aggressive at the top of its range</code></li>
+        <li><code>add a VU meter above the knobs</code></li>
+        <li><code>make the interface darker and use a single accent colour</code></li>
+      </ul>
+      <p>
+        Every version — generated, AI-fixed or hand-compiled — is snapshotted onto a timeline in
+        the <strong>History</strong> tab. Pick any entry and press <span class="ui">Restore</span>
+        to go back to it; the audio engine, the interface and the code editors all roll back together.
+      </p>
+      <figure class="shot">
+        <img src="screenshots/tutorial-history.png" alt="The History tab listing three versions of a plugin, newest first, each with a Restore button.">
+        <figcaption>
+          History, newest first. The timeline never truncates, so generating again after stepping
+          back simply branches — a bad generation can't cost you earlier work.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ 4b -->
+  <section class="tut-sec" id="daw">
+    <div class="wrap tut">
+      <span class="eyebrow">In the studio</span>
+      <h2>Living in your DAW</h2>
+      <p>
+        Once a plugin exists, it is an ordinary VST3 and your DAW treats it like one. This section
+        covers the things that matter when you actually make music with it rather than make
+        <em>it</em>.
+      </p>
+
+      <h3>Automation</h3>
+      <p>
+        Every knob the AI creates is exposed to your DAW as a real, automatable plugin parameter.
+        Move a knob in the plugin's interface and the DAW sees it move — so automation recording,
+        parameter learn, and "last touched" mapping all work the way they do with any other plugin.
+      </p>
+      <p>
+        There is one quirk worth understanding, because it looks odd the first time:
+      </p>
+      <div class="tut-table-wrap">
+        <table class="tut-table">
+          <tr><td><strong>The parameter list always has 64 slots</strong></td>
+              <td>VibePlugin can't know in advance how many knobs your plugin will have, so it
+                  publishes a fixed pool of slots to the DAW at load time.</td></tr>
+          <tr><td><strong>Unused slots are called <code>Param 1</code>…<code>Param 64</code></strong></td>
+              <td>Slots your plugin doesn't use keep their placeholder names. Ignore them —
+                  they do nothing.</td></tr>
+          <tr><td><strong>Used slots take the real knob names</strong></td>
+              <td>After a generation the first slots are renamed to <em>Drive</em>, <em>Tone</em>,
+                  <em>Mix</em> and so on, in the order they appear in the plugin.</td></tr>
+          <tr><td><strong>The last slot is reserved</strong></td>
+              <td>Slot 64 carries your DAW's tempo into the plugin. It isn't automatable and
+                  generated plugins never use it — which is why the real ceiling is
+                  <strong>63 knobs</strong>.</td></tr>
+        </table>
+      </div>
+      <p>
+        So: to automate <em>Drive</em>, look for a parameter actually called <em>Drive</em> in your
+        DAW's automation list. The quickest route in most DAWs is to touch the knob in the plugin
+        window and then use <em>add automation for last touched parameter</em>.
+      </p>
+      <div class="notice">
+        <b>Renaming needs a refresh in some DAWs.</b> Parameter names change the moment you generate
+        a new plugin, and a few hosts cache the old list until you close and reopen the plugin
+        window (or the project). If your automation lane still says <code>Param 3</code>, that's
+        what happened — the automation itself is still pointing at the right control.
+      </div>
+      <p>
+        <strong>Regenerating changes the mapping.</strong> If you have automation written and then
+        ask for a substantially different plugin, slot 3 may no longer be the same knob. Automation
+        follows the slot, not the name. Refinements that only add controls are safe; a full rebuild
+        is not. If a project depends on written automation, save the <code>.vstai</code> and stop
+        regenerating that instance.
+      </p>
+
+      <h3>MIDI control</h3>
+      <p>
+        Because the knobs are normal parameters, your DAW's own MIDI-learn does the job: right-click
+        a parameter (or use your host's remote-control mapping) and move a knob on your controller.
+        VibePlugin doesn't need its own MIDI mapping layer.
+      </p>
+
+      <h3>Rendering, bouncing and freezing</h3>
+      <p>
+        A generated plugin renders offline exactly like it plays live, and needs no internet to do
+        it. Freezing and bouncing tracks work normally. Two things to know:
+      </p>
+      <ul>
+        <li><strong>Very large buffer sizes.</strong> The audio engine handles blocks of up to 8192
+            samples. If a host hands it something bigger — which some do during offline bounce with
+            an unusual buffer setting — the plugin passes audio straight through instead of
+            processing it. If a bounce sounds dry when the live playback didn't, drop your buffer
+            size and render again.</li>
+        <li><strong>Latency.</strong> The plugin doesn't report latency compensation, so if you ask
+            for something that inherently delays the signal (lookahead limiting, for example), align
+            it by hand.</li>
+      </ul>
+
+      <h3>CPU</h3>
+      <p>
+        The audio code runs in a sandboxed WebAssembly engine, which is fast but not free — expect
+        somewhat more CPU than a hand-optimised native plugin doing the same job. A handful of
+        instances is fine; forty of them on one project is asking a lot. If a specific plugin is
+        heavy, say so in the prompt (<code>this uses too much CPU, simplify the oversampling</code>)
+        — the model can usually make it cheaper.
+      </p>
+      <p>
+        The plugin window itself (the editor, the code tabs) also costs something while it's open.
+        Use <span class="ui">Hide editor ▴</span> or just close the window while you're mixing.
+      </p>
+
+      <h3>Multiple instances</h3>
+      <p>
+        Each instance is completely independent — its own plugin, its own code, its own history. You
+        can run a generated saturator on one track and a generated reverb on the next. What they
+        share is the settings that live on your machine: your API key, the design school, and the
+        Standard UI kit.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ 4c -->
+  <section class="tut-sec" id="saving">
+    <div class="wrap tut">
+      <span class="eyebrow">Keeping your work</span>
+      <h2>Saving, recall, and what your project stores</h2>
+      <p>
+        There are two independent places your creation lives, and it's worth knowing which is
+        which.
+      </p>
+      <div class="tut-table-wrap">
+        <table class="tut-table">
+          <tr><th>Where</th><th>What happens</th></tr>
+          <tr>
+            <td><strong>Inside your DAW project</strong></td>
+            <td>Automatic. The entire plugin — audio code, interface, parameter values — is stored
+                in the project file when you save, the same way a normal plugin stores its preset.
+                Reopen the session and it comes back, playing what it played before. You do not
+                need to save a file separately just to keep working.</td>
+          </tr>
+          <tr>
+            <td><strong>A <code>.vstai</code> file</strong></td>
+            <td>Manual, via <span class="ui">Save</span>. A small portable file you can back up,
+                reuse in another project, or send to someone else running VibePlugin. This is your
+                only copy that survives independently of the project — there is no hidden library
+                and no cloud backup of your creations.</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="notice">
+        <b>Save the ones you love to <code>.vstai</code>.</b> A creation that exists only inside one
+        DAW project is one corrupted project file away from gone. It costs a second and the files
+        are tiny.
+      </div>
+
+      <h4>When you reopen a project</h4>
+      <p>
+        The sound comes back exactly as you left it — parameter values are restored and the audio
+        engine is set from them before anything plays. One cosmetic caveat: some generated
+        interfaces redraw their knobs at the positions they were <em>designed</em> with until you
+        touch one, even though the sound is already correct. Nudging a control resyncs the display.
+        The audio is never wrong; only the drawing can lag.
+      </p>
+
+      <h4>Sharing a <code>.vstai</code></h4>
+      <p>
+        Anyone with VibePlugin can <span class="ui">Load</span> it — no key, no account, no internet
+        required, and nothing regenerates. If you want to give a plugin to someone who <em>doesn't</em>
+        run VibePlugin, use <a href="#share">Export plugin…</a> instead and hand them a real
+        <code>.vst3</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ 5 -->
+  <section class="tut-sec" id="code">
+    <div class="wrap tut">
+      <span class="eyebrow">Optional</span>
+      <h2>Editing the code by hand</h2>
+      <p>
+        You never have to look at code — but all of it is right there if you want it. The
+        <strong>DSP (AssemblyScript)</strong> tab holds the audio code and <strong>GUI HTML</strong>
+        holds the interface, both in a full editor with syntax highlighting.
+      </p>
+      <figure class="shot">
+        <img src="screenshots/tutorial-code.png" alt="The DSP tab showing the generated AssemblyScript source in a code editor, with Save & Compile, Fix with AI and Revert buttons along the bottom.">
+        <figcaption>
+          The generated audio code, editable. <span class="ui primary">Save &amp; Compile</span>
+          rebuilds and reloads live (<code>Cmd/Ctrl+S</code> works too).
+        </figcaption>
+      </figure>
+      <ul>
+        <li><strong>Save &amp; Compile</strong> rebuilds and swaps the plugin in live. If it doesn't
+            compile, your current sound keeps playing and the errors appear in the Notes tab.</li>
+        <li><strong>Fix with AI</strong> hands the code and the compiler errors back to the model to repair.</li>
+        <li><strong>Revert</strong> restores the last version that compiled.</li>
+      </ul>
+      <p>
+        The editors work offline and ship inside the plugin — there's no external editor and
+        nothing is sent anywhere when you compile. <kbd>Cmd</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd>
+        compiles from either editor.
+      </p>
+
+      <h3>The Notes tab</h3>
+      <p>
+        After every build, the <strong>Notes</strong> tab holds the AI's own explanation of what it
+        made — which control does what, what the ranges are, anything it decided on your behalf.
+        When a build <em>fails</em>, the compiler's errors land here too. It's the first place to
+        look when something is confusing.
+      </p>
+
+      <h3>The Standard UI tab — restyling everything at once</h3>
+      <p>
+        Generated interfaces are built from a shared component kit: the knobs, sliders, buttons and
+        meters. The <strong>Standard UI</strong> tab is that kit's source, and it's editable.
+      </p>
+      <ul>
+        <li><span class="ui accent">Save Standard UI</span> stores your edited kit on this machine.
+            Every plugin you generate from then on is built from it.</li>
+        <li><span class="ui">Reset</span> puts the built-in kit back.</li>
+      </ul>
+      <p>
+        Change the accent colour there and everything you make afterwards picks it up — much less
+        work than asking for the same visual tweak in every prompt.
+      </p>
+
+      <h3>Design schools</h3>
+      <p>
+        In <strong>Settings</strong> there are ten complete visual styles — minimal, vintage analog,
+        brutalist, neon cyberpunk, glassmorphism, bauhaus, terminal phosphor, skeuomorphic, colour
+        pop and modern flagship. Picking one does two things: it restyles the live interface, and it
+        gets described to the AI in every build prompt so new plugins are designed to match.
+      </p>
+      <ul>
+        <li>Leave <span class="ui">Use Settings design</span> ticked (next to the prompt box) for a
+            consistent-looking collection.</li>
+        <li>Untick it when you want the AI to invent a look for one specific plugin.</li>
+        <li><span class="ui">Export selected…</span> saves a style as a file;
+            <span class="ui">Import design…</span> loads one — so you can build your own house style
+            and reuse or share it.</li>
+      </ul>
+      <figure class="shot">
+        <img src="screenshots/design-schools.png" alt="A grid showing the ten built-in design styles, each rendering the same set of plugin controls in a different visual language.">
+        <figcaption>The ten built-in design schools, all rendering the same component kit.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================ 6 -->
+  <section class="tut-sec" id="share">
+    <div class="wrap tut">
+      <span class="eyebrow">Step four</span>
+      <h2>Publishing, the gallery, and standalone export</h2>
+      <div class="tut-table-wrap">
+        <table class="tut-table">
+          <tr><th>What</th><th>What it does</th></tr>
+          <tr>
+            <td><strong>Save</strong> → <code>.vstai</code></td>
+            <td>A small portable file holding the whole plugin. Anyone running VibePlugin can
+                <strong>Load</strong> it. Your DAW project stores the same thing automatically.</td>
+          </tr>
+          <tr>
+            <td><strong>Publish</strong></td>
+            <td>Uploads your creation to the <a href="gallery/index.html">web gallery</a>, where it
+                plays live in a browser and others can download it.</td>
+          </tr>
+          <tr>
+            <td><strong>Export plugin…</strong></td>
+            <td>Turns the loaded creation into its own standalone, locked <code>.vst3</code> with its
+                own name. It opens straight to the finished interface — no prompt box, no editor —
+                so you can hand a finished instrument to someone who doesn't care how it was made.</td>
+          </tr>
+        </table>
+      </div>
+      <div class="notice ok">
+        <b>Exported plugins need no internet and no AI.</b> The only time VibePlugin goes online is
+        when you generate or edit a plugin. A saved <code>.vstai</code> and every exported plugin
+        run completely offline.
+      </div>
+
+      <h3>The gallery, from inside the plugin</h3>
+      <p>
+        <span class="ui">Gallery</span> in the toolbar browses the public catalogue without leaving
+        your DAW. Search it, open an entry to see what it is, and press <strong>Load Plugin</strong>
+        to pull it straight into the instance you're working in — it downloads and starts playing
+        on the spot. Nothing is overwritten permanently; your previous creation is still in
+        <strong>History</strong>.
+      </p>
+      <p>
+        It's also the best way to learn what to ask for. Load something that impresses you and read
+        its <strong>Notes</strong> and code.
+      </p>
+
+      <h3>Publishing your own</h3>
+      <p>
+        <span class="ui accent">Publish</span> uploads the loaded creation to the
+        <a href="gallery/index.html">web gallery</a>, where it plays live in a browser and anyone
+        can download it. You'll be asked for a name. Publish only what you're happy to share
+        publicly — the code and interface go up with it.
+      </p>
+
+      <h3>Exporting a standalone plugin</h3>
+      <p>
+        <span class="ui accent">Export plugin…</span> is how you hand a finished instrument to
+        someone who doesn't care that an AI wrote it — or who doesn't have VibePlugin at all.
+      </p>
+      <ul>
+        <li>You give it a <strong>name</strong>, and out comes a self-contained <code>.vst3</code>
+            with that name on it.</li>
+        <li>It opens <strong>straight to the finished interface</strong> — no prompt box, no code
+            tabs, no Settings. It looks and behaves like a normal plugin.</li>
+        <li>Each export gets its own plugin identity, so exports sit alongside each other and
+            alongside VibePlugin in a DAW's plugin list without collisions.</li>
+        <li>It needs no API key, no account, and no internet.</li>
+      </ul>
+      <p>
+        <strong>On macOS</strong>, fill in a <em>Notarization profile</em> in Settings and exports
+        are signed and notarized automatically as they're built, so they open on other Macs with no
+        security warning. Leave it blank and export still works — the recipient will just have to
+        right-click ▸ Open the first time.
+      </p>
+      <p>
+        Exported plugins inherit VibePlugin's licence terms; if you plan to sell what you export,
+        read the <a href="https://github.com/k1ln/VibePlugin/blob/main/LICENSE" target="_blank" rel="noopener">licence</a>
+        first.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ 6b -->
+  <section class="tut-sec" id="diag">
+    <div class="wrap tut">
+      <span class="eyebrow">When something's wrong</span>
+      <h2>Diagnostics: seeing what it's doing</h2>
+      <p>
+        A DAW hides everything a plugin prints, which makes "it just hangs" very hard to debug. So
+        VibePlugin keeps its own log: <strong>Settings ▸ Diagnostics</strong>, newest entries at the
+        bottom.
+      </p>
+      <p>It records, for this session:</p>
+      <ul>
+        <li>every generation — which model, how long it took, how many tokens it used;</li>
+        <li>every compile, and the errors from any that failed;</li>
+        <li>what was loaded, restored or saved, and when.</li>
+      </ul>
+      <p>
+        <span class="ui">Copy all</span> puts the whole log on your clipboard. If you
+        <a href="https://github.com/k1ln/VibePlugin/issues" target="_blank" rel="noopener">report a
+        problem</a>, pasting that log — plus your OS, DAW and the version badge in the header — turns
+        a hard bug report into an easy one.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ 7 -->
+  <section class="tut-sec" id="trouble">
+    <div class="wrap tut">
+      <span class="eyebrow">Help</span>
+      <h2>Troubleshooting</h2>
+
+      <h3>It won't load</h3>
+
+      <h4>The plugin doesn't appear in my DAW</h4>
+      <p>
+        Check the <code>.vst3</code> bundles are in the right folder and rescan — see
+        <a href="#install">Install</a>, which lists where the rescan button lives in each DAW. The
+        two usual culprits are a <strong>cached plugin list</strong> and a <strong>blocklist</strong>
+        entry from an earlier failed scan; clear the blocklist and rescan. On macOS, if the system
+        refuses to load it, right-click the <code>.vst3</code> ▸ <strong>Open</strong>, or run
+        <code>xattr -dr com.apple.quarantine "VibePlugin FX.vst3"</code>. Remember Logic Pro can't
+        load it at all — it's Audio Units only.
+      </p>
+
+      <h4>It scans, but fails to load in the project (Windows)</h4>
+      <p>
+        Older builds could be found by a scan and then silently refuse to instantiate on Windows,
+        because a library inside the bundle wasn't on Windows' search path. That's fixed — install
+        the <a href="releases.html">latest release</a> over the old one, and make sure you deleted
+        the previous <code>.vst3</code> rather than installing alongside it.
+      </p>
+
+      <h3>The window looks wrong</h3>
+
+      <h4>The interface is blank, or says "juce.backend couldn't be reached"</h4>
+      <p>
+        Sound worked and the code tabs were fine, but the GUI panel was empty. This was a limitation
+        of the embedded browser on older systems (macOS 11 and earlier). Current versions detect it
+        and draw the interface a different way automatically, so update to the
+        <a href="releases.html">latest release</a>. If you still see it, please
+        <a href="https://github.com/k1ln/VibePlugin/issues" target="_blank" rel="noopener">open an issue</a>
+        with your OS and DAW — and in the meantime the plugin is still usable: the audio runs and
+        the interface source is visible in the <strong>GUI HTML</strong> tab.
+      </p>
+
+      <h4>I get an Internet Explorer error page instead of the interface (Windows)</h4>
+      <p>
+        An old-build symptom: the embedded browser fell back to Internet Explorer. Fixed in current
+        releases. Update, and make sure the
+        <a href="https://developer.microsoft.com/microsoft-edge/webview2/" target="_blank" rel="noopener">WebView2
+        runtime</a> is installed — it ships with Windows 11 and current Windows 10, but a stripped
+        or very old system may not have it.
+      </p>
+
+      <h3>Sound problems</h3>
+
+      <h4>There's no sound at all</h4>
+      <ul>
+        <li><strong>Did you generate anything yet?</strong> A fresh instance has no plugin in it —
+            what you see is a style demo, not an instrument.</li>
+        <li><strong>Right plugin for the track?</strong> VibePlugin FX needs audio arriving at it;
+            VibePlugin Synth needs MIDI notes. See <a href="#which">FX or Synth</a>.</li>
+        <li><strong>Synth: are notes reaching the track?</strong> Test with the on-screen keyboard
+            in the generated interface if there is one — if that makes sound, the problem is your
+            MIDI routing, not the plugin.</li>
+      </ul>
+
+      <h4>A knob doesn't do anything</h4>
+      <p>
+        It happens — the AI wired a control it then didn't use. Just say so:
+        <code>the tone knob doesn't change anything, please fix it</code>. Refining is much cheaper
+        than generating from scratch.
+      </p>
+
+      <h4>The bounce sounds different from the playback</h4>
+      <p>
+        If the rendered file sounds dry or unprocessed, your host probably handed the plugin an
+        unusually large buffer during offline render. The engine passes audio through untouched
+        above 8192 samples per block. Lower the buffer size and render again.
+      </p>
+
+      <h4>Notes hang and won't stop (FL Studio, macOS)</h4>
+      <p>
+        Caused by the embedded browser swallowing key-release events, so the note-off never arrived.
+        Fixed in current releases — update. As an immediate rescue, any DAW's panic / all-notes-off
+        stops it.
+      </p>
+
+      <h3>Generating</h3>
+
+      <h4>Trying to generate opened a payment website</h4>
+      <p>
+        You had <strong>VibePlugin Cloud</strong> selected as the generation source, which is the
+        pay-as-you-go route. Switch to <a href="#route-chatbot">route 2</a> (free) or enter your own
+        API key as in <a href="#route-key">route 1</a>.
+      </p>
+
+      <h4>Generation fails, or the reply won't build</h4>
+      <p>
+        Open <strong>Notes</strong> for the compiler errors, and press
+        <span class="ui">Fix with AI</span> — repairing a failed build is what it's for. On the
+        chatbot route, use <strong>Copy fix request</strong> and paste it into the
+        <em>same</em> conversation. If a chatbot truncated its answer, ask it to continue and use
+        <span class="ui">Three parts</span> mode to paste each block separately. Your previous
+        working plugin keeps playing throughout; a failed build can't break what you had.
+      </p>
+
+      <h4>My automation is pointing at the wrong knob</h4>
+      <p>
+        Automation follows the parameter slot, not the name, and regenerating a plugin can shuffle
+        which knob sits in which slot. See <a href="#daw">Automation</a>. Restore the earlier version
+        from <strong>History</strong> to get the old layout back.
+      </p>
+
+      <h3>General</h3>
+
+      <h4>Does it need an internet connection?</h4>
+      <p>
+        Only to generate or edit a plugin. Once a plugin exists it runs entirely offline — in your
+        DAW, in a saved <code>.vstai</code>, and in any plugin you export. On the chatbot route, the
+        plugin itself never connects at all; you carry the text.
+      </p>
+
+      <h4>Where does my data go?</h4>
+      <p>
+        Your API key is stored locally on your machine. On route 1 your prompts go directly to
+        Anthropic; on route 3 they pass through the VibePlugin Cloud server; on route 2 nothing
+        leaves the plugin at all. Your creations are never uploaded anywhere unless you press
+        <span class="ui accent">Publish</span>.
+      </p>
+
+      <h4>Something else is broken</h4>
+      <p>
+        Copy the <a href="#diag">Diagnostics</a> log, note your OS, DAW and the version badge in the
+        plugin header, and
+        <a href="https://github.com/k1ln/VibePlugin/issues" target="_blank" rel="noopener">open an
+        issue</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap" style="text-align:center">
+      <h2 style="margin:0 0 14px">Ready to make something?</h2>
+      <p class="lead" style="margin:0 auto 24px;max-width:46ch;color:var(--ink-2)">
+        Free and open source. Start with a chatbot you already have — no key, no account.
+      </p>
+      <a class="btn primary lg" href="releases.html">Download VibePlugin</a>
+    </div>
+  </section>
+
+  <!-- ========================================================= footer
+       Shared footer — keep identical across all four pages. -->
+  <footer>
+    <div class="wrap">
+      <a class="brand" href="./index.html">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#4f8dff"/>
+          <path d="M7 16h3l2-7 4 14 3-9 2 4h4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <span><b>Vibe</b>Plugin</span>
+      </a>
+      <div class="spacer"></div>
+      <a class="f" href="tutorial.html">Tutorial</a>
+      <a class="f" href="gallery/index.html">Gallery</a>
+      <a class="f" href="releases.html">Downloads</a>
+      <a class="f" href="https://github.com/k1ln/VibePlugin" target="_blank" rel="noopener">GitHub</a>
+      <a class="f" href="https://github.com/k1ln/VibePlugin/issues" target="_blank" rel="noopener">Issues</a>
+      <span class="muted">&copy; 2026 VibePlugin</span>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>
