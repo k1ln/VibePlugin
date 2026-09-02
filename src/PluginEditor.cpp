@@ -110,18 +110,19 @@ VstaiAudioProcessorEditor::VstaiAudioProcessorEditor (VstaiAudioProcessor& p)
     titleLabel.setTooltip ("Describe a plugin in plain language; the AI builds and installs it.");
     addAndMakeVisible (titleLabel);
 
-    // Bigger, multi-line prompt box. Enter still triggers Generate (so it
-    // doubles as a comfortable multi-line field for longer descriptions).
+    // Bigger, multi-line prompt box. Enter inserts a newline; Cmd/Ctrl+Enter
+    // generates (see keyPressed), so a long multi-line description can't fire a
+    // build half-way through being typed.
     promptBox.setMultiLine (true, true);
-    promptBox.setReturnKeyStartsNewLine (false);
+    promptBox.setReturnKeyStartsNewLine (true);
     promptBox.setScrollbarsShown (true);
     promptBox.setFont (juce::Font (juce::FontOptions (16.0f)));
     promptBox.setTextToShowWhenEmpty ("Describe the plugin you want, or a change to make"
-                                      "  (Enter to generate)", juce::Colours::grey);
+                                      "  (Cmd/Ctrl+Enter to generate)", juce::Colours::grey);
     promptBox.setColour (juce::TextEditor::backgroundColourId, juce::Colour (0xff141a24));
     promptBox.setColour (juce::TextEditor::outlineColourId,    juce::Colour (0xff2a3344));
     promptBox.setColour (juce::TextEditor::focusedOutlineColourId, juce::Colour (0xff4d7cc7));
-    promptBox.onReturnKey = [this] { doGenerate(); };
+    promptBox.addKeyListener (this);
     addAndMakeVisible (promptBox);
 
     generateButton.onClick = [this] { doGenerate(); };
@@ -350,6 +351,7 @@ VstaiAudioProcessorEditor::~VstaiAudioProcessorEditor()
     keyUpMonitor.reset();   // stop forwarding before `web` goes away
 #endif
     juce::Desktop::getInstance().removeFocusChangeListener (this);
+    promptBox.removeKeyListener (this);
     releaseGuiNotes();   // window closing: don't leave a note droning
     processor.onDocumentChanged  = nullptr;
     processor.onThinkingDelta    = nullptr;
@@ -368,6 +370,18 @@ void VstaiAudioProcessorEditor::releaseGuiNotes()
 {
     if (processor.isInstrument())
         processor.allNotesOffFromGui();
+}
+
+bool VstaiAudioProcessorEditor::keyPressed (const juce::KeyPress& key, juce::Component* origin)
+{
+    if (origin == &promptBox
+        && key.getKeyCode() == juce::KeyPress::returnKey
+        && key.getModifiers().isCommandDown())
+    {
+        doGenerate();
+        return true;   // consumed: don't also insert a newline
+    }
+    return false;      // everything else falls through to the TextEditor
 }
 
 void VstaiAudioProcessorEditor::globalFocusChanged (juce::Component* focused)

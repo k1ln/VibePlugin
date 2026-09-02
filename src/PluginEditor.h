@@ -14,7 +14,8 @@
 
 class VstaiAudioProcessorEditor : public juce::AudioProcessorEditor,
                                   private juce::Timer,
-                                  private juce::FocusChangeListener
+                                  private juce::FocusChangeListener,
+                                  private juce::KeyListener
 {
 public:
     explicit VstaiAudioProcessorEditor (VstaiAudioProcessor&);
@@ -29,6 +30,12 @@ public:
     void globalFocusChanged (juce::Component* focused) override;
 
 private:
+    // Cmd+Enter (macOS) / Ctrl+Enter generates from the prompt box; a bare Enter
+    // inserts a newline. Attached to promptBox as a KeyListener because JUCE's
+    // TextEditor::onReturnKey carries no modifier information.
+    using juce::Component::keyPressed;   // don't hide the 1-arg Component overload
+    bool keyPressed (const juce::KeyPress& key, juce::Component* origin) override;
+
     void releaseGuiNotes();    // flush GUI-held notes if this is a synth build
     void doGenerate();
     void doGenerateManual();   // "bring your own chatbot" flow (no API key/tokens)

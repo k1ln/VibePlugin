@@ -654,8 +654,11 @@ function setCollapsed(c){
 }
 on("collapseBtn","click", () => setCollapsed(!collapsed));
 
+// Cmd+Enter (macOS) / Ctrl+Enter (Windows, Linux) generates. A bare Enter inserts
+// a newline like any other textarea, so a multi-line prompt can't fire a build by
+// accident half-way through being typed.
 $("promptBox").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); doGenerate(); }
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)){ e.preventDefault(); doGenerate(); }
 });
 
 /* ---------- standard UI tab ----------------------------------------- */
