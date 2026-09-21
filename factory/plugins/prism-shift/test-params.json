@@ -1,0 +1,241 @@
+[
+ {
+  "name": "Mode",
+  "index": 0,
+  "min": 0,
+  "max": 1,
+  "default": 1,
+  "step": 1
+ },
+ {
+  "name": "Key",
+  "index": 1,
+  "min": 0,
+  "max": 11,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "Scale",
+  "index": 2,
+  "min": 0,
+  "max": 7,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "Correct",
+  "index": 3,
+  "min": 0,
+  "max": 1,
+  "default": 0.5
+ },
+ {
+  "name": "Main",
+  "index": 4,
+  "min": 0,
+  "max": 1.5,
+  "default": 0.6
+ },
+ {
+  "name": "Dry",
+  "index": 5,
+  "min": 0,
+  "max": 1.5,
+  "default": 0.8
+ },
+ {
+  "name": "Size",
+  "index": 6,
+  "min": 0,
+  "max": 1,
+  "default": 0.5
+ },
+ {
+  "name": "Glide",
+  "index": 7,
+  "min": 0,
+  "max": 1,
+  "default": 0.15
+ },
+ {
+  "name": "Lock",
+  "index": 8,
+  "min": 0,
+  "max": 1,
+  "default": 1,
+  "step": 1
+ },
+ {
+  "name": "Humanize",
+  "index": 9,
+  "min": 0,
+  "max": 1,
+  "default": 0.25
+ },
+ {
+  "name": "Feedback",
+  "index": 10,
+  "min": 0,
+  "max": 1,
+  "default": 0.2
+ },
+ {
+  "name": "Tracking",
+  "index": 11,
+  "min": 0,
+  "max": 1,
+  "default": 0.5
+ },
+ {
+  "name": "Level",
+  "index": 12,
+  "min": 0,
+  "max": 1.5,
+  "default": 0.9
+ },
+ {
+  "name": "V1 Level",
+  "index": 13,
+  "min": 0,
+  "max": 1,
+  "default": 0.7
+ },
+ {
+  "name": "V1 Interval",
+  "index": 14,
+  "min": -12,
+  "max": 12,
+  "default": 2,
+  "step": 1
+ },
+ {
+  "name": "V1 Fine",
+  "index": 15,
+  "min": -50,
+  "max": 50,
+  "default": 0
+ },
+ {
+  "name": "V1 Pan",
+  "index": 16,
+  "min": -1,
+  "max": 1,
+  "default": -0.6
+ },
+ {
+  "name": "V1 Delay",
+  "index": 17,
+  "min": 0,
+  "max": 1,
+  "default": 0.05
+ },
+ {
+  "name": "V2 Level",
+  "index": 18,
+  "min": 0,
+  "max": 1,
+  "default": 0.6
+ },
+ {
+  "name": "V2 Interval",
+  "index": 19,
+  "min": -12,
+  "max": 12,
+  "default": 4,
+  "step": 1
+ },
+ {
+  "name": "V2 Fine",
+  "index": 20,
+  "min": -50,
+  "max": 50,
+  "default": 0
+ },
+ {
+  "name": "V2 Pan",
+  "index": 21,
+  "min": -1,
+  "max": 1,
+  "default": 0.6
+ },
+ {
+  "name": "V2 Delay",
+  "index": 22,
+  "min": 0,
+  "max": 1,
+  "default": 0.1
+ },
+ {
+  "name": "V3 Level",
+  "index": 23,
+  "min": 0,
+  "max": 1,
+  "default": 0.4
+ },
+ {
+  "name": "V3 Interval",
+  "index": 24,
+  "min": -12,
+  "max": 12,
+  "default": -7,
+  "step": 1
+ },
+ {
+  "name": "V3 Fine",
+  "index": 25,
+  "min": -50,
+  "max": 50,
+  "default": 0
+ },
+ {
+  "name": "V3 Pan",
+  "index": 26,
+  "min": -1,
+  "max": 1,
+  "default": -0.2
+ },
+ {
+  "name": "V3 Delay",
+  "index": 27,
+  "min": 0,
+  "max": 1,
+  "default": 0
+ },
+ {
+  "name": "V4 Level",
+  "index": 28,
+  "min": 0,
+  "max": 1,
+  "default": 0.5
+ },
+ {
+  "name": "V4 Interval",
+  "index": 29,
+  "min": -12,
+  "max": 12,
+  "default": 7,
+  "step": 1
+ },
+ {
+  "name": "V4 Fine",
+  "index": 30,
+  "min": -50,
+  "max": 50,
+  "default": 0
+ },
+ {
+  "name": "V4 Pan",
+  "index": 31,
+  "min": -1,
+  "max": 1,
+  "default": 0.2
+ },
+ {
+  "name": "V4 Delay",
+  "index": 32,
+  "min": 0,
+  "max": 1,
+  "default": 0
+ }
+]

@@ -1,0 +1,495 @@
+[
+ {
+  "name": "Tempo",
+  "index": 0,
+  "min": 30,
+  "max": 300,
+  "default": 120
+ },
+ {
+  "name": "Steps",
+  "index": 1,
+  "min": 1,
+  "max": 16,
+  "default": 16,
+  "step": 1
+ },
+ {
+  "name": "Division",
+  "index": 2,
+  "min": 0,
+  "max": 4,
+  "default": 2,
+  "step": 1
+ },
+ {
+  "name": "Swing",
+  "index": 3,
+  "min": 0,
+  "max": 0.6,
+  "default": 0.15
+ },
+ {
+  "name": "Capture",
+  "index": 4,
+  "min": 0,
+  "max": 3,
+  "default": 2,
+  "step": 1
+ },
+ {
+  "name": "Hold",
+  "index": 5,
+  "min": 0,
+  "max": 1,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "Chance",
+  "index": 6,
+  "min": 0,
+  "max": 1,
+  "default": 1
+ },
+ {
+  "name": "Jitter",
+  "index": 7,
+  "min": 0,
+  "max": 1,
+  "default": 0
+ },
+ {
+  "name": "Fade",
+  "index": 8,
+  "min": 0,
+  "max": 1,
+  "default": 0.25
+ },
+ {
+  "name": "Tone",
+  "index": 9,
+  "min": -1,
+  "max": 1,
+  "default": 0
+ },
+ {
+  "name": "Crush",
+  "index": 10,
+  "min": 0,
+  "max": 1,
+  "default": 0
+ },
+ {
+  "name": "Spread",
+  "index": 11,
+  "min": 0,
+  "max": 1,
+  "default": 0.4
+ },
+ {
+  "name": "Duck",
+  "index": 12,
+  "min": 0,
+  "max": 1,
+  "default": 0.9
+ },
+ {
+  "name": "Mix",
+  "index": 13,
+  "min": 0,
+  "max": 1,
+  "default": 0.85
+ },
+ {
+  "name": "Level",
+  "index": 14,
+  "min": 0,
+  "max": 1.5,
+  "default": 0.9
+ },
+ {
+  "name": "S1 Slice",
+  "index": 15,
+  "min": 0,
+  "max": 16,
+  "default": 16,
+  "step": 1
+ },
+ {
+  "name": "S1 Pitch",
+  "index": 16,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S1 Flags",
+  "index": 17,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S2 Slice",
+  "index": 18,
+  "min": 0,
+  "max": 16,
+  "default": 6,
+  "step": 1
+ },
+ {
+  "name": "S2 Pitch",
+  "index": 19,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S2 Flags",
+  "index": 20,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S3 Slice",
+  "index": 21,
+  "min": 0,
+  "max": 16,
+  "default": 12,
+  "step": 1
+ },
+ {
+  "name": "S3 Pitch",
+  "index": 22,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S3 Flags",
+  "index": 23,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S4 Slice",
+  "index": 24,
+  "min": 0,
+  "max": 16,
+  "default": 16,
+  "step": 1
+ },
+ {
+  "name": "S4 Pitch",
+  "index": 25,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S4 Flags",
+  "index": 26,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S5 Slice",
+  "index": 27,
+  "min": 0,
+  "max": 16,
+  "default": 8,
+  "step": 1
+ },
+ {
+  "name": "S5 Pitch",
+  "index": 28,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S5 Flags",
+  "index": 29,
+  "min": 0,
+  "max": 31,
+  "default": 26,
+  "step": 1
+ },
+ {
+  "name": "S6 Slice",
+  "index": 30,
+  "min": 0,
+  "max": 16,
+  "default": 10,
+  "step": 1
+ },
+ {
+  "name": "S6 Pitch",
+  "index": 31,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S6 Flags",
+  "index": 32,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S7 Slice",
+  "index": 33,
+  "min": 0,
+  "max": 16,
+  "default": 4,
+  "step": 1
+ },
+ {
+  "name": "S7 Pitch",
+  "index": 34,
+  "min": -24,
+  "max": 24,
+  "default": -12,
+  "step": 1
+ },
+ {
+  "name": "S7 Flags",
+  "index": 35,
+  "min": 0,
+  "max": 31,
+  "default": 28,
+  "step": 1
+ },
+ {
+  "name": "S8 Slice",
+  "index": 36,
+  "min": 0,
+  "max": 16,
+  "default": 3,
+  "step": 1
+ },
+ {
+  "name": "S8 Pitch",
+  "index": 37,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S8 Flags",
+  "index": 38,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S9 Slice",
+  "index": 39,
+  "min": 0,
+  "max": 16,
+  "default": 16,
+  "step": 1
+ },
+ {
+  "name": "S9 Pitch",
+  "index": 40,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S9 Flags",
+  "index": 41,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S10 Slice",
+  "index": 42,
+  "min": 0,
+  "max": 16,
+  "default": 14,
+  "step": 1
+ },
+ {
+  "name": "S10 Pitch",
+  "index": 43,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S10 Flags",
+  "index": 44,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S11 Slice",
+  "index": 45,
+  "min": 0,
+  "max": 16,
+  "default": 10,
+  "step": 1
+ },
+ {
+  "name": "S11 Pitch",
+  "index": 46,
+  "min": -24,
+  "max": 24,
+  "default": 7,
+  "step": 1
+ },
+ {
+  "name": "S11 Flags",
+  "index": 47,
+  "min": 0,
+  "max": 31,
+  "default": 25,
+  "step": 1
+ },
+ {
+  "name": "S12 Slice",
+  "index": 48,
+  "min": 0,
+  "max": 16,
+  "default": 8,
+  "step": 1
+ },
+ {
+  "name": "S12 Pitch",
+  "index": 49,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S12 Flags",
+  "index": 50,
+  "min": 0,
+  "max": 31,
+  "default": 24,
+  "step": 1
+ },
+ {
+  "name": "S13 Slice",
+  "index": 51,
+  "min": 0,
+  "max": 16,
+  "default": 6,
+  "step": 1
+ },
+ {
+  "name": "S13 Pitch",
+  "index": 52,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S13 Flags",
+  "index": 53,
+  "min": 0,
+  "max": 31,
+  "default": 30,
+  "step": 1
+ },
+ {
+  "name": "S14 Slice",
+  "index": 54,
+  "min": 0,
+  "max": 16,
+  "default": 6,
+  "step": 1
+ },
+ {
+  "name": "S14 Pitch",
+  "index": 55,
+  "min": -24,
+  "max": 24,
+  "default": 12,
+  "step": 1
+ },
+ {
+  "name": "S14 Flags",
+  "index": 56,
+  "min": 0,
+  "max": 31,
+  "default": 25,
+  "step": 1
+ },
+ {
+  "name": "S15 Slice",
+  "index": 57,
+  "min": 0,
+  "max": 16,
+  "default": 2,
+  "step": 1
+ },
+ {
+  "name": "S15 Pitch",
+  "index": 58,
+  "min": -24,
+  "max": 24,
+  "default": 0,
+  "step": 1
+ },
+ {
+  "name": "S15 Flags",
+  "index": 59,
+  "min": 0,
+  "max": 31,
+  "default": 28,
+  "step": 1
+ },
+ {
+  "name": "S16 Slice",
+  "index": 60,
+  "min": 0,
+  "max": 16,
+  "default": 1,
+  "step": 1
+ },
+ {
+  "name": "S16 Pitch",
+  "index": 61,
+  "min": -24,
+  "max": 24,
+  "default": -5,
+  "step": 1
+ },
+ {
+  "name": "S16 Flags",
+  "index": 62,
+  "min": 0,
+  "max": 31,
+  "default": 27,
+  "step": 1
+ }
+]

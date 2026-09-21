@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prism Shift</title>
+<style>
+:root{--a:#ff9ecf;--a2:#ffd479;--bg0:#0a0610;--bg1:#170d24;--ink:#fbeef6;--dim:#9c8aa8;--panel:rgba(30,18,44,.62);--stroke:rgba(255,158,207,.17);--track:rgba(255,158,207,.13);--knob:#231433}
+/*@@KITCSS@@*/
+.stage{position:relative;min-height:100vh;overflow:hidden;background:radial-gradient(1000px 560px at 15% -10%,rgba(255,158,207,.15),transparent 60%),radial-gradient(900px 600px at 95% 100%,rgba(127,227,255,.11),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg0) 70%)}
+.hero{padding:0;overflow:hidden;border-radius:18px;margin-top:2px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end;margin:0 0 14px}
+.bar .grp{display:flex;flex-direction:column}
+.voices{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.voices .card{padding:12px 6px 6px}
+.voices .ivrow{display:flex;justify-content:center;margin:4px 0 2px}
+.voices .row{gap:0 0}
+.voices .knob{width:68px}
+.glob{margin-top:16px}
+.glob .row{justify-content:space-between}
+.lockw{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 10px}
+@media (max-width:860px){.voices{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.voices{grid-template-columns:1fr}}
+.dotv{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--a);margin-right:6px;box-shadow:0 0 8px var(--a)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="wrap">
+    <header class="top">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path d="M24 5L44 41H4Z" fill="rgba(255,255,255,.08)" stroke="#fff" stroke-opacity=".7" stroke-width="1.5"/>
+        <path d="M2 26L18 24" stroke="#fff" stroke-width="2"/>
+        <path d="M30 26L46 14" stroke="#ff9ecf" stroke-width="2"/><path d="M30 28L46 24" stroke="#ffd479" stroke-width="2"/><path d="M30 30L46 34" stroke="#7fe3ff" stroke-width="2"/><path d="M29 32L45 44" stroke="#b79cff" stroke-width="2"/>
+      </svg>
+      <div><h1>PRISM SHIFT</h1><div class="sub">pitch-tracking granular harmonizer</div></div>
+      <div class="grow"></div>
+      <div id="modeSlot"></div>
+    </header>
+    <div class="bar">
+      <div class="grp"><div class="lbl">key</div><div id="keySlot"></div></div>
+      <div class="grp"><div class="lbl">scale</div><div id="scaleSlot"></div></div>
+    </div>
+    <div class="card hero" id="hero"></div>
+    <div class="voices" id="voices"></div>
+    <div class="card glob" id="glob"><div class="ttl">engine</div></div>
+    <div class="hint">the keyboard previews a demo melody through your current settings &middot; drag knobs vertically &middot; double-click = reset</div>
+  </div>
+</div>
+<script>
+/*@@KITJS@@*/
+</script>
+<script>
+(function () {
+  "use strict";
+  VS.define(/*@@PARAMS@@*/[]);
+  var P = { MODE:0, KEY:1, SCALE:2, CORR:3, MAIN:4, DRY:5, SIZE:6, GLIDE:7, LOCK:8, HUM:9, FB:10, TRACK:11, LEVEL:12, V0:13 };
+  var SCN = [7, 7, 7, 7, 7, 7, 7, 5];
+  var SC = [[0,2,4,5,7,9,11],[0,2,3,5,7,8,10],[0,2,3,5,7,9,10],[0,2,4,5,7,9,10],[0,2,4,6,7,9,11],[0,1,3,5,7,8,10],[0,2,3,5,7,8,11],[0,3,5,7,10]];
+  var NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  var VCOL = ["#ff9ecf", "#ffd479", "#7fe3ff", "#b79cff"];
+  function pct(x) { return Math.round(x * 100) + "%"; }
+
+  // same ladder maths as the DSP
+  function ladder(idx, key, sc) {
+    var n = SCN[sc], o = Math.floor(idx / n), k = idx - o * n;
+    return key + o * 12 + SC[sc][k];
+  }
+  function nearestIdx(m, key, sc) {
+    var n = SCN[sc], o = Math.floor((m - key) / 12), best = o * n, bd = 1e9;
+    for (var i = (o - 1) * n; i < (o + 2) * n; i++) { var d = Math.abs(ladder(i, key, sc) - m); if (d < bd) { bd = d; best = i; } }
+    return best;
+  }
+  function ordName(n) { return n === 1 ? "Unison" : n === 8 ? "Octave" : n + (n === 2 ? "nd" : n === 3 ? "rd" : "th"); }
+  function ivName(x) {
+    x = Math.round(x);
+    if (VS.v(P.MODE) >= 0.5) { if (x === 0) return "Unison"; return ordName(Math.abs(x) + 1) + (x > 0 ? " ↑" : " ↓"); }
+    return (x > 0 ? "+" : "") + x + " st";
+  }
+
+  function build() {
+    VS.seg(document.getElementById("modeSlot"), P.MODE, ["Chromatic", "Diatonic"]);
+    VS.seg(document.getElementById("keySlot"), P.KEY, NAMES);
+    VS.seg(document.getElementById("scaleSlot"), P.SCALE, ["Major", "Minor", "Dorian", "Mixo", "Lydian", "Phryg", "Harm min", "Pent min"]);
+    var cv = VS.canvas(document.getElementById("hero"), 270);
+
+    var vbox = document.getElementById("voices");
+    for (var v = 0; v < 4; v++) {
+      (function (v) {
+        var b = P.V0 + v * 5;
+        var c = VS.el("div", "card", vbox); c.style.setProperty("--a", VCOL[v]); c.style.setProperty("--a2", VCOL[v]);
+        var t = VS.el("div", "ttl", c); t.innerHTML = '<span class="dotv"></span>voice ' + (v + 1);
+        var ir = VS.el("div", "ivrow", c); ir.style.paddingTop = "6px";
+        VS.stepper(ir, b + 1, ivName, P.MODE);
+        var r = VS.el("div", "row", c);
+        VS.knob(r, b, { fmt: pct, label: "Level", size: 50 });
+        VS.knob(r, b + 2, { fmt: function (x) { return (x > 0 ? "+" : "") + Math.round(x) + " ct"; }, label: "Fine", size: 50 });
+        VS.knob(r, b + 3, { fmt: function (x) { return Math.abs(x) < 0.04 ? "C" : (x < 0 ? "L" : "R") + Math.round(Math.abs(x) * 100); }, label: "Pan", size: 50 });
+        VS.knob(r, b + 4, { fmt: function (x) { return Math.round(x * 300) + " ms"; }, label: "Delay", size: 50 });
+      })(v);
+    }
+    var g = document.getElementById("glob");
+    var gr = VS.el("div", "row", g); gr.style.paddingTop = "6px";
+    VS.knob(gr, P.CORR, { fmt: function (x) { return x < 0.03 ? "natural" : pct(x); } });
+    VS.knob(gr, P.MAIN, { fmt: pct, label: "Main (tuned)" });
+    VS.knob(gr, P.DRY, { fmt: pct });
+    VS.knob(gr, P.SIZE, { fmt: function (x) { return Math.round(15 * Math.pow(8, x)) + " ms"; }, label: "Grain" });
+    VS.knob(gr, P.GLIDE, { fmt: function (x) { var m = x * x * 500; return m < 1 ? "off" : Math.round(m) + " ms"; } });
+    VS.knob(gr, P.HUM, { fmt: pct, label: "Humanize" });
+    VS.knob(gr, P.FB, { fmt: pct });
+    VS.knob(gr, P.TRACK, { fmt: pct, label: "Tracking" });
+    VS.knob(gr, P.LEVEL, { fmt: function (x) { return (x <= 0.001 ? "-inf" : (20 * Math.log10(x)).toFixed(1)) + " dB"; }, label: "Out" });
+    var lw = VS.el("div", "lockw", gr); VS.toggle(lw, P.LOCK, "Lock"); VS.el("div", "lbl", lw, "period-locked").style.marginTop = "5px";
+
+    // ---------------------------------------------------------------- viz
+    var ctx = cv.ctx;
+    var LOW = 48, HIGH = 83; // C3..B5
+    var melody = [0, 2, 4, 3, 2, 1, 4, 5, 4, 2, 0, -1, 1, 2, 3, 1], mi = 0, mt = 0.0;
+    var inM = 62, tgtIn = 62, detune = 0, outM = [60, 60, 60, 60, 60], curVoices = [];
+    function nextNote(key, sc) { var base = nearestIdx(60 + key, key, sc); tgtIn = ladder(base + melody[mi], key, sc) + (Math.random() - 0.5) * 0.9; }
+    var isBlack = { 1: 1, 3: 1, 6: 1, 8: 1, 10: 1 };
+    function keyX(m, W) { // centre x of a semitone position across the keyboard span (white-key based)
+      var whites = 21, ww = W / whites, oct = Math.floor((m - LOW) / 12), pc = ((Math.round(m) % 12) + 12) % 12;
+      var frac = m - Math.round(m);
+      var wIdx = [0, 0.65, 1, 1.65, 2, 3, 3.6, 4, 4.6, 5, 5.65, 6][pc];
+      return (oct * 7 + wIdx + 0.5 + frac * 0.5) * ww;
+    }
+    function drawKeyboard(W, H, key, sc) {
+      var ky = H - 92, kh = 86, ww = W / 21;
+      var inScale = {}; for (var i = 0; i < SC[sc].length; i++) inScale[(key + SC[sc][i]) % 12] = 1;
+      var wi = 0;
+      for (var m = LOW; m <= HIGH; m++) {
+        var pc = m % 12; if (isBlack[pc]) continue;
+        var x = wi * ww; wi++;
+        ctx.fillStyle = inScale[pc] ? "rgba(255,255,255,.93)" : "rgba(255,255,255,.62)";
+        ctx.fillRect(x + 1, ky, ww - 2, kh);
+        if (pc === key % 12) { ctx.fillStyle = "rgba(255,158,207,.55)"; ctx.fillRect(x + 1, ky + kh - 7, ww - 2, 7); }
+        if (inScale[pc]) { ctx.fillStyle = "rgba(255,120,190,.85)"; ctx.beginPath(); ctx.arc(x + ww / 2, ky + kh - 16, 2.6, 0, 6.283); ctx.fill(); }
+        if (pc === 0) { ctx.fillStyle = "rgba(10,6,16,.55)"; ctx.font = "8px ui-sans-serif,system-ui"; ctx.textAlign = "center"; ctx.fillText("C" + (Math.floor(m / 12) - 1), x + ww / 2, ky + kh - 3); }
+      }
+      for (var m2 = LOW; m2 <= HIGH; m2++) {
+        var pc2 = m2 % 12; if (!isBlack[pc2]) continue;
+        var cx = keyX(m2, W);
+        ctx.fillStyle = inScale[pc2] ? "#3a1f3f" : "#150c1c"; ctx.fillRect(cx - ww * 0.3, ky, ww * 0.6, kh * 0.6);
+        if (inScale[pc2]) { ctx.fillStyle = "rgba(255,120,190,.9)"; ctx.beginPath(); ctx.arc(cx, ky + kh * 0.6 - 7, 2.2, 0, 6.283); ctx.fill(); }
+      }
+      return ky;
+    }
+    function frame(t, dt) {
+      var W = cv.w(), H = cv.h();
+      var mode = VS.v(P.MODE) >= 0.5 ? 1 : 0, key = Math.round(VS.v(P.KEY)), sc = Math.round(VS.v(P.SCALE));
+      var corr = VS.v(P.CORR), mainL = VS.v(P.MAIN), glide = VS.v(P.GLIDE), hum = VS.v(P.HUM), fb = VS.v(P.FB), lockOn = VS.v(P.LOCK) >= 0.5;
+      // demo melody: next note every 1.5 s
+      mt += dt;
+      if (mt > 1.5) {
+        mt = 0; mi = (mi + 1) % melody.length;
+        nextNote(key, sc);
+      }
+      inM += (tgtIn - inM) * Math.min(1, dt * 14);
+      var shown = inM + Math.sin(t * 5.5) * 0.10;
+      // voices computed exactly like the DSP
+      var si = nearestIdx(inM, key, sc), snapNote = ladder(si, key, sc);
+      var outs = [];
+      outs.push({ m: inM + corr * (snapNote - inM), lvl: mainL, col: "#ffffff" });
+      for (var v = 0; v < 4; v++) {
+        var b = P.V0 + v * 5, iv = Math.round(VS.v(b + 1)), fine = VS.v(b + 2) * 0.01, lv = VS.v(b);
+        var m;
+        if (mode === 1) m = ladder(si + iv, key, sc) + (1 - corr) * (inM - snapNote) + fine;
+        else m = inM + iv + fine;
+        outs.push({ m: m, lvl: lv, col: VCOL[v] });
+      }
+      for (var k = 0; k < 5; k++) { outM[k] += (outs[k].m - outM[k]) * Math.min(1, dt * (glide > 0.02 ? 6 / (0.05 + glide * glide * 2) : 40)); }
+
+      ctx.clearRect(0, 0, W, H);
+      var ky = drawKeyboard(W, H, key, sc);
+      // prism
+      var px = W * 0.5, py = 78, sz = 46;
+      var pg = ctx.createLinearGradient(px - sz, py - sz, px + sz, py + sz);
+      pg.addColorStop(0, "rgba(255,255,255,.28)"); pg.addColorStop(1, "rgba(255,255,255,.05)");
+      // incoming beam
+      ctx.globalCompositeOperation = "lighter";
+      var pulse = 0.65 + 0.35 * Math.sin(t * 6);
+      var bx = px - sz * 0.55, by = py + sz * 0.15;
+      var ig = ctx.createLinearGradient(0, by, bx, by); ig.addColorStop(0, "rgba(255,255,255,0)"); ig.addColorStop(1, "rgba(255,255,255," + (0.85 * pulse) + ")");
+      ctx.strokeStyle = ig; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, by - 4); ctx.lineTo(bx, by); ctx.stroke();
+      // beams to voices
+      var ex = px + sz * 0.5, ey = py + sz * 0.15;
+      for (var n = 0; n < 5; n++) {
+        var o = outs[n]; if (o.lvl < 0.01) continue;
+        var tx = keyX(outM[n], W), ty = ky - 6 - n * 0;
+        ctx.strokeStyle = o.col; ctx.globalAlpha = 0.18 + 0.55 * Math.min(1, o.lvl); ctx.lineWidth = 1.5 + o.lvl * 3;
+        ctx.beginPath(); ctx.moveTo(ex, ey + (n - 2) * 3); ctx.quadraticCurveTo((ex + tx) / 2, ey + 30, tx, ty); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      ctx.globalCompositeOperation = "source-over";
+      // prism body
+      ctx.fillStyle = pg; ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px, py - sz * 0.75); ctx.lineTo(px + sz * 0.8, py + sz * 0.6); ctx.lineTo(px - sz * 0.8, py + sz * 0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+      // grain-lock pulse rings inside the prism
+      if (lockOn) { ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(px, py + 8, 8 + (t * 20 % 14), 0, 6.283); ctx.stroke(); }
+      // voice markers on the keyboard
+      for (var n2 = 4; n2 >= 0; n2--) {
+        var o2 = outs[n2]; if (o2.lvl < 0.01) continue;
+        var vx = keyX(outM[n2], W), r = 6 + Math.min(1, o2.lvl) * 6;
+        var gl = ctx.createRadialGradient(vx, ky - 6, 0, vx, ky - 6, r * 2.6);
+        gl.addColorStop(0, o2.col); gl.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = 0.55; ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(vx, ky - 6, r * 2.6, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1;
+        ctx.fillStyle = o2.col; ctx.beginPath(); ctx.arc(vx, ky - 6, r * 0.55, 0, 6.283); ctx.fill();
+        if (n2 === 0) { ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(vx, ky - 6, r * 0.8, 0, 6.283); ctx.stroke(); }
+      }
+      // input marker (white diamond + detune tick) and label
+      var ix = keyX(shown, W);
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(ix, ky - 22); ctx.lineTo(ix + 5, ky - 15); ctx.lineTo(ix, ky - 8); ctx.lineTo(ix - 5, ky - 15); ctx.closePath(); ctx.fill();
+      var nn = Math.round(shown), cents = Math.round((shown - nn) * 100);
+      ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.font = "700 10px ui-sans-serif,system-ui"; ctx.textAlign = "center";
+      ctx.fillText(NAMES[((nn % 12) + 12) % 12] + (Math.floor(nn / 12) - 1) + (cents ? " " + (cents > 0 ? "+" : "") + cents + "¢" : ""), ix, ky - 27);
+      ctx.fillStyle = "rgba(255,255,255,.5)"; ctx.font = "9px ui-sans-serif,system-ui"; ctx.textAlign = "left";
+      ctx.fillText("input →", 10, by - 12);
+      ctx.textAlign = "right"; ctx.fillText((mode ? "diatonic in " : "chromatic · ") + NAMES[key] + " " + ["major", "minor", "dorian", "mixolydian", "lydian", "phrygian", "harmonic minor", "minor pentatonic"][sc], W - 10, 16);
+    }
+    return frame;
+  }
+  var frameFn = null;
+  VS.boot(function () { frameFn = build(); }, function (t, dt) { if (frameFn) frameFn(t, dt); });
+})();
+</script>
+</body>
+</html>

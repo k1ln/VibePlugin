@@ -1,0 +1,40 @@
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg0);color:var(--ink);font-family:ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+canvas{display:block}
+.wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:18px 20px 22px}
+header.top{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+header.top .mark{width:40px;height:40px;flex:0 0 auto;filter:drop-shadow(0 0 8px var(--a))}
+header.top h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.12em;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+header.top .sub{margin-top:3px;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+header.top .grow{flex:1}
+.card{background:var(--panel);border:1px solid var(--stroke);border-radius:16px;padding:12px 12px 8px;position:relative;backdrop-filter:blur(10px)}
+.card>.ttl{position:absolute;top:-7px;left:14px;padding:0 7px;font-size:8.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--a);background:var(--bg0);border-radius:6px}
+.row{display:flex;flex-wrap:wrap;gap:2px 4px;justify-content:center;align-items:flex-start}
+.knob{width:76px;text-align:center;padding:2px 0 4px;touch-action:none}
+.knob svg{display:block;margin:0 auto;cursor:ns-resize;touch-action:none}
+.knob .nm{margin-top:1px;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
+.knob .vl{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink);margin-top:1px;min-height:13px}
+.knob:hover .nm,.knob.drag .nm{color:var(--a)}
+.knob .trk{stroke:var(--track);fill:none}
+.knob .arc{stroke:var(--a);fill:none;filter:drop-shadow(0 0 3px var(--a))}
+.knob .body{fill:var(--knob);stroke:rgba(255,255,255,.07)}
+.knob .cap{fill:rgba(255,255,255,.05)}
+.knob .ptr{stroke:var(--a2);stroke-linecap:round}
+.knob .dot{fill:var(--a)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:3px;padding:3px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--stroke)}
+.seg button.opt,button.btn{font:inherit;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:transparent;border:1px solid transparent;border-radius:7px;padding:5px 8px;cursor:pointer;transition:all .12s}
+.seg button.opt:hover,button.btn:hover{color:var(--ink)}
+.seg button.opt.on{color:#0b0b12;background:linear-gradient(135deg,var(--a),var(--a2));box-shadow:0 0 10px -2px var(--a);font-weight:700}
+button.btn{border-color:var(--stroke);background:rgba(255,255,255,.03)}
+button.btn.on{color:#0b0b12;background:linear-gradient(135deg,var(--a),var(--a2));border-color:transparent;font-weight:700;box-shadow:0 0 14px -2px var(--a)}
+.lbl{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin:0 0 4px 2px}
+.stepper{display:inline-flex;align-items:center;gap:4px}
+.stepper .v{min-width:56px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums}
+.stepper button{width:22px;height:22px;padding:0;font-size:13px;line-height:1;border-radius:6px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--ink);cursor:pointer}
+.stepper button:hover{border-color:var(--a);color:var(--a)}
+.hint{margin-top:10px;text-align:center;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);opacity:.6}
+.fader{position:relative;width:100%;border-radius:8px;background:rgba(255,255,255,.045);border:1px solid var(--stroke);cursor:ns-resize;touch-action:none;overflow:hidden}
+.fader .fill{position:absolute;left:0;right:0;background:linear-gradient(180deg,var(--a2),var(--a));opacity:.85;box-shadow:0 0 12px -2px var(--a)}
+.fader.bi::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.25);z-index:2}
+.fader .fl{position:absolute;left:0;right:0;top:3px;text-align:center;font-size:9.5px;font-variant-numeric:tabular-nums;color:#fff;z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}
+.fader.zero .fl{color:var(--dim);text-shadow:none}

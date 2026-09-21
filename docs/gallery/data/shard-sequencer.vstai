@@ -1,0 +1,453 @@
+{
+  "format": 1,
+  "name": "Shard Sequencer",
+  "isInstrument": false,
+  "explanation": "A 16-step granular slice sequencer. Incoming audio is captured into a rolling (or Held) buffer cut into 16 slices across a 1/2/4/8-beat Capture window; a step sequence locked to the DAW playhead (free-running when stopped) fires shards from any slice. Each step sets Slice (or rest), Pitch (±24 st), Reverse, Ratchet (1–4 hits) and Gate (25–100%). Global Steps, Division (1/4, 1/8, 1/16, 1/32, 1/8T), Swing, Chance, Jitter, Fade, Tone, Crush, Spread, Duck (dry gate while shards play), Mix and Level. Hold freezes the capture into a locked loop for beat-repeat style glitching.",
+  "params": [
+    {
+      "name": "Tempo",
+      "index": 0,
+      "min": 30,
+      "max": 300,
+      "default": 120
+    },
+    {
+      "name": "Steps",
+      "index": 1,
+      "min": 1,
+      "max": 16,
+      "default": 16
+    },
+    {
+      "name": "Division",
+      "index": 2,
+      "min": 0,
+      "max": 4,
+      "default": 2
+    },
+    {
+      "name": "Swing",
+      "index": 3,
+      "min": 0,
+      "max": 0.6,
+      "default": 0.15
+    },
+    {
+      "name": "Capture",
+      "index": 4,
+      "min": 0,
+      "max": 3,
+      "default": 2
+    },
+    {
+      "name": "Hold",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Chance",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Jitter",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Fade",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Tone",
+      "index": 9,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Crush",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Spread",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Duck",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    },
+    {
+      "name": "Mix",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Level",
+      "index": 14,
+      "min": 0,
+      "max": 1.5,
+      "default": 0.9
+    },
+    {
+      "name": "S1 Slice",
+      "index": 15,
+      "min": 0,
+      "max": 16,
+      "default": 16
+    },
+    {
+      "name": "S1 Pitch",
+      "index": 16,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S1 Flags",
+      "index": 17,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S2 Slice",
+      "index": 18,
+      "min": 0,
+      "max": 16,
+      "default": 0
+    },
+    {
+      "name": "S2 Pitch",
+      "index": 19,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S2 Flags",
+      "index": 20,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S3 Slice",
+      "index": 21,
+      "min": 0,
+      "max": 16,
+      "default": 12
+    },
+    {
+      "name": "S3 Pitch",
+      "index": 22,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S3 Flags",
+      "index": 23,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S4 Slice",
+      "index": 24,
+      "min": 0,
+      "max": 16,
+      "default": 0
+    },
+    {
+      "name": "S4 Pitch",
+      "index": 25,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S4 Flags",
+      "index": 26,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S5 Slice",
+      "index": 27,
+      "min": 0,
+      "max": 16,
+      "default": 8
+    },
+    {
+      "name": "S5 Pitch",
+      "index": 28,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S5 Flags",
+      "index": 29,
+      "min": 0,
+      "max": 31,
+      "default": 26
+    },
+    {
+      "name": "S6 Slice",
+      "index": 30,
+      "min": 0,
+      "max": 16,
+      "default": 0
+    },
+    {
+      "name": "S6 Pitch",
+      "index": 31,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S6 Flags",
+      "index": 32,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S7 Slice",
+      "index": 33,
+      "min": 0,
+      "max": 16,
+      "default": 4
+    },
+    {
+      "name": "S7 Pitch",
+      "index": 34,
+      "min": -24,
+      "max": 24,
+      "default": -12
+    },
+    {
+      "name": "S7 Flags",
+      "index": 35,
+      "min": 0,
+      "max": 31,
+      "default": 28
+    },
+    {
+      "name": "S8 Slice",
+      "index": 36,
+      "min": 0,
+      "max": 16,
+      "default": 3
+    },
+    {
+      "name": "S8 Pitch",
+      "index": 37,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S8 Flags",
+      "index": 38,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S9 Slice",
+      "index": 39,
+      "min": 0,
+      "max": 16,
+      "default": 16
+    },
+    {
+      "name": "S9 Pitch",
+      "index": 40,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S9 Flags",
+      "index": 41,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S10 Slice",
+      "index": 42,
+      "min": 0,
+      "max": 16,
+      "default": 0
+    },
+    {
+      "name": "S10 Pitch",
+      "index": 43,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S10 Flags",
+      "index": 44,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S11 Slice",
+      "index": 45,
+      "min": 0,
+      "max": 16,
+      "default": 10
+    },
+    {
+      "name": "S11 Pitch",
+      "index": 46,
+      "min": -24,
+      "max": 24,
+      "default": 7
+    },
+    {
+      "name": "S11 Flags",
+      "index": 47,
+      "min": 0,
+      "max": 31,
+      "default": 25
+    },
+    {
+      "name": "S12 Slice",
+      "index": 48,
+      "min": 0,
+      "max": 16,
+      "default": 0
+    },
+    {
+      "name": "S12 Pitch",
+      "index": 49,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S12 Flags",
+      "index": 50,
+      "min": 0,
+      "max": 31,
+      "default": 24
+    },
+    {
+      "name": "S13 Slice",
+      "index": 51,
+      "min": 0,
+      "max": 16,
+      "default": 6
+    },
+    {
+      "name": "S13 Pitch",
+      "index": 52,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S13 Flags",
+      "index": 53,
+      "min": 0,
+      "max": 31,
+      "default": 30
+    },
+    {
+      "name": "S14 Slice",
+      "index": 54,
+      "min": 0,
+      "max": 16,
+      "default": 6
+    },
+    {
+      "name": "S14 Pitch",
+      "index": 55,
+      "min": -24,
+      "max": 24,
+      "default": 12
+    },
+    {
+      "name": "S14 Flags",
+      "index": 56,
+      "min": 0,
+      "max": 31,
+      "default": 25
+    },
+    {
+      "name": "S15 Slice",
+      "index": 57,
+      "min": 0,
+      "max": 16,
+      "default": 2
+    },
+    {
+      "name": "S15 Pitch",
+      "index": 58,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "S15 Flags",
+      "index": 59,
+      "min": 0,
+      "max": 31,
+      "default": 28
+    },
+    {
+      "name": "S16 Slice",
+      "index": 60,
+      "min": 0,
+      "max": 16,
+      "default": 1
+    },
+    {
+      "name": "S16 Pitch",
+      "index": 61,
+      "min": -24,
+      "max": 24,
+      "default": -5
+    },
+    {
+      "name": "S16 Flags",
+      "index": 62,
+      "min": 0,
+      "max": 31,
+      "default": 27
+    }
+  ],
+  "wasmBase64": "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",
+  "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Shard Sequencer</title>\n<style>\n:root{--a:#ff7a45;--a2:#ffd23f;--bg0:#0b0806;--bg1:#1a110b;--ink:#fff1e6;--dim:#a08c7c;--panel:rgba(36,24,16,.62);--stroke:rgba(255,122,69,.18);--track:rgba(255,122,69,.14);--knob:#2a1a10}\n*{box-sizing:border-box}\nhtml,body{margin:0;padding:0;background:var(--bg0);color:var(--ink);font-family:ui-sans-serif,-apple-system,\"Segoe UI\",system-ui,sans-serif;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}\ncanvas{display:block}\n.wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:18px 20px 22px}\nheader.top{display:flex;align-items:center;gap:14px;margin-bottom:12px}\nheader.top .mark{width:40px;height:40px;flex:0 0 auto;filter:drop-shadow(0 0 8px var(--a))}\nheader.top h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.12em;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}\nheader.top .sub{margin-top:3px;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}\nheader.top .grow{flex:1}\n.card{background:var(--panel);border:1px solid var(--stroke);border-radius:16px;padding:12px 12px 8px;position:relative;backdrop-filter:blur(10px)}\n.card>.ttl{position:absolute;top:-7px;left:14px;padding:0 7px;font-size:8.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--a);background:var(--bg0);border-radius:6px}\n.row{display:flex;flex-wrap:wrap;gap:2px 4px;justify-content:center;align-items:flex-start}\n.knob{width:76px;text-align:center;padding:2px 0 4px;touch-action:none}\n.knob svg{display:block;margin:0 auto;cursor:ns-resize;touch-action:none}\n.knob .nm{margin-top:1px;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);white-space:nowrap}\n.knob .vl{font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink);margin-top:1px;min-height:13px}\n.knob:hover .nm,.knob.drag .nm{color:var(--a)}\n.knob .trk{stroke:var(--track);fill:none}\n.knob .arc{stroke:var(--a);fill:none;filter:drop-shadow(0 0 3px var(--a))}\n.knob .body{fill:var(--knob);stroke:rgba(255,255,255,.07)}\n.knob .cap{fill:rgba(255,255,255,.05)}\n.knob .ptr{stroke:var(--a2);stroke-linecap:round}\n.knob .dot{fill:var(--a)}\n.seg{display:inline-flex;flex-wrap:wrap;gap:3px;padding:3px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--stroke)}\n.seg button.opt,button.btn{font:inherit;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:transparent;border:1px solid transparent;border-radius:7px;padding:5px 8px;cursor:pointer;transition:all .12s}\n.seg button.opt:hover,button.btn:hover{color:var(--ink)}\n.seg button.opt.on{color:#0b0b12;background:linear-gradient(135deg,var(--a),var(--a2));box-shadow:0 0 10px -2px var(--a);font-weight:700}\nbutton.btn{border-color:var(--stroke);background:rgba(255,255,255,.03)}\nbutton.btn.on{color:#0b0b12;background:linear-gradient(135deg,var(--a),var(--a2));border-color:transparent;font-weight:700;box-shadow:0 0 14px -2px var(--a)}\n.lbl{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin:0 0 4px 2px}\n.stepper{display:inline-flex;align-items:center;gap:4px}\n.stepper .v{min-width:56px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums}\n.stepper button{width:22px;height:22px;padding:0;font-size:13px;line-height:1;border-radius:6px;border:1px solid var(--stroke);background:rgba(255,255,255,.04);color:var(--ink);cursor:pointer}\n.stepper button:hover{border-color:var(--a);color:var(--a)}\n.hint{margin-top:10px;text-align:center;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);opacity:.6}\n.fader{position:relative;width:100%;border-radius:8px;background:rgba(255,255,255,.045);border:1px solid var(--stroke);cursor:ns-resize;touch-action:none;overflow:hidden}\n.fader .fill{position:absolute;left:0;right:0;background:linear-gradient(180deg,var(--a2),var(--a));opacity:.85;box-shadow:0 0 12px -2px var(--a)}\n.fader.bi::before{content:\"\";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.25);z-index:2}\n.fader .fl{position:absolute;left:0;right:0;top:3px;text-align:center;font-size:9.5px;font-variant-numeric:tabular-nums;color:#fff;z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none}\n.fader.zero .fl{color:var(--dim);text-shadow:none}\n\n.stage{position:relative;min-height:100vh;overflow:hidden;background:radial-gradient(1000px 560px at 90% -10%,rgba(255,210,63,.11),transparent 60%),radial-gradient(900px 600px at 0% 100%,rgba(255,122,69,.13),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg0) 70%)}\n.wrap{max-width:1040px}\n.hero{padding:0;overflow:hidden;border-radius:18px}\n.seqcard{margin-top:16px;padding:16px 12px 12px}\n.tools{display:flex;gap:6px;position:absolute;top:-13px;right:14px}\n.tools button.btn{padding:4px 9px;font-size:8.5px;background:var(--bg0)}\n.steps{display:grid;grid-template-columns:repeat(16,1fr);gap:5px}\n.stp{display:flex;flex-direction:column;gap:4px;align-items:stretch;min-width:0;transition:opacity .15s}\n.stp .n{font-size:9px;text-align:center;color:var(--dim);letter-spacing:.05em;padding:2px 0;border-radius:5px;font-variant-numeric:tabular-nums}\n.stp.cur .n{color:#0b0806;background:linear-gradient(135deg,var(--a),var(--a2));font-weight:700;box-shadow:0 0 10px var(--a)}\n.stp.off{opacity:.3}\n.stp .mini{font:inherit;font-size:8.5px;letter-spacing:.04em;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--stroke);border-radius:6px;padding:4px 0;cursor:pointer;text-transform:uppercase}\n.stp .mini:hover{color:var(--ink);border-color:var(--a)}\n.stp .mini.on{color:#0b0806;background:linear-gradient(135deg,var(--a),var(--a2));border-color:transparent;font-weight:700}\n.lanelbl{display:grid;grid-template-columns:44px 1fr;align-items:center}\n.glob{margin-top:16px}\n.glob .rowx{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:flex-end;justify-content:center;padding:6px 0 8px}\n.glob .grp{display:flex;flex-direction:column;align-items:center}\n.sync{font-size:8.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;text-align:center;margin-top:-2px}\n@media (max-width:820px){.steps{grid-template-columns:repeat(8,1fr);row-gap:12px}}\n</style>\n</head>\n<body>\n<div class=\"stage\">\n  <div class=\"wrap\">\n    <header class=\"top\">\n      <svg class=\"mark\" viewBox=\"0 0 48 48\" fill=\"none\" aria-hidden=\"true\">\n        <path d=\"M6 30L18 6l6 14z\" fill=\"#ff7a45\"/><path d=\"M22 40l8-30 6 22z\" fill=\"#ffd23f\" opacity=\".9\"/><path d=\"M30 42l12-20 2 20z\" fill=\"#ff7a45\" opacity=\".75\"/><path d=\"M4 42h40\" stroke=\"#fff\" stroke-opacity=\".3\"/>\n      </svg>\n      <div><h1>SHARD SEQUENCER</h1><div class=\"sub\">granular slice &middot; ratchet &middot; glitch &middot; locked to your DAW</div></div>\n      <div class=\"grow\"></div>\n      <div id=\"holdSlot\"></div>\n    </header>\n    <div class=\"card hero\" id=\"hero\"></div>\n    <div class=\"card seqcard\" id=\"seq\"><div class=\"ttl\">sequence</div><div class=\"tools\" id=\"tools\"></div></div>\n    <div class=\"card glob\" id=\"glob\"><div class=\"ttl\">clock &amp; sound</div></div>\n    <div class=\"hint\">slice: 1 = oldest &rarr; 16 = newest audio in the capture window &middot; drag the lanes &middot; hold freezes the loop &middot; follows DAW tempo &amp; position</div>\n  </div>\n</div>\n<script>\nvar VS = (function () {\n  \"use strict\";\n  var defs = {}, vals = {}, listeners = {};\n  function define(list) {\n    for (var k = 0; k < list.length; k++) {\n      var p = list[k];\n      defs[p.index] = { i: p.index, name: p.name, min: p.min, max: p.max, def: p.default, step: p.step || 0 };\n      vals[p.index] = p.default;\n    }\n  }\n  function v(i) { return vals[i]; }\n  function fire(i) { var l = listeners[i]; if (l) for (var k = 0; k < l.length; k++) l[k](); }\n  function listen(i, f) { (listeners[i] = listeners[i] || []).push(f); }\n  function clampv(i, x) {\n    var d = defs[i]; x = Math.max(d.min, Math.min(d.max, x));\n    if (d.step) x = Math.round(x / d.step) * d.step;\n    return x;\n  }\n  function push(i, x) {\n    x = clampv(i, +x); vals[i] = x;\n    if (window.vstai && typeof window.vstai.setParam === \"function\") window.vstai.setParam(i, x);\n    fire(i);\n  }\n  function el(tag, cls, parent, txt) {\n    var e = document.createElement(tag); if (cls) e.className = cls;\n    if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e;\n  }\n  var NS = \"http://www.w3.org/2000/svg\";\n  function svgEl(tag, attrs, parent) {\n    var e = document.createElementNS(NS, tag);\n    for (var k in attrs) e.setAttribute(k, attrs[k]);\n    if (parent) parent.appendChild(e); return e;\n  }\n  function polar(cx, cy, r, deg) { var a = (deg - 90) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }\n  function arc(cx, cy, r, d0, d1) {\n    if (Math.abs(d1 - d0) < 0.05) d1 = d0 + 0.05;\n    var lo = Math.min(d0, d1), hi = Math.max(d0, d1);\n    var p0 = polar(cx, cy, r, lo), p1 = polar(cx, cy, r, hi);\n    return \"M\" + p0[0].toFixed(2) + \" \" + p0[1].toFixed(2) + \" A\" + r + \" \" + r + \" 0 \" + ((hi - lo) > 180 ? 1 : 0) + \" 1 \" + p1[0].toFixed(2) + \" \" + p1[1].toFixed(2);\n  }\n\n  // ---- knob ----\n  function knob(parent, idx, opts) {\n    opts = opts || {};\n    var d = defs[idx], size = opts.size || 60;\n    var bipolar = d.min < 0 && d.max > 0 && opts.center !== false;\n    var box = el(\"div\", \"knob\", parent);\n    var s = svgEl(\"svg\", { viewBox: \"0 0 100 100\", width: size, height: size }, box);\n    var A0 = -135, A1 = 135;\n    svgEl(\"path\", { \"class\": \"trk\", d: arc(50, 50, 41, A0, A1), \"stroke-width\": 6, \"stroke-linecap\": \"round\" }, s);\n    var av = svgEl(\"path\", { \"class\": \"arc\", d: \"\", \"stroke-width\": 6, \"stroke-linecap\": \"round\" }, s);\n    svgEl(\"circle\", { \"class\": \"body\", cx: 50, cy: 50, r: 28 }, s);\n    svgEl(\"circle\", { \"class\": \"cap\", cx: 50, cy: 43, r: 26 }, s);\n    var ptr = svgEl(\"line\", { \"class\": \"ptr\", x1: 50, y1: 50, x2: 50, y2: 30, \"stroke-width\": 4 }, s);\n    svgEl(\"circle\", { \"class\": \"dot\", cx: 50, cy: 50, r: 3 }, s);\n    var nm = el(\"div\", \"nm\", box, opts.label || d.name);\n    var vl = el(\"div\", \"vl\", box);\n    var fmt = opts.fmt || function (x) { return (Math.round(x * 100) / 100) + \"\"; };\n    function paint() {\n      var x = vals[idx], t = (x - d.min) / (d.max - d.min);\n      t = Math.max(0, Math.min(1, t));\n      var deg = A0 + t * (A1 - A0), t0 = bipolar ? A0 + 0.5 * (A1 - A0) : A0;\n      av.setAttribute(\"d\", arc(50, 50, 41, t0, deg));\n      var tip = polar(50, 50, 21, deg);\n      ptr.setAttribute(\"x2\", tip[0].toFixed(2)); ptr.setAttribute(\"y2\", tip[1].toFixed(2));\n      vl.textContent = fmt(x);\n    }\n    listen(idx, paint); paint();\n    var drag = false, lastY = 0;\n    s.addEventListener(\"pointerdown\", function (e) {\n      drag = true; lastY = e.clientY; box.classList.add(\"drag\");\n      try { s.setPointerCapture(e.pointerId); } catch (_) {}\n      e.preventDefault();\n    });\n    s.addEventListener(\"pointermove\", function (e) {\n      if (!drag) return;\n      var dy = lastY - e.clientY; lastY = e.clientY;\n      var span = d.max - d.min, sens = d.step ? d.step / 8 : span / 170;\n      var cur = acc[idx] == null ? vals[idx] : acc[idx];\n      cur = Math.max(d.min, Math.min(d.max, cur + dy * sens * (e.shiftKey ? 0.2 : 1)));\n      acc[idx] = cur; push(idx, cur);\n    });\n    function end() { drag = false; acc[idx] = null; box.classList.remove(\"drag\"); }\n    s.addEventListener(\"pointerup\", end); s.addEventListener(\"pointercancel\", end);\n    s.addEventListener(\"dblclick\", function () { push(idx, d.def); });\n    s.addEventListener(\"wheel\", function (e) {\n      var span = d.max - d.min, st = d.step || span * 0.02;\n      push(idx, vals[idx] - Math.sign(e.deltaY) * st); e.preventDefault();\n    }, { passive: false });\n    return box;\n  }\n  var acc = {};\n\n  // ---- segmented selector (values min..min+n-1) ----\n  function seg(parent, idx, labels, cls) {\n    var d = defs[idx], box = el(\"div\", \"seg\" + (cls ? \" \" + cls : \"\"), parent), btns = [];\n    labels.forEach(function (lb, k) {\n      var b = el(\"button\", \"opt\", box, lb); b.type = \"button\";\n      b.addEventListener(\"click\", function () { push(idx, d.min + k); });\n      btns.push(b);\n    });\n    function paint() { var cur = Math.round(vals[idx] - d.min); btns.forEach(function (b, k) { b.classList.toggle(\"on\", k === cur); }); }\n    listen(idx, paint); paint(); return box;\n  }\n  function toggle(parent, idx, label, cls) {\n    var b = el(\"button\", \"btn \" + (cls || \"\"), parent, label); b.type = \"button\";\n    b.addEventListener(\"click\", function () { push(idx, vals[idx] >= 0.5 ? 0 : 1); });\n    function paint() { b.classList.toggle(\"on\", vals[idx] >= 0.5); }\n    listen(idx, paint); paint(); return b;\n  }\n  function stepper(parent, idx, fmt, alsoIdx) {\n    var box = el(\"div\", \"stepper\", parent), m = el(\"button\", \"\", box, \"−\"), lab = el(\"div\", \"v\", box), p = el(\"button\", \"\", box, \"+\");\n    m.type = \"button\"; p.type = \"button\";\n    m.addEventListener(\"click\", function () { push(idx, vals[idx] - 1); });\n    p.addEventListener(\"click\", function () { push(idx, vals[idx] + 1); });\n    function paint() { lab.textContent = fmt ? fmt(vals[idx]) : vals[idx]; }\n    listen(idx, paint); if (alsoIdx != null) listen(alsoIdx, paint); paint(); return box;\n  }\n\n\n  // ---- vertical fader (click/drag anywhere on the track) ----\n  function fader(parent, idx, opts) {\n    opts = opts || {};\n    var d = defs[idx], box = el(\"div\", \"fader\" + (opts.bipolar ? \" bi\" : \"\"), parent), fill = el(\"div\", \"fill\", box), lab = el(\"div\", \"fl\", box);\n    box.style.height = (opts.h || 90) + \"px\";\n    var fmt = opts.fmt || function (x) { return x + \"\"; };\n    function paint() {\n      var t = (vals[idx] - d.min) / (d.max - d.min); t = Math.max(0, Math.min(1, t));\n      if (opts.bipolar) { var lo = Math.min(t, 0.5), hi = Math.max(t, 0.5); fill.style.bottom = (lo * 100) + \"%\"; fill.style.height = ((hi - lo) * 100) + \"%\"; }\n      else { fill.style.bottom = \"0\"; fill.style.height = (t * 100) + \"%\"; }\n      lab.textContent = fmt(vals[idx]);\n      box.classList.toggle(\"zero\", vals[idx] === (opts.bipolar ? 0 : d.min));\n    }\n    function set(e) {\n      var r = box.getBoundingClientRect(), t = 1 - (e.clientY - r.top) / r.height;\n      push(idx, d.min + Math.max(0, Math.min(1, t)) * (d.max - d.min));\n    }\n    var drag = false;\n    box.addEventListener(\"pointerdown\", function (e) { drag = true; try { box.setPointerCapture(e.pointerId); } catch (_) {} set(e); e.preventDefault(); });\n    box.addEventListener(\"pointermove\", function (e) { if (drag) set(e); });\n    function end() { drag = false; }\n    box.addEventListener(\"pointerup\", end); box.addEventListener(\"pointercancel\", end);\n    box.addEventListener(\"dblclick\", function () { push(idx, opts.reset != null ? opts.reset : d.def); });\n    listen(idx, paint); paint(); return box;\n  }\n\n  function boot(build, loop) {\n    function ready() {\n      build();\n      for (var i in vals) if (window.vstai && window.vstai.setParam) window.vstai.setParam(+i, vals[i]);\n      if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, x) {\n        if (!(i in vals)) return; vals[i] = +x; fire(i);\n      });\n      if (loop) { var last = 0; (function frame(t) { var dt = Math.min(0.05, (t - last) / 1000 || 0.016); last = t; try { loop(t / 1000, dt); } catch (e) { console.error(e); } requestAnimationFrame(frame); })(0); }\n    }\n    if (window.vstai && typeof window.vstai.onReady === \"function\") window.vstai.onReady(ready); else ready();\n  }\n\n  // canvas helper: crisp DPR-aware sizing; returns {c,ctx,w(),h()}\n  function canvas(parent, h) {\n    var c = el(\"canvas\", \"\", parent); c.style.width = \"100%\"; c.style.height = h + \"px\";\n    var ctx = c.getContext(\"2d\"), W = 1, H = h, dpr = 1;\n    function fit() { dpr = Math.min(2, window.devicePixelRatio || 1); W = Math.max(1, c.clientWidth); c.width = Math.floor(W * dpr); c.height = Math.floor(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }\n    fit(); window.addEventListener(\"resize\", fit);\n    return { c: c, ctx: ctx, w: function () { return c.clientWidth || W; }, h: function () { return H; }, fit: fit };\n  }\n  return { define: define, v: v, push: push, listen: listen, el: el, svgEl: svgEl, knob: knob, seg: seg, toggle: toggle, stepper: stepper, fader: fader, boot: boot, canvas: canvas, defs: defs };\n})();\n\n</script>\n<script>\n(function () {\n  \"use strict\";\n  VS.define([{\"name\":\"Tempo\",\"index\":0,\"min\":30,\"max\":300,\"default\":120},{\"name\":\"Steps\",\"index\":1,\"min\":1,\"max\":16,\"default\":16,\"step\":1},{\"name\":\"Division\",\"index\":2,\"min\":0,\"max\":4,\"default\":2,\"step\":1},{\"name\":\"Swing\",\"index\":3,\"min\":0,\"max\":0.6,\"default\":0.15},{\"name\":\"Capture\",\"index\":4,\"min\":0,\"max\":3,\"default\":2,\"step\":1},{\"name\":\"Hold\",\"index\":5,\"min\":0,\"max\":1,\"default\":0,\"step\":1},{\"name\":\"Chance\",\"index\":6,\"min\":0,\"max\":1,\"default\":1},{\"name\":\"Jitter\",\"index\":7,\"min\":0,\"max\":1,\"default\":0},{\"name\":\"Fade\",\"index\":8,\"min\":0,\"max\":1,\"default\":0.25},{\"name\":\"Tone\",\"index\":9,\"min\":-1,\"max\":1,\"default\":0},{\"name\":\"Crush\",\"index\":10,\"min\":0,\"max\":1,\"default\":0},{\"name\":\"Spread\",\"index\":11,\"min\":0,\"max\":1,\"default\":0.4},{\"name\":\"Duck\",\"index\":12,\"min\":0,\"max\":1,\"default\":0.9},{\"name\":\"Mix\",\"index\":13,\"min\":0,\"max\":1,\"default\":0.85},{\"name\":\"Level\",\"index\":14,\"min\":0,\"max\":1.5,\"default\":0.9},{\"name\":\"S1 Slice\",\"index\":15,\"min\":0,\"max\":16,\"default\":16,\"step\":1},{\"name\":\"S1 Pitch\",\"index\":16,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S1 Flags\",\"index\":17,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S2 Slice\",\"index\":18,\"min\":0,\"max\":16,\"default\":0,\"step\":1},{\"name\":\"S2 Pitch\",\"index\":19,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S2 Flags\",\"index\":20,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S3 Slice\",\"index\":21,\"min\":0,\"max\":16,\"default\":12,\"step\":1},{\"name\":\"S3 Pitch\",\"index\":22,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S3 Flags\",\"index\":23,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S4 Slice\",\"index\":24,\"min\":0,\"max\":16,\"default\":0,\"step\":1},{\"name\":\"S4 Pitch\",\"index\":25,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S4 Flags\",\"index\":26,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S5 Slice\",\"index\":27,\"min\":0,\"max\":16,\"default\":8,\"step\":1},{\"name\":\"S5 Pitch\",\"index\":28,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S5 Flags\",\"index\":29,\"min\":0,\"max\":31,\"default\":26,\"step\":1},{\"name\":\"S6 Slice\",\"index\":30,\"min\":0,\"max\":16,\"default\":0,\"step\":1},{\"name\":\"S6 Pitch\",\"index\":31,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S6 Flags\",\"index\":32,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S7 Slice\",\"index\":33,\"min\":0,\"max\":16,\"default\":4,\"step\":1},{\"name\":\"S7 Pitch\",\"index\":34,\"min\":-24,\"max\":24,\"default\":-12,\"step\":1},{\"name\":\"S7 Flags\",\"index\":35,\"min\":0,\"max\":31,\"default\":28,\"step\":1},{\"name\":\"S8 Slice\",\"index\":36,\"min\":0,\"max\":16,\"default\":3,\"step\":1},{\"name\":\"S8 Pitch\",\"index\":37,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S8 Flags\",\"index\":38,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S9 Slice\",\"index\":39,\"min\":0,\"max\":16,\"default\":16,\"step\":1},{\"name\":\"S9 Pitch\",\"index\":40,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S9 Flags\",\"index\":41,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S10 Slice\",\"index\":42,\"min\":0,\"max\":16,\"default\":0,\"step\":1},{\"name\":\"S10 Pitch\",\"index\":43,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S10 Flags\",\"index\":44,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S11 Slice\",\"index\":45,\"min\":0,\"max\":16,\"default\":10,\"step\":1},{\"name\":\"S11 Pitch\",\"index\":46,\"min\":-24,\"max\":24,\"default\":7,\"step\":1},{\"name\":\"S11 Flags\",\"index\":47,\"min\":0,\"max\":31,\"default\":25,\"step\":1},{\"name\":\"S12 Slice\",\"index\":48,\"min\":0,\"max\":16,\"default\":0,\"step\":1},{\"name\":\"S12 Pitch\",\"index\":49,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S12 Flags\",\"index\":50,\"min\":0,\"max\":31,\"default\":24,\"step\":1},{\"name\":\"S13 Slice\",\"index\":51,\"min\":0,\"max\":16,\"default\":6,\"step\":1},{\"name\":\"S13 Pitch\",\"index\":52,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S13 Flags\",\"index\":53,\"min\":0,\"max\":31,\"default\":30,\"step\":1},{\"name\":\"S14 Slice\",\"index\":54,\"min\":0,\"max\":16,\"default\":6,\"step\":1},{\"name\":\"S14 Pitch\",\"index\":55,\"min\":-24,\"max\":24,\"default\":12,\"step\":1},{\"name\":\"S14 Flags\",\"index\":56,\"min\":0,\"max\":31,\"default\":25,\"step\":1},{\"name\":\"S15 Slice\",\"index\":57,\"min\":0,\"max\":16,\"default\":2,\"step\":1},{\"name\":\"S15 Pitch\",\"index\":58,\"min\":-24,\"max\":24,\"default\":0,\"step\":1},{\"name\":\"S15 Flags\",\"index\":59,\"min\":0,\"max\":31,\"default\":28,\"step\":1},{\"name\":\"S16 Slice\",\"index\":60,\"min\":0,\"max\":16,\"default\":1,\"step\":1},{\"name\":\"S16 Pitch\",\"index\":61,\"min\":-24,\"max\":24,\"default\":-5,\"step\":1},{\"name\":\"S16 Flags\",\"index\":62,\"min\":0,\"max\":31,\"default\":27,\"step\":1}]);\n  var G = { TEMPO:0, STEPS:1, DIV:2, SWING:3, CAPT:4, HOLD:5, CHANCE:6, JIT:7, FADE:8, TONE:9, CRUSH:10, SPREAD:11, DUCK:12, MIX:13, LEVEL:14, S0:15 };\n  var STEPBEATS = [1, 0.5, 0.25, 0.125, 1 / 3];\n  function pct(x) { return Math.round(x * 100) + \"%\"; }\n  function decode(f) { f = Math.round(f); return { rev: f & 1, r: ((f >> 1) & 3) + 1, g: (f >> 3) & 3 }; }\n\n  function build() {\n    VS.toggle(document.getElementById(\"holdSlot\"), G.HOLD, \"Hold loop\", \"holdbtn\");\n    var cv = VS.canvas(document.getElementById(\"hero\"), 230);\n\n    // ---- sequence lanes ----\n    var seq = document.getElementById(\"seq\");\n    var tools = document.getElementById(\"tools\");\n    function mkBtn(lbl, fn) { var b = VS.el(\"button\", \"btn\", tools, lbl); b.type = \"button\"; b.addEventListener(\"click\", fn); return b; }\n    var PITCHES = [0, 0, 0, 0, -12, 12, 7, -5, 5, 3, -7];\n    mkBtn(\"Random\", function () {\n      for (var s = 0; s < 16; s++) {\n        var b = G.S0 + s * 3, rest = Math.random() < 0.38;\n        VS.push(b, rest ? 0 : 1 + Math.floor(Math.random() * 16));\n        VS.push(b + 1, Math.random() < 0.6 ? 0 : PITCHES[Math.floor(Math.random() * PITCHES.length)]);\n        var f = (Math.random() < 0.18 ? 1 : 0) | ((Math.random() < 0.3 ? 1 + Math.floor(Math.random() * 3) : 0) << 1) | ((Math.random() < 0.5 ? 3 : 1 + Math.floor(Math.random() * 3)) << 3);\n        VS.push(b + 2, f);\n      }\n    });\n    mkBtn(\"Clear\", function () { for (var s = 0; s < 16; s++) { VS.push(G.S0 + s * 3, 0); VS.push(G.S0 + s * 3 + 1, 0); VS.push(G.S0 + s * 3 + 2, 24); } });\n    mkBtn(\"Init\", function () { for (var s = 0; s < 16; s++) for (var k = 0; k < 3; k++) { var i = G.S0 + s * 3 + k; VS.push(i, VS.defs[i].def); } });\n\n    var grid = VS.el(\"div\", \"steps\", seq), cols = [];\n    for (var s = 0; s < 16; s++) (function (s) {\n      var b = G.S0 + s * 3, c = VS.el(\"div\", \"stp\", grid);\n      VS.el(\"div\", \"n\", c, String(s + 1));\n      VS.fader(c, b, { h: 104, fmt: function (x) { return x < 0.5 ? \"—\" : String(Math.round(x)); }, reset: 0 });\n      VS.fader(c, b + 1, { h: 74, bipolar: true, fmt: function (x) { return x === 0 ? \"0\" : (x > 0 ? \"+\" : \"\") + Math.round(x); }, reset: 0 });\n      var rv = VS.el(\"button\", \"mini\", c, \"rev\"), rt = VS.el(\"button\", \"mini\", c, \"x1\"), gt = VS.el(\"button\", \"mini\", c, \"100\");\n      [rv, rt, gt].forEach(function (x) { x.type = \"button\"; });\n      rv.addEventListener(\"click\", function () { VS.push(b + 2, Math.round(VS.v(b + 2)) ^ 1); });\n      rt.addEventListener(\"click\", function () { var d = decode(VS.v(b + 2)); VS.push(b + 2, (Math.round(VS.v(b + 2)) & ~6) | (((d.r) % 4) << 1)); });\n      gt.addEventListener(\"click\", function () { var d = decode(VS.v(b + 2)); VS.push(b + 2, (Math.round(VS.v(b + 2)) & ~24) | (((d.g + 1) % 4) << 3)); });\n      function paint() { var d = decode(VS.v(b + 2)); rv.classList.toggle(\"on\", !!d.rev); rt.textContent = \"x\" + d.r; rt.classList.toggle(\"on\", d.r > 1); gt.textContent = String(25 * (d.g + 1)); gt.classList.toggle(\"on\", d.g < 3); }\n      VS.listen(b + 2, paint); paint();\n      cols.push(c);\n    })(s);\n\n    // ---- globals ----\n    var g = document.getElementById(\"glob\"), rx = VS.el(\"div\", \"rowx\", g);\n    function grp(lbl) { var d = VS.el(\"div\", \"grp\", rx); VS.el(\"div\", \"lbl\", d, lbl); return d; }\n    var t1 = VS.el(\"div\", \"grp\", rx);\n    VS.knob(t1, G.TEMPO, { fmt: function (x) { return Math.round(x) + \" bpm\"; }, label: \"Tempo*\" });\n    var t2 = grp(\"steps\"); VS.stepper(t2, G.STEPS, function (x) { return Math.round(x) + \" steps\"; });\n    var t3 = grp(\"division\"); VS.seg(t3, G.DIV, [\"1/4\", \"1/8\", \"1/16\", \"1/32\", \"1/8T\"]);\n    VS.knob(VS.el(\"div\", \"grp\", rx), G.SWING, { fmt: function (x) { return x < 0.01 ? \"straight\" : pct(x / 0.6); } });\n    var t4 = grp(\"capture (beats)\"); VS.seg(t4, G.CAPT, [\"1\", \"2\", \"4\", \"8\"]);\n    var kr = VS.el(\"div\", \"row\", g); kr.style.paddingTop = \"0\";\n    VS.knob(kr, G.CHANCE, { fmt: pct });\n    VS.knob(kr, G.JIT, { fmt: pct, label: \"Jitter\" });\n    VS.knob(kr, G.FADE, { fmt: function (x) { return (0.5 + x * x * 30).toFixed(1) + \" ms\"; } });\n    VS.knob(kr, G.TONE, { fmt: function (x) { return Math.abs(x) < 0.03 ? \"flat\" : (x < 0 ? \"LP \" : \"HP \") + Math.round(Math.abs(x) * 100); } });\n    VS.knob(kr, G.CRUSH, { fmt: function (x) { return x < 0.02 ? \"clean\" : Math.round(15 - x * 11) + \" bit\"; } });\n    VS.knob(kr, G.SPREAD, { fmt: pct });\n    VS.knob(kr, G.DUCK, { fmt: pct });\n    VS.knob(kr, G.MIX, { fmt: pct });\n    VS.knob(kr, G.LEVEL, { fmt: function (x) { return (x <= 0.001 ? \"-inf\" : (20 * Math.log10(x)).toFixed(1)) + \" dB\"; }, label: \"Out\" });\n    VS.el(\"div\", \"sync\", g, \"* free-running tempo — follows the DAW tempo & playhead automatically when it plays\");\n\n    // ---------------------------------------------------------------- viz\n    var ctx = cv.ctx, ppq = 0, lastStep = -1, curStep = 0, flashes = [];\n    function hash(n) { var x = Math.sin(n * 91.7 + 3.1) * 43758.5453; return x - Math.floor(x); }\n    function hue(p) { return p > 0 ? 40 - p * 1.1 : 25 + p * 4.2; } // warm for up, toward blue for down\n    function frame(t, dt) {\n      var W = cv.w(), H = cv.h();\n      var tempo = VS.v(G.TEMPO), steps = Math.round(VS.v(G.STEPS)), div = Math.round(VS.v(G.DIV)), swing = VS.v(G.SWING);\n      var hold = VS.v(G.HOLD) >= 0.5, chance = VS.v(G.CHANCE), duck = VS.v(G.DUCK), mix = VS.v(G.MIX);\n      var sb = STEPBEATS[div];\n      ppq += dt * tempo / 60;\n      var sp = ppq / sb, pi = Math.floor(sp * 0.5), fr = sp * 0.5 - pi, idx = fr < 0.5 + swing * 0.25 ? pi * 2 : pi * 2 + 1;\n      curStep = ((idx % steps) + steps) % steps;\n      var st0 = G.S0 + curStep * 3;\n      if (idx !== lastStep) {\n        lastStep = idx;\n        var sl = Math.round(VS.v(st0));\n        if (sl > 0) flashes.push({ slice: sl, age: 0, r: decode(VS.v(st0 + 2)).r, pitch: VS.v(st0 + 1) });\n      }\n      for (var cIdx = 0; cIdx < cols.length; cIdx++) { cols[cIdx].classList.toggle(\"cur\", cIdx === curStep); cols[cIdx].classList.toggle(\"off\", cIdx >= steps); }\n\n      ctx.clearRect(0, 0, W, H);\n      var padX = 14, cw = (W - padX * 2) / 16, sy0 = 30, sy1 = 92, ry = H - 34;\n      // slice strip\n      var scroll = hold ? 0 : t * 24;\n      for (var i = 0; i < 16; i++) {\n        var x = padX + i * cw, playing = flashes.some(function (f) { return f.slice === i + 1 && f.age < 0.25; });\n        ctx.fillStyle = playing ? \"rgba(255,210,63,.20)\" : \"rgba(255,255,255,.035)\";\n        ctx.strokeStyle = playing ? \"rgba(255,210,63,.9)\" : \"rgba(255,255,255,.10)\"; ctx.lineWidth = 1;\n        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x + 1.5, sy0, cw - 3, sy1 - sy0, 6) : ctx.rect(x + 1.5, sy0, cw - 3, sy1 - sy0); ctx.fill(); ctx.stroke();\n        var bars = Math.floor((cw - 8) / 3);\n        for (var k = 0; k < bars; k++) {\n          var c = (i * bars + k) + Math.floor(scroll), amp = (0.25 + 0.75 * hash(c)) * (0.5 + 0.5 * Math.sin(c * 0.11 + i * 0.3));\n          var bh = Math.max(1.5, amp * (sy1 - sy0 - 18) * 0.5);\n          ctx.fillStyle = hold ? \"rgba(191,224,255,\" + (playing ? 0.95 : 0.5) + \")\" : \"hsla(\" + (18 + i * 2.5) + \",92%,66%,\" + (playing ? 1 : 0.55) + \")\";\n          ctx.fillRect(x + 4 + k * 3, (sy0 + sy1) / 2 - bh, 2, bh * 2);\n        }\n        ctx.fillStyle = \"rgba(255,255,255,.4)\"; ctx.font = \"8px ui-sans-serif,system-ui\"; ctx.textAlign = \"center\";\n        ctx.fillText(String(i + 1), x + cw / 2, sy1 - 4);\n      }\n      ctx.fillStyle = \"rgba(255,255,255,.45)\"; ctx.textAlign = \"left\"; ctx.font = \"9px ui-sans-serif,system-ui\";\n      ctx.fillText(\"capture window — oldest → newest\" + (hold ? \"  ·  HELD LOOP\" : \"\"), padX, 18);\n      // step row + arcs\n      for (var s = 0; s < 16; s++) {\n        var b = G.S0 + s * 3, sl2 = Math.round(VS.v(b)), pit = VS.v(b + 1), dc = decode(VS.v(b + 2));\n        var sx = padX + s * cw + cw / 2, active = s < steps, isCur = s === curStep;\n        if (sl2 > 0 && active) {\n          var tx = padX + (sl2 - 1) * cw + cw / 2;\n          var al = (isCur ? 0.95 : 0.34) * (0.35 + 0.65 * chance);\n          ctx.strokeStyle = \"hsla(\" + hue(pit) + \",95%,62%,\" + al + \")\";\n          ctx.lineWidth = 1 + (dc.g + 1) * 0.8 + (isCur ? 1.2 : 0);\n          ctx.setLineDash(dc.rev ? [4, 3] : []);\n          ctx.beginPath(); ctx.moveTo(sx, ry - 10); ctx.bezierCurveTo(sx, (ry + sy1) / 2 + 10, tx, (ry + sy1) / 2 - 10, tx, sy1 + 2); ctx.stroke();\n          ctx.setLineDash([]);\n          if (dc.r > 1) { ctx.fillStyle = \"hsla(\" + hue(pit) + \",95%,70%,\" + al + \")\"; for (var r = 0; r < dc.r; r++) { ctx.beginPath(); ctx.arc(sx - 6 + r * 4, ry - 16 - 0, 1.6, 0, 6.283); ctx.fill(); } }\n        }\n        ctx.fillStyle = !active ? \"rgba(255,255,255,.05)\" : (sl2 > 0 ? (isCur ? \"#ffd23f\" : \"rgba(255,122,69,.85)\") : \"rgba(255,255,255,.12)\");\n        ctx.beginPath(); ctx.arc(sx, ry, isCur ? 7 : 5, 0, 6.283); ctx.fill();\n        if (isCur && sl2 > 0) { ctx.strokeStyle = \"rgba(255,210,63,.55)\"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(sx, ry, 11 + (t * 30 % 6), 0, 6.283); ctx.stroke(); }\n      }\n      // flashes\n      for (var fi = flashes.length - 1; fi >= 0; fi--) {\n        var f = flashes[fi]; f.age += dt; if (f.age > 0.6) { flashes.splice(fi, 1); continue; }\n        var fx = padX + (f.slice - 1) * cw + cw / 2, fa = 1 - f.age / 0.6;\n        ctx.strokeStyle = \"hsla(\" + hue(f.pitch) + \",100%,70%,\" + fa * 0.8 + \")\"; ctx.lineWidth = 2;\n        ctx.beginPath(); ctx.arc(fx, (sy0 + sy1) / 2, 6 + f.age * 46, 0, 6.283); ctx.stroke();\n      }\n      // duck meter\n      ctx.fillStyle = \"rgba(255,255,255,.4)\"; ctx.textAlign = \"right\"; ctx.font = \"9px ui-sans-serif,system-ui\";\n      ctx.fillText(\"preview clock · \" + Math.round(tempo) + \" bpm · \" + ([\"1/4\", \"1/8\", \"1/16\", \"1/32\", \"1/8T\"][div]) + (chance < 0.99 ? \" · \" + pct(chance) + \" chance\" : \"\"), W - padX, 18);\n    }\n    return frame;\n  }\n  var frameFn = null;\n  VS.boot(function () { frameFn = build(); }, function (t, dt) { if (frameFn) frameFn(t, dt); });\n})();\n</script>\n</body>\n</html>\n",
+  "assembly": "// =====================================================================\n//  SHARD SEQUENCER — 16-step granular slice / ratchet / glitch sequencer\n//  Audio is captured into a rolling (or HELD) stereo buffer that is cut into\n//  16 equal slices spanning the CAPTURE window (1/2/4/8 beats). A 16-step\n//  sequence then fires \"shards\" — grains cut from any slice — locked to the\n//  DAW playhead (ppq) with swing, falling back to a free-running clock at the\n//  host/param tempo when the transport is stopped.\n//   Per step: SLICE (rest, or 1 = oldest … 16 = newest), PITCH (±24 st),\n//             REVERSE, RATCHET (1–4 hits inside the step) and GATE (25–100 %).\n//   Global:  Tempo · Steps · Division (¼ ⅛ 1/16 1/32 ⅛T) · Swing · Capture ·\n//            Hold (freeze the buffer into a locked loop) · Chance · Jitter ·\n//            Fade · Tone · Crush · Spread · Duck (dry gate while shards play)\n//            · Mix · Level.\n//  Shards are Hermite-interpolated, raised-cosine faded voices (12-voice pool).\n// =====================================================================\n\nconst MAX_FRAMES: i32 = 8192;\nconst MAX_CHANNELS: i32 = 2;\nconst MAX_PARAMS: i32 = 64;\n\nconst inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);\nconst outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);\nconst params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);\n\nconst RING: i32 = 393216;\nconst ring: StaticArray<f32> = new StaticArray<f32>(RING * MAX_CHANNELS);\nlet writePos: i32 = 0;\n\nconst NVOI: i32 = 12;\nconst vAct: StaticArray<i32> = new StaticArray<i32>(NVOI);\nconst vDel: StaticArray<f32> = new StaticArray<f32>(NVOI);\nconst vDD:  StaticArray<f32> = new StaticArray<f32>(NVOI);\nconst vPos: StaticArray<f32> = new StaticArray<f32>(NVOI);   // frames elapsed\nconst vDur: StaticArray<f32> = new StaticArray<f32>(NVOI);\nconst vFade: StaticArray<f32> = new StaticArray<f32>(NVOI);\nconst vPL:  StaticArray<f32> = new StaticArray<f32>(NVOI);\nconst vPR:  StaticArray<f32> = new StaticArray<f32>(NVOI);\n\nlet sampleRate: f32 = 48000.0;\nlet channels: i32 = 2;\nlet rngState: u32 = 0x1badf00d;\n\n// clock\nlet tPlaying: i32 = 0;\nlet tHave: i32 = 0;\nlet tPpq: f64 = 0.0;\nlet tBpm: f32 = 0.0;\nlet freePpq: f64 = 0.0;\nlet lastStep: i64 = -1;\n\n// ratchet scheduler\nlet rHitsLeft: i32 = 0;\nlet rCount: f32 = 0.0;\nlet rSub: f32 = 0.0;\nlet rDur: f32 = 0.0;\nlet rSlice: i32 = 0;\nlet rRate: f32 = 1.0;\nlet rRev: i32 = 0;\n\nlet duckEnv: f32 = 0.0;\nlet lpL: f32 = 0.0; let lpR: f32 = 0.0; let hpL: f32 = 0.0; let hpR: f32 = 0.0;\nlet holdL: f32 = 0.0; let holdR: f32 = 0.0; let holdCnt: f32 = 0.0;\nlet sHold: f32 = 0.0;\nlet sMix: f32 = 0.7;\nlet curStepOut: i32 = 0;\n\nconst P_TEMPO: i32 = 0;  const P_STEPS: i32 = 1;  const P_DIV: i32 = 2;    const P_SWING: i32 = 3;\nconst P_CAPT: i32 = 4;   const P_HOLD: i32 = 5;   const P_CHANCE: i32 = 6;  const P_JIT: i32 = 7;\nconst P_FADE: i32 = 8;   const P_TONE: i32 = 9;   const P_CRUSH: i32 = 10;  const P_SPREAD: i32 = 11;\nconst P_DUCK: i32 = 12;  const P_MIX: i32 = 13;   const P_LEVEL: i32 = 14;\nconst P_STEP0: i32 = 15;\nconst P_HOSTBPM: i32 = 63;\n\nexport function init(sr: f32, maxFrames: i32, numChannels: i32): void {\n  sampleRate = sr > 0.0 ? sr : 48000.0;\n  channels = numChannels < MAX_CHANNELS ? numChannels : MAX_CHANNELS;\n  for (let i = 0; i < RING * MAX_CHANNELS; i++) ring[i] = 0.0;\n  writePos = 0;\n  for (let i = 0; i < NVOI; i++) { vAct[i] = 0; vPL[i] = 0.7071; vPR[i] = 0.7071; }\n  rngState = 0x1badf00d;\n  tPlaying = 0; tHave = 0; tPpq = 0.0; tBpm = 0.0; freePpq = 0.0; lastStep = -1;\n  rHitsLeft = 0; rCount = 0.0; duckEnv = 0.0;\n  lpL = 0.0; lpR = 0.0; hpL = 0.0; hpR = 0.0; holdL = 0.0; holdR = 0.0; holdCnt = 0.0;\n  sHold = 0.0; sMix = 0.7; curStepOut = 0;\n  params[P_TEMPO] = 120.0; params[P_STEPS] = 16.0; params[P_DIV] = 2.0; params[P_SWING] = 0.15;\n  params[P_CAPT] = 2.0; params[P_HOLD] = 0.0; params[P_CHANCE] = 1.0; params[P_JIT] = 0.0;\n  params[P_FADE] = 0.25; params[P_TONE] = 0.0; params[P_CRUSH] = 0.0; params[P_SPREAD] = 0.4;\n  params[P_DUCK] = 0.9; params[P_MIX] = 0.85; params[P_LEVEL] = 0.9;\n  const sl: StaticArray<f32> = [16, 0, 12, 0, 8, 0, 4, 3, 16, 0, 10, 0, 6, 6, 2, 1];\n  const pt: StaticArray<f32> = [0, 0, 0, 0, 0, 0, -12, 0, 0, 0, 7, 0, 0, 12, 0, -5];\n  const fl: StaticArray<f32> = [0, 0, 0, 0, 2, 0, 4, 0, 0, 0, 1, 0, 6, 1, 4, 3];\n  for (let i = 0; i < 16; i++) {\n    params[P_STEP0 + i * 3] = sl[i];\n    params[P_STEP0 + i * 3 + 1] = pt[i];\n    params[P_STEP0 + i * 3 + 2] = fl[i] + 24.0;   // gate 100 %\n  }\n}\n\nexport function getInputPtr(): usize  { return changetype<usize>(inBuf); }\nexport function getOutputPtr(): usize { return changetype<usize>(outBuf); }\nexport function getParamsPtr(): usize { return changetype<usize>(params); }\nexport function getNumParams(): i32   { return 63; }\n\nexport function transport(playing: i32, ppq: f64, bpm: f32): void {\n  tHave = 1; tPlaying = playing; tPpq = ppq; tBpm = bpm;\n}\n\n@inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }\n@inline function rndf(): f32 {\n  let x: u32 = rngState;\n  x ^= x << 13; x ^= x >> 17; x ^= x << 5;\n  rngState = x;\n  return f32(x & 0x00ffffff) / f32(0x01000000);\n}\n\n@inline function readRing(c: i32, pos: f32): f32 {\n  let p: f32 = pos;\n  const rf: f32 = f32(RING);\n  if (p < 0.0) p += rf * f32(i32(-p / rf) + 1);\n  if (p >= rf) p -= rf * f32(i32(p / rf));\n  const i1: i32 = i32(p);\n  const fr: f32 = p - f32(i1);\n  let i0: i32 = i1 - 1; if (i0 < 0) i0 += RING;\n  let i2: i32 = i1 + 1; if (i2 >= RING) i2 -= RING;\n  let i3: i32 = i1 + 2; if (i3 >= RING) i3 -= RING;\n  const b: i32 = c * RING;\n  const y0: f32 = ring[b + i0]; const y1: f32 = ring[b + i1];\n  const y2: f32 = ring[b + i2]; const y3: f32 = ring[b + i3];\n  const c1: f32 = 0.5 * (y2 - y0);\n  const c2: f32 = y0 - 2.5 * y1 + 2.0 * y2 - 0.5 * y3;\n  const c3: f32 = 0.5 * (y3 - y0) + 1.5 * (y1 - y2);\n  return ((c3 * fr + c2) * fr + c1) * fr + y1;\n}\n\n// fire one shard from a slice\nfunction trigger(slice: i32, rate: f32, rev: i32, dur: f32, winFrames: f32, frozen: bool,\n                 jitter: f32, fadeFr: f32, spread: f32): void {\n  let slot: i32 = -1;\n  for (let v = 0; v < NVOI; v++) { if (vAct[v] == 0) { slot = v; break; } }\n  if (slot < 0) {\n    // steal the oldest (most elapsed)\n    let best: f32 = -1.0;\n    for (let v = 0; v < NVOI; v++) { if (vPos[v] > best) { best = vPos[v]; slot = v; } }\n  }\n  const S: f32 = winFrames / 16.0;\n  const dOld: f32 = winFrames - f32(slice - 1) * S;              // slice start (older edge)\n  const lr: f32 = dur * rate;                                    // source frames consumed\n  const live: f32 = frozen ? 0.0 : 1.0;\n  let d0: f32;\n  let dd: f32;\n  if (rev == 0) { d0 = dOld; dd = live - rate; }\n  else { d0 = dOld - lr; dd = live + rate; }\n  d0 += (rndf() * 2.0 - 1.0) * jitter * S * 2.0;\n  // keep the trajectory inside [32, RING-8]\n  const dEnd: f32 = d0 + dd * dur;\n  const lo: f32 = Mathf.min(d0, dEnd);\n  const hi: f32 = Mathf.max(d0, dEnd);\n  if (lo < 32.0) d0 += 32.0 - lo;\n  else if (hi > f32(RING - 8)) d0 -= hi - f32(RING - 8);\n  vDel[slot] = d0; vDD[slot] = dd; vPos[slot] = 0.0; vDur[slot] = dur;\n  vFade[slot] = Mathf.min(fadeFr, dur * 0.5);\n  const pn: f32 = (rndf() * 2.0 - 1.0) * spread;\n  const ang: f32 = (pn * 0.5 + 0.5) * 1.5707963;\n  vPL[slot] = f32(Mathf.cos(ang)); vPR[slot] = f32(Mathf.sin(ang));\n  vAct[slot] = 1;\n}\n\nexport function process(n: i32): void {\n  const tempoP: f32 = clampf(params[P_TEMPO], 30.0, 300.0);\n  const steps: i32 = i32(clampf(params[P_STEPS], 1.0, 16.0) + 0.5);\n  const div: i32 = i32(clampf(params[P_DIV], 0.0, 4.0) + 0.5);\n  const swing: f32 = clampf(params[P_SWING], 0.0, 0.6);\n  const capt: i32 = i32(clampf(params[P_CAPT], 0.0, 3.0) + 0.5);\n  const holdT: f32 = params[P_HOLD] >= 0.5 ? 1.0 : 0.0;\n  const chance: f32 = clampf(params[P_CHANCE], 0.0, 1.0);\n  const jit: f32 = clampf(params[P_JIT], 0.0, 1.0);\n  const fade01: f32 = clampf(params[P_FADE], 0.0, 1.0);\n  const tone: f32 = clampf(params[P_TONE], -1.0, 1.0);\n  const crush: f32 = clampf(params[P_CRUSH], 0.0, 1.0);\n  const spread: f32 = clampf(params[P_SPREAD], 0.0, 1.0);\n  const duck: f32 = clampf(params[P_DUCK], 0.0, 1.0);\n  const mixT: f32 = clampf(params[P_MIX], 0.0, 1.0);\n  const level: f32 = clampf(params[P_LEVEL], 0.0, 1.5);\n\n  // tempo: DAW transport > host tempo slot > Tempo param\n  let bpm: f32 = tempoP;\n  if (tHave == 1 && tBpm > 20.0) bpm = tBpm;\n  else if (params[P_HOSTBPM] > 20.0) bpm = params[P_HOSTBPM];\n  const followDaw: bool = tHave == 1 && tPlaying == 1;\n  const beatFrames: f32 = 60.0 / bpm * sampleRate;\n  const stepBeats: f32 = div == 0 ? 1.0 : (div == 1 ? 0.5 : (div == 2 ? 0.25 : (div == 3 ? 0.125 : 0.3333333)));\n  const stepFrames: f32 = beatFrames * stepBeats;\n  const capBeats: f32 = capt == 0 ? 1.0 : (capt == 1 ? 2.0 : (capt == 2 ? 4.0 : 8.0));\n  let winFrames: f32 = capBeats * beatFrames;\n  if (winFrames > f32(RING - 4096)) winFrames = f32(RING - 4096);\n  const ppqInc: f64 = f64(bpm) / (60.0 * f64(sampleRate));\n  const fadeFr: f32 = (0.5 + fade01 * fade01 * 30.0) * 0.001 * sampleRate;\n  const holdSlew: f32 = 1.0 - f32(Mathf.exp(-1.0 / (0.005 * sampleRate)));\n\n  const lpHz: f32 = tone < 0.0 ? 20000.0 * f32(Mathf.pow(0.02, -tone)) : 20000.0;\n  const hpHz: f32 = tone > 0.0 ? 20.0 + 3000.0 * tone * tone : 20.0;\n  const lpA: f32 = 1.0 - f32(Mathf.exp(-6.2831853 * Mathf.min(lpHz, 0.45 * sampleRate) / sampleRate));\n  const hpA: f32 = 1.0 - f32(Mathf.exp(-6.2831853 * hpHz / sampleRate));\n  const holdStep: f32 = 1.0 + crush * crush * 30.0;\n  const qLevels: f32 = f32(Mathf.pow(2.0, 15.0 - crush * 11.0));\n  const duckA: f32 = 1.0 - f32(Mathf.exp(-1.0 / (0.003 * sampleRate)));\n\n\n  for (let f = 0; f < n; f++) {\n    const dryL: f32 = inBuf[f];\n    const dryR: f32 = channels > 1 ? inBuf[MAX_FRAMES + f] : dryL;\n    sHold += (holdT - sHold) * holdSlew;\n    sMix += (mixT - sMix) * 0.002;\n    const frozen: bool = sHold > 0.5;\n\n    // ---- clock → step index (swing = late odd steps) ----\n    let ppq: f64;\n    if (followDaw) { ppq = tPpq; tPpq += ppqInc; }\n    else { ppq = freePpq; freePpq += ppqInc; }\n    const stepPos: f64 = ppq / f64(stepBeats);\n    const pairIdx: i64 = i64(Math.floor(stepPos * 0.5));\n    const fr: f64 = stepPos * 0.5 - f64(pairIdx);\n    const boundary: f64 = 0.5 + f64(swing) * 0.25;\n    const stepIdx: i64 = fr < boundary ? pairIdx * 2 : pairIdx * 2 + 1;\n    if (stepIdx != lastStep) {\n      lastStep = stepIdx;\n      let si: i32 = i32(stepIdx % i64(steps)); if (si < 0) si += steps;\n      curStepOut = si;\n      const b: i32 = P_STEP0 + si * 3;\n      const slice: i32 = i32(clampf(params[b], 0.0, 16.0) + 0.5);\n      const pitch: f32 = clampf(params[b + 1], -24.0, 24.0);\n      const flags: i32 = i32(clampf(params[b + 2], 0.0, 31.0) + 0.5);\n      rHitsLeft = 0;\n      if (slice > 0 && (chance >= 0.999 || rndf() < chance)) {\n        const R: i32 = ((flags >> 1) & 3) + 1;\n        const gate: f32 = 0.25 * f32(((flags >> 3) & 3) + 1);\n        rHitsLeft = R;\n        rSub = stepFrames / f32(R);\n        rDur = Mathf.max(rSub * gate, 16.0);\n        rCount = 0.0;\n        rSlice = slice;\n        rRate = f32(Mathf.exp(pitch * 0.05776226504666));\n        rRev = flags & 1;\n      }\n    }\n    if (rHitsLeft > 0) {\n      rCount -= 1.0;\n      if (rCount <= 0.0) {\n        trigger(rSlice, rRate, rRev, rDur, winFrames, frozen, jit, fadeFr, spread);\n        rHitsLeft -= 1;\n        rCount += rSub;\n      }\n    }\n\n    // ---- render shards ----\n    let wetL: f32 = 0.0; let wetR: f32 = 0.0; let any: f32 = 0.0;\n    const wf: f32 = f32(writePos);\n    for (let v = 0; v < NVOI; v++) {\n      if (vAct[v] == 0) continue;\n      const p: f32 = vPos[v];\n      const rem: f32 = vDur[v] - p;\n      let e: f32 = 1.0;\n      const fd: f32 = vFade[v];\n      if (p < fd) e = f32(Mathf.sin(1.5707963 * p / fd));\n      if (rem < fd) e = e * f32(Mathf.sin(1.5707963 * Mathf.max(rem, 0.0) / fd));\n      const rp: f32 = wf - vDel[v];\n      const sL: f32 = readRing(0, rp);\n      const sR: f32 = channels > 1 ? readRing(1, rp) : sL;\n      wetL += sL * e * vPL[v] * 1.414;\n      wetR += sR * e * vPR[v] * 1.414;\n      any = 1.0;\n      vDel[v] += vDD[v];\n      vPos[v] = p + 1.0;\n      if (vPos[v] >= vDur[v] || vDel[v] < 2.0 || vDel[v] > f32(RING - 8)) vAct[v] = 0;\n    }\n    duckEnv += ((any > 0.5 ? 1.0 : 0.0) - duckEnv) * duckA;\n\n    // ---- write capture buffer ----\n    if (!frozen) {\n      ring[writePos] = dryL; ring[RING + writePos] = dryR;\n      writePos += 1; if (writePos >= RING) writePos = 0;\n    }\n\n    // ---- tone + crush on the wet path ----\n    lpL += (wetL - lpL) * lpA; lpR += (wetR - lpR) * lpA;\n    let tL: f32 = lpL; let tR: f32 = lpR;\n    hpL += (tL - hpL) * hpA; hpR += (tR - hpR) * hpA;\n    tL -= hpL; tR -= hpR;\n    if (crush > 0.001) {\n      holdCnt -= 1.0;\n      if (holdCnt <= 0.0) {\n        holdCnt += holdStep;\n        holdL = Mathf.round(tL * qLevels) / qLevels;\n        holdR = Mathf.round(tR * qLevels) / qLevels;\n      }\n      tL = holdL; tR = holdR;\n    }\n\n    const dg: f32 = 1.0 - sMix * duck * duckEnv;\n    const oL: f32 = (dryL * dg + tL * sMix) * level;\n    const oR: f32 = (dryR * dg + tR * sMix) * level;\n    outBuf[f] = f32(Mathf.tanh(oL));\n    outBuf[MAX_FRAMES + f] = f32(Mathf.tanh(oR));\n  }\n}\n",
+  "publishedAt": 1782000200000
+}
