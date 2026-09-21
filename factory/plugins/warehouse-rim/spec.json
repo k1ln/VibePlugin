@@ -1,0 +1,44 @@
+{
+  "name": "Warehouse Rim",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-909 from its Owner's Manual and Service Notes; the same model as inside Warehouse 909, on its own mixer channel. Two ringing filters (≈500 Hz and 1.7 kHz) through a harmonics-rich VCA on a very short envelope.",
+  "assembly": "factory/plugins/warehouse-rim/assembly.ts",
+  "out": "factory/plugins/warehouse-rim/x.vstai",
+  "guiFile": "factory/plugins/warehouse-rim/gui.html",
+  "publishedAt": 1790021734461,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Accent",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

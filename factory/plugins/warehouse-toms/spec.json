@@ -1,0 +1,107 @@
+{
+  "name": "Warehouse Toms",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-909 from its Owner's Manual and Service Notes; the same model as inside Warehouse 909, on its own mixer channel. Three toms: a VCO with a falling pitch contour, a faint shell partial and a burst of tom noise. Tune, Level and Decay each.",
+  "assembly": "factory/plugins/warehouse-toms/assembly.ts",
+  "out": "factory/plugins/warehouse-toms/x.vstai",
+  "guiFile": "factory/plugins/warehouse-toms/gui.html",
+  "publishedAt": 1790021733988,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Low Tune",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Low Level",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Low Decay",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Mid Tune",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Mid Level",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mid Decay",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Hi Tune",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Hi Level",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Hi Decay",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Stereo Width",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Accent",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

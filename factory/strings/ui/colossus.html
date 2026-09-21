@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colossus</title>
+<style>
+  :root{ --bg:#070506; --line:#2e1d1c; --ink:#f4e9e4; --ink2:#b69a92; --muted:#6f5752; --ember:#ff5a2a; --ember2:#ffb38a; --accent:#ff5a2a; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.35 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;user-select:none}
+  #fit{position:absolute;left:0;top:0;transform-origin:0 0}
+  .inst{width:1060px;padding:16px 18px;border-radius:12px;background:radial-gradient(900px 300px at 50% -20%,#4a1712 0%,#1a0b0a 50%,#0b0606 100%);box-shadow:0 0 0 1px #000,inset 0 1px 0 rgba(255,160,120,.08)}
+  .top{display:flex;align-items:flex-end;gap:16px;margin-bottom:12px}
+  .brand b{display:block;font-size:34px;letter-spacing:.3em;font-weight:900;color:#fff;text-shadow:0 0 22px rgba(255,90,42,.45)}
+  .brand span{display:block;font-size:10px;letter-spacing:.34em;color:var(--ink2);text-transform:uppercase;margin-top:4px}
+  .row{display:flex;gap:10px;align-items:stretch;margin-bottom:10px}
+  .row > .grp{flex:1 1 auto}
+  .grp{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(0,0,0,.3)}
+  .gt{font-size:9.5px;letter-spacing:.26em;color:var(--ink2);text-transform:uppercase;margin-bottom:6px}
+  .knobs{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end}
+  .k-wrap{display:flex;flex-direction:column;align-items:center;width:62px}
+  .k{cursor:ns-resize;display:block;touch-action:none}
+  .k-tick{stroke:#553430;stroke-width:3}
+  .k-skirt{fill:#0a0505;stroke:#4a2a26;stroke-width:2}
+  .k-cap{fill:#1d1110}
+  .k-needle{stroke:var(--ember2);stroke-width:7;stroke-linecap:round}
+  .k-label{font-size:9px;letter-spacing:.1em;color:var(--ink2);text-transform:uppercase;margin-top:1px;text-align:center}
+  .k-val{font-size:9.5px;color:var(--ember);min-height:11px}
+  .k-wrap.big{width:78px}
+  .sel{display:flex;flex-direction:column}
+  .sel-label{font-size:9px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;margin-bottom:4px}
+  .sel-row{display:flex;border:1px solid #4a2a26;border-radius:6px;overflow:hidden;flex-wrap:wrap}
+  .sel-btn{border:0;background:rgba(0,0,0,.4);color:#c9aba2;font:700 10px/1 inherit;padding:7px 9px;cursor:pointer;border-right:1px solid #2e1d1c}
+  .sel-btn:last-child{border-right:0}
+  .sel-btn.on{background:var(--ember);color:#1a0703}
+  .tog{border:1px solid #4a2a26;background:rgba(0,0,0,.4);color:var(--ink);font:800 11px/1 inherit;padding:10px 16px;border-radius:6px;cursor:pointer;letter-spacing:.2em}
+  .tog.on{background:var(--ember);border-color:var(--ember2);color:#1a0703;box-shadow:0 0 18px rgba(255,90,42,.5)}
+  .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:8px}
+  .st{height:30px;border-radius:4px;background:#1a0f0e;border:1px solid #2e1d1c;position:relative}
+  .st.hit{background:#5a221a} .st.acc{background:#a8371f}
+  .st.now{box-shadow:0 0 0 2px #fff inset}
+  .st.off{opacity:.25}
+  .foot{color:var(--muted);font-size:10px;line-height:1.45}
+  .meter{width:12px;height:60px;border-radius:3px;background:#120807;position:relative;overflow:hidden;border:1px solid #2e1d1c;align-self:center}
+  .meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#7a2414,var(--ember2))}
+</style>
+</head>
+<body>
+<div id="fit"><div class="inst" id="u"></div></div>
+<script>
+/*@KIT@*/
+</script>
+<script>
+(function () {
+  var DEFS = /*@PARAMS@*/;
+  Kit.define(DEFS);
+  var P = {}; DEFS.forEach(function (d) { P[d.key] = d.index; });
+  var el = Kit.el, u = document.getElementById("u");
+  var pct = function (v) { return Math.round(v * 100) + ""; };
+
+  var top = el("div", "top", u);
+  var br = el("div", "brand", top); br.innerHTML = "<b>COLOSSUS</b><span>Hybrid trailer strings · ostinato engine</span>";
+  var sp = el("div", "", top); sp.style.flex = "1";
+  Kit.knob(top, P.DYN, { label: "Dynamics", size: 52, cls: "big", fmt: pct });
+  Kit.knob(top, P.EXPR, { label: "Expression", size: 44, fmt: pct });
+  Kit.knob(top, P.MASTER, { label: "Master", size: 44, fmt: pct });
+  var meter = el("div", "meter", top), mBar = el("i", "", meter);
+
+  var row = el("div", "row", u);
+  var sg = el("div", "grp", row); el("div", "gt", sg, "Sections");
+  var sk = el("div", "knobs", sg);
+  Kit.knob(sk, P.LOW, { label: "Low 8vb", fmt: pct }); Kit.knob(sk, P.MID, { label: "Mid", fmt: pct });
+  Kit.knob(sk, P.HIGH, { label: "High 8va", fmt: pct }); Kit.knob(sk, P.SUB, { label: "Sub", fmt: pct });
+  Kit.knob(sk, P.SPREAD, { label: "Spread", fmt: pct }); Kit.knob(sk, P.SIZE, { label: "Size", sens: 0.5, fmt: function (v) { return v + " desks"; } });
+  var tg = el("div", "grp", row); el("div", "gt", tg, "Tone");
+  var tk = el("div", "knobs", tg);
+  Kit.knob(tk, P.TONE, { label: "Tone", fmt: pct }); Kit.knob(tk, P.RES, { label: "Resonance", fmt: pct });
+  Kit.knob(tk, P.BODY, { label: "Body", fmt: pct }); Kit.knob(tk, P.ROSIN, { label: "Rosin", fmt: pct }); Kit.knob(tk, P.VEL_BITE, { label: "Bite", fmt: pct });
+  Kit.knob(tk, P.ATTACK, { label: "Attack", fmt: pct }); Kit.knob(tk, P.RELEASE, { label: "Release", fmt: pct });
+
+  var og = el("div", "grp", u); og.style.marginBottom = "10px";
+  el("div", "gt", og, "Ostinato · locks to your DAW's bar");
+  var orow = el("div", "knobs", og); orow.style.alignItems = "center"; orow.style.gap = "10px";
+  Kit.toggle(orow, P.OSTINATO, "OSTINATO");
+  Kit.selector(orow, P.PATTERN, { label: "Pattern", options: ["8ths", "16ths", "Gallop", "Rev. gallop", "Triplets", "3-3-2", "Dotted", "32nds"] });
+  Kit.selector(orow, P.RATE, { label: "Rate", options: ["½×", "1×", "2×"] });
+  Kit.knob(orow, P.LENGTH, { label: "Length", fmt: pct }); Kit.knob(orow, P.ACCENT, { label: "Accent", fmt: pct }); Kit.knob(orow, P.SWING, { label: "Swing", fmt: pct });
+  var stepsEl = el("div", "steps", og), cells = [];
+  for (var s = 0; s < 16; s++) cells.push(el("div", "st", stepsEl));
+  var PATS = ["2010101020101010", "2111211121112111", "2011201120112011", "1120112011201120", "2112112112110000", "2112112121121121", "2001200120012001", "2111111121111111"];
+  var now = -1;
+  function paintSteps() {
+    if (!cells.length) return;
+    var p = PATS[Kit.get(P.PATTERN)] || PATS[0], len = Kit.get(P.PATTERN) === 4 ? 12 : 16, on = Kit.get(P.OSTINATO) > 0.5;
+    cells.forEach(function (c, i) {
+      var v = +p[i];
+      c.className = "st" + (v === 1 ? " hit" : v === 2 ? " acc" : "") + (i >= len || !on ? " off" : "") + (i === now ? " now" : "");
+    });
+  }
+  Kit.listen(P.PATTERN, paintSteps); Kit.listen(P.OSTINATO, paintSteps);
+
+  var row3 = el("div", "row", u);
+  var mg = el("div", "grp", row3); el("div", "gt", mg, "Motion");
+  var mk = el("div", "knobs", mg);
+  Kit.knob(mk, P.EVOLVE, { label: "Evolve", fmt: pct }); Kit.knob(mk, P.EVOLVE_RATE, { label: "Evolve rate", fmt: pct });
+  Kit.knob(mk, P.TENSION, { label: "Tension", fmt: pct }); Kit.knob(mk, P.PUMP, { label: "Pump", fmt: pct });
+  Kit.knob(mk, P.BEND_RANGE, { label: "Bend", sens: 0.5, fmt: function (v) { return v + " st"; } });
+  var hg = el("div", "grp", row3); el("div", "gt", hg, "Space");
+  var hk = el("div", "knobs", hg);
+  Kit.knob(hk, P.WIDTH, { label: "Width", fmt: pct }); Kit.knob(hk, P.HALL_SIZE, { label: "Hall size", fmt: pct });
+  Kit.knob(hk, P.HALL, { label: "Hall mix", fmt: pct }); Kit.knob(hk, P.TAPE, { label: "Tape", fmt: pct });
+
+  el("div", "foot", u, "Three ensembles per note (an octave down, unison, an octave up) plus sub, bow-hair rosin and a marcato bite. With OSTINATO on, hold a chord: it is replayed in the chosen rhythm, locked to your DAW's bar (or free-running from the first key when the DAW is stopped). CC1 dynamics, CC11 expression.");
+
+  Kit.onDisplay(function (d) {
+    var n2 = Math.round(d[0]);
+    if (n2 !== now) { now = n2; paintSteps(); }
+    mBar.style.height = Math.min(100, Math.round(d[15] * 100)) + "%";
+  });
+  paintSteps();
+
+  var fitEl = document.getElementById("fit");
+  function fit() {
+    var w = u.offsetWidth, h = u.offsetHeight, sc = Math.min(window.innerWidth / w, window.innerHeight / h);
+    fitEl.style.transform = "scale(" + sc + ")";
+    fitEl.style.left = Math.max(0, (window.innerWidth - w * sc) / 2) + "px";
+    fitEl.style.top = Math.max(0, (window.innerHeight - h * sc) / 2) + "px";
+  }
+  window.addEventListener("resize", fit); fit();
+  Kit.start();
+})();
+</script>
+</body>
+</html>

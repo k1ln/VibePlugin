@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warehouse 909</title>
+<style>
+  :root{
+    --panel:#1c1c1d; --panel2:#232325; --line:#343437; --ink:#ece6d6; --ink2:#a7a194; --muted:#6f6b63;
+    --orange:#ff7a1a; --red:#e2382a; --yellow:#f2d23c; --cream:#e9e7e1; --led:#ff5a1f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#0f0f10;color:var(--ink);font:12px/1.3 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;user-select:none}
+  #fit{transform-origin:0 0;position:absolute;left:0;top:0}
+  .machine{width:1180px;padding:14px 16px 16px;background:linear-gradient(180deg,#8d8e8c,#6f716f 18%,#2a2b2c 19%,#1d1e1f 60%,#18191a);border-radius:10px;box-shadow:0 0 0 1px #000,inset 0 1px 0 #3a3a3d}
+  .top{display:flex;align-items:center;gap:18px;margin-bottom:10px}
+  .brand{display:flex;flex-direction:column;margin-right:auto}
+  .brand b{font-size:22px;letter-spacing:.06em;font-weight:800;color:#141414}
+  .brand b i{font-style:normal;color:var(--orange)}
+  .brand span{color:#2b2b2b;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase}
+  .grp{display:flex;align-items:flex-end;gap:10px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.18)}
+  .grp-title{font-size:9.5px;letter-spacing:.2em;color:var(--ink2);text-transform:uppercase;margin-bottom:4px}
+  .col-stack{display:flex;flex-direction:column;align-items:center}
+
+  /* knobs */
+  .k-wrap{display:flex;flex-direction:column;align-items:center;width:52px}
+  .k{cursor:ns-resize;display:block;touch-action:none}
+  .k-tick{stroke:#6d6961;stroke-width:3}
+  .k-skirt{fill:#0c0c0d;stroke:#3d3d40;stroke-width:2}
+  .k-cap{fill:#2c2c2f}
+  .k-needle{stroke:var(--cream);stroke-width:7;stroke-linecap:round}
+  .k-label{font-size:9.5px;letter-spacing:.08em;color:var(--ink2);text-transform:uppercase;margin-top:1px;text-align:center}
+  .k-val{font-size:9.5px;color:var(--orange);min-height:11px;font-variant-numeric:tabular-nums}
+  .k-wrap.big{width:66px}
+
+  /* instrument strip */
+  .strip{display:grid;grid-template-columns:62px 1.55fr 1.55fr 1fr 1fr 1fr .78fr .78fr .62fr 1.55fr 1.05fr .62fr;gap:5px;margin-bottom:12px}
+  .inst{border:1px solid var(--line);border-radius:7px;background:linear-gradient(180deg,#29292b,#1f1f20);padding:6px 4px 6px;display:flex;flex-direction:column;align-items:center;min-width:0}
+  .inst-name{width:100%;min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--cream);padding:2px 0 5px;border-bottom:1px solid #333;margin-bottom:6px;cursor:pointer;text-align:center;line-height:1.15}
+  .inst-name .nm{display:flex;align-items:center;gap:5px}
+  .inst-name:hover{color:var(--orange)}
+  .inst-name .led{width:7px;height:7px;border-radius:50%;background:#3a1512;box-shadow:inset 0 0 2px #000;flex:0 0 auto}
+  .inst-name small{font-weight:600;color:var(--ink2);font-size:9px}
+  .knobs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+  .bit{margin:0 0 6px;display:flex;border:1px solid #444;border-radius:4px;overflow:hidden;background:#111;cursor:pointer;padding:0;font:inherit}
+  .bit span{padding:2px 6px;font-size:9.5px;font-weight:700;color:#777;letter-spacing:.05em}
+  .bit .bit-a{background:#2b2b2d;color:var(--cream)}
+  .bit.on .bit-a{background:transparent;color:#777}
+  .bit.on .bit-b{background:#2b2b2d;color:var(--orange)}
+
+  /* selectors, toggles */
+  .sel-label{font-size:9.5px;letter-spacing:.14em;color:var(--ink2);text-transform:uppercase;margin-bottom:3px}
+  .sel-row{display:flex;border:1px solid #444;border-radius:5px;overflow:hidden}
+  .sel-btn{border:0;background:#161617;color:#8a857b;font:700 10.5px/1 inherit;padding:5px 8px;cursor:pointer;border-right:1px solid #333}
+  .sel-btn:last-child{border-right:0}
+  .sel-btn.on{background:var(--orange);color:#1a1208}
+  .tog,.btn{border:1px solid #4a4a4d;background:#1a1a1b;color:var(--cream);font:700 10.5px/1 inherit;padding:7px 11px;border-radius:5px;cursor:pointer;letter-spacing:.06em}
+  .tog.on{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 0 10px rgba(226,56,42,.5)}
+  .btn:hover,.tog:hover{border-color:#777}
+
+  /* sequencer */
+  .seqbar{display:flex;align-items:flex-end;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .instsel{display:flex;gap:3px}
+  .isb{border:1px solid #444;background:#161617;color:#9a958b;font:700 10px/1 inherit;padding:6px 6px;border-radius:4px;cursor:pointer;min-width:31px}
+  .isb.on{background:var(--cream);color:#111;border-color:var(--cream)}
+  .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:6px;padding:10px 10px 8px;background:#121213;border-radius:8px;border:1px solid var(--line)}
+  .step{position:relative;height:58px;border-radius:5px;cursor:pointer;border:0;box-shadow:inset 0 -5px 0 rgba(0,0,0,.28),0 2px 0 #000;padding:0}
+  .step .num{position:absolute;left:6px;bottom:8px;font:800 11px/1 inherit;color:rgba(0,0,0,.55)}
+  .step .sled{position:absolute;right:7px;top:7px;width:9px;height:9px;border-radius:50%;background:#4a1611;box-shadow:inset 0 0 3px #000}
+  .step.on .sled{background:var(--led);box-shadow:0 0 8px var(--led),inset 0 0 2px #fff}
+  .step.play{outline:2px solid #fff;outline-offset:2px}
+  .step.beyond{opacity:.32}
+  .g1,.g3{background:#d8d6cf} .g2,.g4{background:#b9b7b0}
+  .step.lv1 .sled{background:#ffb27a;box-shadow:0 0 6px #ff9a52}
+  .step.lv2 .sled{background:var(--led);box-shadow:0 0 10px var(--led),inset 0 0 2px #fff}
+  .step.lv3 .sled{background:#8ad0ff;box-shadow:0 0 10px #4db6ff,inset 0 0 2px #fff}
+  .step .tag{position:absolute;left:6px;top:7px;font:800 9px/1 inherit;color:rgba(0,0,0,.55);letter-spacing:.05em}
+  .gc.lv2{background:var(--led)} .gc.lv3{background:#4db6ff}
+  .beats{display:grid;grid-template-columns:repeat(16,1fr);gap:6px;padding:4px 10px 0;color:var(--muted);font-size:9px;letter-spacing:.1em}
+  .grid{display:none;margin-top:10px;background:#121213;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .grid.show{display:block}
+  .grow{display:grid;grid-template-columns:52px repeat(16,1fr);gap:3px;margin-bottom:3px;align-items:center}
+  .grow b{font-size:10px;color:var(--ink2);letter-spacing:.08em}
+  .gc{height:15px;border-radius:3px;background:#262628;cursor:pointer}
+  .gc.q{background:#2e2e31}
+  .gc.on{background:var(--orange)}
+  .grow.ac .gc.on{background:var(--red)}
+  .gc.play{box-shadow:inset 0 0 0 2px #fff}
+  .foot{display:flex;gap:12px;align-items:flex-end;margin-top:10px;flex-wrap:wrap}
+  .hint{color:var(--muted);font-size:10px;margin-left:auto;text-align:right;max-width:330px}
+  .meter{width:10px;height:44px;background:#0a0a0b;border-radius:3px;position:relative;overflow:hidden;border:1px solid #333}
+  .meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#3fbf5a,#f2d23c 70%,#e2382a)}
+</style>
+</head>
+<body>
+<div id="fit"><div class="machine" id="m"></div></div>
+<script>
+/* =====================================================================
+   drums/ui/kit.js — shared panel components for the drum machines.
+   Inlined into every gui.html by build.mjs (a plugin GUI is one file).
+
+   Contract with the host (src/BridgeShim.h):
+     · window.vstai.setParam(i, v) sends ACTUAL values (spec min..max).
+     · on ready, every param's current value is pushed once;
+     · window.vstai.onParam(cb) repaints controls when the DAW / a restored
+       session changes a value — draw only, never push back;
+     · window.vstai.onDisplay(cb) delivers the engine's 16 display floats.
+   ===================================================================== */
+var Kit = (function () {
+  var PD = {};            // index -> {name,min,max,def,step}
+  var vals = {};
+  var listeners = {};
+  var displayFns = [];
+
+  function has(fn) { return window.vstai && typeof window.vstai[fn] === "function"; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function el(tag, cls, parent, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function svg(tag, attrs, parent) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function define(list) {
+    list.forEach(function (p) { PD[p.index] = p; vals[p.index] = p.def; });
+  }
+  function get(i) { return vals[i]; }
+  function norm(i) { var p = PD[i]; return (vals[i] - p.min) / ((p.max - p.min) || 1); }
+  function quant(i, v) {
+    var p = PD[i];
+    v = clamp(v, p.min, p.max);
+    if (p.step) v = Math.round((v - p.min) / p.step) * p.step + p.min;
+    return v;
+  }
+  function notify(i) { var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j](vals[i]); }
+  // User change: store, send to the engine, repaint.
+  function set(i, v) {
+    v = quant(i, v);
+    if (v === vals[i]) return;
+    vals[i] = v;
+    if (has("setParam")) window.vstai.setParam(+i, v);
+    notify(i);
+  }
+  function listen(i, fn) { (listeners[i] = listeners[i] || []).push(fn); fn(vals[i]); }
+  function onDisplay(fn) { displayFns.push(fn); }
+
+  function ready() {
+    for (var i in vals) if (has("setParam")) window.vstai.setParam(+i, vals[i]);
+    if (has("onParam")) window.vstai.onParam(function (i, v) {
+      if (!(i in PD)) return;
+      vals[i] = quant(i, +v);
+      notify(i);
+    });
+    if (has("onDisplay")) window.vstai.onDisplay(function (d) {
+      for (var j = 0; j < displayFns.length; j++) { try { displayFns[j](d); } catch (e) {} }
+    });
+  }
+  function start() { if (has("onReady")) window.vstai.onReady(ready); else ready(); }
+
+  function note(n, vel) {
+    if (!has("noteOn")) return;
+    window.vstai.noteOn(n, vel == null ? 0.7 : vel);
+    setTimeout(function () { if (has("noteOff")) window.vstai.noteOff(n); }, 60);
+  }
+
+  // ---- drag helper: vertical drag, shift = fine --------------------------
+  function dragValue(target, i, sens) {
+    var startY = 0, startN = 0, active = false;
+    function move(e) {
+      if (!active) return;
+      var dy = startY - e.clientY;
+      var k = (e.shiftKey ? 0.2 : 1) * (sens || 1) / 160;
+      var p = PD[i];
+      set(i, p.min + clamp(startN + dy * k, 0, 1) * (p.max - p.min));
+    }
+    function up() { active = false; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); }
+    target.addEventListener("pointerdown", function (e) {
+      e.preventDefault(); active = true; startY = e.clientY; startN = norm(i);
+      window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+    });
+    target.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var p = PD[i], stepN = p.step ? p.step / (p.max - p.min) : 0.01;
+      set(i, p.min + clamp(norm(i) + (e.deltaY < 0 ? 1 : -1) * stepN * (e.shiftKey ? 1 : 2), 0, 1) * (p.max - p.min));
+    }, { passive: false });
+    target.addEventListener("dblclick", function () { set(i, PD[i].def); });
+  }
+
+  // ---- knob --------------------------------------------------------------
+  // opts: {label, cap (css colour), size, fmt(v) -> string, sub}
+  function knob(parent, i, opts) {
+    opts = opts || {};
+    var size = opts.size || 44;
+    var wrap = el("div", "k-wrap" + (opts.cls ? " " + opts.cls : ""), parent);
+    var s = svg("svg", { width: size, height: size, viewBox: "0 0 100 100", class: "k" }, wrap);
+    // scale ticks
+    for (var t = 0; t <= 10; t++) {
+      var a = (-135 + t * 27) * Math.PI / 180;
+      svg("line", { x1: 50 + 44 * Math.sin(a), y1: 50 - 44 * Math.cos(a), x2: 50 + 49 * Math.sin(a), y2: 50 - 49 * Math.cos(a), class: "k-tick" }, s);
+    }
+    svg("circle", { cx: 50, cy: 50, r: 38, class: "k-skirt" }, s);
+    svg("circle", { cx: 50, cy: 50, r: 30, class: "k-cap", style: opts.cap ? "fill:" + opts.cap : "" }, s);
+    var needle = svg("line", { x1: 50, y1: 50, x2: 50, y2: 18, class: "k-needle" }, s);
+    if (opts.label) el("div", "k-label", wrap, opts.label);
+    var readout = el("div", "k-val", wrap, "");
+    function draw() {
+      var th = (-135 + 270 * norm(i)) * Math.PI / 180;
+      needle.setAttribute("x2", 50 + 32 * Math.sin(th));
+      needle.setAttribute("y2", 50 - 32 * Math.cos(th));
+      readout.textContent = opts.fmt ? opts.fmt(vals[i]) : "";
+    }
+    listen(i, draw);
+    dragValue(s, i, opts.sens);
+    wrap.title = (PD[i] && PD[i].name) || "";
+    return wrap;
+  }
+
+  // ---- multi-position selector (values = option index + min) -------------
+  // opts: {label, options:[...labels], cls}
+  function selector(parent, i, opts) {
+    var wrap = el("div", "sel" + (opts.cls ? " " + opts.cls : ""), parent);
+    if (opts.label) el("div", "sel-label", wrap, opts.label);
+    var row = el("div", "sel-row", wrap);
+    var btns = opts.options.map(function (lab, j) {
+      var b = el("button", "sel-btn", row, lab);
+      b.type = "button";
+      b.addEventListener("click", function () { set(i, PD[i].min + j * (PD[i].step || 1)); });
+      return b;
+    });
+    listen(i, function (v) {
+      var j = Math.round((v - PD[i].min) / (PD[i].step || 1));
+      btns.forEach(function (b, k) { b.classList.toggle("on", k === j); });
+    });
+    return wrap;
+  }
+
+  // ---- one bit of a packed switch word ------------------------------------
+  function bitSwitch(parent, i, bit, offLabel, onLabel, cls) {
+    var b = el("button", "bit" + (cls ? " " + cls : ""), parent);
+    b.type = "button";
+    var a = el("span", "bit-a", b, offLabel), c = el("span", "bit-b", b, onLabel);
+    b.addEventListener("click", function () { set(i, Math.round(vals[i]) ^ (1 << bit)); });
+    listen(i, function (v) { var on = (Math.round(v) >> bit) & 1; b.classList.toggle("on", !!on); });
+    return b;
+  }
+
+  function toggle(parent, i, label, cls) {
+    var b = el("button", "tog" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("click", function () { set(i, vals[i] > 0.5 ? 0 : 1); });
+    listen(i, function (v) { b.classList.toggle("on", v > 0.5); });
+    return b;
+  }
+
+  function pad(parent, noteNum, label, cls) {
+    var b = el("button", "pad" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); note(noteNum, e.shiftKey ? 1.0 : 0.62); b.classList.add("hit"); setTimeout(function () { b.classList.remove("hit"); }, 90); });
+    return b;
+  }
+
+  // A 16-bit step row stored in one parameter.
+  function rowBit(i, step) { return (Math.round(vals[i]) >> step) & 1; }
+  function toggleStep(i, step) { set(i, Math.round(vals[i]) ^ (1 << step)); }
+
+  return {
+    define: define, get: get, set: set, listen: listen, onDisplay: onDisplay, start: start,
+    knob: knob, selector: selector, bitSwitch: bitSwitch, toggle: toggle, pad: pad, note: note,
+    rowBit: rowBit, toggleStep: toggleStep, el: el, svg: svg, PD: PD
+  };
+})();
+
+</script>
+<script>
+(function () {
+  var DEFS = [{"index":0,"key":"BD_TUNE","name":"BD Tune","min":0,"max":1,"def":0.5,"step":0},{"index":1,"key":"BD_LEV","name":"BD Level","min":0,"max":1,"def":0.85,"step":0},{"index":2,"key":"BD_ATT","name":"BD Attack","min":0,"max":1,"def":0.5,"step":0},{"index":3,"key":"BD_DEC","name":"BD Decay","min":0,"max":1,"def":0.45,"step":0},{"index":4,"key":"SD_TUNE","name":"SD Tune","min":0,"max":1,"def":0.5,"step":0},{"index":5,"key":"SD_LEV","name":"SD Level","min":0,"max":1,"def":0.8,"step":0},{"index":6,"key":"SD_TONE","name":"SD Tone","min":0,"max":1,"def":0.5,"step":0},{"index":7,"key":"SD_SNAP","name":"SD Snappy","min":0,"max":1,"def":0.6,"step":0},{"index":8,"key":"LT_TUNE","name":"LT Tune","min":0,"max":1,"def":0.5,"step":0},{"index":9,"key":"LT_LEV","name":"LT Level","min":0,"max":1,"def":0.7,"step":0},{"index":10,"key":"LT_DEC","name":"LT Decay","min":0,"max":1,"def":0.5,"step":0},{"index":11,"key":"MT_TUNE","name":"MT Tune","min":0,"max":1,"def":0.5,"step":0},{"index":12,"key":"MT_LEV","name":"MT Level","min":0,"max":1,"def":0.7,"step":0},{"index":13,"key":"MT_DEC","name":"MT Decay","min":0,"max":1,"def":0.5,"step":0},{"index":14,"key":"HT_TUNE","name":"HT Tune","min":0,"max":1,"def":0.5,"step":0},{"index":15,"key":"HT_LEV","name":"HT Level","min":0,"max":1,"def":0.7,"step":0},{"index":16,"key":"HT_DEC","name":"HT Decay","min":0,"max":1,"def":0.5,"step":0},{"index":17,"key":"RS_LEV","name":"RS Level","min":0,"max":1,"def":0.65,"step":0},{"index":18,"key":"HC_LEV","name":"HC Level","min":0,"max":1,"def":0.7,"step":0},{"index":19,"key":"HH_LEV","name":"HH Level","min":0,"max":1,"def":0.65,"step":0},{"index":20,"key":"CH_DEC","name":"CH Decay","min":0,"max":1,"def":0.4,"step":0},{"index":21,"key":"OH_DEC","name":"OH Decay","min":0,"max":1,"def":0.45,"step":0},{"index":22,"key":"CR_LEV","name":"Crash Level","min":0,"max":1,"def":0.55,"step":0},{"index":23,"key":"CR_TUNE","name":"Crash Tune","min":0,"max":1,"def":0.5,"step":0},{"index":24,"key":"RD_LEV","name":"Ride Level","min":0,"max":1,"def":0.55,"step":0},{"index":25,"key":"RD_TUNE","name":"Ride Tune","min":0,"max":1,"def":0.5,"step":0},{"index":26,"key":"TOTAL_AC","name":"Total Accent","min":0,"max":1,"def":0.6,"step":0},{"index":27,"key":"VOLUME","name":"Volume","min":0,"max":1,"def":0.8,"step":0},{"index":28,"key":"TEMPO","name":"Tempo","min":37,"max":290,"def":125,"step":0},{"index":29,"key":"SCALE","name":"Scale","min":0,"max":3,"def":0,"step":1},{"index":30,"key":"LAST","name":"Last Step","min":1,"max":16,"def":16,"step":1},{"index":31,"key":"SHUFFLE","name":"Shuffle","min":1,"max":7,"def":1,"step":1},{"index":32,"key":"FLAM","name":"Flam Interval","min":1,"max":8,"def":4,"step":1},{"index":33,"key":"SOURCE","name":"Clock Source","min":0,"max":2,"def":1,"step":1},{"index":34,"key":"RUN","name":"Run","min":0,"max":1,"def":0,"step":1},{"index":35,"key":"VELMODE","name":"Velocity Mode","min":0,"max":1,"def":0,"step":1},{"index":36,"key":"TRIG_BD","name":"BD Steps","min":0,"max":65535,"def":4369,"step":1},{"index":37,"key":"TRIG_SD","name":"SD Steps","min":0,"max":65535,"def":4112,"step":1},{"index":38,"key":"TRIG_LT","name":"LT Steps","min":0,"max":65535,"def":0,"step":1},{"index":39,"key":"TRIG_MT","name":"MT Steps","min":0,"max":65535,"def":0,"step":1},{"index":40,"key":"TRIG_HT","name":"HT Steps","min":0,"max":65535,"def":0,"step":1},{"index":41,"key":"TRIG_RS","name":"RS Steps","min":0,"max":65535,"def":0,"step":1},{"index":42,"key":"TRIG_HC","name":"HC Steps","min":0,"max":65535,"def":4096,"step":1},{"index":43,"key":"TRIG_CH","name":"CH Steps","min":0,"max":65535,"def":48059,"step":1},{"index":44,"key":"TRIG_OH","name":"OH Steps","min":0,"max":65535,"def":17476,"step":1},{"index":45,"key":"TRIG_CR","name":"CR Steps","min":0,"max":65535,"def":1,"step":1},{"index":46,"key":"TRIG_RD","name":"RD Steps","min":0,"max":65535,"def":0,"step":1},{"index":47,"key":"TA","name":"Total Accent Steps","min":0,"max":65535,"def":4369,"step":1},{"index":48,"key":"ACC_BD","name":"BD Accent Steps","min":0,"max":65535,"def":0,"step":1},{"index":49,"key":"ACC_SD","name":"SD Accent Steps","min":0,"max":65535,"def":0,"step":1},{"index":50,"key":"ACC_LT","name":"LT Accent Steps","min":0,"max":65535,"def":0,"step":1},{"index":51,"key":"ACC_MT","name":"MT Accent Steps","min":0,"max":65535,"def":0,"step":1},{"index":52,"key":"ACC_HT","name":"HT Accent Steps","min":0,"max":65535,"def":0,"step":1},{"index":53,"key":"ACC_CH","name":"CH Accent Steps","min":0,"max":65535,"def":8738,"step":1},{"index":54,"key":"FLAM_BD","name":"BD Flam Steps","min":0,"max":65535,"def":0,"step":1},{"index":55,"key":"FLAM_SD","name":"SD Flam Steps","min":0,"max":65535,"def":4096,"step":1},{"index":56,"key":"FLAM_LT","name":"LT Flam Steps","min":0,"max":65535,"def":0,"step":1},{"index":57,"key":"FLAM_MT","name":"MT Flam Steps","min":0,"max":65535,"def":0,"step":1},{"index":58,"key":"FLAM_HT","name":"HT Flam Steps","min":0,"max":65535,"def":0,"step":1},{"index":59,"key":"WIDTH","name":"Stereo Width","min":0,"max":1,"def":0.35,"step":0},{"index":60,"key":"DRIVE","name":"Drive","min":0,"max":1,"def":0,"step":0}];
+  Kit.define(DEFS);
+  var P = {}; DEFS.forEach(function (d) { P[d.key] = d.index; });
+  var el = Kit.el, m = document.getElementById("m");
+  var pct = function (v) { return Math.round(v * 100) + ""; };
+  var TRIG = ["BD","SD","LT","MT","HT","RS","HC","CH","OH","CR","RD"];
+  var NAMES = ["Bass Drum","Snare Drum","Low Tom","Mid Tom","Hi Tom","Rim Shot","Hand Clap","Closed HH","Open HH","Crash","Ride"];
+  var NOTES = [36,38,41,45,48,37,39,42,46,49,51];
+  var ACCI = { BD:0, SD:1, LT:2, MT:3, HT:4, CH:5 };           // per-instrument accent rows
+  var FLAMI = { BD:0, SD:1, LT:2, MT:3, HT:4 };               // flam rows
+
+  // ---------- top bar ------------------------------------------------------
+  var top = el("div", "top", m);
+  var brand = el("div", "brand", top);
+  brand.innerHTML = "<b>WAREHOUSE <i>909</i></b><span>Rhythm composer · analog + 6-bit</span>";
+  var clock = el("div", "grp", top);
+  Kit.selector(clock, P.SOURCE, { label: "Clock", options: ["MIDI", "DAW", "INT"] });
+  var runBtn = Kit.toggle(clock, P.RUN, "START / STOP");
+  Kit.listen(P.SOURCE, function (v) { runBtn.style.opacity = v === 2 ? 1 : 0.35; });
+  Kit.knob(clock, P.TEMPO, { label: "Tempo", cls: "big", size: 52, sens: 0.7, fmt: function (v) { return v.toFixed(1) + " bpm"; } });
+  var mast = el("div", "grp", top);
+  Kit.knob(mast, P.TOTAL_AC, { label: "Total acc.", size: 44, fmt: pct });
+  Kit.knob(mast, P.VOLUME, { label: "Volume", cls: "big", size: 52, fmt: pct });
+  var meter = el("div", "meter", mast), meterBar = el("i", "", meter);
+
+  // ---------- instrument strip ----------------------------------------------
+  var strip = el("div", "strip", m);
+  strip.style.gridTemplateColumns = "1.55fr 1.55fr 1.15fr 1.15fr 1.15fr .62fr .62fr 1.35fr 1fr 1fr";
+  var leds = {};
+  function column(title, sub, ledIdx, note, knobs) {
+    var c = el("div", "inst", strip);
+    var n = el("div", "inst-name", c);
+    var line = el("span", "nm", n); var led = el("span", "led", line); el("span", "", line, title);
+    if (sub) el("small", "", n, sub);
+    (Array.isArray(ledIdx) ? ledIdx : [ledIdx]).forEach(function (i) { leds[i] = led; });
+    n.addEventListener("pointerdown", function (e) { e.preventDefault(); Kit.note(note, e.shiftKey ? 1 : 0.62); });
+    var k = el("div", "knobs", c);
+    knobs.forEach(function (q) { Kit.knob(k, P[q[0]], { label: q[1], fmt: pct }); });
+  }
+  column("Bass Drum", null, 0, 36, [["BD_TUNE","Tune"],["BD_LEV","Level"],["BD_ATT","Attack"],["BD_DEC","Decay"]]);
+  column("Snare Drum", null, 1, 38, [["SD_TUNE","Tune"],["SD_LEV","Level"],["SD_TONE","Tone"],["SD_SNAP","Snappy"]]);
+  column("Low Tom", null, 2, 41, [["LT_TUNE","Tune"],["LT_LEV","Level"],["LT_DEC","Decay"]]);
+  column("Mid Tom", null, 3, 45, [["MT_TUNE","Tune"],["MT_LEV","Level"],["MT_DEC","Decay"]]);
+  column("Hi Tom", null, 4, 48, [["HT_TUNE","Tune"],["HT_LEV","Level"],["HT_DEC","Decay"]]);
+  column("Rim", "Shot", 5, 37, [["RS_LEV","Level"]]);
+  column("Hand", "Clap", 6, 39, [["HC_LEV","Level"]]);
+  column("Hi-hat", "6-bit ROM", [7, 8], 42, [["HH_LEV","Level"],["CH_DEC","CH decay"],["OH_DEC","OH decay"]]);
+  column("Crash", "6-bit ROM", 9, 49, [["CR_LEV","Level"],["CR_TUNE","Tune"]]);
+  column("Ride", "6-bit ROM", 10, 51, [["RD_LEV","Level"],["RD_TUNE","Tune"]]);
+
+  // ---------- sequencer controls ----------------------------------------------
+  var bar = el("div", "seqbar", m);
+  var g1 = el("div", "grp", bar);
+  Kit.selector(g1, P.SCALE, { label: "Scale", options: ["1/16", "1/8 T", "1/32", "1/16 T"] });
+  Kit.knob(g1, P.LAST, { label: "Last step", size: 36, sens: 0.5, fmt: function (v) { return v + ""; } });
+  Kit.knob(g1, P.SHUFFLE, { label: "Shuffle", size: 36, sens: 0.5, fmt: function (v) { return v === 1 ? "off" : v + ""; } });
+  Kit.knob(g1, P.FLAM, { label: "Flam", size: 36, sens: 0.5, fmt: function (v) { return (4 + (v - 1) * 3.5).toFixed(1) + " ms"; } });
+
+  var g2 = el("div", "grp", bar);
+  var instWrap = el("div", "col-stack", g2);
+  el("div", "sel-label", instWrap, "Instrument  ·  click steps: on → accent → flam → off");
+  var instRow = el("div", "instsel", instWrap);
+  var cur = 0;   // 0..10 = TRIG, 11 = total accent
+  var instBtns = TRIG.concat(["T.ACC"]).map(function (lab, j) {
+    var b = el("button", "isb", instRow, lab); b.type = "button";
+    b.addEventListener("click", function () { cur = j; instBtns.forEach(function (x, k) { x.classList.toggle("on", k === j); }); paintSteps(); });
+    return b;
+  });
+  instBtns[0].classList.add("on");
+  var clr = el("button", "btn", g2, "CLEAR"); clr.type = "button";
+  clr.addEventListener("click", function () {
+    if (cur === 11) { Kit.set(P.TA, 0); return; }
+    var k = TRIG[cur]; Kit.set(P["TRIG_" + k], 0);
+    if (k in ACCI) Kit.set(P["ACC_" + k], 0);
+    if (k in FLAMI) Kit.set(P["FLAM_" + k], 0);
+  });
+  var g3 = el("div", "grp", bar);
+  Kit.toggle(g3, P.VELMODE, "DYNAMIC VELOCITY").title = "Off: velocity 100+ is accented, like the hardware. On: velocity scales smoothly.";
+  var gridBtn = el("button", "btn", g3, "GRID"); gridBtn.type = "button";
+
+  // ---------- step state (0 off, 1 on, 2 accent, 3 flam) -----------------------
+  function level(slot, s) {
+    if (slot === 11) return Kit.rowBit(P.TA, s) ? 2 : 0;
+    var k = TRIG[slot];
+    if (!Kit.rowBit(P["TRIG_" + k], s)) return 0;
+    if (k in FLAMI && Kit.rowBit(P["FLAM_" + k], s)) return 3;
+    if (k in ACCI && Kit.rowBit(P["ACC_" + k], s)) return 2;
+    return 1;
+  }
+  function setBit(i, s, on) { var v = Math.round(Kit.get(i)); Kit.set(i, on ? (v | (1 << s)) : (v & ~(1 << s))); }
+  function cycle(slot, s) {
+    if (slot === 11) { Kit.toggleStep(P.TA, s); return; }
+    var k = TRIG[slot], lv = level(slot, s);
+    var max = k in FLAMI ? 3 : (k in ACCI ? 2 : 1);
+    var nx = lv >= max ? 0 : lv + 1;
+    setBit(P["TRIG_" + k], s, nx > 0);
+    if (k in ACCI) setBit(P["ACC_" + k], s, nx === 2);
+    if (k in FLAMI) setBit(P["FLAM_" + k], s, nx === 3);
+  }
+
+  var stepsEl = el("div", "steps", m), keys = [];
+  for (var s = 0; s < 16; s++) (function (s) {
+    var b = el("button", "step g" + (1 + (s >> 2)), stepsEl); b.type = "button";
+    el("span", "num", b, s + 1); el("span", "sled", b); el("span", "tag", b, "");
+    b.addEventListener("click", function () { cycle(cur, s); });
+    keys.push(b);
+  })(s);
+  var beats = el("div", "beats", m), beatLabels = [];
+  for (var bi = 0; bi < 16; bi++) beatLabels.push(el("span", "", beats, ""));
+  var playStep = -1;
+  function paintSteps() {
+    if (!keys || !keys.length || !beatLabels) return;
+    var last = Kit.get(P.LAST);
+    keys.forEach(function (k, i) {
+      var lv = level(cur, i);
+      k.classList.toggle("lv1", lv === 1); k.classList.toggle("lv2", lv === 2); k.classList.toggle("lv3", lv === 3);
+      k.querySelector(".tag").textContent = lv === 2 ? "ACC" : (lv === 3 ? "FLAM" : "");
+      k.classList.toggle("play", i === playStep); k.classList.toggle("beyond", i >= last);
+    });
+    var spb = [4, 3, 8, 6][Kit.get(P.SCALE)];
+    beatLabels.forEach(function (l, i) { l.textContent = i < last && i % spb === 0 ? "BEAT " + (i / spb + 1) : ""; });
+  }
+
+  var grid = el("div", "grid", m), cells = [];
+  TRIG.concat(["T.ACC"]).forEach(function (name, slot) {
+    var r = el("div", "grow" + (slot === 11 ? " ac" : ""), grid);
+    el("b", "", r, name);
+    cells[slot] = [];
+    for (var s = 0; s < 16; s++) (function (s) {
+      var c = el("div", "gc" + ((s >> 2) % 2 ? " q" : ""), r);
+      c.addEventListener("click", function () { cycle(slot, s); });
+      cells[slot].push(c);
+    })(s);
+  });
+  function paintGrid() {
+    if (!grid || !cells.length || !grid.classList.contains("show")) return;
+    cells.forEach(function (row, slot) { row.forEach(function (c, s) {
+      var lv = level(slot, s);
+      c.classList.toggle("on", lv === 1); c.classList.toggle("lv2", lv === 2); c.classList.toggle("lv3", lv === 3);
+      c.classList.toggle("play", s === playStep);
+    }); });
+  }
+  gridBtn.addEventListener("click", function () { grid.classList.toggle("show"); gridBtn.classList.toggle("on"); paintGrid(); fit(); });
+
+  var foot = el("div", "foot", m);
+  var ex = el("div", "grp", foot);
+  var t = el("div", "col-stack", ex); el("div", "grp-title", t, "Mixer");
+  var kx = el("div", "knobs", t);
+  Kit.knob(kx, P.WIDTH, { label: "Stereo", fmt: pct }); Kit.knob(kx, P.DRIVE, { label: "Drive", fmt: pct });
+  el("div", "hint", foot, "MIDI (as the 909): 36 BD · 38 SD · 41/45/48 toms · 37 RS · 39 HC · 42 CH · 46 OH · 49 crash · 51 ride. Velocity 100+ accents. Hats, crash and ride are 6-bit PCM played at the original ~30 kHz clock (the samples are our own).");
+
+  Kit.onDisplay(function (d) {
+    var ps = d[2] > 0.5 ? Math.round(d[0]) : -1;
+    if (ps !== playStep) { playStep = ps; paintSteps(); paintGrid(); }
+    for (var i = 0; i < 11; i++) if (leds[i]) {
+      var a = Math.max(0, Math.min(1, i === 7 ? Math.max(d[10], d[11]) : d[3 + i]));
+      leds[i].style.background = a > 0.03 ? "rgba(255," + Math.round(90 + 90 * (1 - a)) + ",31," + (0.35 + 0.65 * a) + ")" : "";
+      leds[i].style.boxShadow = a > 0.2 ? "0 0 6px #ff5a1f" : "";
+    }
+    meterBar.style.height = Math.min(100, Math.round(d[15] * 100)) + "%";
+  });
+  DEFS.forEach(function (d) { if (/^(TRIG_|ACC_|FLAM_|TA$)/.test(d.key)) Kit.listen(d.index, function () { paintSteps(); paintGrid(); }); });
+  Kit.listen(P.LAST, paintSteps); Kit.listen(P.SCALE, paintSteps);
+
+  var fitEl = document.getElementById("fit");
+  function fit() {
+    var w = m.offsetWidth, h = m.offsetHeight;
+    var sc = Math.min(window.innerWidth / w, window.innerHeight / h);
+    fitEl.style.transform = "scale(" + sc + ")";
+    fitEl.style.left = Math.max(0, (window.innerWidth - w * sc) / 2) + "px";
+  }
+  window.addEventListener("resize", fit); fit();
+  Kit.start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+{
+  "name": "Aleatora",
+  "isInstrument": true,
+  "explanation": "Aleatoric string textures for film and trailer sound design, played by the same physically modelled bowed-string section as Tessitura. Each key spawns a cluster of players spread by cents (optionally on a quarter-tone grid); Swarm sends every player gliding after its own random pitch targets; Rise or Fall glides the whole mass over up to 30 seconds — the trailer riser; Scratch digs the bow in with real overpressure; Shimmer adds an octave-up flautando; Pulse swells the bow in time with your DAW; Freeze holds the hall forever. Chaos scales it all. Eight articulations on C0–G0, CC1 dynamics, CC11 expression.",
+  "assembly": "factory/plugins/aleatora/assembly.ts",
+  "out": "factory/plugins/aleatora/x.vstai",
+  "guiFile": "factory/plugins/aleatora/gui.html",
+  "publishedAt": 1790021740297,
+  "theme": {
+    "accent": "#7fd3ff",
+    "accent2": "#c8f0ff"
+  },
+  "params": [
+    {
+      "name": "Articulation",
+      "index": 0,
+      "min": 0,
+      "max": 7,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Density",
+      "index": 1,
+      "min": 1,
+      "max": 6,
+      "default": 5,
+      "step": 1
+    },
+    {
+      "name": "Register",
+      "index": 2,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Cluster Width",
+      "index": 3,
+      "min": 0,
+      "max": 300,
+      "default": 60
+    },
+    {
+      "name": "Quarter-tone Grid",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Swarm Range",
+      "index": 5,
+      "min": 0,
+      "max": 12,
+      "default": 0.6
+    },
+    {
+      "name": "Swarm Speed",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Swarm Glide",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Rise",
+      "index": 8,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "Rise Time",
+      "index": 9,
+      "min": 0.5,
+      "max": 30,
+      "default": 8
+    },
+    {
+      "name": "Scratch",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Shimmer",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Pulse Depth",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pulse Rate",
+      "index": 13,
+      "min": 0,
+      "max": 5,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Chaos",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Dynamics",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Expression",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Vibrato",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Attack",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Release",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Bow Pressure",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bow Position",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Brightness",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Tremolo Speed",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Humanize",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Freeze",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Hall Size",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Hall Tone",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Dry",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Wet",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Width",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    },
+    {
+      "name": "Master",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

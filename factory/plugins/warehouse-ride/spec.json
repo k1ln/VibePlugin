@@ -1,0 +1,51 @@
+{
+  "name": "Warehouse Ride",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-909 from its Owner's Manual and Service Notes; the same model as inside Warehouse 909, on its own mixer channel. A 6-bit ride with a bell partial, read at a tunable ~30 kHz clock, decay from the playback position.",
+  "assembly": "factory/plugins/warehouse-ride/assembly.ts",
+  "out": "factory/plugins/warehouse-ride/x.vstai",
+  "guiFile": "factory/plugins/warehouse-ride/gui.html",
+  "publishedAt": 1790021736268,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Tune",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Accent",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

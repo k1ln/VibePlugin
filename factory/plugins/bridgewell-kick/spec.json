@@ -1,0 +1,65 @@
+{
+  "name": "Bridgewell Kick",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. A bridged-T resonator rings at 56 Hz, jumps an octave for its first 4 ms, and sighs down in pitch as it fades — more so on accented hits. Level, Tone (the passive filter on the beater click), Decay (50 ms to a long boom), Tune. Any MIDI note plays it.",
+  "assembly": "factory/plugins/bridgewell-kick/assembly.ts",
+  "out": "factory/plugins/bridgewell-kick/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-kick/gui.html",
+  "publishedAt": 1790021728285,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Tone",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Decay",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Tune",
+      "index": 3,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Accent",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

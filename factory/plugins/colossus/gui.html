@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colossus</title>
+<style>
+  :root{ --bg:#070506; --line:#2e1d1c; --ink:#f4e9e4; --ink2:#b69a92; --muted:#6f5752; --ember:#ff5a2a; --ember2:#ffb38a; --accent:#ff5a2a; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.35 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;user-select:none}
+  #fit{position:absolute;left:0;top:0;transform-origin:0 0}
+  .inst{width:1060px;padding:16px 18px;border-radius:12px;background:radial-gradient(900px 300px at 50% -20%,#4a1712 0%,#1a0b0a 50%,#0b0606 100%);box-shadow:0 0 0 1px #000,inset 0 1px 0 rgba(255,160,120,.08)}
+  .top{display:flex;align-items:flex-end;gap:16px;margin-bottom:12px}
+  .brand b{display:block;font-size:34px;letter-spacing:.3em;font-weight:900;color:#fff;text-shadow:0 0 22px rgba(255,90,42,.45)}
+  .brand span{display:block;font-size:10px;letter-spacing:.34em;color:var(--ink2);text-transform:uppercase;margin-top:4px}
+  .row{display:flex;gap:10px;align-items:stretch;margin-bottom:10px}
+  .row > .grp{flex:1 1 auto}
+  .grp{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(0,0,0,.3)}
+  .gt{font-size:9.5px;letter-spacing:.26em;color:var(--ink2);text-transform:uppercase;margin-bottom:6px}
+  .knobs{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end}
+  .k-wrap{display:flex;flex-direction:column;align-items:center;width:62px}
+  .k{cursor:ns-resize;display:block;touch-action:none}
+  .k-tick{stroke:#553430;stroke-width:3}
+  .k-skirt{fill:#0a0505;stroke:#4a2a26;stroke-width:2}
+  .k-cap{fill:#1d1110}
+  .k-needle{stroke:var(--ember2);stroke-width:7;stroke-linecap:round}
+  .k-label{font-size:9px;letter-spacing:.1em;color:var(--ink2);text-transform:uppercase;margin-top:1px;text-align:center}
+  .k-val{font-size:9.5px;color:var(--ember);min-height:11px}
+  .k-wrap.big{width:78px}
+  .sel{display:flex;flex-direction:column}
+  .sel-label{font-size:9px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;margin-bottom:4px}
+  .sel-row{display:flex;border:1px solid #4a2a26;border-radius:6px;overflow:hidden;flex-wrap:wrap}
+  .sel-btn{border:0;background:rgba(0,0,0,.4);color:#c9aba2;font:700 10px/1 inherit;padding:7px 9px;cursor:pointer;border-right:1px solid #2e1d1c}
+  .sel-btn:last-child{border-right:0}
+  .sel-btn.on{background:var(--ember);color:#1a0703}
+  .tog{border:1px solid #4a2a26;background:rgba(0,0,0,.4);color:var(--ink);font:800 11px/1 inherit;padding:10px 16px;border-radius:6px;cursor:pointer;letter-spacing:.2em}
+  .tog.on{background:var(--ember);border-color:var(--ember2);color:#1a0703;box-shadow:0 0 18px rgba(255,90,42,.5)}
+  .steps{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;margin-top:8px}
+  .st{height:30px;border-radius:4px;background:#1a0f0e;border:1px solid #2e1d1c;position:relative}
+  .st.hit{background:#5a221a} .st.acc{background:#a8371f}
+  .st.now{box-shadow:0 0 0 2px #fff inset}
+  .st.off{opacity:.25}
+  .foot{color:var(--muted);font-size:10px;line-height:1.45}
+  .meter{width:12px;height:60px;border-radius:3px;background:#120807;position:relative;overflow:hidden;border:1px solid #2e1d1c;align-self:center}
+  .meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#7a2414,var(--ember2))}
+</style>
+</head>
+<body>
+<div id="fit"><div class="inst" id="u"></div></div>
+<script>
+/* =====================================================================
+   drums/ui/kit.js — shared panel components for the drum machines.
+   Inlined into every gui.html by build.mjs (a plugin GUI is one file).
+
+   Contract with the host (src/BridgeShim.h):
+     · window.vstai.setParam(i, v) sends ACTUAL values (spec min..max).
+     · on ready, every param's current value is pushed once;
+     · window.vstai.onParam(cb) repaints controls when the DAW / a restored
+       session changes a value — draw only, never push back;
+     · window.vstai.onDisplay(cb) delivers the engine's 16 display floats.
+   ===================================================================== */
+var Kit = (function () {
+  var PD = {};            // index -> {name,min,max,def,step}
+  var vals = {};
+  var listeners = {};
+  var displayFns = [];
+
+  function has(fn) { return window.vstai && typeof window.vstai[fn] === "function"; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function el(tag, cls, parent, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function svg(tag, attrs, parent) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function define(list) {
+    list.forEach(function (p) { PD[p.index] = p; vals[p.index] = p.def; });
+  }
+  function get(i) { return vals[i]; }
+  function norm(i) { var p = PD[i]; return (vals[i] - p.min) / ((p.max - p.min) || 1); }
+  function quant(i, v) {
+    var p = PD[i];
+    v = clamp(v, p.min, p.max);
+    if (p.step) v = Math.round((v - p.min) / p.step) * p.step + p.min;
+    return v;
+  }
+  function notify(i) { var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j](vals[i]); }
+  // User change: store, send to the engine, repaint.
+  function set(i, v) {
+    v = quant(i, v);
+    if (v === vals[i]) return;
+    vals[i] = v;
+    if (has("setParam")) window.vstai.setParam(+i, v);
+    notify(i);
+  }
+  function listen(i, fn) { (listeners[i] = listeners[i] || []).push(fn); fn(vals[i]); }
+  function onDisplay(fn) { displayFns.push(fn); }
+
+  function ready() {
+    for (var i in vals) if (has("setParam")) window.vstai.setParam(+i, vals[i]);
+    if (has("onParam")) window.vstai.onParam(function (i, v) {
+      if (!(i in PD)) return;
+      vals[i] = quant(i, +v);
+      notify(i);
+    });
+    if (has("onDisplay")) window.vstai.onDisplay(function (d) {
+      for (var j = 0; j < displayFns.length; j++) { try { displayFns[j](d); } catch (e) {} }
+    });
+  }
+  function start() { if (has("onReady")) window.vstai.onReady(ready); else ready(); }
+
+  function note(n, vel) {
+    if (!has("noteOn")) return;
+    window.vstai.noteOn(n, vel == null ? 0.7 : vel);
+    setTimeout(function () { if (has("noteOff")) window.vstai.noteOff(n); }, 60);
+  }
+
+  // ---- drag helper: vertical drag, shift = fine --------------------------
+  function dragValue(target, i, sens) {
+    var startY = 0, startN = 0, active = false;
+    function move(e) {
+      if (!active) return;
+      var dy = startY - e.clientY;
+      var k = (e.shiftKey ? 0.2 : 1) * (sens || 1) / 160;
+      var p = PD[i];
+      set(i, p.min + clamp(startN + dy * k, 0, 1) * (p.max - p.min));
+    }
+    function up() { active = false; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); }
+    target.addEventListener("pointerdown", function (e) {
+      e.preventDefault(); active = true; startY = e.clientY; startN = norm(i);
+      window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+    });
+    target.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var p = PD[i], stepN = p.step ? p.step / (p.max - p.min) : 0.01;
+      set(i, p.min + clamp(norm(i) + (e.deltaY < 0 ? 1 : -1) * stepN * (e.shiftKey ? 1 : 2), 0, 1) * (p.max - p.min));
+    }, { passive: false });
+    target.addEventListener("dblclick", function () { set(i, PD[i].def); });
+  }
+
+  // ---- knob --------------------------------------------------------------
+  // opts: {label, cap (css colour), size, fmt(v) -> string, sub}
+  function knob(parent, i, opts) {
+    opts = opts || {};
+    var size = opts.size || 44;
+    var wrap = el("div", "k-wrap" + (opts.cls ? " " + opts.cls : ""), parent);
+    var s = svg("svg", { width: size, height: size, viewBox: "0 0 100 100", class: "k" }, wrap);
+    // scale ticks
+    for (var t = 0; t <= 10; t++) {
+      var a = (-135 + t * 27) * Math.PI / 180;
+      svg("line", { x1: 50 + 44 * Math.sin(a), y1: 50 - 44 * Math.cos(a), x2: 50 + 49 * Math.sin(a), y2: 50 - 49 * Math.cos(a), class: "k-tick" }, s);
+    }
+    svg("circle", { cx: 50, cy: 50, r: 38, class: "k-skirt" }, s);
+    svg("circle", { cx: 50, cy: 50, r: 30, class: "k-cap", style: opts.cap ? "fill:" + opts.cap : "" }, s);
+    var needle = svg("line", { x1: 50, y1: 50, x2: 50, y2: 18, class: "k-needle" }, s);
+    if (opts.label) el("div", "k-label", wrap, opts.label);
+    var readout = el("div", "k-val", wrap, "");
+    function draw() {
+      var th = (-135 + 270 * norm(i)) * Math.PI / 180;
+      needle.setAttribute("x2", 50 + 32 * Math.sin(th));
+      needle.setAttribute("y2", 50 - 32 * Math.cos(th));
+      readout.textContent = opts.fmt ? opts.fmt(vals[i]) : "";
+    }
+    listen(i, draw);
+    dragValue(s, i, opts.sens);
+    wrap.title = (PD[i] && PD[i].name) || "";
+    return wrap;
+  }
+
+  // ---- multi-position selector (values = option index + min) -------------
+  // opts: {label, options:[...labels], cls}
+  function selector(parent, i, opts) {
+    var wrap = el("div", "sel" + (opts.cls ? " " + opts.cls : ""), parent);
+    if (opts.label) el("div", "sel-label", wrap, opts.label);
+    var row = el("div", "sel-row", wrap);
+    var btns = opts.options.map(function (lab, j) {
+      var b = el("button", "sel-btn", row, lab);
+      b.type = "button";
+      b.addEventListener("click", function () { set(i, PD[i].min + j * (PD[i].step || 1)); });
+      return b;
+    });
+    listen(i, function (v) {
+      var j = Math.round((v - PD[i].min) / (PD[i].step || 1));
+      btns.forEach(function (b, k) { b.classList.toggle("on", k === j); });
+    });
+    return wrap;
+  }
+
+  // ---- one bit of a packed switch word ------------------------------------
+  function bitSwitch(parent, i, bit, offLabel, onLabel, cls) {
+    var b = el("button", "bit" + (cls ? " " + cls : ""), parent);
+    b.type = "button";
+    var a = el("span", "bit-a", b, offLabel), c = el("span", "bit-b", b, onLabel);
+    b.addEventListener("click", function () { set(i, Math.round(vals[i]) ^ (1 << bit)); });
+    listen(i, function (v) { var on = (Math.round(v) >> bit) & 1; b.classList.toggle("on", !!on); });
+    return b;
+  }
+
+  function toggle(parent, i, label, cls) {
+    var b = el("button", "tog" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("click", function () { set(i, vals[i] > 0.5 ? 0 : 1); });
+    listen(i, function (v) { b.classList.toggle("on", v > 0.5); });
+    return b;
+  }
+
+  function pad(parent, noteNum, label, cls) {
+    var b = el("button", "pad" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); note(noteNum, e.shiftKey ? 1.0 : 0.62); b.classList.add("hit"); setTimeout(function () { b.classList.remove("hit"); }, 90); });
+    return b;
+  }
+
+  // A 16-bit step row stored in one parameter.
+  function rowBit(i, step) { return (Math.round(vals[i]) >> step) & 1; }
+  function toggleStep(i, step) { set(i, Math.round(vals[i]) ^ (1 << step)); }
+
+  return {
+    define: define, get: get, set: set, listen: listen, onDisplay: onDisplay, start: start,
+    knob: knob, selector: selector, bitSwitch: bitSwitch, toggle: toggle, pad: pad, note: note,
+    rowBit: rowBit, toggleStep: toggleStep, el: el, svg: svg, PD: PD
+  };
+})();
+
+</script>
+<script>
+(function () {
+  var DEFS = [{"index":0,"key":"LOW","name":"Low Section","min":0,"max":1,"def":0.8,"step":0},{"index":1,"key":"MID","name":"Mid Section","min":0,"max":1,"def":0.85,"step":0},{"index":2,"key":"HIGH","name":"High Section","min":0,"max":1,"def":0.45,"step":0},{"index":3,"key":"SUB","name":"Sub","min":0,"max":1,"def":0.25,"step":0},{"index":4,"key":"SPREAD","name":"Ensemble Spread","min":0,"max":1,"def":0.55,"step":0},{"index":5,"key":"SIZE","name":"Ensemble Size","min":2,"max":5,"def":5,"step":1},{"index":6,"key":"TONE","name":"Tone","min":0,"max":1,"def":0.55,"step":0},{"index":7,"key":"RES","name":"Resonance","min":0,"max":1,"def":0.15,"step":0},{"index":8,"key":"BODY","name":"Body","min":0,"max":1,"def":0.6,"step":0},{"index":9,"key":"ROSIN","name":"Rosin","min":0,"max":1,"def":0.35,"step":0},{"index":10,"key":"VEL_BITE","name":"Bite","min":0,"max":1,"def":0.6,"step":0},{"index":11,"key":"DYN","name":"Dynamics","min":0,"max":1,"def":0.65,"step":0},{"index":12,"key":"EXPR","name":"Expression","min":0,"max":1,"def":0.85,"step":0},{"index":13,"key":"ATTACK","name":"Attack","min":0,"max":1,"def":0.3,"step":0},{"index":14,"key":"RELEASE","name":"Release","min":0,"max":1,"def":0.35,"step":0},{"index":15,"key":"OSTINATO","name":"Ostinato","min":0,"max":1,"def":0,"step":1},{"index":16,"key":"PATTERN","name":"Pattern","min":0,"max":7,"def":2,"step":1},{"index":17,"key":"LENGTH","name":"Note Length","min":0,"max":1,"def":0.45,"step":0},{"index":18,"key":"ACCENT","name":"Accent","min":0,"max":1,"def":0.6,"step":0},{"index":19,"key":"SWING","name":"Swing","min":0,"max":1,"def":0,"step":0},{"index":20,"key":"RATE","name":"Rate","min":0,"max":2,"def":1,"step":1},{"index":21,"key":"EVOLVE","name":"Evolve","min":0,"max":1,"def":0.35,"step":0},{"index":22,"key":"EVOLVE_RATE","name":"Evolve Rate","min":0,"max":1,"def":0.3,"step":0},{"index":23,"key":"TENSION","name":"Tension","min":0,"max":1,"def":0,"step":0},{"index":24,"key":"PUMP","name":"Pump","min":0,"max":1,"def":0,"step":0},{"index":25,"key":"WIDTH","name":"Width","min":0,"max":1,"def":0.8,"step":0},{"index":26,"key":"HALL_SIZE","name":"Hall Size","min":0,"max":1,"def":0.7,"step":0},{"index":27,"key":"HALL","name":"Hall Mix","min":0,"max":1,"def":0.4,"step":0},{"index":28,"key":"TAPE","name":"Tape","min":0,"max":1,"def":0.25,"step":0},{"index":29,"key":"BEND_RANGE","name":"Bend Range","min":0,"max":12,"def":2,"step":1},{"index":30,"key":"MASTER","name":"Master","min":0,"max":1,"def":0.7,"step":0}];
+  Kit.define(DEFS);
+  var P = {}; DEFS.forEach(function (d) { P[d.key] = d.index; });
+  var el = Kit.el, u = document.getElementById("u");
+  var pct = function (v) { return Math.round(v * 100) + ""; };
+
+  var top = el("div", "top", u);
+  var br = el("div", "brand", top); br.innerHTML = "<b>COLOSSUS</b><span>Hybrid trailer strings · ostinato engine</span>";
+  var sp = el("div", "", top); sp.style.flex = "1";
+  Kit.knob(top, P.DYN, { label: "Dynamics", size: 52, cls: "big", fmt: pct });
+  Kit.knob(top, P.EXPR, { label: "Expression", size: 44, fmt: pct });
+  Kit.knob(top, P.MASTER, { label: "Master", size: 44, fmt: pct });
+  var meter = el("div", "meter", top), mBar = el("i", "", meter);
+
+  var row = el("div", "row", u);
+  var sg = el("div", "grp", row); el("div", "gt", sg, "Sections");
+  var sk = el("div", "knobs", sg);
+  Kit.knob(sk, P.LOW, { label: "Low 8vb", fmt: pct }); Kit.knob(sk, P.MID, { label: "Mid", fmt: pct });
+  Kit.knob(sk, P.HIGH, { label: "High 8va", fmt: pct }); Kit.knob(sk, P.SUB, { label: "Sub", fmt: pct });
+  Kit.knob(sk, P.SPREAD, { label: "Spread", fmt: pct }); Kit.knob(sk, P.SIZE, { label: "Size", sens: 0.5, fmt: function (v) { return v + " desks"; } });
+  var tg = el("div", "grp", row); el("div", "gt", tg, "Tone");
+  var tk = el("div", "knobs", tg);
+  Kit.knob(tk, P.TONE, { label: "Tone", fmt: pct }); Kit.knob(tk, P.RES, { label: "Resonance", fmt: pct });
+  Kit.knob(tk, P.BODY, { label: "Body", fmt: pct }); Kit.knob(tk, P.ROSIN, { label: "Rosin", fmt: pct }); Kit.knob(tk, P.VEL_BITE, { label: "Bite", fmt: pct });
+  Kit.knob(tk, P.ATTACK, { label: "Attack", fmt: pct }); Kit.knob(tk, P.RELEASE, { label: "Release", fmt: pct });
+
+  var og = el("div", "grp", u); og.style.marginBottom = "10px";
+  el("div", "gt", og, "Ostinato · locks to your DAW's bar");
+  var orow = el("div", "knobs", og); orow.style.alignItems = "center"; orow.style.gap = "10px";
+  Kit.toggle(orow, P.OSTINATO, "OSTINATO");
+  Kit.selector(orow, P.PATTERN, { label: "Pattern", options: ["8ths", "16ths", "Gallop", "Rev. gallop", "Triplets", "3-3-2", "Dotted", "32nds"] });
+  Kit.selector(orow, P.RATE, { label: "Rate", options: ["½×", "1×", "2×"] });
+  Kit.knob(orow, P.LENGTH, { label: "Length", fmt: pct }); Kit.knob(orow, P.ACCENT, { label: "Accent", fmt: pct }); Kit.knob(orow, P.SWING, { label: "Swing", fmt: pct });
+  var stepsEl = el("div", "steps", og), cells = [];
+  for (var s = 0; s < 16; s++) cells.push(el("div", "st", stepsEl));
+  var PATS = ["2010101020101010", "2111211121112111", "2011201120112011", "1120112011201120", "2112112112110000", "2112112121121121", "2001200120012001", "2111111121111111"];
+  var now = -1;
+  function paintSteps() {
+    if (!cells.length) return;
+    var p = PATS[Kit.get(P.PATTERN)] || PATS[0], len = Kit.get(P.PATTERN) === 4 ? 12 : 16, on = Kit.get(P.OSTINATO) > 0.5;
+    cells.forEach(function (c, i) {
+      var v = +p[i];
+      c.className = "st" + (v === 1 ? " hit" : v === 2 ? " acc" : "") + (i >= len || !on ? " off" : "") + (i === now ? " now" : "");
+    });
+  }
+  Kit.listen(P.PATTERN, paintSteps); Kit.listen(P.OSTINATO, paintSteps);
+
+  var row3 = el("div", "row", u);
+  var mg = el("div", "grp", row3); el("div", "gt", mg, "Motion");
+  var mk = el("div", "knobs", mg);
+  Kit.knob(mk, P.EVOLVE, { label: "Evolve", fmt: pct }); Kit.knob(mk, P.EVOLVE_RATE, { label: "Evolve rate", fmt: pct });
+  Kit.knob(mk, P.TENSION, { label: "Tension", fmt: pct }); Kit.knob(mk, P.PUMP, { label: "Pump", fmt: pct });
+  Kit.knob(mk, P.BEND_RANGE, { label: "Bend", sens: 0.5, fmt: function (v) { return v + " st"; } });
+  var hg = el("div", "grp", row3); el("div", "gt", hg, "Space");
+  var hk = el("div", "knobs", hg);
+  Kit.knob(hk, P.WIDTH, { label: "Width", fmt: pct }); Kit.knob(hk, P.HALL_SIZE, { label: "Hall size", fmt: pct });
+  Kit.knob(hk, P.HALL, { label: "Hall mix", fmt: pct }); Kit.knob(hk, P.TAPE, { label: "Tape", fmt: pct });
+
+  el("div", "foot", u, "Three ensembles per note (an octave down, unison, an octave up) plus sub, bow-hair rosin and a marcato bite. With OSTINATO on, hold a chord: it is replayed in the chosen rhythm, locked to your DAW's bar (or free-running from the first key when the DAW is stopped). CC1 dynamics, CC11 expression.");
+
+  Kit.onDisplay(function (d) {
+    var n2 = Math.round(d[0]);
+    if (n2 !== now) { now = n2; paintSteps(); }
+    mBar.style.height = Math.min(100, Math.round(d[15] * 100)) + "%";
+  });
+  paintSteps();
+
+  var fitEl = document.getElementById("fit");
+  function fit() {
+    var w = u.offsetWidth, h = u.offsetHeight, sc = Math.min(window.innerWidth / w, window.innerHeight / h);
+    fitEl.style.transform = "scale(" + sc + ")";
+    fitEl.style.left = Math.max(0, (window.innerWidth - w * sc) / 2) + "px";
+    fitEl.style.top = Math.max(0, (window.innerHeight - h * sc) / 2) + "px";
+  }
+  window.addEventListener("resize", fit); fit();
+  Kit.start();
+})();
+</script>
+</body>
+</html>

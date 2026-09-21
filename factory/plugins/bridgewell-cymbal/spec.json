@@ -1,0 +1,58 @@
+{
+  "name": "Bridgewell Cymbal",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. Six square oscillators (205–800 Hz) summed and split into three bands with their own envelopes; Tone sets the ratio, Decay the length of the main band (350–1200 ms).",
+  "assembly": "factory/plugins/bridgewell-cymbal/assembly.ts",
+  "out": "factory/plugins/bridgewell-cymbal/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-cymbal/gui.html",
+  "publishedAt": 1790021730991,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Tone",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Decay",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Accent",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

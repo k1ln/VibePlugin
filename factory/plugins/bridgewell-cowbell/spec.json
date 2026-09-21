@@ -1,0 +1,44 @@
+{
+  "name": "Bridgewell Cowbell",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. Two free-running square oscillators at 540 and 800 Hz, gated and band-passed, with the circuit's two-stage envelope: an abrupt drop after the strike, then a ringing tail.",
+  "assembly": "factory/plugins/bridgewell-cowbell/assembly.ts",
+  "out": "factory/plugins/bridgewell-cowbell/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-cowbell/gui.html",
+  "publishedAt": 1790021730564,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Accent",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

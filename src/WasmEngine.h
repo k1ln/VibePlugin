@@ -15,6 +15,7 @@
 #include <juce_core/juce_core.h>
 #include <vector>
 #include <atomic>
+#include <array>
 
 #include <wasmtime.h>
 #include "WasmAbi.h"
@@ -23,7 +24,15 @@ class WasmEngine
 {
 public:
     // A note event for instrument modules (host has already done note->Hz).
-    struct NoteEvent { bool on; int id; float freq; float vel; };
+    // `offset` is the frame within the block where it falls (0 = block start).
+    struct NoteEvent { bool on; int id; float freq; float vel; int offset = 0; };
+
+    // A controller for modules exporting controlChange(): num 0..127 = CC (value
+    // 0..1), vstai::kControlPitchBend (-1..1), vstai::kControlPressure (0..1).
+    struct ControlEvent { int num; float value; int offset = 0; };
+
+    // DAW play state for modules exporting transport(); ppq is at the block start.
+    struct TransportInfo { bool playing; double ppq; float bpm; };
 
     WasmEngine();
     ~WasmEngine();
@@ -38,9 +47,14 @@ public:
 
     void prepare (double sampleRate, int maxBlockSize, int numChannels);
 
-    // Audio-thread entry point. `notes` (synth) are applied before processing.
+    // Audio-thread entry point. Notes and controllers are delivered at their
+    // `offset`: the block is split there and process() runs slice by slice, so
+    // timing is sample-accurate. Events at the same frame: controllers first.
+    // `transport` (null = host reports no position) is passed once, up front.
     void process (juce::AudioBuffer<float>& buffer,
-                  const std::vector<NoteEvent>* notes = nullptr);
+                  const std::vector<NoteEvent>* notes = nullptr,
+                  const std::vector<ControlEvent>* controls = nullptr,
+                  const TransportInfo* transport = nullptr);
 
     void setParam (int index, float value);
     float getParam (int index) const;
@@ -58,6 +72,16 @@ public:
     bool isLoaded()  const { return loaded.load(); }
     int  numParams() const { return paramCount; }
     bool isInstrument() const { return haveNoteOn; }
+    bool wantsControllers() const { return haveControl; }
+    bool wantsTransport()   const { return haveTransport; }
+
+    // Engine → GUI display values (see WasmAbi.h). Snapshotted after every host
+    // block on the audio thread; safe to read from any thread.
+    bool  hasDisplay() const { return haveDisplay.load(); }
+    float getDisplay (int i) const
+    {
+        return (i >= 0 && i < vstai::kDisplaySlots) ? display[(size_t) i].load (std::memory_order_relaxed) : 0.0f;
+    }
 
     // 0 when the loaded module exposes no sample buffer; otherwise frames/channel.
     bool hasSampleBuffer()       const { return haveSampleBuffer; }
@@ -67,7 +91,12 @@ private:
     void teardownInstance();
     bool resolveExports (juce::String& errorOut);
     bool callInit();
-    void applyNotes (const std::vector<NoteEvent>& notes);
+    void noteEvent (const NoteEvent& ev);
+    void controlEvent (const ControlEvent& ev);
+    void callTransport (const TransportInfo& t);
+    // Run process() on frames [start, start+len) of `buffer`, via the module's
+    // buffers (which always begin at element 0).
+    bool processSlice (juce::AudioBuffer<float>& buffer, int start, int len, int numChannels);
 
     wasm_engine_t*       engine   = nullptr;
     wasmtime_store_t*    store    = nullptr;
@@ -78,8 +107,12 @@ private:
 
     wasmtime_memory_t    memory {};
     wasmtime_func_t      fnInit {}, fnProcess {}, fnNoteOn {}, fnNoteOff {};
-    wasmtime_func_t      fnSetSampleInfo {};
+    wasmtime_func_t      fnSetSampleInfo {}, fnControl {}, fnTransport {};
     bool                 haveNoteOn = false, haveNoteOff = false;
+    bool                 haveControl = false, haveTransport = false;
+    int32_t              displayPtr = 0;
+    std::atomic<bool>    haveDisplay { false };
+    std::array<std::atomic<float>, vstai::kDisplaySlots> display {};
     bool                 haveSampleBuffer = false;
     int32_t              inPtr = 0, outPtr = 0, paramsPtr = 0;
     int32_t              samplePtr = 0, sampleCap = 0;
@@ -90,6 +123,11 @@ private:
     int    paramCount   = 0;
 
     float  paramValues[vstai::kMaxParams] = { 0 };
+
+    // Scratch for merging note + controller events into one ordered timeline.
+    // Reserved in prepare() so the audio thread never allocates in steady state.
+    struct Timed { int offset; int order; bool isNote; int index; };
+    std::vector<Timed> timeline;
 
     std::atomic<bool>    loaded { false };
     juce::SpinLock       swapLock;

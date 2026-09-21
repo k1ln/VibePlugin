@@ -1,0 +1,65 @@
+{
+  "name": "Warehouse Kick",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-909 from its Owner's Manual and Service Notes; the same model as inside Warehouse 909, on its own mixer channel. A sawtooth VCO shaped to a near-sine, swept down from several times its pitch, plus a noise-and-pulse click. Tune, Level, Attack, Decay — accent lifts and lengthens it.",
+  "assembly": "factory/plugins/warehouse-kick/assembly.ts",
+  "out": "factory/plugins/warehouse-kick/x.vstai",
+  "guiFile": "factory/plugins/warehouse-kick/gui.html",
+  "publishedAt": 1790021733065,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Tune",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Level",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Attack",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Decay",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Accent",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

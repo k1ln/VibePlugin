@@ -902,6 +902,7 @@ void WebEditor::resized()
 void WebEditor::timerCallback()
 {
     reflectParamsToGui();
+    reflectDisplayToGui();
 
     if (! thinkingDirty) return;
     thinkingDirty = false;
@@ -916,6 +917,26 @@ void WebEditor::resetParamReflection()
 {
     // Sentinel so the next poll re-sends every current value (GUI matches state).
     for (auto& v : lastSentParam) v = -1.0e30f;
+    for (auto& v : lastSentDisplay) v = -1.0e30f;
+}
+
+void WebEditor::reflectDisplayToGui()
+{
+    if (web == nullptr || ! pageReady || ! processor.hasDisplay()) return;
+
+    juce::Array<juce::var> values;
+    bool changed = false;
+    for (int i = 0; i < vstai::kDisplaySlots; ++i)
+    {
+        const float v = processor.getDisplayValue (i);
+        if (v != lastSentDisplay[i]) { lastSentDisplay[i] = v; changed = true; }
+        values.add (v);
+    }
+    if (! changed) return;
+
+    auto* o = new juce::DynamicObject();
+    o->setProperty ("values", values);
+    emitEvent ("display", juce::var (o));
 }
 
 void WebEditor::reflectParamsToGui()

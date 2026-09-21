@@ -1,0 +1,58 @@
+{
+  "name": "Silverbox Snare",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. A twin-T drum and high-passed noise — bright and thin, the acid-house snare. Mods: the classic pitch-down, and snappy.",
+  "assembly": "factory/plugins/silverbox-snare/assembly.ts",
+  "out": "factory/plugins/silverbox-snare/x.vstai",
+  "guiFile": "factory/plugins/silverbox-snare/gui.html",
+  "publishedAt": 1790021737768,
+  "theme": {
+    "accent": "#e5531a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Mod Tune",
+      "index": 1,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod Snappy",
+      "index": 2,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Accent",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

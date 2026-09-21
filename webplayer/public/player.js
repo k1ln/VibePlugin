@@ -41,6 +41,10 @@ async function start() {
     const m = e.data;
     if (m.type === "ready")  setStatus(meta.isInstrument ? "Ready — play the keyboard." : "Ready — pick an input.");
     if (m.type === "error")  setStatus("DSP error: " + m.message);
+    if (m.type === "display") {
+      const f = $("gui");
+      if (f && f.contentWindow) { try { f.contentWindow.postMessage({ type: "vstai:display", values: m.values }, "*"); } catch (_) {} }
+    }
   };
   node.connect(ctx.destination);
   node.port.postMessage({ type: "load", wasm: wasmBytes, sampleRate: ctx.sampleRate, channels: 2 });
@@ -105,7 +109,12 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
   var restored=(window.__vstaiRestored&&typeof window.__vstaiRestored==='object')?window.__vstaiRestored:{};
   var vals={}; for(var _rk in restored) vals[_rk]=+restored[_rk];
   var paramCbs=[];
+  var displayCbs=[];
   var booting=true;
+  window.addEventListener('message', function(e){
+    var d=e.data; if(!d||d.type!=='vstai:display'||!d.values) return;
+    for(var q=0;q<displayCbs.length;q++){ try{ displayCbs[q](d.values); }catch(_){} }
+  });
   function endBoot(){ booting=false; }
   window.addEventListener('pointerdown', endBoot, true);
   window.addEventListener('keydown',     endBoot, true);
@@ -140,6 +149,7 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
         for(var k in vals){ try{ cb(+k, vals[k]); }catch(_){} }
       },0);
     },
+    onDisplay:function(cb){ if(typeof cb==='function') displayCbs.push(cb); },
     noteOn:function(n,v){ post({type:'note', on:true, note:(n|0), vel:(v==null?1:+v)}); },
     noteOff:function(n){ post({type:'note', on:false, note:(n|0)}); },
     loadSample:function(file,onProgress){ return loadSample(file,onProgress); }

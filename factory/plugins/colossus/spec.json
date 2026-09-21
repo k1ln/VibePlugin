@@ -1,0 +1,237 @@
+{
+  "name": "Colossus",
+  "isInstrument": true,
+  "explanation": "Hybrid trailer strings. Every note is three ensembles at once — an octave down, unison and an octave up — each up to five detuned band-limited voices with their own drift, plus a sub, bow-hair rosin noise and a marcato bite that opens the filter. The Ostinato engine replays the held chord in rhythm, locked to your DAW's bar: 8ths, 16ths, gallop, reverse gallop, triplets, the 3-3-2 figure, dotted 8ths and 32nds, with note length, accent and swing. Evolve moves the tone over time, Tension adds a quiet minor second, Pump ducks every beat. String-body formants, tape saturation and a hall. CC1 dynamics, CC11 expression, pitch bend.",
+  "assembly": "factory/plugins/colossus/assembly.ts",
+  "out": "factory/plugins/colossus/x.vstai",
+  "guiFile": "factory/plugins/colossus/gui.html",
+  "publishedAt": 1790021740999,
+  "theme": {
+    "accent": "#ff5a2a",
+    "accent2": "#ffb38a"
+  },
+  "params": [
+    {
+      "name": "Low Section",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mid Section",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "High Section",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Sub",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Ensemble Spread",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Ensemble Size",
+      "index": 5,
+      "min": 2,
+      "max": 5,
+      "default": 5,
+      "step": 1
+    },
+    {
+      "name": "Tone",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Resonance",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Body",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Rosin",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Bite",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Dynamics",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.65
+    },
+    {
+      "name": "Expression",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Attack",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Release",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Ostinato",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern",
+      "index": 16,
+      "min": 0,
+      "max": 7,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Note Length",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Accent",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Swing",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Rate",
+      "index": 20,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Evolve",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Evolve Rate",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Tension",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pump",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Width",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Hall Size",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Hall Mix",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Tape",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Bend Range",
+      "index": 29,
+      "min": 0,
+      "max": 12,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Master",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

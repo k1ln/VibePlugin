@@ -1,0 +1,58 @@
+{
+  "name": "Silverbox Kick",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. A short, punchy twin-T kick with a clicky edge; the stock 606 has only a level control, the mod knobs add decay and tune.",
+  "assembly": "factory/plugins/silverbox-kick/assembly.ts",
+  "out": "factory/plugins/silverbox-kick/x.vstai",
+  "guiFile": "factory/plugins/silverbox-kick/gui.html",
+  "publishedAt": 1790021737339,
+  "theme": {
+    "accent": "#e5531a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Mod Decay",
+      "index": 1,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Mod Tune",
+      "index": 2,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Accent",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

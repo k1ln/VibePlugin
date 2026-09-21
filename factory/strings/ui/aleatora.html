@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aleatora</title>
+<style>
+  :root{ --bg:#07090d; --line:#1f2a36; --ink:#e3edf6; --ink2:#8ea3b8; --muted:#56687b; --ice:#7fd3ff; --ice2:#c8f0ff; --red:#ff5a5a; --accent:#7fd3ff; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.35 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;user-select:none}
+  #fit{position:absolute;left:0;top:0;transform-origin:0 0}
+  .inst{width:1040px;padding:16px 18px;border-radius:12px;background:linear-gradient(180deg,#0f1620,#080b10 60%);box-shadow:0 0 0 1px #000,inset 0 1px 0 rgba(160,220,255,.07)}
+  .top{display:flex;align-items:flex-end;gap:16px;margin-bottom:12px}
+  .brand b{display:block;font-size:28px;letter-spacing:.42em;font-weight:200;color:var(--ice2)}
+  .brand span{display:block;font-size:10px;letter-spacing:.3em;color:var(--ink2);text-transform:uppercase;margin-top:6px}
+  .row{display:flex;gap:10px;align-items:stretch;margin-bottom:10px}
+  .row > .grp{flex:1 1 auto}
+  .grp{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(10,20,30,.45)}
+  .gt{font-size:9.5px;letter-spacing:.26em;color:var(--ink2);text-transform:uppercase;margin-bottom:6px}
+  .knobs{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end}
+  .k-wrap{display:flex;flex-direction:column;align-items:center;width:60px}
+  .k{cursor:ns-resize;display:block;touch-action:none}
+  .k-tick{stroke:#2e4153;stroke-width:3}
+  .k-skirt{fill:#05080c;stroke:#2b3d4f;stroke-width:2}
+  .k-cap{fill:#101a24}
+  .k-needle{stroke:var(--ice);stroke-width:7;stroke-linecap:round}
+  .k-label{font-size:9px;letter-spacing:.1em;color:var(--ink2);text-transform:uppercase;margin-top:1px;text-align:center}
+  .k-val{font-size:9.5px;color:var(--ice);min-height:11px}
+  .sel{display:flex;flex-direction:column}
+  .sel-label{font-size:9px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;margin-bottom:4px}
+  .sel-row{display:flex;border:1px solid #2b3d4f;border-radius:6px;overflow:hidden}
+  .sel-btn{border:0;background:rgba(0,0,0,.35);color:#8ea3b8;font:600 10px/1 inherit;padding:7px 8px;cursor:pointer;border-right:1px solid #1f2a36}
+  .sel-btn:last-child{border-right:0}
+  .sel-btn.on{background:var(--ice);color:#04121b}
+  .tog{border:1px solid #2b3d4f;background:rgba(0,0,0,.35);color:var(--ink);font:600 10.5px/1 inherit;padding:8px 12px;border-radius:6px;cursor:pointer;letter-spacing:.12em}
+  .tog.on{background:#1b6fa0;border-color:var(--ice);color:#fff;box-shadow:0 0 14px rgba(127,211,255,.35)}
+  .score{position:relative;height:210px;border-radius:9px;background:repeating-linear-gradient(0deg,rgba(127,211,255,.05) 0 1px,transparent 1px 21px),#04070b;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+  .rise{height:6px;border-radius:3px;background:#0b141d;margin-top:8px;overflow:hidden}
+  .rise i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1b6fa0,var(--ice2))}
+  .foot{color:var(--muted);font-size:10px;line-height:1.45;margin-top:4px}
+  .arts{display:flex;gap:4px;flex-wrap:wrap}
+  .art{border:1px solid #2b3d4f;border-radius:6px;background:rgba(0,0,0,.35);color:#8ea3b8;font:600 10px/1 inherit;padding:7px 8px;cursor:pointer}
+  .art.on{background:var(--ice);color:#04121b;border-color:var(--ice)}
+</style>
+</head>
+<body>
+<div id="fit"><div class="inst" id="u"></div></div>
+<script>
+/*@KIT@*/
+</script>
+<script>
+(function () {
+  var DEFS = /*@PARAMS@*/;
+  Kit.define(DEFS);
+  var P = {}; DEFS.forEach(function (d) { P[d.key] = d.index; });
+  var el = Kit.el, u = document.getElementById("u");
+  var pct = function (v) { return Math.round(v * 100) + ""; };
+
+  var top = el("div", "top", u);
+  var br = el("div", "brand", top); br.innerHTML = "<b>ALEATORA</b><span>Aleatoric string textures</span>";
+  var sp = el("div", "", top); sp.style.flex = "1";
+  Kit.selector(top, P.SECTION, { label: "Register", options: ["Auto", "Violins", "Violas", "Celli", "Basses"] });
+  Kit.knob(top, P.CHAOS, { label: "Chaos", size: 48, fmt: pct });
+  Kit.knob(top, P.MASTER, { label: "Master", size: 44, fmt: pct });
+
+  var row = el("div", "row", u);
+  var sg = el("div", "grp", row); sg.style.flex = "2 1 0";
+  el("div", "gt", sg, "Swarm · each line is one player's pitch");
+  var score = el("div", "score", sg);
+  var cv = el("canvas", "", score);
+  var rise = el("div", "rise", sg), riseBar = el("i", "", rise);
+
+  var ag = el("div", "grp", row); ag.style.flex = "1 1 0";
+  el("div", "gt", ag, "Articulation · C0 – G0");
+  var arts = el("div", "arts", ag);
+  var NAMES = ["Sustain", "Tremolo", "Pizz", "Spiccato", "Marcato", "Harmonics", "Sul pont", "Col legno"];
+  var artBtns = NAMES.map(function (n, i) { var b = el("button", "art", arts, n); b.type = "button"; b.addEventListener("click", function () { Kit.set(P.ART, i); }); return b; });
+  var showArt = function (i) { artBtns.forEach(function (b, k) { b.classList.toggle("on", k === i); }); };
+  Kit.listen(P.ART, showArt);
+  var dk = el("div", "knobs", ag); dk.style.marginTop = "10px";
+  Kit.knob(dk, P.PLAYERS, { label: "Density", sens: 0.5, fmt: function (v) { return v + " pl."; } });
+  Kit.knob(dk, P.DYN, { label: "Dynamics", fmt: pct }); Kit.knob(dk, P.EXPR, { label: "Expression", fmt: pct });
+  Kit.knob(dk, P.VIB, { label: "Vibrato", fmt: pct });
+  var fz = el("div", "", ag); fz.style.marginTop = "10px";
+  Kit.toggle(fz, P.FREEZE, "FREEZE").title = "Hold the hall's tail indefinitely";
+
+  var row2 = el("div", "row", u);
+  var cg = el("div", "grp", row2); el("div", "gt", cg, "Cluster");
+  var ck = el("div", "knobs", cg);
+  Kit.knob(ck, P.CLUSTER, { label: "Width", fmt: function (v) { return "±" + Math.round(v) + " c"; } });
+  Kit.toggle(ck, P.QUARTER, "¼-TONE").style.margin = "0 4px 16px";
+  var wg = el("div", "grp", row2); el("div", "gt", wg, "Swarm");
+  var wk = el("div", "knobs", wg);
+  Kit.knob(wk, P.SWARM, { label: "Range", fmt: function (v) { return "±" + v.toFixed(1) + " st"; } });
+  Kit.knob(wk, P.SWARM_SPEED, { label: "Speed", fmt: function (v) { return (0.1 * Math.pow(80, v)).toFixed(2) + " Hz"; } });
+  Kit.knob(wk, P.SWARM_GLIDE, { label: "Glide", fmt: pct });
+  var rg = el("div", "grp", row2); el("div", "gt", rg, "Rise / fall");
+  var rk = el("div", "knobs", rg);
+  Kit.knob(rk, P.RISE, { label: "Amount", fmt: function (v) { return (v > 0 ? "+" : "") + v.toFixed(1) + " st"; } });
+  Kit.knob(rk, P.RISE_TIME, { label: "Time", fmt: function (v) { return v.toFixed(1) + " s"; } });
+  var tg = el("div", "grp", row2); el("div", "gt", tg, "Texture");
+  var tk = el("div", "knobs", tg);
+  Kit.knob(tk, P.SCRATCH, { label: "Scratch", fmt: pct }); Kit.knob(tk, P.SHIMMER, { label: "Shimmer", fmt: pct });
+  Kit.knob(tk, P.PULSE, { label: "Pulse", fmt: pct });
+  Kit.selector(tk, P.PULSE_DIV, { label: "Rate", options: ["¼", "⅛", "⅛T", "1/16", "1/16T", "1/32"] });
+
+  var row3 = el("div", "row", u);
+  var bg = el("div", "grp", row3); el("div", "gt", bg, "Bow");
+  var bk = el("div", "knobs", bg);
+  Kit.knob(bk, P.FORCE, { label: "Pressure", fmt: pct }); Kit.knob(bk, P.POSITION, { label: "Tasto–pont", fmt: pct });
+  Kit.knob(bk, P.BRIGHT, { label: "Bright", fmt: pct }); Kit.knob(bk, P.ATTACK, { label: "Attack", fmt: pct });
+  Kit.knob(bk, P.RELEASE, { label: "Release", fmt: pct }); Kit.knob(bk, P.TREM_RATE, { label: "Trem.", fmt: pct }); Kit.knob(bk, P.HUMAN, { label: "Humanize", fmt: pct });
+  var hg = el("div", "grp", row3); el("div", "gt", hg, "Space");
+  var hk = el("div", "knobs", hg);
+  Kit.knob(hk, P.HALL_SIZE, { label: "Size", fmt: pct }); Kit.knob(hk, P.HALL_TONE, { label: "Tone", fmt: pct });
+  Kit.knob(hk, P.DRY, { label: "Dry", fmt: pct }); Kit.knob(hk, P.WET, { label: "Wet", fmt: pct }); Kit.knob(hk, P.WIDTH, { label: "Width", fmt: pct });
+
+  el("div", "foot", u, "Each key is a cluster of bowed-string players. Swarm sends every player wandering after its own pitch; Rise glides the whole mass over seconds; Scratch is real overpressure in the bow model; Pulse follows your DAW. Keyswitches C0–G0; CC1 dynamics, CC11 expression.");
+
+  // ---- the swarm scope: trails of each player's pitch offset -------------
+  var ctx = cv.getContext("2d"), W = 0, H = 0, hist = [];
+  function size() { var r = cv.getBoundingClientRect(); W = cv.width = Math.max(10, Math.round(r.width)); H = cv.height = Math.max(10, Math.round(r.height)); }
+  size();
+  var COLORS = ["#7fd3ff", "#a7e3ff", "#58b8f0", "#c8f0ff", "#3f9bd6", "#e3f6ff"];
+  function drawScope() {
+    if (!ctx) return;
+    ctx.fillStyle = "rgba(4,7,11,0.28)"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(127,211,255,0.10)"; ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+    for (var j = 0; j < 6; j++) {
+      ctx.beginPath(); var started = false;
+      for (var k = 0; k < hist.length; k++) {
+        var v = hist[k][j]; if (v < -2) { started = false; continue; }
+        var x = W - (hist.length - k) * 4, y = H / 2 - v * (H * 0.42);
+        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = COLORS[j]; ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
+  Kit.onDisplay(function (d) {
+    hist.push([d[5], d[6], d[7], d[8], d[9], d[10]]);
+    if (hist.length > Math.ceil(W / 4) + 2) hist.shift();
+    drawScope();
+    riseBar.style.width = Math.round(d[2] * 100) + "%";
+    showArt(Math.round(d[0]));
+  });
+  drawScope();
+
+  var fitEl = document.getElementById("fit");
+  function fit() {
+    var w = u.offsetWidth, h = u.offsetHeight, s = Math.min(window.innerWidth / w, window.innerHeight / h);
+    fitEl.style.transform = "scale(" + s + ")";
+    fitEl.style.left = Math.max(0, (window.innerWidth - w * s) / 2) + "px";
+    fitEl.style.top = Math.max(0, (window.innerHeight - h * s) / 2) + "px";
+  }
+  window.addEventListener("resize", function () { fit(); size(); }); fit();
+  Kit.start();
+})();
+</script>
+</body>
+</html>

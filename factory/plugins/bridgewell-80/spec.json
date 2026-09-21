@@ -1,0 +1,467 @@
+{
+  "name": "Bridgewell 80",
+  "isInstrument": true,
+  "explanation": "A complete analog rhythm composer modelled circuit-by-circuit on the Roland TR-808, from its Operation Manual and 1981 Service Notes: all 16 sounds (bass drum, snare, three toms/congas, rim shot/claves, hand clap/maracas, cowbell, cymbal, open and closed hi-hat) with every panel control — LEVEL, TONE, DECAY, SNAPPY, TUNING, the five instrument-select switches, ACCENT and MASTER VOLUME. The bass drum rings a bridged-T filter that jumps an octave for its first 4 ms and 'sighs' down in pitch as it decays; toms bend down the same way; the metals come from six free-running square oscillators. Voices are tuned and timed to Roland's own adjustment chart. Built-in 16-step sequencer with PRE-SCALE (triplets to 32nds), last step, A/AB/B variations and an accent row, locked sample-accurately to your DAW's song position. Play it from MIDI on the General-MIDI drum map (36 kick, 38 snare, 42/46 hats…); velocity 100+ is accented.",
+  "assembly": "factory/plugins/bridgewell-80/assembly.ts",
+  "out": "factory/plugins/bridgewell-80/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-80/gui.html",
+  "publishedAt": 1790021727601,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Accent",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "BD Level",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "BD Tone",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "BD Decay",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "SD Level",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "SD Tone",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "SD Snappy",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "LT/LC Level",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "LT/LC Tuning",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "MT/MC Level",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "MT/MC Tuning",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "HT/HC Level",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "HT/HC Tuning",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "RS/CL Level",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.65
+    },
+    {
+      "name": "CP/MA Level",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "CB Level",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "CY Level",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "CY Tone",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "CY Decay",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "OH Level",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "OH Decay",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "CH Level",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.65
+    },
+    {
+      "name": "Master Volume",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Voice Select",
+      "index": 23,
+      "min": 0,
+      "max": 31,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Tempo",
+      "index": 24,
+      "min": 0,
+      "max": 39,
+      "default": 21,
+      "step": 1
+    },
+    {
+      "name": "Tempo Fine",
+      "index": 25,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pre-Scale",
+      "index": 26,
+      "min": 1,
+      "max": 4,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Last Step",
+      "index": 27,
+      "min": 1,
+      "max": 16,
+      "default": 16,
+      "step": 1
+    },
+    {
+      "name": "Basic Variation",
+      "index": 28,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Clock Source",
+      "index": 29,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A BD",
+      "index": 31,
+      "min": 0,
+      "max": 65535,
+      "default": 4369,
+      "step": 1
+    },
+    {
+      "name": "Pattern A SD",
+      "index": 32,
+      "min": 0,
+      "max": 65535,
+      "default": 4112,
+      "step": 1
+    },
+    {
+      "name": "Pattern A LT",
+      "index": 33,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A MT",
+      "index": 34,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A HT",
+      "index": 35,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A RS",
+      "index": 36,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A CP",
+      "index": 37,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A CB",
+      "index": 38,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A CY",
+      "index": 39,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern A OH",
+      "index": 40,
+      "min": 0,
+      "max": 65535,
+      "default": 17476,
+      "step": 1
+    },
+    {
+      "name": "Pattern A CH",
+      "index": 41,
+      "min": 0,
+      "max": 65535,
+      "default": 21845,
+      "step": 1
+    },
+    {
+      "name": "Pattern A AC",
+      "index": 42,
+      "min": 0,
+      "max": 65535,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Pattern B BD",
+      "index": 43,
+      "min": 0,
+      "max": 65535,
+      "default": 4369,
+      "step": 1
+    },
+    {
+      "name": "Pattern B SD",
+      "index": 44,
+      "min": 0,
+      "max": 65535,
+      "default": 4112,
+      "step": 1
+    },
+    {
+      "name": "Pattern B LT",
+      "index": 45,
+      "min": 0,
+      "max": 65535,
+      "default": 32768,
+      "step": 1
+    },
+    {
+      "name": "Pattern B MT",
+      "index": 46,
+      "min": 0,
+      "max": 65535,
+      "default": 16384,
+      "step": 1
+    },
+    {
+      "name": "Pattern B HT",
+      "index": 47,
+      "min": 0,
+      "max": 65535,
+      "default": 8192,
+      "step": 1
+    },
+    {
+      "name": "Pattern B RS",
+      "index": 48,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern B CP",
+      "index": 49,
+      "min": 0,
+      "max": 65535,
+      "default": 2176,
+      "step": 1
+    },
+    {
+      "name": "Pattern B CB",
+      "index": 50,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pattern B CY",
+      "index": 51,
+      "min": 0,
+      "max": 65535,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Pattern B OH",
+      "index": 52,
+      "min": 0,
+      "max": 65535,
+      "default": 17476,
+      "step": 1
+    },
+    {
+      "name": "Pattern B CH",
+      "index": 53,
+      "min": 0,
+      "max": 65535,
+      "default": 5461,
+      "step": 1
+    },
+    {
+      "name": "Pattern B AC",
+      "index": 54,
+      "min": 0,
+      "max": 65535,
+      "default": 4097,
+      "step": 1
+    },
+    {
+      "name": "Stereo Width",
+      "index": 55,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Drive",
+      "index": 56,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "BD Tune Trim",
+      "index": 57,
+      "min": -3,
+      "max": 3,
+      "default": 0
+    },
+    {
+      "name": "SD Tune Trim",
+      "index": 58,
+      "min": -3,
+      "max": 3,
+      "default": 0
+    },
+    {
+      "name": "Run",
+      "index": 59,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    }
+  ]
+}

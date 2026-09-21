@@ -122,6 +122,7 @@ namespace vstai::shim
   }
 
   var paramCbs = [];
+  var displayCbs = [];
   var held = {};   // note numbers currently sounding from the on-screen GUI
   // base64url-encode a byte chunk (no '+' '/' '=' so it is safe in a URL path).
   function b64url(u8){
@@ -191,6 +192,9 @@ namespace vstai::shim
         for (var k in vals){ try { cb(+k, vals[k]); } catch(_){} }
       }, 0);
     },
+    // Register cb(values) for the module's engine → GUI display floats (an array
+    // of 16, ~30 Hz). Only modules exporting getDisplayPtr() ever send any.
+    onDisplay: function(cb){ if (typeof cb === 'function') displayCbs.push(cb); },
     noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
     noteOff: function(n){ n = n|0; delete held[n]; send('/__vstai/note/' + n + '/0/0'); },
     loadSample: function(file, onProgress){ return loadSample(file, onProgress); }
@@ -218,6 +222,10 @@ namespace vstai::shim
     if (d.type === 'vstai:bridge:result'){
       var cb = relayCbs[d.id];
       if (cb){ delete relayCbs[d.id]; cb(d); }
+      return;
+    }
+    if (d.type === 'vstai:display' && d.values){
+      for (var q = 0; q < displayCbs.length; q++){ try { displayCbs[q](d.values); } catch(_){} }
       return;
     }
     if (d.type !== 'vstai:params' || !d.values) return;

@@ -56,6 +56,8 @@ private:
     // Mirror host-automation param values into the on-screen controls, sending only
     // what changed since last poll. The sentinel forces a full resync after load.
     float lastSentParam[vstai::kMaxParams];
+    float lastSentDisplay[vstai::kDisplaySlots];
+    void  reflectDisplayToGui();
     bool  pageReady { false };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LockedEditor)

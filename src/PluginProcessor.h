@@ -7,6 +7,7 @@
 #include <set>
 #include <vector>
 #include "WasmEngine.h"
+#include "MidiRouter.h"
 #include "VstaiDocument.h"
 
 class AssemblyScriptCompiler;
@@ -119,6 +120,8 @@ public:
     // GUI param bridge.
     void setParamFromGui (int index, float value);
     float getParamValue (int index) const { return engine.getParam (index); }
+    bool  hasDisplay() const               { return engine.hasDisplay(); }
+    float getDisplayValue (int i) const    { return engine.getDisplay (i); }
 
     // GUI on-screen keyboard (synth builds). note = MIDI note number.
     void noteFromGui (int note, float velocity, bool on);
@@ -238,6 +241,12 @@ private:
     // MIDI note numbers currently held down via the GUI keyboard (guiNotesLock).
     // Used by allNotesOffFromGui() to release exactly what the GUI turned on.
     std::set<int>                      guiHeldNotes;
+
+    // Audio-thread MIDI → engine events (sample offsets, sustain pedal), and the
+    // per-block scratch it fills — members so processBlock doesn't allocate.
+    MidiRouter                            midiRouter;
+    std::vector<WasmEngine::NoteEvent>    blockGuiNotes, blockNotes;
+    std::vector<WasmEngine::ControlEvent> blockControls;
 
     // In-flight GUI sample upload (message thread only; reassembled before the
     // single engine.loadSample() call on `end`).

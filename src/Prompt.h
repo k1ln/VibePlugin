@@ -67,6 +67,40 @@ a DAW-automatable parameter, so never declare a param at index 63 in your
   const bpm: f32 = params[63] > 1.0 ? params[63] : 120.0;
   const secPerBeat: f32 = 60.0 / bpm;
 
+OPTIONAL MIDI CONTROLLERS — instruments that respond to the mod wheel,
+expression, pitch bend or aftertouch export:
+  export function controlChange(num: i32, value: f32): void
+    num 0..127 = MIDI CC, value 0..1 (CC1 mod wheel, CC11 expression, CC2 breath…)
+    num 128    = pitch bend, value -1..1 (centre 0)
+    num 129    = channel pressure / aftertouch, value 0..1
+Store the values in globals and smooth them in process() (one-pole, ~5–20 ms) —
+controllers arrive in steps. Omit the export if the plugin ignores controllers.
+The SUSTAIN PEDAL is handled by the host: it holds back noteOff while the pedal
+is down, so never implement CC64 yourself (you will not receive it).
+
+TIMING: the host delivers every note and controller at its exact sample
+position by splitting the block, so process(numFrames) may be called several
+times per host block with a smaller numFrames. Always process exactly numFrames
+frames starting at element 0 — never assume a fixed block size.
+
+OPTIONAL TRANSPORT — step sequencers, pattern players and bar-locked effects export:
+  export function transport(playing: i32, ppq: f64, bpm: f32): void
+Called once per host block, before processing: playing = 1 while the DAW plays,
+ppq = song position in quarter notes at the block's first frame, bpm = tempo.
+Advance your own position per frame (ppq += bpm / (60 * sampleRate)) and derive
+steps from it (16th step = floor(ppq * 4)) so the pattern stays locked to the
+DAW's bar. Some hosts never call it — keep a free-running fallback clock.
+
+OPTIONAL DISPLAY — to make meters, step lights, envelope dots or gain-reduction
+needles show what the DSP is REALLY doing (not an animation), export:
+  const display = new StaticArray<f32>(16);
+  export function getDisplayPtr(): usize { return changetype<usize>(display); }
+Write up to 16 values into it inside process() (e.g. display[0] = output peak,
+display[1] = current sequencer step). The GUI receives them ~30 times a second:
+  window.vstai.onDisplay(function (v) { /* v is an array of 16 numbers */ });
+They are for drawing only — they never reach the DAW or the DSP. A GUI must still
+look right before the first onDisplay call arrives.
+
 OPTIONAL SAMPLE BUFFER — for plugins that load an audio FILE (samplers, granular
 engines, convolution reverbs/IRs, wavetable-from-file, etc.). Include these THREE
 exports ONLY when the plugin actually uses a user-loaded sample; otherwise omit

@@ -1,0 +1,58 @@
+{
+  "name": "Bridgewell Hats",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. Open and closed hi-hat from the six-oscillator metal source's upper band, each through its own harmonics-rich VCA and high-pass. Kept together in one plugin so the closed hat can choke the open one.",
+  "assembly": "factory/plugins/bridgewell-hats/assembly.ts",
+  "out": "factory/plugins/bridgewell-hats/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-hats/gui.html",
+  "publishedAt": 1790021731472,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Open Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "Open Decay",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Closed Level",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Accent",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drum voice</title>
+<style>
+  :root{ --bg:#0f0f10; --panel:#1c1c1d; --panel2:#262628; --line:#343437; --ink:#ece6d6; --ink2:#a7a194; --muted:#6f6b63;
+         --accent:#f08a24; --accent2:#f2d23c; --cap:#2c2c2f; --skirt:#0c0c0d; --needle:#efe9d8; --pad:#e2382a; --padInk:#fff; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.3 "Helvetica Neue",Helvetica,Arial,sans-serif;overflow:hidden;user-select:none}
+  #fit{position:absolute;left:0;top:0;transform-origin:0 0}
+  .unit{width:640px;padding:14px 16px 14px;background:linear-gradient(180deg,var(--panel2),var(--panel) 45%);border-radius:10px;box-shadow:0 0 0 1px #000,inset 0 1px 0 rgba(255,255,255,.08)}
+  .head{display:flex;align-items:flex-end;gap:10px;margin-bottom:12px}
+  .head b{font-size:21px;letter-spacing:.06em;font-weight:800}
+  .head b i{font-style:normal;color:var(--accent)}
+  .head span{color:var(--ink2);font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding-bottom:3px}
+  .meter{margin-left:auto;width:120px;height:8px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;align-self:center}
+  .meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3fbf5a,var(--accent2) 70%,#e2382a)}
+  .body{display:flex;gap:12px;align-items:stretch}
+  .sections{display:flex;flex-wrap:wrap;gap:8px;flex:1;align-content:flex-start}
+  .sec{border:1px solid var(--line);border-radius:8px;padding:6px 8px 6px;background:rgba(0,0,0,.16)}
+  .sec-title{font-size:9.5px;letter-spacing:.18em;color:var(--ink2);text-transform:uppercase;margin-bottom:4px;text-align:center}
+  .row{display:flex;gap:4px;align-items:flex-end;justify-content:center;flex-wrap:wrap}
+  .pads{display:flex;flex-direction:column;gap:8px;width:150px}
+  .pad{flex:1;min-height:58px;border:0;border-radius:8px;background:var(--pad);color:var(--padInk);font:800 12px/1.1 inherit;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+       box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 2px 0 #000;position:relative;padding:8px}
+  .pad small{display:block;font-weight:600;font-size:9.5px;opacity:.75;letter-spacing:.04em;margin-top:3px;text-transform:none}
+  .pad .fl{position:absolute;right:8px;top:8px;width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.35)}
+  .pad.hit{filter:brightness(1.25)}
+  .hint{margin-top:10px;color:var(--muted);font-size:10px;line-height:1.45}
+  /* kit controls */
+  .k-wrap{display:flex;flex-direction:column;align-items:center;width:58px}
+  .k{cursor:ns-resize;display:block;touch-action:none}
+  .k-tick{stroke:var(--muted);stroke-width:3}
+  .k-skirt{fill:var(--skirt);stroke:rgba(255,255,255,.12);stroke-width:2}
+  .k-cap{fill:var(--cap)}
+  .k-needle{stroke:var(--needle);stroke-width:7;stroke-linecap:round}
+  .k-label{font-size:9.5px;letter-spacing:.07em;color:var(--ink2);text-transform:uppercase;margin-top:1px;text-align:center}
+  .k-val{font-size:9.5px;color:var(--accent);min-height:11px;font-variant-numeric:tabular-nums}
+  .sel{display:flex;flex-direction:column;align-items:center;padding:0 2px 12px}
+  .sel-label{font-size:9.5px;letter-spacing:.12em;color:var(--ink2);text-transform:uppercase;margin-bottom:3px}
+  .sel-row{display:flex;border:1px solid rgba(255,255,255,.18);border-radius:5px;overflow:hidden}
+  .sel-btn{border:0;background:rgba(0,0,0,.35);color:var(--ink2);font:700 10.5px/1 inherit;padding:6px 8px;cursor:pointer}
+  .sel-btn.on{background:var(--accent);color:#16110a}
+  .bit{margin:0 3px 12px;display:flex;border:1px solid rgba(255,255,255,.18);border-radius:4px;overflow:hidden;background:rgba(0,0,0,.35);cursor:pointer;padding:0;font:inherit;align-self:center}
+  .bit span{padding:4px 7px;font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.05em}
+  .bit .bit-a{background:rgba(255,255,255,.1);color:var(--ink)}
+  .bit.on .bit-a{background:transparent;color:var(--muted)}
+  .bit.on .bit-b{background:rgba(255,255,255,.1);color:var(--accent)}
+  .tog{border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);color:var(--ink);font:700 10px/1 inherit;padding:7px 9px;border-radius:5px;cursor:pointer;letter-spacing:.05em;margin:0 3px 12px;align-self:center}
+  .tog.on{background:var(--accent);border-color:var(--accent);color:#16110a}
+</style>
+</head>
+<body>
+<div id="fit"><div class="unit" id="u"></div></div>
+<script>
+/* =====================================================================
+   drums/ui/kit.js — shared panel components for the drum machines.
+   Inlined into every gui.html by build.mjs (a plugin GUI is one file).
+
+   Contract with the host (src/BridgeShim.h):
+     · window.vstai.setParam(i, v) sends ACTUAL values (spec min..max).
+     · on ready, every param's current value is pushed once;
+     · window.vstai.onParam(cb) repaints controls when the DAW / a restored
+       session changes a value — draw only, never push back;
+     · window.vstai.onDisplay(cb) delivers the engine's 16 display floats.
+   ===================================================================== */
+var Kit = (function () {
+  var PD = {};            // index -> {name,min,max,def,step}
+  var vals = {};
+  var listeners = {};
+  var displayFns = [];
+
+  function has(fn) { return window.vstai && typeof window.vstai[fn] === "function"; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function el(tag, cls, parent, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function svg(tag, attrs, parent) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function define(list) {
+    list.forEach(function (p) { PD[p.index] = p; vals[p.index] = p.def; });
+  }
+  function get(i) { return vals[i]; }
+  function norm(i) { var p = PD[i]; return (vals[i] - p.min) / ((p.max - p.min) || 1); }
+  function quant(i, v) {
+    var p = PD[i];
+    v = clamp(v, p.min, p.max);
+    if (p.step) v = Math.round((v - p.min) / p.step) * p.step + p.min;
+    return v;
+  }
+  function notify(i) { var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j](vals[i]); }
+  // User change: store, send to the engine, repaint.
+  function set(i, v) {
+    v = quant(i, v);
+    if (v === vals[i]) return;
+    vals[i] = v;
+    if (has("setParam")) window.vstai.setParam(+i, v);
+    notify(i);
+  }
+  function listen(i, fn) { (listeners[i] = listeners[i] || []).push(fn); fn(vals[i]); }
+  function onDisplay(fn) { displayFns.push(fn); }
+
+  function ready() {
+    for (var i in vals) if (has("setParam")) window.vstai.setParam(+i, vals[i]);
+    if (has("onParam")) window.vstai.onParam(function (i, v) {
+      if (!(i in PD)) return;
+      vals[i] = quant(i, +v);
+      notify(i);
+    });
+    if (has("onDisplay")) window.vstai.onDisplay(function (d) {
+      for (var j = 0; j < displayFns.length; j++) { try { displayFns[j](d); } catch (e) {} }
+    });
+  }
+  function start() { if (has("onReady")) window.vstai.onReady(ready); else ready(); }
+
+  function note(n, vel) {
+    if (!has("noteOn")) return;
+    window.vstai.noteOn(n, vel == null ? 0.7 : vel);
+    setTimeout(function () { if (has("noteOff")) window.vstai.noteOff(n); }, 60);
+  }
+
+  // ---- drag helper: vertical drag, shift = fine --------------------------
+  function dragValue(target, i, sens) {
+    var startY = 0, startN = 0, active = false;
+    function move(e) {
+      if (!active) return;
+      var dy = startY - e.clientY;
+      var k = (e.shiftKey ? 0.2 : 1) * (sens || 1) / 160;
+      var p = PD[i];
+      set(i, p.min + clamp(startN + dy * k, 0, 1) * (p.max - p.min));
+    }
+    function up() { active = false; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); }
+    target.addEventListener("pointerdown", function (e) {
+      e.preventDefault(); active = true; startY = e.clientY; startN = norm(i);
+      window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+    });
+    target.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var p = PD[i], stepN = p.step ? p.step / (p.max - p.min) : 0.01;
+      set(i, p.min + clamp(norm(i) + (e.deltaY < 0 ? 1 : -1) * stepN * (e.shiftKey ? 1 : 2), 0, 1) * (p.max - p.min));
+    }, { passive: false });
+    target.addEventListener("dblclick", function () { set(i, PD[i].def); });
+  }
+
+  // ---- knob --------------------------------------------------------------
+  // opts: {label, cap (css colour), size, fmt(v) -> string, sub}
+  function knob(parent, i, opts) {
+    opts = opts || {};
+    var size = opts.size || 44;
+    var wrap = el("div", "k-wrap" + (opts.cls ? " " + opts.cls : ""), parent);
+    var s = svg("svg", { width: size, height: size, viewBox: "0 0 100 100", class: "k" }, wrap);
+    // scale ticks
+    for (var t = 0; t <= 10; t++) {
+      var a = (-135 + t * 27) * Math.PI / 180;
+      svg("line", { x1: 50 + 44 * Math.sin(a), y1: 50 - 44 * Math.cos(a), x2: 50 + 49 * Math.sin(a), y2: 50 - 49 * Math.cos(a), class: "k-tick" }, s);
+    }
+    svg("circle", { cx: 50, cy: 50, r: 38, class: "k-skirt" }, s);
+    svg("circle", { cx: 50, cy: 50, r: 30, class: "k-cap", style: opts.cap ? "fill:" + opts.cap : "" }, s);
+    var needle = svg("line", { x1: 50, y1: 50, x2: 50, y2: 18, class: "k-needle" }, s);
+    if (opts.label) el("div", "k-label", wrap, opts.label);
+    var readout = el("div", "k-val", wrap, "");
+    function draw() {
+      var th = (-135 + 270 * norm(i)) * Math.PI / 180;
+      needle.setAttribute("x2", 50 + 32 * Math.sin(th));
+      needle.setAttribute("y2", 50 - 32 * Math.cos(th));
+      readout.textContent = opts.fmt ? opts.fmt(vals[i]) : "";
+    }
+    listen(i, draw);
+    dragValue(s, i, opts.sens);
+    wrap.title = (PD[i] && PD[i].name) || "";
+    return wrap;
+  }
+
+  // ---- multi-position selector (values = option index + min) -------------
+  // opts: {label, options:[...labels], cls}
+  function selector(parent, i, opts) {
+    var wrap = el("div", "sel" + (opts.cls ? " " + opts.cls : ""), parent);
+    if (opts.label) el("div", "sel-label", wrap, opts.label);
+    var row = el("div", "sel-row", wrap);
+    var btns = opts.options.map(function (lab, j) {
+      var b = el("button", "sel-btn", row, lab);
+      b.type = "button";
+      b.addEventListener("click", function () { set(i, PD[i].min + j * (PD[i].step || 1)); });
+      return b;
+    });
+    listen(i, function (v) {
+      var j = Math.round((v - PD[i].min) / (PD[i].step || 1));
+      btns.forEach(function (b, k) { b.classList.toggle("on", k === j); });
+    });
+    return wrap;
+  }
+
+  // ---- one bit of a packed switch word ------------------------------------
+  function bitSwitch(parent, i, bit, offLabel, onLabel, cls) {
+    var b = el("button", "bit" + (cls ? " " + cls : ""), parent);
+    b.type = "button";
+    var a = el("span", "bit-a", b, offLabel), c = el("span", "bit-b", b, onLabel);
+    b.addEventListener("click", function () { set(i, Math.round(vals[i]) ^ (1 << bit)); });
+    listen(i, function (v) { var on = (Math.round(v) >> bit) & 1; b.classList.toggle("on", !!on); });
+    return b;
+  }
+
+  function toggle(parent, i, label, cls) {
+    var b = el("button", "tog" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("click", function () { set(i, vals[i] > 0.5 ? 0 : 1); });
+    listen(i, function (v) { b.classList.toggle("on", v > 0.5); });
+    return b;
+  }
+
+  function pad(parent, noteNum, label, cls) {
+    var b = el("button", "pad" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); note(noteNum, e.shiftKey ? 1.0 : 0.62); b.classList.add("hit"); setTimeout(function () { b.classList.remove("hit"); }, 90); });
+    return b;
+  }
+
+  // A 16-bit step row stored in one parameter.
+  function rowBit(i, step) { return (Math.round(vals[i]) >> step) & 1; }
+  function toggleStep(i, step) { set(i, Math.round(vals[i]) ^ (1 << step)); }
+
+  return {
+    define: define, get: get, set: set, listen: listen, onDisplay: onDisplay, start: start,
+    knob: knob, selector: selector, bitSwitch: bitSwitch, toggle: toggle, pad: pad, note: note,
+    rowBit: rowBit, toggleStep: toggleStep, el: el, svg: svg, PD: PD
+  };
+})();
+
+</script>
+<script>
+(function () {
+  var DEFS = [{"index":0,"key":"LEV","name":"Level","min":0,"max":1,"def":0.8,"step":0},{"index":1,"key":"AC","name":"Accent","min":0,"max":1,"def":0.6,"step":0},{"index":2,"key":"VELMODE","name":"Velocity Mode","min":0,"max":1,"def":0,"step":1},{"index":3,"key":"DRIVE","name":"Drive","min":0,"max":1,"def":0,"step":0}];
+  var C = {"family":"BRIDGEWELL","model":"COWBELL","sub":"Cowbell","theme":{"accent":"#f08a24","accent2":"#f2d23c","pad":"#e2382a"},"sections":[{"title":"Cowbell","controls":[{"key":"LEV","label":"Level"}]},{"title":"Feel","controls":[{"key":"AC","label":"Accent"},{"key":"VELMODE","type":"selector","label":"Velocity","options":["808","Dynamic"]},{"key":"DRIVE","label":"Drive"}]}],"pads":[{"label":"Cowbell","sub":"any note","note":56}],"hint":"Velocity: in 808 mode a hit is either normal or accented (velocity 100+), like the hardware; Dynamic follows velocity smoothly. "};
+  Kit.define(DEFS);
+  var P = {}; DEFS.forEach(function (d) { P[d.key] = d.index; });
+  var el = Kit.el, u = document.getElementById("u");
+  if (C.theme) for (var k in C.theme) document.documentElement.style.setProperty("--" + k, C.theme[k]);
+  document.title = (C.family || "") + " " + (C.model || "");
+
+  var FMT = {
+    pct: function (v) { return Math.round(v * 100) + ""; },
+    semi: function (v) { return (v > 0 ? "+" : "") + v.toFixed(1) + " st"; },
+    int: function (v) { return Math.round(v) + ""; },
+    x: function (v) { return v.toFixed(2) + "×"; },
+    oct: function (v) { return (v > 0 ? "+" : "") + Math.round(v) + " oct"; },
+    none: function () { return ""; }
+  };
+
+  var head = el("div", "head", u);
+  var h = el("b", "", head); h.innerHTML = (C.family || "") + " <i>" + (C.model || "") + "</i>";
+  el("span", "", head, C.sub || "");
+  var meter = el("div", "meter", head), bar = el("i", "", meter);
+
+  var body = el("div", "body", u);
+  var secs = el("div", "sections", body);
+  (C.sections || []).forEach(function (s) {
+    var sec = el("div", "sec", secs);
+    if (s.title) el("div", "sec-title", sec, s.title);
+    var row = el("div", "row", sec);
+    (s.controls || []).forEach(function (c) {
+      var i = P[c.key];
+      if (i == null) return;
+      if (c.type === "selector") Kit.selector(row, i, { label: c.label, options: c.options });
+      else if (c.type === "toggle") Kit.toggle(row, i, c.label);
+      else if (c.type === "bit") Kit.bitSwitch(row, i, c.bit || 0, c.off, c.on);
+      else Kit.knob(row, i, { label: c.label, fmt: FMT[c.fmt || "pct"], size: c.size || 46, sens: c.sens });
+    });
+  });
+
+  var pads = el("div", "pads", body), padFl = [];
+  (C.pads || []).forEach(function (p) {
+    var b = el("button", "pad", pads); b.type = "button";
+    b.innerHTML = p.label + (p.sub ? "<small>" + p.sub + "</small>" : "");
+    var fl = el("span", "fl", b); padFl.push({ fl: fl, i: p.flash || 0 });
+    b.title = "Click to play — higher on the pad plays harder (top = accent)";
+    b.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      var r = b.getBoundingClientRect();
+      var vel = Math.max(0.15, Math.min(1, 1 - (e.clientY - r.top) / r.height * 0.85));
+      Kit.note(p.note, vel);
+      b.classList.add("hit"); setTimeout(function () { b.classList.remove("hit"); }, 90);
+    });
+  });
+  if (C.hint) el("div", "hint", u, C.hint);
+
+  Kit.onDisplay(function (d) {
+    bar.style.width = Math.min(100, Math.round(d[15] * 100)) + "%";
+    padFl.forEach(function (p) {
+      var a = Math.max(0, Math.min(1, d[3 + p.i]));
+      p.fl.style.background = a > 0.03 ? "rgba(255,255,255," + (0.25 + 0.75 * a) + ")" : "";
+      p.fl.style.boxShadow = a > 0.2 ? "0 0 8px #fff" : "";
+    });
+  });
+
+  var fitEl = document.getElementById("fit");
+  function fit() {
+    var w = u.offsetWidth, hh = u.offsetHeight;
+    var s = Math.min(window.innerWidth / w, window.innerHeight / hh, 2.2);
+    fitEl.style.transform = "scale(" + s + ")";
+    fitEl.style.left = Math.max(0, (window.innerWidth - w * s) / 2) + "px";
+    fitEl.style.top = Math.max(0, (window.innerHeight - hh * s) / 2) + "px";
+  }
+  window.addEventListener("resize", fit); fit();
+  Kit.start();
+})();
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 // WasmEngine.cpp
 #include "WasmEngine.h"
+#include <algorithm>
+#include <cmath>
 
 namespace
 {
@@ -10,6 +12,28 @@ namespace
         if (! wasmtime_instance_export_get (ctx, inst, name, std::strlen (name), &out))
             return false;
         return out.kind == kind;
+    }
+
+    // True when `fn` takes exactly `kinds` and returns nothing. Optional exports
+    // are only wired when their signature matches, so a module that happens to
+    // export a same-named function with other parameters is left alone rather
+    // than erroring on every audio block.
+    bool hasSignature (wasmtime_context_t* ctx, const wasmtime_func_t& fn,
+                       std::initializer_list<wasm_valkind_t> kinds)
+    {
+        wasm_functype_t* type = wasmtime_func_type (ctx, &fn);
+        if (type == nullptr) return false;
+        const wasm_valtype_vec_t* ps = wasm_functype_params (type);
+        const wasm_valtype_vec_t* rs = wasm_functype_results (type);
+        bool ok = ps->size == kinds.size() && rs->size == 0;
+        size_t i = 0;
+        for (auto k : kinds)
+        {
+            if (! ok) break;
+            ok = wasm_valtype_kind (ps->data[i++]) == k;
+        }
+        wasm_functype_delete (type);
+        return ok;
     }
 
     // Call a 0-arg function returning a single i32 (used for the ptr getters).
@@ -52,34 +76,61 @@ void WasmEngine::teardownInstance()
     paramCount   = 0;
     haveNoteOn   = false;
     haveNoteOff  = false;
+    haveControl  = false;
+    haveTransport = false;
+    haveDisplay  = false;
+    displayPtr   = 0;
+    for (auto& d : display) d.store (0.0f, std::memory_order_relaxed);
     haveSampleBuffer = false;
     samplePtr    = 0;
     sampleCap    = 0;
 }
 
-void WasmEngine::applyNotes (const std::vector<NoteEvent>& notes)
+void WasmEngine::noteEvent (const NoteEvent& ev)
 {
-    if (! haveNoteOn) return;
     wasm_trap_t* trap = nullptr;
-    for (const auto& ev : notes)
+    if (ev.on)
     {
-        if (ev.on)
-        {
-            wasmtime_val_t a[3];
-            a[0].kind = WASMTIME_I32; a[0].of.i32 = ev.id;
-            a[1].kind = WASMTIME_F32; a[1].of.f32 = ev.freq;
-            a[2].kind = WASMTIME_F32; a[2].of.f32 = ev.vel;
-            if (auto* e = wasmtime_func_call (context, &fnNoteOn, a, 3, nullptr, 0, &trap))
-                wasmtime_error_delete (e);
-        }
-        else if (haveNoteOff)
-        {
-            wasmtime_val_t a; a.kind = WASMTIME_I32; a.of.i32 = ev.id;
-            if (auto* e = wasmtime_func_call (context, &fnNoteOff, &a, 1, nullptr, 0, &trap))
-                wasmtime_error_delete (e);
-        }
-        if (trap != nullptr) { wasm_trap_delete (trap); trap = nullptr; }
+        if (! haveNoteOn) return;
+        wasmtime_val_t a[3];
+        a[0].kind = WASMTIME_I32; a[0].of.i32 = ev.id;
+        a[1].kind = WASMTIME_F32; a[1].of.f32 = ev.freq;
+        a[2].kind = WASMTIME_F32; a[2].of.f32 = ev.vel;
+        if (auto* e = wasmtime_func_call (context, &fnNoteOn, a, 3, nullptr, 0, &trap))
+            wasmtime_error_delete (e);
     }
+    else if (haveNoteOff)
+    {
+        wasmtime_val_t a; a.kind = WASMTIME_I32; a.of.i32 = ev.id;
+        if (auto* e = wasmtime_func_call (context, &fnNoteOff, &a, 1, nullptr, 0, &trap))
+            wasmtime_error_delete (e);
+    }
+    if (trap != nullptr) wasm_trap_delete (trap);
+}
+
+void WasmEngine::controlEvent (const ControlEvent& ev)
+{
+    if (! haveControl) return;
+    wasmtime_val_t a[2];
+    a[0].kind = WASMTIME_I32; a[0].of.i32 = ev.num;
+    a[1].kind = WASMTIME_F32; a[1].of.f32 = ev.value;
+    wasm_trap_t* trap = nullptr;
+    if (auto* e = wasmtime_func_call (context, &fnControl, a, 2, nullptr, 0, &trap))
+        wasmtime_error_delete (e);
+    if (trap != nullptr) wasm_trap_delete (trap);
+}
+
+void WasmEngine::callTransport (const TransportInfo& t)
+{
+    if (! haveTransport) return;
+    wasmtime_val_t a[3];
+    a[0].kind = WASMTIME_I32; a[0].of.i32 = t.playing ? 1 : 0;
+    a[1].kind = WASMTIME_F64; a[1].of.f64 = t.ppq;
+    a[2].kind = WASMTIME_F32; a[2].of.f32 = t.bpm;
+    wasm_trap_t* trap = nullptr;
+    if (auto* e = wasmtime_func_call (context, &fnTransport, a, 3, nullptr, 0, &trap))
+        wasmtime_error_delete (e);
+    if (trap != nullptr) wasm_trap_delete (trap);
 }
 
 bool WasmEngine::resolveExports (juce::String& errorOut)
@@ -113,6 +164,19 @@ bool WasmEngine::resolveExports (juce::String& errorOut)
     if (haveNoteOn) fnNoteOn = ext.of.func;
     haveNoteOff = getExport (context, &instance, vstai::abi::noteOff, WASMTIME_EXTERN_FUNC, ext);
     if (haveNoteOff) fnNoteOff = ext.of.func;
+
+    // Optional MIDI controllers and DAW transport.
+    haveControl = getExport (context, &instance, vstai::abi::controlChange, WASMTIME_EXTERN_FUNC, ext)
+               && hasSignature (context, ext.of.func, { WASM_I32, WASM_F32 });
+    if (haveControl) fnControl = ext.of.func;
+    haveTransport = getExport (context, &instance, vstai::abi::transport, WASMTIME_EXTERN_FUNC, ext)
+                 && hasSignature (context, ext.of.func, { WASM_I32, WASM_F64, WASM_F32 });
+    if (haveTransport) fnTransport = ext.of.func;
+
+    // Optional engine → GUI display region (16 floats).
+    int32_t dp = 0;
+    haveDisplay = callI32 (context, &instance, vstai::abi::getDisplayPtr, dp) && dp > 0;
+    displayPtr  = haveDisplay ? dp : 0;
 
     // Optional sample buffer (samplers, granular, convolution, ...). All three
     // exports must be present together for the buffer to be usable.
@@ -202,6 +266,7 @@ void WasmEngine::prepare (double newSampleRate, int newMaxBlock, int newChannels
     sampleRate   = newSampleRate;
     maxBlockSize = newMaxBlock;
     channels     = juce::jlimit (1, vstai::kMaxChannels, newChannels);
+    timeline.reserve (512);
 
     if (! loaded.load()) return;
     const juce::SpinLock::ScopedLockType sl (swapLock);
@@ -257,7 +322,9 @@ bool WasmEngine::loadSample (const float* data, int channels, int frames,
 }
 
 void WasmEngine::process (juce::AudioBuffer<float>& buffer,
-                          const std::vector<NoteEvent>* notes)
+                          const std::vector<NoteEvent>* notes,
+                          const std::vector<ControlEvent>* controls,
+                          const TransportInfo* transport)
 {
     const int numFrames   = buffer.getNumSamples();
     const int numChannels = juce::jmin (buffer.getNumChannels(), vstai::kMaxChannels);
@@ -270,30 +337,89 @@ void WasmEngine::process (juce::AudioBuffer<float>& buffer,
     auto* base = wasmtime_memory_data (context, &memory);
     if (base == nullptr) return;
 
-    // Synth note events (no-op for effects).
-    if (notes != nullptr && ! notes->empty())
-        applyNotes (*notes);
-
-    // Apply the parameter mirror, then copy input in (planar).
+    // Parameters once per host block — automation arrives at block rate anyway.
     std::memcpy (base + paramsPtr, paramValues, sizeof (float) * (size_t) paramCount);
+
+    if (transport != nullptr) callTransport (*transport);
+
+    // One timeline of every event, ordered by frame; at the same frame
+    // controllers go first (a CC1 move then a note should play at the new
+    // dynamic), otherwise arrival order is kept (note-off then retrigger).
+    timeline.clear();
+    const int lastFrame = juce::jmax (0, numFrames - 1);
+    if (controls != nullptr)
+        for (int i = 0; i < (int) controls->size(); ++i)
+            timeline.push_back ({ juce::jlimit (0, lastFrame, (*controls)[(size_t) i].offset), 0, false, i });
+    if (notes != nullptr)
+        for (int i = 0; i < (int) notes->size(); ++i)
+            timeline.push_back ({ juce::jlimit (0, lastFrame, (*notes)[(size_t) i].offset), 1, true, i });
+    std::sort (timeline.begin(), timeline.end(), [] (const Timed& a, const Timed& b)
+    {
+        if (a.offset != b.offset) return a.offset < b.offset;
+        if (a.order  != b.order)  return a.order  < b.order;
+        return a.index < b.index;
+    });
+
+    // Process up to each event, deliver it, carry on. Events that land within
+    // kMinEventSliceFrames of the previous cut share its slice (a hair early)
+    // instead of forcing a near-empty process() call.
+    int pos = 0;
+    for (size_t k = 0; k < timeline.size();)
+    {
+        const int at = timeline[k].offset;
+        if (at - pos >= vstai::kMinEventSliceFrames)
+        {
+            if (! processSlice (buffer, pos, at - pos, numChannels)) return;
+            pos = at;
+        }
+        for (; k < timeline.size() && timeline[k].offset == at; ++k)
+        {
+            const auto& t = timeline[k];
+            if (t.isNote) noteEvent    ((*notes)[(size_t) t.index]);
+            else          controlEvent ((*controls)[(size_t) t.index]);
+        }
+    }
+    processSlice (buffer, pos, numFrames - pos, numChannels);
+
+    if (haveDisplay)
+        if (auto* mem = wasmtime_memory_data (context, &memory))
+        {
+            const auto memSize = wasmtime_memory_data_size (context, &memory);
+            if ((size_t) displayPtr + sizeof (float) * vstai::kDisplaySlots <= memSize)
+            {
+                float tmp[vstai::kDisplaySlots];
+                std::memcpy (tmp, mem + displayPtr, sizeof (tmp));
+                for (int i = 0; i < vstai::kDisplaySlots; ++i)
+                    display[(size_t) i].store (std::isfinite (tmp[i]) ? tmp[i] : 0.0f, std::memory_order_relaxed);
+            }
+        }
+}
+
+bool WasmEngine::processSlice (juce::AudioBuffer<float>& buffer, int start, int len, int numChannels)
+{
+    if (len <= 0) return true;
+
+    auto* base = wasmtime_memory_data (context, &memory);
+    if (base == nullptr) return false;
+
     for (int c = 0; c < numChannels; ++c)
         std::memcpy (base + inPtr + c * vstai::kMaxFrames * (int) sizeof (float),
-                     buffer.getReadPointer (c),
-                     sizeof (float) * (size_t) numFrames);
+                     buffer.getReadPointer (c) + start,
+                     sizeof (float) * (size_t) len);
 
-    // Call process(numFrames).
-    wasmtime_val_t arg; arg.kind = WASMTIME_I32; arg.of.i32 = numFrames;
+    wasmtime_val_t arg; arg.kind = WASMTIME_I32; arg.of.i32 = len;
     wasm_trap_t* trap = nullptr;
     auto* err = wasmtime_func_call (context, &fnProcess, &arg, 1, nullptr, 0, &trap);
-    if (err != nullptr)  { wasmtime_error_delete (err);  return; }
-    if (trap != nullptr) { wasm_trap_delete (trap);      return; }
+    if (err != nullptr)  { wasmtime_error_delete (err);  return false; }
+    if (trap != nullptr) { wasm_trap_delete (trap);      return false; }
 
     // Memory may have moved if process grew it; re-fetch the base before reading.
     base = wasmtime_memory_data (context, &memory);
-    if (base == nullptr) return;
+    if (base == nullptr) return false;
 
     for (int c = 0; c < numChannels; ++c)
-        std::memcpy (buffer.getWritePointer (c),
+        std::memcpy (buffer.getWritePointer (c) + start,
                      base + outPtr + c * vstai::kMaxFrames * (int) sizeof (float),
-                     sizeof (float) * (size_t) numFrames);
+                     sizeof (float) * (size_t) len);
+    return true;
 }

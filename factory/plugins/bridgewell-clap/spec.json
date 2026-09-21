@@ -1,0 +1,52 @@
+{
+  "name": "Bridgewell Clap & Maracas",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. The clap is band-passed noise through a sawtooth envelope that re-fires three times before the fourth ramp is left to decay, over a slower 'reverb' envelope — the multiple-hands sound. Maracas: short high-passed noise.",
+  "assembly": "factory/plugins/bridgewell-clap/assembly.ts",
+  "out": "factory/plugins/bridgewell-clap/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-clap/gui.html",
+  "publishedAt": 1790021730123,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Clap/Maracas",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Accent",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

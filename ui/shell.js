@@ -72,6 +72,10 @@ backend.addEventListener("paramUpdate", (p) => {
   const f = $("preview");
   if (f && f.contentWindow && p && p.values) f.contentWindow.postMessage({ type:"vstai:params", values:p.values }, "*");
 });
+backend.addEventListener("display", (p) => {
+  const f = $("preview");
+  if (f && f.contentWindow && p && p.values) f.contentWindow.postMessage({ type:"vstai:display", values:p.values }, "*");
+});
 backend.addEventListener("modelsChanged", (s) => { state = s; rebuildModelSelect(s); });
 
 on("thinkToggle","click", () => {

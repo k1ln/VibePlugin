@@ -77,6 +77,8 @@ private:
     float lastSentParam[vstai::kMaxParams];
     void  resetParamReflection();      // re-send everything after a (re)load
     void  reflectParamsToGui();        // called from the timer
+    float lastSentDisplay[vstai::kDisplaySlots];
+    void  reflectDisplayToGui();       // engine → GUI display floats, from the timer
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WebEditor)
 };

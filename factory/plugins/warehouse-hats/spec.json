@@ -1,0 +1,58 @@
+{
+  "name": "Warehouse Hats",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-909 from its Owner's Manual and Service Notes; the same model as inside Warehouse 909, on its own mixer channel. One 6-bit sample at ~30 kHz: the closed hat plays its first third, the open hat three quarters, each shaped by its own analog decay. The sample is synthesised, the playback path is the 909's.",
+  "assembly": "factory/plugins/warehouse-hats/assembly.ts",
+  "out": "factory/plugins/warehouse-hats/x.vstai",
+  "guiFile": "factory/plugins/warehouse-hats/gui.html",
+  "publishedAt": 1790021735302,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Closed Decay",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Open Decay",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Accent",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

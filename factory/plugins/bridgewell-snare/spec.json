@@ -1,0 +1,65 @@
+{
+  "name": "Bridgewell Snare",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. Two bridged-T resonators (238 and 476 Hz) for the drum, balanced by Tone, plus a separately enveloped high-passed noise for the snares, set by Snappy. Any MIDI note plays it.",
+  "assembly": "factory/plugins/bridgewell-snare/assembly.ts",
+  "out": "factory/plugins/bridgewell-snare/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-snare/gui.html",
+  "publishedAt": 1790021728751,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Tone",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Snappy",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Tune",
+      "index": 3,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Accent",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

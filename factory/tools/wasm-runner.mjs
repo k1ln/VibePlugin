@@ -10,6 +10,15 @@
 //    node wasm-runner.mjs <plugin.wasm> [--params params.json] [--wav out.wav]
 //                         [--synth] [--sr 48000] [--block 256] [--seconds 2]
 //
+//         [--transport] [--bpm 120] [--cc "1=0.7,11=1"] [--retrigger 0.5] [--note 60]
+//
+//  --transport   call the module's transport(playing=1, ppq, bpm) every block,
+//                with ppq advancing in time (and params[63] = bpm), as a DAW would
+//  --cc          controlChange(num, value) pairs sent at the start of each render
+//                (128 = pitch bend -1..1, 129 = pressure 0..1)
+//  --retrigger   re-fire the held test note every N seconds (one-shot drums)
+//  --note        MIDI note number of the test note (default 60)
+//
 //  params.json: [{ "name","index","min","max","default" }, ...]
 //  If omitted, all 64 params default to 0 and only param 0..(getNumParams-1)
 //  are swept across a generic 0..1 range.
@@ -41,6 +50,12 @@ const sr = +flag("--sr", 48000);
 const block = +flag("--block", 256);
 const seconds = +flag("--seconds", 2);
 const totalFrames = Math.round(sr * seconds);
+const useTransport = flag("--transport", false) === true;
+const bpm = +flag("--bpm", 120);
+const ccPairs = String(flag("--cc", "") === true ? "" : flag("--cc", ""))
+  .split(",").filter(Boolean).map((kv) => kv.split("=").map(Number));
+const retrigger = +flag("--retrigger", 0);
+const testNote = +flag("--note", 60);
 
 // ---- load module -----------------------------------------------------
 const bytes = readFileSync(wasmPath);
@@ -94,6 +109,7 @@ function setParams(spec, overrideIdx = -1, overrideVal = 0) {
     m[parPtr + p.index] = v;
   }
   if (overrideIdx >= 0) m[parPtr + overrideIdx] = overrideVal;
+  if (useTransport) m[parPtr + 63] = bpm;
 }
 
 // ---- input signal generator (effects) --------------------------------
@@ -147,8 +163,13 @@ function render(spec, overrideIdx = -1, overrideVal = 0, music = false) {
   const out = new Float32Array(totalFrames * 2);
   let noteScheduled = false;
   let lastIdx = -1, heldId = -1;
+  if (typeof ex.controlChange === "function")
+    for (const [num, val] of ccPairs) ex.controlChange(num, val);
+  const retrigFrames = retrigger > 0 ? Math.round(retrigger * sr) : 0;
   for (let pos = 0; pos < totalFrames; pos += block) {
     const n = Math.min(block, totalFrames - pos);
+    if (useTransport && typeof ex.transport === "function")
+      ex.transport(1, (pos / sr) * (bpm / 60), bpm);
     if (isSynth) {
       if (music) {
         // play the arpeggio as a melody so the preview is musical
@@ -161,8 +182,11 @@ function render(spec, overrideIdx = -1, overrideVal = 0, music = false) {
         }
       } else {
         // hold a note for the first 70% then release, to exercise env + tail
-        if (!noteScheduled) { ex.noteOn(60, 220, 0.9); noteScheduled = true; }
-        if (pos <= totalFrames * 0.7 && pos + block > totalFrames * 0.7) ex.noteOff(60);
+        if (!noteScheduled) { ex.noteOn(testNote, midiHz(testNote), 0.9); noteScheduled = true; }
+        else if (retrigFrames && pos < totalFrames * 0.7 && Math.floor(pos / retrigFrames) !== Math.floor((pos - block) / retrigFrames)) {
+          ex.noteOff(testNote); ex.noteOn(testNote, midiHz(testNote), 0.9);
+        }
+        if (pos <= totalFrames * 0.7 && pos + block > totalFrames * 0.7) ex.noteOff(testNote);
       }
       clearInput(n);
     } else {

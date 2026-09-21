@@ -40,6 +40,40 @@
 //  calls setSampleInfo() with the valid length, channel count and the sample's
 //  OWN sample rate. A module that doesn't load audio simply omits these exports.
 //
+//  OPTIONAL MIDI CONTROLLERS (instruments that respond to wheels/pedals/pressure):
+//    controlChange(num: i32, value: f32): void
+//        num 0..127  MIDI CC, value 0..1   (CC64 excepted — see sustain below)
+//        num 128     pitch bend, value -1..1
+//        num 129     channel pressure (aftertouch), value 0..1
+//  Delivered at their exact sample position, like notes. Omit the export and
+//  controllers are simply not sent.
+//
+//  SUSTAIN PEDAL (CC64) is handled by the HOST for every instrument: while the
+//  pedal is down, note-offs are held back and released when it lifts; replaying
+//  a note that is only sounding because of the pedal sends noteOff then noteOn.
+//  So modules never see CC64 and must not implement sustain themselves.
+//  CC120 (all sound off) and CC123 (all notes off) release every sounding note.
+//
+//  SAMPLE-ACCURATE EVENTS: the host splits a block at each MIDI event, calling
+//  noteOn/noteOff/controlChange and then process() on the next slice, so a
+//  module sees events exactly where they fall. process(numFrames) may therefore
+//  run several times per host block with smaller numFrames; each call starts at
+//  element 0 of the buffers as always.
+//
+//  OPTIONAL TRANSPORT (step sequencers, bar-locked LFOs, gated effects):
+//    transport(playing: i32, ppq: f64, bpm: f32): void
+//  Called once per host block, before any processing, with the DAW's play state
+//  (1/0), the song position in quarter notes at the FIRST frame of the block, and
+//  the tempo (0 if unknown). Advance ppq yourself inside the block:
+//  ppq += bpm / (60 * sampleRate) per frame. Not called by hosts that report no
+//  position — keep a free-running fallback.
+//
+//  OPTIONAL DISPLAY (engine → GUI: step lights, meters, envelope dots):
+//    getDisplayPtr(): usize   // address of a StaticArray<f32>(16) the module fills
+//  After each host block the host copies the 16 floats out; the GUI receives them
+//  ~30 times a second via window.vstai.onDisplay(cb) as an array of 16 numbers.
+//  Purely for drawing — they never reach the DSP or the DAW.
+//
 //  HOST TEMPO: params[kHostTempoParamIndex] (63, the last slot) is written by the
 //  host every block with the DAW's current tempo in BPM (0 if the host reports
 //  none, e.g. a bare monitoring plug-in with no transport). This is a direct
@@ -55,6 +89,17 @@ namespace vstai
     static constexpr int kMaxChannels = 2;     // stereo
     static constexpr int kMaxParams   = 64;    // params region capacity
     static constexpr int kHostTempoParamIndex = 63;  // reserved: host BPM, see below
+
+    // Pseudo-controller numbers passed to controlChange() beyond the 0..127 CCs.
+    static constexpr int kControlPitchBend = 128;   // value -1..1
+    static constexpr int kControlPressure  = 129;   // value  0..1
+
+    // Events closer together than this share one process() slice rather than
+    // splitting the block into near-empty calls (<= 0.2 ms at 44.1 kHz).
+    static constexpr int kMinEventSliceFrames = 8;
+
+    // Floats the optional getDisplayPtr() region holds (engine → GUI only).
+    static constexpr int kDisplaySlots = 16;
 
     // Sample-buffer capacity, per channel. ~5 minutes at up to 48 kHz. This is a
     // fixed StaticArray baked into modules that opt into the sample exports, so it
@@ -75,5 +120,8 @@ namespace vstai
         static constexpr const char* getSamplePtr      = "getSamplePtr";      // optional (sampler)
         static constexpr const char* getSampleCapacity = "getSampleCapacity"; // optional (sampler)
         static constexpr const char* setSampleInfo     = "setSampleInfo";     // optional (sampler)
+        static constexpr const char* controlChange     = "controlChange";     // optional (CC/bend/pressure)
+        static constexpr const char* transport         = "transport";         // optional (DAW play state)
+        static constexpr const char* getDisplayPtr     = "getDisplayPtr";     // optional (engine → GUI)
     }
 }

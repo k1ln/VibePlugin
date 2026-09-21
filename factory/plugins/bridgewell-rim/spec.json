@@ -1,0 +1,52 @@
+{
+  "name": "Bridgewell Rim & Claves",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. Rim shot: two resonators (455 / 1667 Hz) through the 808's harmonics-rich 'swing' VCA on a 10 ms envelope. Claves: a single high-Q 2.5 kHz ring.",
+  "assembly": "factory/plugins/bridgewell-rim/assembly.ts",
+  "out": "factory/plugins/bridgewell-rim/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-rim/gui.html",
+  "publishedAt": 1790021729682,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Rim/Claves",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Accent",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

@@ -147,6 +147,10 @@ void VstaiAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     currentSampleRate = sampleRate;
     currentBlockSize  = samplesPerBlock;
     engine.prepare (sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+    midiRouter.reset();
+    blockGuiNotes.reserve (64);
+    blockNotes.reserve (256);
+    blockControls.reserve (256);
     if (! engine.isLoaded() && ! document.wasm.empty())
         loadDocumentIntoEngine();
 }
@@ -167,12 +171,22 @@ void VstaiAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
 
     // Mirror the DAW's tempo into the reserved param slot every block, so tempo-
     // synced DSP (arps, synced delays/LFOs) can read it. 0 if the host reports none.
+    // Modules exporting transport() also get play state + song position.
+    WasmEngine::TransportInfo transport { false, 0.0, 0.0f };
+    bool haveTransport = false;
     {
         float bpm = 0.0f;
         if (auto* ph = getPlayHead())
             if (const auto pos = ph->getPosition())
+            {
                 if (const auto hostBpm = pos->getBpm())
                     bpm = (float) *hostBpm;
+                if (const auto ppq = pos->getPpqPosition())
+                {
+                    transport = { pos->getIsPlaying(), *ppq, bpm };
+                    haveTransport = true;
+                }
+            }
         engine.setParam (vstai::kHostTempoParamIndex, bpm);
     }
 
@@ -186,33 +200,24 @@ void VstaiAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         // which otherwise sounds as a stuck, continuous tone.
         buffer.clear();
 
-        // Build note events from incoming MIDI (host converts note -> Hz here)
-        // plus any notes the on-screen keyboard queued.
-        std::vector<WasmEngine::NoteEvent> notes;
+        // Host MIDI (sample-positioned, sustain handled) plus any notes the
+        // on-screen keyboard queued.
+        blockGuiNotes.clear();
         {
             const juce::SpinLock::ScopedTryLockType sl (guiNotesLock);
             if (sl.isLocked() && ! guiNotes.empty())
             {
-                notes.swap (guiNotes);
+                blockGuiNotes.swap (guiNotes);
                 guiNotes.clear();
             }
         }
-        for (const auto meta : midi)
-        {
-            const auto m = meta.getMessage();
-            if (m.isNoteOn())
-                notes.push_back ({ true, m.getNoteNumber(),
-                                   (float) juce::MidiMessage::getMidiNoteInHertz (m.getNoteNumber()),
-                                   m.getFloatVelocity() });
-            else if (m.isNoteOff())
-                notes.push_back ({ false, m.getNoteNumber(), 0.0f, 0.0f });
-        }
-        engine.process (buffer, &notes);
+        midiRouter.route (midi, blockGuiNotes, blockNotes, blockControls);
+        engine.process (buffer, &blockNotes, &blockControls, haveTransport ? &transport : nullptr);
     }
     else
     {
         // Engine passes audio through unchanged if no module is loaded.
-        engine.process (buffer);
+        engine.process (buffer, nullptr, nullptr, haveTransport ? &transport : nullptr);
     }
 }
 

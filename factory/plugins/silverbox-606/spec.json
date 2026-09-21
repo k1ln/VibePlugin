@@ -1,0 +1,259 @@
+{
+  "name": "Silverbox 606",
+  "isInstrument": true,
+  "explanation": "The portable analog rhythm box, modelled on the Roland TR-606: bass drum, snare, low and high tom, cymbal, open and closed hi-hat with the panel's ACCENT and six instrument-mix levels, VOLUME and TEMPO. The metals come from six free-running Schmitt oscillators (245–625 Hz) through band-passes at 3.44 and 7.1 kHz; the stock open hat has no decay knob — its length follows the tempo, and a closed hat cuts it, just like the hardware. A Mods section adds the classic hardware mods (decays, tunes, snappy) — fully left is stock. 16-step sequencer with scale 1–4, last step and an accent row, locked to your DAW.",
+  "assembly": "factory/plugins/silverbox-606/assembly.ts",
+  "out": "factory/plugins/silverbox-606/x.vstai",
+  "guiFile": "factory/plugins/silverbox-606/gui.html",
+  "publishedAt": 1790021736748,
+  "theme": {
+    "accent": "#e5531a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Accent",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "BD Level",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "SD Level",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "LT Level",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "HT Level",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "CY Level",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "HH Level",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Volume",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Tempo",
+      "index": 8,
+      "min": 40,
+      "max": 300,
+      "default": 128
+    },
+    {
+      "name": "Scale",
+      "index": 9,
+      "min": 1,
+      "max": 4,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Last Step",
+      "index": 10,
+      "min": 1,
+      "max": 16,
+      "default": 16,
+      "step": 1
+    },
+    {
+      "name": "Clock Source",
+      "index": 11,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Run",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "BD Steps",
+      "index": 14,
+      "min": 0,
+      "max": 65535,
+      "default": 4369,
+      "step": 1
+    },
+    {
+      "name": "SD Steps",
+      "index": 15,
+      "min": 0,
+      "max": 65535,
+      "default": 4112,
+      "step": 1
+    },
+    {
+      "name": "LT Steps",
+      "index": 16,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "HT Steps",
+      "index": 17,
+      "min": 0,
+      "max": 65535,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "CY Steps",
+      "index": 18,
+      "min": 0,
+      "max": 65535,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "OH Steps",
+      "index": 19,
+      "min": 0,
+      "max": 65535,
+      "default": 17476,
+      "step": 1
+    },
+    {
+      "name": "CH Steps",
+      "index": 20,
+      "min": 0,
+      "max": 65535,
+      "default": 48059,
+      "step": 1
+    },
+    {
+      "name": "AC Steps",
+      "index": 21,
+      "min": 0,
+      "max": 65535,
+      "default": 4369,
+      "step": 1
+    },
+    {
+      "name": "Mod BD Decay",
+      "index": 22,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Mod BD Tune",
+      "index": 23,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod SD Tune",
+      "index": 24,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod SD Snappy",
+      "index": 25,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Mod LT Tune",
+      "index": 26,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod HT Tune",
+      "index": 27,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod Tom Decay",
+      "index": 28,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Mod CY Decay",
+      "index": 29,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Mod OH Decay",
+      "index": 30,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Stereo Width",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drive",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

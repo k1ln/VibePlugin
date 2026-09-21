@@ -1,0 +1,51 @@
+{
+  "name": "Warehouse Crash",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-909 from its Owner's Manual and Service Notes; the same model as inside Warehouse 909, on its own mixer channel. A 6-bit crash read at a tunable ~30 kHz clock; its decay comes from the playback position, so tuning up shortens it, like the original.",
+  "assembly": "factory/plugins/warehouse-crash/assembly.ts",
+  "out": "factory/plugins/warehouse-crash/x.vstai",
+  "guiFile": "factory/plugins/warehouse-crash/gui.html",
+  "publishedAt": 1790021735788,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Tune",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Accent",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

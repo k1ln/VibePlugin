@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tessitura</title>
+<style>
+  :root{ --bg:#0d0b09; --panel:#1a1511; --panel2:#241c16; --line:#3b3027; --ink:#f1e6d4; --ink2:#bfae95; --muted:#7c6d5b;
+         --gold:#d9a54a; --gold2:#f0cf86; --wine:#8e2f2f; --accent:#d9a54a; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.35 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;overflow:hidden;user-select:none}
+  #fit{position:absolute;left:0;top:0;transform-origin:0 0}
+  .inst{width:1060px;padding:16px 18px 16px;border-radius:12px;
+        background:radial-gradient(1200px 400px at 50% -10%,#3a2a1c 0%,#1d1611 45%,#140f0c 100%);box-shadow:0 0 0 1px #000,inset 0 1px 0 rgba(255,220,160,.08)}
+  .top{display:flex;align-items:flex-end;gap:16px;margin-bottom:12px}
+  .brand b{display:block;font-size:30px;letter-spacing:.12em;font-weight:400;color:var(--gold2)}
+  .brand span{display:block;font:600 10px/1 "Helvetica Neue",Arial,sans-serif;letter-spacing:.32em;color:var(--ink2);text-transform:uppercase;margin-top:5px}
+  .row{display:flex;gap:10px;align-items:stretch}
+  .row > .grp{flex:1 1 auto}
+  .grp{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(0,0,0,.22)}
+  .gt{font:600 9.5px/1 "Helvetica Neue",Arial,sans-serif;letter-spacing:.24em;color:var(--ink2);text-transform:uppercase;margin-bottom:6px}
+  .knobs{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end}
+  .k-wrap{display:flex;flex-direction:column;align-items:center;width:62px;font-family:"Helvetica Neue",Arial,sans-serif}
+  .k{cursor:ns-resize;display:block;touch-action:none}
+  .k-tick{stroke:#6b5a47;stroke-width:3}
+  .k-skirt{fill:#0f0b08;stroke:#5a4632;stroke-width:2}
+  .k-cap{fill:#2b2119}
+  .k-needle{stroke:var(--gold2);stroke-width:7;stroke-linecap:round}
+  .k-label{font-size:9.5px;letter-spacing:.08em;color:var(--ink2);text-transform:uppercase;margin-top:1px;text-align:center}
+  .k-val{font-size:9.5px;color:var(--gold);min-height:11px}
+  .sel{display:flex;flex-direction:column;align-items:flex-start;font-family:"Helvetica Neue",Arial,sans-serif}
+  .sel-label{font-size:9.5px;letter-spacing:.16em;color:var(--ink2);text-transform:uppercase;margin-bottom:4px}
+  .sel-row{display:flex;border:1px solid #5a4632;border-radius:6px;overflow:hidden}
+  .sel-btn{border:0;background:rgba(0,0,0,.35);color:#b7a58c;font:600 10.5px/1 inherit;padding:7px 9px;cursor:pointer;border-right:1px solid #3b3027}
+  .sel-btn:last-child{border-right:0}
+  .sel-btn.on{background:var(--gold);color:#1b1208}
+  .tog{border:1px solid #5a4632;background:rgba(0,0,0,.35);color:var(--ink);font:600 10.5px/1 "Helvetica Neue",Arial,sans-serif;padding:8px 12px;border-radius:6px;cursor:pointer;letter-spacing:.08em}
+  .tog.on{background:var(--wine);border-color:#c0504a;color:#fff}
+  /* articulation bar */
+  .arts{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+  .art{border:1px solid #5a4632;border-radius:8px;background:rgba(0,0,0,.3);color:var(--ink2);cursor:pointer;padding:8px 6px 7px;text-align:center;font:600 11px/1.15 "Helvetica Neue",Arial,sans-serif;letter-spacing:.04em}
+  .art small{display:block;font-weight:500;color:var(--muted);font-size:9px;margin-top:3px;letter-spacing:.1em}
+  .art.on{background:linear-gradient(180deg,#e2b35a,#b98734);color:#1b1208;border-color:#f0cf86;box-shadow:0 0 14px rgba(217,165,74,.35)}
+  .art.on small{color:#3b2a10}
+  /* stage */
+  .stage{position:relative;width:330px;height:190px;border-radius:10px;overflow:hidden;background:radial-gradient(260px 160px at 50% 110%,#3b2b1d,#1a130e 70%)}
+  .stage svg{position:absolute;inset:0}
+  .sec-lbl{font:600 9px "Helvetica Neue",Arial,sans-serif;letter-spacing:.14em;fill:#bfae95;text-transform:uppercase}
+  /* meters */
+  .meters{display:flex;gap:10px;align-items:flex-end}
+  .mtr{display:flex;flex-direction:column;align-items:center;font:600 9px "Helvetica Neue",Arial,sans-serif;letter-spacing:.12em;color:var(--ink2)}
+  .bar{width:14px;height:92px;border-radius:4px;background:rgba(0,0,0,.45);position:relative;overflow:hidden;border:1px solid #3b3027;margin-bottom:5px}
+  .bar i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#8e5a22,var(--gold2))}
+  .foot{margin-top:10px;color:var(--muted);font:500 10px/1.45 "Helvetica Neue",Arial,sans-serif}
+</style>
+</head>
+<body>
+<div id="fit"><div class="inst" id="u"></div></div>
+<script>
+/* =====================================================================
+   drums/ui/kit.js — shared panel components for the drum machines.
+   Inlined into every gui.html by build.mjs (a plugin GUI is one file).
+
+   Contract with the host (src/BridgeShim.h):
+     · window.vstai.setParam(i, v) sends ACTUAL values (spec min..max).
+     · on ready, every param's current value is pushed once;
+     · window.vstai.onParam(cb) repaints controls when the DAW / a restored
+       session changes a value — draw only, never push back;
+     · window.vstai.onDisplay(cb) delivers the engine's 16 display floats.
+   ===================================================================== */
+var Kit = (function () {
+  var PD = {};            // index -> {name,min,max,def,step}
+  var vals = {};
+  var listeners = {};
+  var displayFns = [];
+
+  function has(fn) { return window.vstai && typeof window.vstai[fn] === "function"; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function el(tag, cls, parent, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function svg(tag, attrs, parent) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function define(list) {
+    list.forEach(function (p) { PD[p.index] = p; vals[p.index] = p.def; });
+  }
+  function get(i) { return vals[i]; }
+  function norm(i) { var p = PD[i]; return (vals[i] - p.min) / ((p.max - p.min) || 1); }
+  function quant(i, v) {
+    var p = PD[i];
+    v = clamp(v, p.min, p.max);
+    if (p.step) v = Math.round((v - p.min) / p.step) * p.step + p.min;
+    return v;
+  }
+  function notify(i) { var ls = listeners[i]; if (ls) for (var j = 0; j < ls.length; j++) ls[j](vals[i]); }
+  // User change: store, send to the engine, repaint.
+  function set(i, v) {
+    v = quant(i, v);
+    if (v === vals[i]) return;
+    vals[i] = v;
+    if (has("setParam")) window.vstai.setParam(+i, v);
+    notify(i);
+  }
+  function listen(i, fn) { (listeners[i] = listeners[i] || []).push(fn); fn(vals[i]); }
+  function onDisplay(fn) { displayFns.push(fn); }
+
+  function ready() {
+    for (var i in vals) if (has("setParam")) window.vstai.setParam(+i, vals[i]);
+    if (has("onParam")) window.vstai.onParam(function (i, v) {
+      if (!(i in PD)) return;
+      vals[i] = quant(i, +v);
+      notify(i);
+    });
+    if (has("onDisplay")) window.vstai.onDisplay(function (d) {
+      for (var j = 0; j < displayFns.length; j++) { try { displayFns[j](d); } catch (e) {} }
+    });
+  }
+  function start() { if (has("onReady")) window.vstai.onReady(ready); else ready(); }
+
+  function note(n, vel) {
+    if (!has("noteOn")) return;
+    window.vstai.noteOn(n, vel == null ? 0.7 : vel);
+    setTimeout(function () { if (has("noteOff")) window.vstai.noteOff(n); }, 60);
+  }
+
+  // ---- drag helper: vertical drag, shift = fine --------------------------
+  function dragValue(target, i, sens) {
+    var startY = 0, startN = 0, active = false;
+    function move(e) {
+      if (!active) return;
+      var dy = startY - e.clientY;
+      var k = (e.shiftKey ? 0.2 : 1) * (sens || 1) / 160;
+      var p = PD[i];
+      set(i, p.min + clamp(startN + dy * k, 0, 1) * (p.max - p.min));
+    }
+    function up() { active = false; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); }
+    target.addEventListener("pointerdown", function (e) {
+      e.preventDefault(); active = true; startY = e.clientY; startN = norm(i);
+      window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+    });
+    target.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      var p = PD[i], stepN = p.step ? p.step / (p.max - p.min) : 0.01;
+      set(i, p.min + clamp(norm(i) + (e.deltaY < 0 ? 1 : -1) * stepN * (e.shiftKey ? 1 : 2), 0, 1) * (p.max - p.min));
+    }, { passive: false });
+    target.addEventListener("dblclick", function () { set(i, PD[i].def); });
+  }
+
+  // ---- knob --------------------------------------------------------------
+  // opts: {label, cap (css colour), size, fmt(v) -> string, sub}
+  function knob(parent, i, opts) {
+    opts = opts || {};
+    var size = opts.size || 44;
+    var wrap = el("div", "k-wrap" + (opts.cls ? " " + opts.cls : ""), parent);
+    var s = svg("svg", { width: size, height: size, viewBox: "0 0 100 100", class: "k" }, wrap);
+    // scale ticks
+    for (var t = 0; t <= 10; t++) {
+      var a = (-135 + t * 27) * Math.PI / 180;
+      svg("line", { x1: 50 + 44 * Math.sin(a), y1: 50 - 44 * Math.cos(a), x2: 50 + 49 * Math.sin(a), y2: 50 - 49 * Math.cos(a), class: "k-tick" }, s);
+    }
+    svg("circle", { cx: 50, cy: 50, r: 38, class: "k-skirt" }, s);
+    svg("circle", { cx: 50, cy: 50, r: 30, class: "k-cap", style: opts.cap ? "fill:" + opts.cap : "" }, s);
+    var needle = svg("line", { x1: 50, y1: 50, x2: 50, y2: 18, class: "k-needle" }, s);
+    if (opts.label) el("div", "k-label", wrap, opts.label);
+    var readout = el("div", "k-val", wrap, "");
+    function draw() {
+      var th = (-135 + 270 * norm(i)) * Math.PI / 180;
+      needle.setAttribute("x2", 50 + 32 * Math.sin(th));
+      needle.setAttribute("y2", 50 - 32 * Math.cos(th));
+      readout.textContent = opts.fmt ? opts.fmt(vals[i]) : "";
+    }
+    listen(i, draw);
+    dragValue(s, i, opts.sens);
+    wrap.title = (PD[i] && PD[i].name) || "";
+    return wrap;
+  }
+
+  // ---- multi-position selector (values = option index + min) -------------
+  // opts: {label, options:[...labels], cls}
+  function selector(parent, i, opts) {
+    var wrap = el("div", "sel" + (opts.cls ? " " + opts.cls : ""), parent);
+    if (opts.label) el("div", "sel-label", wrap, opts.label);
+    var row = el("div", "sel-row", wrap);
+    var btns = opts.options.map(function (lab, j) {
+      var b = el("button", "sel-btn", row, lab);
+      b.type = "button";
+      b.addEventListener("click", function () { set(i, PD[i].min + j * (PD[i].step || 1)); });
+      return b;
+    });
+    listen(i, function (v) {
+      var j = Math.round((v - PD[i].min) / (PD[i].step || 1));
+      btns.forEach(function (b, k) { b.classList.toggle("on", k === j); });
+    });
+    return wrap;
+  }
+
+  // ---- one bit of a packed switch word ------------------------------------
+  function bitSwitch(parent, i, bit, offLabel, onLabel, cls) {
+    var b = el("button", "bit" + (cls ? " " + cls : ""), parent);
+    b.type = "button";
+    var a = el("span", "bit-a", b, offLabel), c = el("span", "bit-b", b, onLabel);
+    b.addEventListener("click", function () { set(i, Math.round(vals[i]) ^ (1 << bit)); });
+    listen(i, function (v) { var on = (Math.round(v) >> bit) & 1; b.classList.toggle("on", !!on); });
+    return b;
+  }
+
+  function toggle(parent, i, label, cls) {
+    var b = el("button", "tog" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("click", function () { set(i, vals[i] > 0.5 ? 0 : 1); });
+    listen(i, function (v) { b.classList.toggle("on", v > 0.5); });
+    return b;
+  }
+
+  function pad(parent, noteNum, label, cls) {
+    var b = el("button", "pad" + (cls ? " " + cls : ""), parent, label);
+    b.type = "button";
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); note(noteNum, e.shiftKey ? 1.0 : 0.62); b.classList.add("hit"); setTimeout(function () { b.classList.remove("hit"); }, 90); });
+    return b;
+  }
+
+  // A 16-bit step row stored in one parameter.
+  function rowBit(i, step) { return (Math.round(vals[i]) >> step) & 1; }
+  function toggleStep(i, step) { set(i, Math.round(vals[i]) ^ (1 << step)); }
+
+  return {
+    define: define, get: get, set: set, listen: listen, onDisplay: onDisplay, start: start,
+    knob: knob, selector: selector, bitSwitch: bitSwitch, toggle: toggle, pad: pad, note: note,
+    rowBit: rowBit, toggleStep: toggleStep, el: el, svg: svg, PD: PD
+  };
+})();
+
+</script>
+<script>
+(function () {
+  var DEFS = [{"index":0,"key":"SECTION","name":"Section","min":0,"max":5,"def":0,"step":1},{"index":1,"key":"PLAYERS","name":"Players","min":1,"max":6,"def":4,"step":1},{"index":2,"key":"ART","name":"Articulation","min":0,"max":7,"def":0,"step":1},{"index":3,"key":"DYN","name":"Dynamics","min":0,"max":1,"def":0.6,"step":0},{"index":4,"key":"EXPR","name":"Expression","min":0,"max":1,"def":0.85,"step":0},{"index":5,"key":"VIB","name":"Vibrato","min":0,"max":1,"def":0.55,"step":0},{"index":6,"key":"VIB_RATE","name":"Vibrato Rate","min":0,"max":1,"def":0.5,"step":0},{"index":7,"key":"VIB_DELAY","name":"Vibrato Delay","min":0,"max":1,"def":0.35,"step":0},{"index":8,"key":"ATTACK","name":"Attack","min":0,"max":1,"def":0.4,"step":0},{"index":9,"key":"RELEASE","name":"Release","min":0,"max":1,"def":0.35,"step":0},{"index":10,"key":"FORCE","name":"Bow Pressure","min":0,"max":1,"def":0.5,"step":0},{"index":11,"key":"POSITION","name":"Bow Position","min":0,"max":1,"def":0.5,"step":0},{"index":12,"key":"BRIGHT","name":"Brightness","min":0,"max":1,"def":0.5,"step":0},{"index":13,"key":"TIGHT","name":"Ensemble Tightness","min":0,"max":1,"def":0.6,"step":0},{"index":14,"key":"TREM_RATE","name":"Tremolo Speed","min":0,"max":1,"def":0.5,"step":0},{"index":15,"key":"HUMAN","name":"Humanize","min":0,"max":1,"def":0.5,"step":0},{"index":16,"key":"LEGATO","name":"Legato","min":0,"max":1,"def":0,"step":1},{"index":17,"key":"PORTA","name":"Portamento","min":0,"max":1,"def":0.4,"step":0},{"index":18,"key":"VEL_DYN","name":"Velocity to Dynamics","min":0,"max":1,"def":0.4,"step":0},{"index":19,"key":"BODY","name":"Body Resonance","min":0,"max":1,"def":0.8,"step":0},{"index":20,"key":"DOUBLE","name":"Octave Doubling","min":0,"max":1,"def":0.5,"step":0},{"index":21,"key":"WIDTH","name":"Stage Width","min":0,"max":1,"def":0.75,"step":0},{"index":22,"key":"MIC_CLOSE","name":"Close Mics","min":0,"max":1,"def":0.6,"step":0},{"index":23,"key":"MIC_TREE","name":"Tree Mics","min":0,"max":1,"def":0.8,"step":0},{"index":24,"key":"MIC_AMB","name":"Ambient Mics","min":0,"max":1,"def":0.45,"step":0},{"index":25,"key":"HALL_SIZE","name":"Hall Size","min":0,"max":1,"def":0.6,"step":0},{"index":26,"key":"HALL_TONE","name":"Hall Tone","min":0,"max":1,"def":0.5,"step":0},{"index":27,"key":"PREDELAY","name":"Pre-delay","min":0,"max":1,"def":0.3,"step":0},{"index":28,"key":"TUNE","name":"Fine Tune","min":-50,"max":50,"def":0,"step":0},{"index":29,"key":"BEND","name":"Bend Range","min":0,"max":12,"def":2,"step":1},{"index":30,"key":"MASTER","name":"Master","min":0,"max":1,"def":0.7,"step":0}];
+  Kit.define(DEFS);
+  var P = {}; DEFS.forEach(function (d) { P[d.key] = d.index; });
+  var el = Kit.el, u = document.getElementById("u");
+  var pct = function (v) { return Math.round(v * 100) + ""; };
+
+  var top = el("div", "top", u);
+  var br = el("div", "brand", top);
+  br.innerHTML = "<b>TESSITURA</b><span>Physically modelled string section</span>";
+  var sp = el("div", "", top); sp.style.flex = "1";
+  var secSel = Kit.selector(top, P.SECTION, { label: "Section", options: ["Auto", "Violins", "Violas", "Celli", "Basses", "Full + 8vb"] });
+  Kit.knob(top, P.PLAYERS, { label: "Players", size: 44, sens: 0.5, fmt: function (v) { return v + (v === 1 ? " solo" : " desk"); } });
+  Kit.knob(top, P.MASTER, { label: "Master", size: 44, fmt: pct });
+
+  // articulations (keyswitches C0–G0)
+  var ARTS = [["Sustain","C0"],["Tremolo","C♯0"],["Pizzicato","D0"],["Spiccato","D♯0"],["Marcato","E0"],["Harmonics","F0"],["Sul pont.","F♯0"],["Col legno","G0"]];
+  var ag = el("div", "grp", u); ag.style.marginBottom = "10px";
+  el("div", "gt", ag, "Articulation · keyswitches C0 – G0");
+  var arts = el("div", "arts", ag);
+  var artBtns = ARTS.map(function (a, i) {
+    var b = el("button", "art", arts); b.type = "button"; b.innerHTML = a[0] + "<small>" + a[1] + "</small>";
+    b.addEventListener("click", function () { Kit.set(P.ART, i); showArt(i); });
+    return b;
+  });
+  function showArt(i) { artBtns.forEach(function (b, k) { b.classList.toggle("on", k === i); }); }
+  Kit.listen(P.ART, function (v) { showArt(v); });
+
+  var row = el("div", "row", u);
+  // stage map
+  var sg = el("div", "grp", row);
+  el("div", "gt", sg, "Stage");
+  var stage = el("div", "stage", sg);
+  var svg = Kit.svg("svg", { viewBox: "0 0 330 190" }, stage);
+  var SEATS = [ ["Violins", 80, 120, 0], ["Violas", 185, 95, 1], ["Celli", 245, 135, 2], ["Basses", 295, 85, 3] ];
+  var dots = [];
+  SEATS.forEach(function (s) {
+    for (var d = 0; d < 6; d++) {
+      var a = (d - 2.5) * 0.23, r = 34 + (d % 2) * 12;
+      var c = Kit.svg("circle", { cx: s[1] + Math.sin(a) * r * 0.9, cy: s[2] + Math.cos(a) * r * 0.35, r: 4.5, fill: "#3b2d20", stroke: "#6b5236" }, svg);
+      dots.push({ el: c, sec: s[3], desk: d });
+    }
+    var t = Kit.svg("text", { x: s[1], y: s[2] + 34, "text-anchor": "middle", class: "sec-lbl" }, svg); t.textContent = s[0];
+  });
+  Kit.svg("path", { d: "M150 180 Q165 168 180 180", stroke: "#6b5236", fill: "none" }, svg);
+  function paintStage(active) {
+    var mode = Kit.get(P.SECTION), np = Kit.get(P.PLAYERS);
+    dots.forEach(function (d) {
+      var inSec = mode === 0 || mode === 5 || d.sec === mode - 1;
+      var on = inSec && d.desk < np;
+      d.el.setAttribute("fill", on ? (active ? "#f0cf86" : "#b98734") : "#3b2d20");
+      d.el.setAttribute("opacity", on ? (active ? 1 : 0.75) : 0.6);
+    });
+  }
+  Kit.listen(P.SECTION, function () { paintStage(false); }); Kit.listen(P.PLAYERS, function () { paintStage(false); });
+
+  // expression
+  var eg = el("div", "grp", row);
+  el("div", "gt", eg, "Expression · CC1 / CC11 / CC21");
+  var ek = el("div", "knobs", eg);
+  Kit.knob(ek, P.DYN, { label: "Dynamics", fmt: pct }); Kit.knob(ek, P.EXPR, { label: "Expression", fmt: pct });
+  Kit.knob(ek, P.VIB, { label: "Vibrato", fmt: pct }); Kit.knob(ek, P.VEL_DYN, { label: "Vel→dyn", fmt: pct });
+  var mt = el("div", "meters", eg); mt.style.marginTop = "6px";
+  function meter(label) { var m = el("div", "mtr", mt); var b = el("div", "bar", m); var i = el("i", "", b); el("span", "", m, label); return i; }
+  var mDyn = meter("DYN"), mExp = meter("EXPR"), mVib = meter("VIB"), mOut = meter("OUT");
+  var voicesTxt = el("div", "gt", mt); voicesTxt.style.margin = "0 0 6px 6px";
+
+  // bow
+  var bg = el("div", "grp", row);
+  el("div", "gt", bg, "Bow");
+  var bk = el("div", "knobs", bg);
+  Kit.knob(bk, P.FORCE, { label: "Pressure", fmt: pct }); Kit.knob(bk, P.POSITION, { label: "Tasto–pont", fmt: pct });
+  Kit.knob(bk, P.BRIGHT, { label: "Bright", fmt: pct }); Kit.knob(bk, P.ATTACK, { label: "Attack", fmt: pct });
+  Kit.knob(bk, P.RELEASE, { label: "Release", fmt: pct }); Kit.knob(bk, P.TREM_RATE, { label: "Trem. speed", fmt: function (v) { return (9 + 10 * v).toFixed(1) + " Hz"; } });
+
+  var row2 = el("div", "row", u); row2.style.marginTop = "10px";
+  var en = el("div", "grp", row2);
+  el("div", "gt", en, "Ensemble");
+  var nk = el("div", "knobs", en);
+  Kit.knob(nk, P.TIGHT, { label: "Tightness", fmt: pct }); Kit.knob(nk, P.HUMAN, { label: "Humanize", fmt: pct });
+  Kit.knob(nk, P.VIB_RATE, { label: "Vib. rate", fmt: pct }); Kit.knob(nk, P.VIB_DELAY, { label: "Vib. delay", fmt: function (v) { return Math.round((0.05 + 0.9 * v) * 1000) + " ms"; } });
+  Kit.knob(nk, P.BODY, { label: "Body", fmt: pct }); Kit.knob(nk, P.DOUBLE, { label: "8vb double", fmt: pct }); Kit.knob(nk, P.WIDTH, { label: "Width", fmt: pct });
+
+  var lg = el("div", "grp", row2);
+  el("div", "gt", lg, "Legato");
+  var lk = el("div", "knobs", lg); lk.style.alignItems = "center";
+  Kit.toggle(lk, P.LEGATO, "LEGATO").title = "Monophonic line: overlap notes to slide (soft) or change bow (hard)";
+  Kit.knob(lk, P.PORTA, { label: "Portamento", fmt: pct });
+  Kit.knob(lk, P.BEND, { label: "Bend", sens: 0.5, fmt: function (v) { return v + " st"; } });
+  Kit.knob(lk, P.TUNE, { label: "Fine tune", fmt: function (v) { return (v > 0 ? "+" : "") + v.toFixed(1) + " c"; } });
+
+  var hg = el("div", "grp", row2);
+  el("div", "gt", hg, "Microphones & hall");
+  var hk = el("div", "knobs", hg);
+  Kit.knob(hk, P.MIC_CLOSE, { label: "Close", fmt: pct }); Kit.knob(hk, P.MIC_TREE, { label: "Tree", fmt: pct }); Kit.knob(hk, P.MIC_AMB, { label: "Ambient", fmt: pct });
+  Kit.knob(hk, P.HALL_SIZE, { label: "Size", fmt: function (v) { return (0.8 + 5.2 * v * v).toFixed(1) + " s"; } });
+  Kit.knob(hk, P.HALL_TONE, { label: "Tone", fmt: pct }); Kit.knob(hk, P.PREDELAY, { label: "Pre-delay", fmt: function (v) { return Math.round((0.005 + 0.09 * v) * 1000) + " ms"; } });
+
+  el("div", "foot", u, "Every note is bowed by real-time string models — no samples. Keyswitches C0–G0 change articulation as you play; CC1 is dynamics (bow speed, pressure and tone together), CC11 expression, CC21 vibrato; the sustain pedal works. Section Auto assigns violins, violas, celli and basses by register.");
+
+  var lastActive = 0;
+  Kit.onDisplay(function (d) {
+    mDyn.style.height = Math.round(d[2] * 100) + "%"; mVib.style.height = Math.round(d[3] * 100) + "%";
+    mExp.style.height = Math.round(d[4] * 100) + "%"; mOut.style.height = Math.min(100, Math.round(d[15] * 100)) + "%";
+    showArt(Math.round(d[0]));
+    var a = Math.round(d[1]); voicesTxt.textContent = a + (a === 1 ? " note" : " notes");
+    if ((a > 0) !== (lastActive > 0)) paintStage(a > 0);
+    lastActive = a;
+  });
+  paintStage(false);
+
+  var fitEl = document.getElementById("fit");
+  function fit() {
+    var w = u.offsetWidth, h = u.offsetHeight, s = Math.min(window.innerWidth / w, window.innerHeight / h);
+    fitEl.style.transform = "scale(" + s + ")";
+    fitEl.style.left = Math.max(0, (window.innerWidth - w * s) / 2) + "px";
+    fitEl.style.top = Math.max(0, (window.innerHeight - h * s) / 2) + "px";
+  }
+  window.addEventListener("resize", fit); fit();
+  Kit.start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "name": "Silverbox Cymbal",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. Six square oscillators through both band-passes, two VCAs on one envelope and two high-passes.",
+  "assembly": "factory/plugins/silverbox-cymbal/assembly.ts",
+  "out": "factory/plugins/silverbox-cymbal/x.vstai",
+  "guiFile": "factory/plugins/silverbox-cymbal/gui.html",
+  "publishedAt": 1790021738649,
+  "theme": {
+    "accent": "#e5531a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mod Decay",
+      "index": 1,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Accent",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

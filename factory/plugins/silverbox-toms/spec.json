@@ -1,0 +1,79 @@
+{
+  "name": "Silverbox Toms",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. Two twin-T toms with a short burst of low-passed noise rumble.",
+  "assembly": "factory/plugins/silverbox-toms/assembly.ts",
+  "out": "factory/plugins/silverbox-toms/x.vstai",
+  "guiFile": "factory/plugins/silverbox-toms/gui.html",
+  "publishedAt": 1790021738210,
+  "theme": {
+    "accent": "#e5531a",
+    "accent2": "#ffd24a"
+  },
+  "params": [
+    {
+      "name": "Low Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "High Level",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mod Low Tune",
+      "index": 2,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod High Tune",
+      "index": 3,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mod Decay",
+      "index": 4,
+      "min": -0.05,
+      "max": 1,
+      "default": -0.05
+    },
+    {
+      "name": "Stereo Width",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Accent",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

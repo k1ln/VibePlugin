@@ -21,6 +21,7 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
     for (auto& v : lastSentParam) v = -1.0e30f;
+    for (auto& v : lastSentDisplay) v = -1.0e30f;
 
     juce::Component::SafePointer<LockedEditor> safe (this);
 
@@ -46,6 +47,7 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
         if (safe == nullptr) return;
         safe->pageReady = true;
         for (auto& v : safe->lastSentParam) v = -1.0e30f;   // force a full resync
+        for (auto& v : safe->lastSentDisplay) v = -1.0e30f;
     };
     web = std::move (browser);
     addAndMakeVisible (*web);
@@ -141,6 +143,27 @@ LockedEditor::provideResource (const juce::String& rawUrl)
 void LockedEditor::timerCallback()
 {
     reflectParamsToGui();
+    reflectDisplayToGui();
+}
+
+void LockedEditor::reflectDisplayToGui()
+{
+    if (web == nullptr || ! pageReady || ! processor.hasDisplay()) return;
+
+    juce::Array<var> values;
+    bool changed = false;
+    for (int i = 0; i < vstai::kDisplaySlots; ++i)
+    {
+        const float v = processor.getDisplayValue (i);
+        if (v != lastSentDisplay[i]) { lastSentDisplay[i] = v; changed = true; }
+        values.add (v);
+    }
+    if (! changed) return;
+
+    auto* o = new juce::DynamicObject();
+    o->setProperty ("type", "vstai:display");
+    o->setProperty ("values", values);
+    web->evaluateJavascript ("window.postMessage(" + juce::JSON::toString (var (o), true) + ", '*');");
 }
 
 void LockedEditor::reflectParamsToGui()

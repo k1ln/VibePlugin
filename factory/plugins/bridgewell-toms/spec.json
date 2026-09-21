@@ -1,0 +1,94 @@
+{
+  "name": "Bridgewell Toms",
+  "isInstrument": true,
+  "explanation": "Modelled on the Roland TR-808 from its Service Notes; the same circuit model as inside Bridgewell 80, on its own so it gets its own mixer channel. The three tom/conga slots. Each drum's pitch starts high and falls as it rings (the circuit's diodes), toms add a whisper of noise 'reverb'. Frequencies follow Roland's chart: toms 80–220 Hz, congas 165–455 Hz.",
+  "assembly": "factory/plugins/bridgewell-toms/assembly.ts",
+  "out": "factory/plugins/bridgewell-toms/x.vstai",
+  "guiFile": "factory/plugins/bridgewell-toms/gui.html",
+  "publishedAt": 1790021729202,
+  "theme": {
+    "accent": "#f08a24",
+    "accent2": "#f2d23c"
+  },
+  "params": [
+    {
+      "name": "Low Level",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Low Tuning",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Mid Level",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mid Tuning",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Hi Level",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Hi Tuning",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Tom/Conga",
+      "index": 6,
+      "min": 0,
+      "max": 7,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Stereo Width",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Accent",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Velocity Mode",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drive",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

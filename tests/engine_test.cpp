@@ -3,7 +3,8 @@
 //  Headless test of the knob/note path — no DAW, no WebView.
 //
 //  Usage:
-//    vstai_tests <effect.wasm> <synth.wasm>   reference regression tests
+//    vstai_tests <effect.wasm> <synth.wasm> [<events-probe.wasm>]
+//                                             reference regression tests
 //    vstai_tests <plugin.vstai>               sweep every param of a plugin
 //                                             and report which ones change
 //                                             the audio (pre-release check)
@@ -13,6 +14,7 @@
 // =====================================================================
 
 #include "WasmEngine.h"
+#include "MidiRouter.h"
 #include "VstaiDocument.h"
 #include "BridgeProtocol.h"
 
@@ -185,6 +187,182 @@ namespace
         }
     }
 
+    // First frame of channel `ch` whose value differs from frame 0 (-1 if none).
+    int firstChange (const juce::AudioBuffer<float>& b, int ch)
+    {
+        const float* d = b.getReadPointer (ch);
+        for (int i = 1; i < b.getNumSamples(); ++i)
+            if (std::abs (d[i] - d[0]) > 1e-6f) return i;
+        return -1;
+    }
+
+    // Host event delivery: sample-accurate notes/controllers, transport.
+    void runEventTests (const juce::String& probeWasm)
+    {
+        std::cout << "[events] sample-accurate delivery (events-probe module)\n";
+        WasmEngine eng; juce::String err;
+        check (eng.loadModule (readBytes (probeWasm), err), "load events-probe.wasm  " + err);
+        check (eng.wantsControllers(), "probe exposes controlChange()");
+        check (eng.wantsTransport(),   "probe exposes transport()");
+        eng.prepare (48000.0, 512, 2);
+
+        juce::AudioBuffer<float> buf (2, 512);
+
+        {   // a note-on at frame 300 sounds from frame 300, not from 0
+            buf.clear();
+            std::vector<WasmEngine::NoteEvent> n { { true, 60, 261.6f, 1.0f, 300 } };
+            eng.process (buf, &n);
+            check (buf.getSample (0, 0) == 0.0f && firstChange (buf, 0) == 300,
+                   "note-on at frame 300 lands at frame 300 (got " + juce::String (firstChange (buf, 0)) + ")");
+        }
+        {   // ...and its note-off at frame 17 in the next block lands there too
+            buf.clear();
+            std::vector<WasmEngine::NoteEvent> n { { false, 60, 0.0f, 0.0f, 17 } };
+            eng.process (buf, &n);
+            check (buf.getSample (0, 0) == 1.0f && firstChange (buf, 0) == 17,
+                   "note-off at frame 17 lands at frame 17 (got " + juce::String (firstChange (buf, 0)) + ")");
+        }
+        {   // two notes in one block, in reverse order in the vector: sorted by frame
+            buf.clear();
+            std::vector<WasmEngine::NoteEvent> n { { true, 64, 330.0f, 1.0f, 400 },
+                                                   { true, 60, 261.6f, 1.0f, 100 } };
+            eng.process (buf, &n);
+            check (buf.getSample (0, 99) == 0.0f && buf.getSample (0, 100) == 1.0f
+                && buf.getSample (0, 399) == 1.0f && buf.getSample (0, 400) == 2.0f,
+                   "out-of-order events are delivered in frame order");
+            std::vector<WasmEngine::NoteEvent> off { { false, 60, 0, 0, 0 }, { false, 64, 0, 0, 0 } };
+            buf.clear(); eng.process (buf, &off);
+        }
+        {   // events a few frames apart share one slice rather than splitting
+            buf.clear();
+            std::vector<WasmEngine::NoteEvent> n { { true, 60, 261.6f, 1.0f, 3 } };
+            eng.process (buf, &n);
+            check (buf.getSample (0, 0) == 1.0f,
+                   "an event within kMinEventSliceFrames of the start is applied at frame 0");
+            std::vector<WasmEngine::NoteEvent> off { { false, 60, 0, 0, 0 } };
+            buf.clear(); eng.process (buf, &off);
+        }
+        {   // CC1 at frame 128, and a note at the same frame: controller applied first
+            buf.clear();
+            std::vector<WasmEngine::ControlEvent> c { { 1, 0.5f, 128 } };
+            eng.process (buf, nullptr, &c);
+            check (firstChange (buf, 1) == 128 && std::abs (buf.getSample (1, 511) - 0.5f) < 1e-6f,
+                   "CC1 = 0.5 at frame 128 lands at frame 128");
+        }
+        {
+            buf.clear();
+            std::vector<WasmEngine::ControlEvent> c { { vstai::kControlPitchBend, -1.0f, 0 },
+                                                      { vstai::kControlPressure, 0.25f, 0 } };
+            eng.process (buf, nullptr, &c);
+            // right = cc1 (0.5) + bend (-1) + 10 * pressure (2.5) = 2.0
+            check (std::abs (buf.getSample (1, 0) - 2.0f) < 1e-5f, "pitch bend (128) and pressure (129) reach the module");
+        }
+        {   // transport: ppq reaches the module while playing, is ignored when stopped
+            buf.clear();
+            WasmEngine::TransportInfo t { true, 8.0, 120.0f };
+            eng.process (buf, nullptr, nullptr, &t);
+            check (std::abs (buf.getSample (0, 0) - 8.0f) < 1e-6f, "transport(playing, ppq=8) reaches the module");
+            t.playing = false;
+            buf.clear(); eng.process (buf, nullptr, nullptr, &t);
+            check (buf.getSample (0, 0) == 0.0f, "transport(stopped) reaches the module");
+        }
+        {   // engine → GUI display: snapshotted after the block
+            check (eng.hasDisplay(), "probe exposes getDisplayPtr()");
+            buf.clear();
+            std::vector<WasmEngine::NoteEvent> n { { true, 60, 261.6f, 1.0f, 0 }, { true, 62, 293.7f, 1.0f, 0 } };
+            eng.process (buf, &n);
+            check (eng.getDisplay (0) == 2.0f && eng.getDisplay (15) == 42.0f,
+                   "display values reach the host after the block (held=2, marker=42)");
+            check (eng.getDisplay (16) == 0.0f && eng.getDisplay (-1) == 0.0f, "display index out of range reads 0");
+        }
+        {   // an effect-style module without the optional exports is unaffected
+            WasmEngine plain; juce::String e2;
+            check (! plain.wantsControllers() && ! plain.wantsTransport() && ! plain.hasDisplay(),
+                   "a module without the exports opts out");
+        }
+    }
+
+    // MidiRouter: MIDI → events, sustain pedal, panic. Pure logic, no wasm.
+    void runRouterTests()
+    {
+        std::cout << "[midi] MidiRouter: offsets, controllers, sustain pedal\n";
+        MidiRouter r;
+        std::vector<WasmEngine::NoteEvent> notes, gui;
+        std::vector<WasmEngine::ControlEvent> ctl;
+        auto has = [&] (bool on, int n, int at)
+        {
+            for (auto& e : notes) if (e.on == on && e.id == n && e.offset == at) return true;
+            return false;
+        };
+
+        {
+            juce::MidiBuffer m;
+            m.addEvent (juce::MidiMessage::noteOn (1, 60, (juce::uint8) 100), 42);
+            m.addEvent (juce::MidiMessage::controllerEvent (1, 1, 127), 50);
+            m.addEvent (juce::MidiMessage::pitchWheel (1, 0), 60);
+            m.addEvent (juce::MidiMessage::channelPressureChange (1, 127), 70);
+            r.route (m, gui, notes, ctl);
+            check (notes.size() == 1 && has (true, 60, 42), "note-on keeps its sample position (42)");
+            check (std::abs (notes[0].freq - 261.6256f) < 0.01f, "note-on carries the note's frequency");
+            check (ctl.size() == 3 && ctl[0].num == 1 && ctl[0].value == 1.0f && ctl[0].offset == 50,
+                   "CC1 = 127 -> controlChange(1, 1.0) at frame 50");
+            check (ctl.size() == 3 && ctl[1].num == vstai::kControlPitchBend && ctl[1].value == -1.0f,
+                   "pitch wheel fully down -> -1");
+            check (ctl.size() == 3 && ctl[2].num == vstai::kControlPressure && ctl[2].value == 1.0f,
+                   "channel pressure 127 -> 1");
+        }
+        {   // pedal down, release the key: no note-off until the pedal lifts
+            juce::MidiBuffer m;
+            m.addEvent (juce::MidiMessage::controllerEvent (1, 64, 127), 0);
+            m.addEvent (juce::MidiMessage::noteOff (1, 60), 10);
+            r.route (m, gui, notes, ctl);
+            check (notes.empty() && r.isSustainDown(), "pedal down: note-off is held back");
+            check (ctl.empty(), "CC64 is not forwarded to the module");
+
+            juce::MidiBuffer m2;   // replay the sustained note: off, then on
+            m2.addEvent (juce::MidiMessage::noteOn (1, 60, (juce::uint8) 90), 5);
+            r.route (m2, gui, notes, ctl);
+            check (notes.size() == 2 && ! notes[0].on && notes[1].on && notes[0].offset == 5,
+                   "replaying a sustained note sends note-off then note-on");
+
+            juce::MidiBuffer m3;   // play 64, release both keys, lift the pedal at 200
+            m3.addEvent (juce::MidiMessage::noteOn (1, 64, (juce::uint8) 90), 0);
+            m3.addEvent (juce::MidiMessage::noteOff (1, 60), 20);
+            m3.addEvent (juce::MidiMessage::noteOff (1, 64), 30);
+            m3.addEvent (juce::MidiMessage::controllerEvent (1, 64, 0), 200);
+            r.route (m3, gui, notes, ctl);
+            check (notes.size() == 3 && has (false, 60, 200) && has (false, 64, 200),
+                   "pedal up releases every sustained note at the pedal's frame");
+        }
+        {   // a key still held when the pedal lifts keeps sounding
+            juce::MidiBuffer m;
+            m.addEvent (juce::MidiMessage::noteOn (1, 67, (juce::uint8) 90), 0);
+            m.addEvent (juce::MidiMessage::controllerEvent (1, 64, 127), 1);
+            m.addEvent (juce::MidiMessage::controllerEvent (1, 64, 0), 2);
+            r.route (m, gui, notes, ctl);
+            check (notes.size() == 1 && notes[0].on, "a key held through the pedal is not released by it");
+        }
+        {   // panic: all notes off releases held + sustained
+            juce::MidiBuffer m;
+            m.addEvent (juce::MidiMessage::controllerEvent (1, 64, 127), 0);
+            m.addEvent (juce::MidiMessage::noteOn (1, 72, (juce::uint8) 90), 1);
+            m.addEvent (juce::MidiMessage::noteOff (1, 72), 2);
+            m.addEvent (juce::MidiMessage::allNotesOff (1), 3);
+            r.route (m, gui, notes, ctl);
+            check (has (false, 67, 3) && has (false, 72, 3) && ! r.isSustainDown(),
+                   "all-notes-off releases held and sustained notes and lifts the pedal");
+        }
+        {   // on-screen keyboard notes arrive at frame 0 and obey the pedal too
+            r.reset();
+            gui = { { true, 48, 0.0f, 0.8f } };
+            juce::MidiBuffer none;
+            r.route (none, gui, notes, ctl);
+            check (notes.size() == 1 && notes[0].on && notes[0].offset == 0 && notes[0].freq > 130.0f,
+                   "GUI keyboard note lands at frame 0 with its frequency");
+            gui.clear();
+        }
+    }
+
     bool p_outOfRange (const VstaiDocument& doc, const WasmEngine& eng);
 
     int runVstaiSweep (const juce::String& file)
@@ -240,11 +418,17 @@ int main (int argc, char** argv)
         return runVstaiSweep (argv[1]);
 
     runProtocolTests();
+    runRouterTests();
 
     if (argc >= 3)
         runReferenceTests (argv[1], argv[2]);
     else
         std::cout << "(skipping engine tests — pass <effect.wasm> <synth.wasm> to run them)\n";
+
+    if (argc >= 4)
+        runEventTests (argv[3]);
+    else
+        std::cout << "(skipping event tests — pass <events-probe.wasm> as a third argument)\n";
 
     std::cout << (failures == 0 ? "\nALL TESTS PASSED\n"
                                 : "\n" + juce::String (failures) + " TEST(S) FAILED\n");

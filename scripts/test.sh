@@ -24,6 +24,7 @@ fi
 echo "▶ compiling reference DSP modules…"
 "${ASC[@]}" "$REPO/wasm-template/assembly/index.ts" /tmp/vstai-effect.wasm
 "${ASC[@]}" "$REPO/wasm-template/assembly/synth.ts"  /tmp/vstai-synth.wasm
+"${ASC[@]}" "$REPO/wasm-template/assembly/events-probe.ts" /tmp/vstai-events.wasm
 
 echo "▶ building the test…"
 cmake -B "$REPO/build-test" \
@@ -40,5 +41,5 @@ echo
 if [ $# -ge 1 ]; then
   "$BIN" "$1"                                   # sweep a saved plugin
 else
-  "$BIN" /tmp/vstai-effect.wasm /tmp/vstai-synth.wasm   # reference tests
+  "$BIN" /tmp/vstai-effect.wasm /tmp/vstai-synth.wasm /tmp/vstai-events.wasm   # reference tests
 fi

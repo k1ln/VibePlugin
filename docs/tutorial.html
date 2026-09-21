@@ -888,6 +888,12 @@
 
       <h3>Things worth knowing before you ask</h3>
       <ul>
+        <li><strong>Mod wheel, expression, pitch bend, aftertouch.</strong> Instruments can respond to
+            MIDI controllers — <code>use the mod wheel for dynamics and CC11 for expression</code> is a
+            fair request, and the sustain pedal works for every instrument automatically.</li>
+        <li><strong>Step sequencers can lock to your song.</strong> Plugins can follow the DAW's play
+            state and bar position, not just its tempo, so a built-in pattern stays in time with your
+            arrangement.</li>
         <li><strong>Tempo sync works.</strong> The plugin feeds your DAW's current BPM to the audio
             code every block, so <code>delay time synced to the host tempo, in note values</code> or
             a tempo-locked LFO is a reasonable thing to ask for.</li>
@@ -1081,11 +1087,10 @@
 
       <h4>When you reopen a project</h4>
       <p>
-        The sound comes back exactly as you left it — parameter values are restored and the audio
-        engine is set from them before anything plays. One cosmetic caveat: some generated
-        interfaces redraw their knobs at the positions they were <em>designed</em> with until you
-        touch one, even though the sound is already correct. Nudging a control resyncs the display.
-        The audio is never wrong; only the drawing can lag.
+        The plugin comes back exactly as you left it — parameter values are restored, the audio engine
+        is set from them before anything plays, and the interface's knobs redraw at the saved positions.
+        (A project saved with a much older version of VibePlugin may carry an interface that shows its
+        defaults until you touch a control; the sound is right either way.)
       </p>
 
       <h4>Sharing a <code>.vstai</code></h4>
