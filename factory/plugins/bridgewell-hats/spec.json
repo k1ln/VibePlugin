@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-hats/assembly.ts",
   "out": "factory/plugins/bridgewell-hats/x.vstai",
   "guiFile": "factory/plugins/bridgewell-hats/gui.html",
-  "publishedAt": 1790021731472,
+  "publishedAt": 1790025928674,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

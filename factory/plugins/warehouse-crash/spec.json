@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/warehouse-crash/assembly.ts",
   "out": "factory/plugins/warehouse-crash/x.vstai",
   "guiFile": "factory/plugins/warehouse-crash/gui.html",
-  "publishedAt": 1790021735788,
+  "publishedAt": 1790025933383,
   "theme": {
     "accent": "#ff7a1a",
     "accent2": "#ffd24a"

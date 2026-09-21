@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/colossus/assembly.ts",
   "out": "factory/plugins/colossus/x.vstai",
   "guiFile": "factory/plugins/colossus/gui.html",
-  "publishedAt": 1790021740999,
+  "publishedAt": 1790025939201,
   "theme": {
     "accent": "#ff5a2a",
     "accent2": "#ffb38a"

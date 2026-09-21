@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-kick/assembly.ts",
   "out": "factory/plugins/bridgewell-kick/x.vstai",
   "guiFile": "factory/plugins/bridgewell-kick/gui.html",
-  "publishedAt": 1790021728285,
+  "publishedAt": 1790025925232,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

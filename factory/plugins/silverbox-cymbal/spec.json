@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/silverbox-cymbal/assembly.ts",
   "out": "factory/plugins/silverbox-cymbal/x.vstai",
   "guiFile": "factory/plugins/silverbox-cymbal/gui.html",
-  "publishedAt": 1790021738649,
+  "publishedAt": 1790025936662,
   "theme": {
     "accent": "#e5531a",
     "accent2": "#ffd24a"

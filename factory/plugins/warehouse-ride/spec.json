@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/warehouse-ride/assembly.ts",
   "out": "factory/plugins/warehouse-ride/x.vstai",
   "guiFile": "factory/plugins/warehouse-ride/gui.html",
-  "publishedAt": 1790021736268,
+  "publishedAt": 1790025933903,
   "theme": {
     "accent": "#ff7a1a",
     "accent2": "#ffd24a"

@@ -34,7 +34,8 @@
   .k-wrap.big{width:66px}
 
   /* instrument strip */
-  .strip{display:grid;grid-template-columns:62px 1.55fr 1.55fr 1fr 1fr 1fr .78fr .78fr .62fr 1.55fr 1.05fr .62fr;gap:5px;margin-bottom:12px}
+  .strip{display:flex;gap:5px;margin-bottom:12px}
+  .strip > .inst{flex:1 1 auto}
   .inst{border:1px solid var(--line);border-radius:7px;background:linear-gradient(180deg,#29292b,#1f1f20);padding:6px 4px 6px;display:flex;flex-direction:column;align-items:center;min-width:0}
   .inst-name{width:100%;min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--cream);padding:2px 0 5px;border-bottom:1px solid #333;margin-bottom:6px;cursor:pointer;text-align:center;line-height:1.15}
   .inst-name .nm{display:flex;align-items:center;gap:5px}
@@ -443,6 +444,7 @@ var Kit = (function () {
   var kt = el("div", "knobs", t2);
   var semi = function (v) { return (v > 0 ? "+" : "") + v.toFixed(2) + " st"; };
   Kit.knob(kt, P.BD_TRIM, { label: "BD tune", fmt: semi }); Kit.knob(kt, P.SD_TRIM, { label: "SD tune", fmt: semi });
+  foot.appendChild(g3);
   el("div", "hint", foot, "MIDI: 36 BD · 38 SD · 41/45/48 toms · 62–64 congas · 37 RS · 75 CL · 39 CP · 70 MA · 56 CB · 49 CY · 46 OH · 42 CH. Drag knobs (shift = fine), double-click to reset.");
 
   // ---------- live display from the engine -------------------------------------

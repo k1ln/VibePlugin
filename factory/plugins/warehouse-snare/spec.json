@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/warehouse-snare/assembly.ts",
   "out": "factory/plugins/warehouse-snare/x.vstai",
   "guiFile": "factory/plugins/warehouse-snare/gui.html",
-  "publishedAt": 1790021733529,
+  "publishedAt": 1790025930911,
   "theme": {
     "accent": "#ff7a1a",
     "accent2": "#ffd24a"

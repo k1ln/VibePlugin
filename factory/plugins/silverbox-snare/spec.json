@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/silverbox-snare/assembly.ts",
   "out": "factory/plugins/silverbox-snare/x.vstai",
   "guiFile": "factory/plugins/silverbox-snare/gui.html",
-  "publishedAt": 1790021737768,
+  "publishedAt": 1790025935562,
   "theme": {
     "accent": "#e5531a",
     "accent2": "#ffd24a"

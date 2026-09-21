@@ -49,7 +49,7 @@
   /* meters */
   .meters{display:flex;gap:10px;align-items:flex-end}
   .mtr{display:flex;flex-direction:column;align-items:center;font:600 9px "Helvetica Neue",Arial,sans-serif;letter-spacing:.12em;color:var(--ink2)}
-  .bar{width:14px;height:92px;border-radius:4px;background:rgba(0,0,0,.45);position:relative;overflow:hidden;border:1px solid #3b3027;margin-bottom:5px}
+  .bar{width:14px;height:128px;border-radius:4px;background:rgba(0,0,0,.45);position:relative;overflow:hidden;border:1px solid #3b3027;margin-bottom:5px}
   .bar i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#8e5a22,var(--gold2))}
   .foot{margin-top:10px;color:var(--muted);font:500 10px/1.45 "Helvetica Neue",Arial,sans-serif}
 </style>
@@ -300,10 +300,11 @@ var Kit = (function () {
   // expression
   var eg = el("div", "grp", row);
   el("div", "gt", eg, "Expression · CC1 / CC11 / CC21");
-  var ek = el("div", "knobs", eg);
+  var eb = el("div", "", eg); eb.style.cssText = "display:flex;gap:14px;align-items:flex-end";
+  var ek = el("div", "knobs", eb); ek.style.cssText = "display:grid;grid-template-columns:repeat(2,auto);row-gap:8px";
   Kit.knob(ek, P.DYN, { label: "Dynamics", fmt: pct }); Kit.knob(ek, P.EXPR, { label: "Expression", fmt: pct });
   Kit.knob(ek, P.VIB, { label: "Vibrato", fmt: pct }); Kit.knob(ek, P.VEL_DYN, { label: "Vel→dyn", fmt: pct });
-  var mt = el("div", "meters", eg); mt.style.marginTop = "6px";
+  var mt = el("div", "meters", eb);
   function meter(label) { var m = el("div", "mtr", mt); var b = el("div", "bar", m); var i = el("i", "", b); el("span", "", m, label); return i; }
   var mDyn = meter("DYN"), mExp = meter("EXPR"), mVib = meter("VIB"), mOut = meter("OUT");
   var voicesTxt = el("div", "gt", mt); voicesTxt.style.margin = "0 0 6px 6px";
@@ -311,7 +312,7 @@ var Kit = (function () {
   // bow
   var bg = el("div", "grp", row);
   el("div", "gt", bg, "Bow");
-  var bk = el("div", "knobs", bg);
+  var bk = el("div", "knobs", bg); bk.style.cssText = "display:grid;grid-template-columns:repeat(3,auto);row-gap:10px;justify-content:center;margin-top:8px";
   Kit.knob(bk, P.FORCE, { label: "Pressure", fmt: pct }); Kit.knob(bk, P.POSITION, { label: "Tasto–pont", fmt: pct });
   Kit.knob(bk, P.BRIGHT, { label: "Bright", fmt: pct }); Kit.knob(bk, P.ATTACK, { label: "Attack", fmt: pct });
   Kit.knob(bk, P.RELEASE, { label: "Release", fmt: pct }); Kit.knob(bk, P.TREM_RATE, { label: "Trem. speed", fmt: function (v) { return (9 + 10 * v).toFixed(1) + " Hz"; } });
@@ -319,14 +320,14 @@ var Kit = (function () {
   var row2 = el("div", "row", u); row2.style.marginTop = "10px";
   var en = el("div", "grp", row2);
   el("div", "gt", en, "Ensemble");
-  var nk = el("div", "knobs", en);
+  var nk = el("div", "knobs", en); nk.style.cssText = "display:grid;grid-template-columns:repeat(4,auto);row-gap:8px;justify-content:center;align-items:center";
   Kit.knob(nk, P.TIGHT, { label: "Tightness", fmt: pct }); Kit.knob(nk, P.HUMAN, { label: "Humanize", fmt: pct });
   Kit.knob(nk, P.VIB_RATE, { label: "Vib. rate", fmt: pct }); Kit.knob(nk, P.VIB_DELAY, { label: "Vib. delay", fmt: function (v) { return Math.round((0.05 + 0.9 * v) * 1000) + " ms"; } });
   Kit.knob(nk, P.BODY, { label: "Body", fmt: pct }); Kit.knob(nk, P.DOUBLE, { label: "8vb double", fmt: pct }); Kit.knob(nk, P.WIDTH, { label: "Width", fmt: pct });
 
   var lg = el("div", "grp", row2);
   el("div", "gt", lg, "Legato");
-  var lk = el("div", "knobs", lg); lk.style.alignItems = "center";
+  var lk = el("div", "knobs", lg); lk.style.cssText = "display:grid;grid-template-columns:repeat(2,auto);row-gap:8px;justify-content:center;align-items:center";
   Kit.toggle(lk, P.LEGATO, "LEGATO").title = "Monophonic line: overlap notes to slide (soft) or change bow (hard)";
   Kit.knob(lk, P.PORTA, { label: "Portamento", fmt: pct });
   Kit.knob(lk, P.BEND, { label: "Bend", sens: 0.5, fmt: function (v) { return v + " st"; } });
@@ -334,7 +335,7 @@ var Kit = (function () {
 
   var hg = el("div", "grp", row2);
   el("div", "gt", hg, "Microphones & hall");
-  var hk = el("div", "knobs", hg);
+  var hk = el("div", "knobs", hg); hk.style.cssText = "display:grid;grid-template-columns:repeat(3,auto);row-gap:8px;justify-content:center;align-items:center";
   Kit.knob(hk, P.MIC_CLOSE, { label: "Close", fmt: pct }); Kit.knob(hk, P.MIC_TREE, { label: "Tree", fmt: pct }); Kit.knob(hk, P.MIC_AMB, { label: "Ambient", fmt: pct });
   Kit.knob(hk, P.HALL_SIZE, { label: "Size", fmt: function (v) { return (0.8 + 5.2 * v * v).toFixed(1) + " s"; } });
   Kit.knob(hk, P.HALL_TONE, { label: "Tone", fmt: pct }); Kit.knob(hk, P.PREDELAY, { label: "Pre-delay", fmt: function (v) { return Math.round((0.005 + 0.09 * v) * 1000) + " ms"; } });

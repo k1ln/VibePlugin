@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/silverbox-hats/assembly.ts",
   "out": "factory/plugins/silverbox-hats/x.vstai",
   "guiFile": "factory/plugins/silverbox-hats/gui.html",
-  "publishedAt": 1790021739129,
+  "publishedAt": 1790025937191,
   "theme": {
     "accent": "#e5531a",
     "accent2": "#ffd24a"

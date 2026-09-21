@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-cowbell/assembly.ts",
   "out": "factory/plugins/bridgewell-cowbell/x.vstai",
   "guiFile": "factory/plugins/bridgewell-cowbell/gui.html",
-  "publishedAt": 1790021730564,
+  "publishedAt": 1790025927702,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

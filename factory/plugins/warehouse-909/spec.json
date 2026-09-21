@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/warehouse-909/assembly.ts",
   "out": "factory/plugins/warehouse-909/x.vstai",
   "guiFile": "factory/plugins/warehouse-909/gui.html",
-  "publishedAt": 1790021732405,
+  "publishedAt": 1790025929712,
   "theme": {
     "accent": "#ff7a1a",
     "accent2": "#ffd24a"

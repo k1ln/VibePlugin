@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/tessitura/assembly.ts",
   "out": "factory/plugins/tessitura/x.vstai",
   "guiFile": "factory/plugins/tessitura/gui.html",
-  "publishedAt": 1790021739611,
+  "publishedAt": 1790025937717,
   "theme": {
     "accent": "#d9a54a",
     "accent2": "#f0cf86"

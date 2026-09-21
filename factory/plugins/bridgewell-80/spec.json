@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-80/assembly.ts",
   "out": "factory/plugins/bridgewell-80/x.vstai",
   "guiFile": "factory/plugins/bridgewell-80/gui.html",
-  "publishedAt": 1790021727601,
+  "publishedAt": 1790025924478,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-snare/assembly.ts",
   "out": "factory/plugins/bridgewell-snare/x.vstai",
   "guiFile": "factory/plugins/bridgewell-snare/gui.html",
-  "publishedAt": 1790021728751,
+  "publishedAt": 1790025925746,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

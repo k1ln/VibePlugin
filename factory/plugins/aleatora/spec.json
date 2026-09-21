@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/aleatora/assembly.ts",
   "out": "factory/plugins/aleatora/x.vstai",
   "guiFile": "factory/plugins/aleatora/gui.html",
-  "publishedAt": 1790021740297,
+  "publishedAt": 1790025938443,
   "theme": {
     "accent": "#7fd3ff",
     "accent2": "#c8f0ff"

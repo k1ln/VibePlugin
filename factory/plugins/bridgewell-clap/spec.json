@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-clap/assembly.ts",
   "out": "factory/plugins/bridgewell-clap/x.vstai",
   "guiFile": "factory/plugins/bridgewell-clap/gui.html",
-  "publishedAt": 1790021730123,
+  "publishedAt": 1790025927225,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

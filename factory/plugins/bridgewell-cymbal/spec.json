@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-cymbal/assembly.ts",
   "out": "factory/plugins/bridgewell-cymbal/x.vstai",
   "guiFile": "factory/plugins/bridgewell-cymbal/gui.html",
-  "publishedAt": 1790021730991,
+  "publishedAt": 1790025928175,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

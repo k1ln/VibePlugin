@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-rim/assembly.ts",
   "out": "factory/plugins/bridgewell-rim/x.vstai",
   "guiFile": "factory/plugins/bridgewell-rim/gui.html",
-  "publishedAt": 1790021729682,
+  "publishedAt": 1790025926751,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

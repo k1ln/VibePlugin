@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/bridgewell-bass/assembly.ts",
   "out": "factory/plugins/bridgewell-bass/x.vstai",
   "guiFile": "factory/plugins/bridgewell-bass/gui.html",
-  "publishedAt": 1790021731933,
+  "publishedAt": 1790025929203,
   "theme": {
     "accent": "#f08a24",
     "accent2": "#f2d23c"

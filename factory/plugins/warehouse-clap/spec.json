@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/warehouse-clap/assembly.ts",
   "out": "factory/plugins/warehouse-clap/x.vstai",
   "guiFile": "factory/plugins/warehouse-clap/gui.html",
-  "publishedAt": 1790021734869,
+  "publishedAt": 1790025932381,
   "theme": {
     "accent": "#ff7a1a",
     "accent2": "#ffd24a"
