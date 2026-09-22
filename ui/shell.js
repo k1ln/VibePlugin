@@ -196,7 +196,7 @@ async function renderHistory(){
     div.querySelector(".sub").textContent = [r.model, when].filter(Boolean).join("  ·  ") + (r.active ? "  ·  current" : "");
     const btn = document.createElement("button");
     btn.className = "btn"; btn.textContent = r.active ? "Current" : "Restore"; btn.disabled = !!r.active;
-    btn.addEventListener("click", async () => { state = await N.restoreRevision(r.id); reseed(state); reloadPreview(); renderHistory(); setStatus("Restored an earlier version from History."); });
+    btn.addEventListener("click", async () => { state = await N.restoreRevision(r.id); reseed(state); rebuildPresetSelect(state); reloadPreview(); renderHistory(); setStatus("Restored an earlier version from History."); });
     div.appendChild(btn);
     host.appendChild(div);
   }
@@ -385,9 +385,9 @@ on("styleChk","change", async () => {
     ? "Design: generations use the Settings design school."
     : "Design: no template sent — the AI designs the GUI freely.");
 });
-on("newBtn","click", async () => { state = await N.newDoc(); reseed(state); reloadPreview(); setStatus("New blank plugin. Describe one above."); });
+on("newBtn","click", async () => { state = await N.newDoc(); reseed(state); rebuildPresetSelect(state); reloadPreview(); setStatus("New blank plugin. Describe one above."); });
 on("saveBtn","click", async () => { const r = await N.save(); setStatus(r ? r.message : ""); });
-on("loadBtn","click", async () => { const r = await N.load(); if (r && r.ok){ state = await N.getState(); reseed(state); reloadPreview(); } setStatus(r ? r.message : ""); });
+on("loadBtn","click", async () => { const r = await N.load(); if (r && r.ok){ state = await N.getState(); reseed(state); rebuildPresetSelect(state); reloadPreview(); } setStatus(r ? r.message : ""); });
 on("publishBtn","click", async () => { setBusy(true); setStatus("Publishing to the web catalogue…"); const r = await N.publish(); setBusy(false); setStatus(r ? r.message : "Publish failed."); });
 on("exportBtn","click", async () => { setBusy(true); setStatus("Exporting a standalone, locked plugin…"); const r = await N.exportPlugin(); setBusy(false); setStatus(r ? r.message : "Export failed."); });
 
@@ -527,7 +527,7 @@ async function galleryLoadSelected(){
   $("galleryDetailStatus").textContent = "Downloading " + (gallerySelected.name || slug) + "…";
   let r; try { r = await N.galleryLoad(slug); } catch(e){ r = null; }
   if (r && r.ok){
-    state = await N.getState(); reseed(state); reloadPreview();
+    state = await N.getState(); reseed(state); rebuildPresetSelect(state); reloadPreview();
     galleryShow(false);
     setStatus(r.message || ("Loaded " + (gallerySelected.name || slug)));
   } else {
