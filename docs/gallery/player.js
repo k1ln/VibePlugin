@@ -54,6 +54,7 @@ async function boot() {
     explanation: doc.explanation || "",
     params: doc.params || [],
     html: doc.html || "",
+    presets: doc.presets || [],
   };
   wasmBytes = b64ToBytes(doc.wasmBase64);
 
@@ -80,10 +81,41 @@ async function boot() {
       if (!intro) {
         $("deck").hidden = false;
         if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); }
+        populatePresetSelect();
       }
     }
   }
 }
+
+// ---- factory presets --------------------------------------------------
+function populatePresetSelect() {
+  const bar = $("presetBar"), sel = $("presetSel");
+  const presets = (meta && meta.presets) || [];
+  if (!presets.length) { bar.hidden = true; return; }
+  bar.hidden = false;
+  if (sel.options.length) return;   // already built (renderGui/deck reveal can run more than once)
+  const placeholder = document.createElement("option");
+  placeholder.textContent = "Presets (" + presets.length + ")";
+  placeholder.value = ""; placeholder.disabled = true; placeholder.selected = true;
+  sel.appendChild(placeholder);
+  presets.forEach((p, i) => {
+    const o = document.createElement("option");
+    o.value = String(i); o.textContent = p.name || ("Preset " + (i + 1));
+    sel.appendChild(o);
+  });
+}
+function applyPreset(i) {
+  const presets = (meta && meta.presets) || [];
+  const preset = presets[i];
+  if (!preset || !preset.values) return;
+  for (const [k, v] of Object.entries(preset.values)) {
+    const idx = +k, val = +v;
+    if (node) node.port.postMessage({ type: "param", i: idx, v: val });
+  }
+  const f = $("gui");
+  if (f && f.contentWindow) { try { f.contentWindow.postMessage({ type: "vstai:params", values: preset.values }, "*"); } catch (_) {} }
+}
+$("presetSel").addEventListener("change", (e) => { if (e.target.value !== "") applyPreset(+e.target.value); });
 
 // ---- audio graph ----------------------------------------------------
 let gestureHooked = false;
@@ -139,6 +171,7 @@ async function start() {
   $("guiWrap").hidden = false;
   renderGui();
   $("deck").hidden = false;
+  populatePresetSelect();
   if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); setupMidi(); }
   else { $("inputBar").hidden = false; await loadSampleList(); restoreInput(); }
 
@@ -389,8 +422,18 @@ const SHIM = `<meta charset="utf-8"><meta name="viewport" content="width=device-
   var displayCbs=[];
   var booting=true;
   window.addEventListener('message', function(e){
-    var d=e.data; if(!d||d.type!=='vstai:display'||!d.values) return;
-    for(var q=0;q<displayCbs.length;q++){ try{ displayCbs[q](d.values); }catch(_){} }
+    var d=e.data; if(!d) return;
+    if(d.type==='vstai:display'&&d.values){
+      for(var q=0;q<displayCbs.length;q++){ try{ displayCbs[q](d.values); }catch(_){} }
+      return;
+    }
+    // A preset (or any future host-driven change) pushed down from the player:
+    // update our value cache and replay through onParam so on-screen controls follow,
+    // same contract as the desktop bridge's 'vstai:params' message.
+    if(d.type==='vstai:params'&&d.values){
+      for(var k in d.values){ var idx=+k, val=+d.values[k]; vals[idx]=val;
+        for(var j=0;j<paramCbs.length;j++){ try{ paramCbs[j](idx,val); }catch(_){} } }
+    }
   });
   function endBoot(){ booting=false; }
   window.addEventListener('pointerdown', endBoot, true);
@@ -482,6 +525,7 @@ window.addEventListener("message", (e) => {
     if (m.phase === "keys" && $("deck").hidden) {
       $("deck").hidden = false; $("deck").classList.add("deck-in");
       if (meta.isInstrument) { $("kbdWrap").hidden = false; buildKeyboard(); updateOctaveLabel(); }
+      populatePresetSelect();
     }
     return;
   }
