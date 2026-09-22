@@ -1,0 +1,157 @@
+{
+  "name": "Modal Strike",
+  "isInstrument": true,
+  "explanation": "A general-purpose modal resonator: excite it and it rings like a struck bar, a bowed rod, a blown tube, or a plucked string — one shared physical-modeling algorithm, not a dedicated instrument model. Exciter picks how energy gets in: Strike is a fast, bright noise burst (mallet); Bow is continuous, gate-sustained low-passed noise (bowed friction); Blow is continuous highpassed breath noise; Pluck is a slower, softer burst. Six parallel damped resonators are tuned to a partial set that Structure morphs from a plain harmonic stack to a stretched, inharmonic bell/bar series. Position emulates striking or plucking at a point along the body — partials whose mode has a node there get suppressed, exactly like a real string or bar. Brightness tilts how much extra damping the upper partials get; Damping sets the overall ring length. Differs from Pluckwork (a single dedicated waveguide plucked-string model for guitar/harp/koto/sitar): this is the 'hit or bow or blow anything' resonator — metal, glass, wood, membrane, string.",
+  "assembly": "factory/plugins/modal-strike/assembly.ts",
+  "out": "factory/plugins/modal-strike/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb454",
+    "accent2": "#ffe3b0"
+  },
+  "guiFile": "factory/plugins/modal-strike/gui.html",
+  "params": [
+    {
+      "name": "Exciter",
+      "index": 0,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Structure",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Brightness",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Damping",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Position",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Strength",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Hardness",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Octave",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Glide",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.08
+    },
+    {
+      "name": "Attack",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.01
+    },
+    {
+      "name": "Decay",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Sustain",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Release",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "LFO Rate",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "LFO Amount",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO Dest",
+      "index": 15,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Level",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Pan",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Width",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Vel Sens",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "name": "Engine Eight",
+  "isInstrument": true,
+  "explanation": "A macro-oscillator voice: one instrument, eight selectable digital synthesis engines, all played through the same three macro knobs so switching engines never means re-learning the panel. Harmonics/Timbre/Morph mean something different per engine: Analog is a detuned 2-oscillator blend with a pulse/saw morph and sub; Fold pushes a sine through a folding waveshaper with adjustable asymmetry and a second fold stage; Chord plays a 4-voice interval set (unison through add9) off one wavetable-style oscillator with ensemble detune; Speech morphs a pulse/noise exciter through three vowel formants (A-E-I-O-U) that can track the played pitch; Granular spawns overlapping Hann-windowed grains with adjustable density, waveform and pitch scatter; Modal is a damped, dispersive Karplus-Strong string/bell pluck; Noise runs white or 'dust' impulse noise through a bank of resonators tuned to harmonics of the note; Percussion is four self-contained analog-style drum models (kick/snare/hihat/clap) selected by Harmonics. A shared glide, ADSR, resonant low-pass with envelope amount, a routable LFO (pitch/cutoff/timbre) and a width/pan output stage sit underneath every engine.",
+  "assembly": "factory/plugins/engine-eight/assembly.ts",
+  "out": "factory/plugins/engine-eight/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#5be2ff",
+    "accent2": "#c9f7ff"
+  },
+  "guiFile": "factory/plugins/engine-eight/gui.html",
+  "params": [
+    {
+      "name": "Engine",
+      "index": 0,
+      "min": 0,
+      "max": 7,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Harmonics",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Timbre",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Morph",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Octave",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Glide",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Attack",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.03
+    },
+    {
+      "name": "Decay",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Sustain",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.65
+    },
+    {
+      "name": "Release",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Cutoff",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Resonance",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Filter Env",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "LFO Rate",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "LFO Amount",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "LFO Dest",
+      "index": 15,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Level",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Pan",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Width",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Vel Sens",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    }
+  ]
+}

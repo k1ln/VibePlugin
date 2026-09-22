@@ -1,0 +1,94 @@
+{
+  "name": "Cross Modulator",
+  "isInstrument": false,
+  "explanation": "A meta-modulator effect: crosses the input against an internal complex carrier oscillator through one of four algorithms. Difference/XOR-Fold takes the (input minus carrier) and folds it, producing sum/difference-tone artifacts like a comparator circuit. Wavefold Cross uses the input's amplitude to drive how hard the carrier gets folded — the input controls the carrier's harmonic content rather than being folded itself. Chebyshev Cross blends the carrier through increasing Chebyshev polynomial orders as the input gets louder, adding input-dependent harmonics. Hard-Sync Cross resets the carrier's phase on the input's zero-crossings, classic oscillator hard-sync driven by whatever you feed it. Track Input blends the carrier's frequency from the Carrier Freq knob toward a rough zero-crossing pitch-follow of the input, so the carrier can lock to what you're playing instead of running free. This plugin format gives an effect one audio input, not two — so unlike a hardware meta-modulator with a second CV/audio input, this always crosses against its own internal oscillator, which is exactly how those modules behave with nothing patched into that second input anyway. Deliberately skips plain ring-modulation and vocoding — Ring Mod and Robot Voice already cover those elsewhere.",
+  "assembly": "factory/plugins/cross-modulator/assembly.ts",
+  "out": "factory/plugins/cross-modulator/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ff6ea8",
+    "accent2": "#ffd0e4"
+  },
+  "guiFile": "factory/plugins/cross-modulator/gui.html",
+  "params": [
+    {
+      "name": "Algorithm",
+      "index": 0,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Carrier Freq",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Carrier Wave",
+      "index": 2,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Track Input",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Drive",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Amount",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Feedback",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Tone",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Mix",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Width",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Level",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    }
+  ]
+}

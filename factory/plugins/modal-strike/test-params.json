@@ -1,0 +1,144 @@
+[
+  {
+    "name": "Exciter",
+    "index": 0,
+    "min": 0,
+    "max": 3,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "Structure",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.2
+  },
+  {
+    "name": "Brightness",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "Damping",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.8
+  },
+  {
+    "name": "Position",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Strength",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "Hardness",
+    "index": 6,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Octave",
+    "index": 7,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Glide",
+    "index": 8,
+    "min": 0,
+    "max": 1,
+    "default": 0.08
+  },
+  {
+    "name": "Attack",
+    "index": 9,
+    "min": 0,
+    "max": 1,
+    "default": 0.01
+  },
+  {
+    "name": "Decay",
+    "index": 10,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Sustain",
+    "index": 11,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Release",
+    "index": 12,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "LFO Rate",
+    "index": 13,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "LFO Amount",
+    "index": 14,
+    "min": 0,
+    "max": 1,
+    "default": 0
+  },
+  {
+    "name": "LFO Dest",
+    "index": 15,
+    "min": 0,
+    "max": 2,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "Level",
+    "index": 16,
+    "min": 0,
+    "max": 1,
+    "default": 0.8
+  },
+  {
+    "name": "Pan",
+    "index": 17,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Width",
+    "index": 18,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Vel Sens",
+    "index": 19,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  }
+]

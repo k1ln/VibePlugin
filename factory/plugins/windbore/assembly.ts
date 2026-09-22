@@ -200,7 +200,7 @@ export function process(n: i32): void {
       const xj: f32 = jet[rpj];
       const yj: f32 = aj * xj + apXj - aj * apYj; apXj = xj; apYj = yj;
       const press: f32 = 0.88 + 0.16 * clampf(env * 1.2, 0.0, 1.0);
-      const pdiff: f32 = press + noise * 1.5 - 0.5 * temp;
+      const pdiff: f32 = press + noise * 0.4 - 0.5 * temp;
       jet[jw] = pdiff; jw = jw + 1 >= BN ? 0 : jw + 1;
       let jt: f32 = clampf(yj, -1.0, 1.0); jt = jt * (jt * jt - 1.0);
       const pin: f32 = jt + 0.5 * temp;

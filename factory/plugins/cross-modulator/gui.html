@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Windbore</title>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cross Modulator</title>
 <style>
-:root{--a:#e7c26a;--a2:#fff0c9;--pn:#241c0d;--ink:#f8eed8;--dim:#b5a179;--ln:rgba(231,194,106,.16)}
-*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#3a2f14,#110d05 65%);color:var(--ink);font:12px/1.3 -apple-system,"Segoe UI",Helvetica,sans-serif;min-height:100%}
+:root{--a:#ff6ea8;--a2:#ffd0e4;--pn:#241019;--ink:#ffeef5;--dim:#a9748c;--ln:rgba(255,110,168,.16)}
+*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#1c0b14,#0a0409 65%);color:var(--ink);font:12px/1.3 -apple-system,"Segoe UI",Helvetica,sans-serif;min-height:100%}
 #app{max-width:1040px;margin:0 auto;padding:12px}
 h1{margin:0 0 8px;font-size:18px;letter-spacing:.3em;font-weight:300;color:var(--a2)}h1 small{letter-spacing:.15em;color:var(--dim);font-size:10px;margin-left:10px}
 canvas{width:100%;height:130px;display:block;background:rgba(0,0,0,.35);border:1px solid var(--ln);border-radius:8px}
@@ -11,19 +11,19 @@ canvas{width:100%;height:130px;display:block;background:rgba(0,0,0,.35);border:1
 .ks{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px 2px;margin-top:6px}
 .tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:74px}
 .tg button{background:rgba(0,0,0,.3);color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 7px;font:600 9px/1 inherit;letter-spacing:.1em;cursor:pointer}
-.tg button.on{background:var(--a);color:#110d05;border-color:var(--a)}
+.tg button.on{background:var(--a);color:#0a0409;border-color:var(--a)}
 .k{display:flex;flex-direction:column;align-items:center;user-select:none;touch-action:none;cursor:ns-resize}
 .k svg{width:40px;height:40px}.k .n{font-size:9px;color:var(--dim);text-align:center;margin-top:1px}.k .v{font-size:9px;color:var(--a2)}
 #kb{position:relative;height:76px;margin-top:8px;user-select:none;touch-action:none}
-.w{position:absolute;top:0;height:100%;background:linear-gradient(#f8eed8,#b9b9b9);border:1px solid #110d05;border-radius:0 0 4px 4px}.w.on{background:var(--a)}
-.b{position:absolute;top:0;height:58%;background:linear-gradient(#241c0d,#110d05);border-radius:0 0 3px 3px;z-index:2}.b.on{background:var(--a)}
-</style></head><body><div id="app"><h1>WINDBORE<small>WIND INSTRUMENT MODELS</small></h1><canvas id="cv"></canvas><div class="row" id="rest"></div><div id="kb"></div></div>
+.w{position:absolute;top:0;height:100%;background:linear-gradient(#ffeef5,#b9b9b9);border:1px solid #0a0409;border-radius:0 0 4px 4px}.w.on{background:var(--a)}
+.b{position:absolute;top:0;height:58%;background:linear-gradient(#241019,#0a0409);border-radius:0 0 3px 3px;z-index:2}.b.on{background:var(--a)}
+</style></head><body><div id="app"><h1>CROSS MODULATOR<small>META-MODULATOR</small></h1><canvas id="cv"></canvas><div class="row" id="rest"></div></div>
 <script>
 (function(){
-var PARAMS=[{"name":"Engine","min":0,"max":2,"def":0,"step":1,"fmt":["Reed","Flute","Brass"]},{"name":"Bore Shape","min":0,"max":1,"def":0,"step":0,"fmt":null},{"name":"Embouchure","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Breath","min":0,"max":1,"def":0.6,"step":0,"fmt":null},{"name":"Breath Noise","min":0,"max":1,"def":0.15,"step":0,"fmt":null},{"name":"Attack","min":0,"max":1,"def":0.25,"step":0,"fmt":null},{"name":"Release","min":0,"max":1,"def":0.3,"step":0,"fmt":null},{"name":"Vibrato","min":0,"max":1,"def":0.3,"step":0,"fmt":null},{"name":"Vibrato Rate","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Tone","min":0,"max":1,"def":0.55,"step":0,"fmt":null},{"name":"Velocity Sens","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Glide","min":0,"max":1,"def":0.15,"step":0,"fmt":null},{"name":"Legato","min":0,"max":1,"def":1,"step":1,"fmt":null},{"name":"Body","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Space","min":0,"max":1,"def":0.25,"step":0,"fmt":null},{"name":"Space Size","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Bend Range","min":0,"max":1,"def":0.1667,"step":0,"fmt":null},{"name":"Level","min":0,"max":1,"def":0.7,"step":0,"fmt":null}];
-var GROUPS=[{"title":"INSTRUMENT","items":[{"k":"seg","i":0,"label":"ENGINE","opts":["REED","FLUTE","BRASS"]},{"k":"seg","i":-1,"label":"CHARACTER","opts":["CLARINET","SAX","OBOE","FLUTE","TRUMPET","TROMBONE"],"presets":[{"0":0,"1":0,"2":0.5,"3":0.6,"4":0.15,"5":0.25,"6":0.3,"9":0.55,"11":0.15,"13":0.45},{"0":0,"1":1,"2":0.45,"3":0.65,"4":0.3,"5":0.3,"6":0.3,"9":0.65,"11":0.2,"13":0.5},{"0":0,"1":0.6,"2":0.75,"3":0.6,"4":0.25,"5":0.3,"6":0.3,"9":0.8,"11":0.1,"13":0.55},{"0":1,"1":0,"2":0.65,"3":0.55,"4":0.15,"5":0.3,"6":0.3,"9":0.6,"11":0.1,"13":0.3},{"0":2,"1":0,"2":0.7,"3":0.75,"4":0.05,"5":0.18,"6":0.25,"9":0.8,"11":0.1,"13":0.5},{"0":2,"1":0,"2":0.35,"3":0.7,"4":0.05,"5":0.4,"6":0.35,"9":0.5,"11":0.35,"13":0.4}]}]},{"title":"EXCITER","items":[{"k":"knob","i":[1,2,3,4,10]}]},{"title":"BREATH SHAPE","items":[{"k":"knob","i":[5,6,7,8,11]},{"k":"tog","i":12,"label":"MODE","text":"LEGATO"}]},{"title":"BORE & OUTPUT","items":[{"k":"knob","i":[9,13,14,15,16,17]}]}];
-var VIZ="wave",VIZP=9,VLAB="AIR COLUMN";
-var KB={"base":48,"n":37},ISI=true;
+var PARAMS=[{"name":"Algorithm","min":0,"max":3,"def":0,"step":1,"fmt":["DIFFERENCE","FOLD X","CHEBYSHEV","SYNC"]},{"name":"Carrier Freq","min":0,"max":1,"def":0.4,"step":0,"fmt":null},{"name":"Carrier Wave","min":0,"max":3,"def":0,"step":1,"fmt":["SINE","SAW","TRI","PULSE"]},{"name":"Track Input","min":0,"max":1,"def":0,"step":0,"fmt":null},{"name":"Drive","min":0,"max":1,"def":0.4,"step":0,"fmt":null},{"name":"Amount","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Feedback","min":0,"max":1,"def":0.15,"step":0,"fmt":null},{"name":"Tone","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Mix","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Width","min":0,"max":1,"def":0.3,"step":0,"fmt":null},{"name":"Level","min":0,"max":1,"def":0.8,"step":0,"fmt":null}];
+var GROUPS=[{"title":"ALGORITHM","items":[{"k":"seg","i":0,"label":"ALGORITHM","opts":["DIFFERENCE","FOLD X","CHEBYSHEV","SYNC"]}]},{"title":"CARRIER","items":[{"k":"seg","i":2,"label":"WAVE","opts":["SINE","SAW","TRI","PULSE"]},{"k":"knob","i":[1,3]}]},{"title":"MODULATION","items":[{"k":"knob","i":[4,5,6,7]}]},{"title":"OUTPUT","items":[{"k":"knob","i":[8,9,10]}]}];
+var VIZ="wave",VIZP=5,VLAB="CARRIER";
+var KB={"base":36,"n":49},ISI=false;
 var V={},R={},SV="http://www.w3.org/2000/svg",held={},disp=[],hasDisp=0,lastHit=0;for(var q=0;q<16;q++)disp[q]=0;
 function host(f){var a=[].slice.call(arguments,1);if(window.vstai&&typeof window.vstai[f]==="function")window.vstai[f].apply(window.vstai,a)}
 function set(i,v){V[i]=v;host("setParam",i,v);if(R[i])R[i]()}
@@ -41,7 +41,7 @@ if(f.unit){var t3=(v-p.min)/(p.max-p.min);return(f.scale[0]+(f.scale[1]-f.scale[
 return String(v)}
 function knob(i,label){var p=PARAMS[i];V[i]=p.def;var w=document.createElement("div");w.className="k";
 var s=document.createElementNS(SV,"svg");s.setAttribute("viewBox","0 0 44 44");
-s.innerHTML='<circle cx="22" cy="22" r="19" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.12)"/><path class="tr" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3" stroke-linecap="round"/><path class="ar" fill="none" stroke="#e7c26a" stroke-width="3" stroke-linecap="round"/><line class="nd" x1="22" y1="22" stroke="#fff0c9" stroke-width="2" stroke-linecap="round"/>';
+s.innerHTML='<circle cx="22" cy="22" r="19" fill="rgba(0,0,0,.35)" stroke="rgba(255,255,255,.12)"/><path class="tr" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3" stroke-linecap="round"/><path class="ar" fill="none" stroke="#ff6ea8" stroke-width="3" stroke-linecap="round"/><line class="nd" x1="22" y1="22" stroke="#ffd0e4" stroke-width="2" stroke-linecap="round"/>';
 var n=document.createElement("div");n.className="n";n.textContent=label||p.name;var vv=document.createElement("div");vv.className="v";w.appendChild(s);w.appendChild(n);w.appendChild(vv);
 function arc(a0,a1){var r=15,x0=22+r*Math.sin(a0),y0=22-r*Math.cos(a0),x1=22+r*Math.sin(a1),y1=22-r*Math.cos(a1);return"M"+x0+" "+y0+"A"+r+" "+r+" 0 "+((a1-a0)>Math.PI?1:0)+" 1 "+x1+" "+y1}
 function norm(){return(V[i]-p.min)/(p.max-p.min)}
@@ -59,18 +59,18 @@ w.addEventListener("wheel",function(e){var st=p.step?p.step:(p.max-p.min)*.02;se
 return w}
 function row(label){var r=document.createElement("div");r.className="tg";r.innerHTML="<span>"+label+"</span>";return r}
 function bits(i,label,names){V[i]=PARAMS[i].def;var r=row(label),bs=[];names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,Math.round(V[i])^(1<<k))};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])&(1<<k))?"on":""})};R[i]();return r}
-function seg(i,label,names,pre){if(i<0){var r0=row(label),bs0=[];names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){bs0.forEach(function(bb){bb.className=""});b.className="on";if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r0.appendChild(b);bs0.push(b)});return r0}V[i]=PARAMS[i].def;var r=row(label),bs=[],mn=PARAMS[i].min;names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,mn+k);if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])===mn+k)?"on":""})};R[i]();return r}
+function seg(i,label,names,pre){if(i<0){var r0=row(label);names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r0.appendChild(b)});return r0}V[i]=PARAMS[i].def;var r=row(label),bs=[],mn=PARAMS[i].min;names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,mn+k);if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])===mn+k)?"on":""})};R[i]();return r}
 function tog(i,label,text){V[i]=PARAMS[i].def;var r=row(label),b=document.createElement("button");b.textContent=text||label;b.onclick=function(){set(i,V[i]>.5?0:1)};R[i]=function(){b.className=V[i]>.5?"on":""};R[i]();r.appendChild(b);return r}
 var cv=document.getElementById("cv"),cx=cv?cv.getContext("2d"):null,sm=[];for(q=0;q<16;q++)sm[q]=0;
 function draw(t){if(!cx)return;var dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
-cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);cx.fillStyle="#b5a179";cx.font="9px sans-serif";cx.fillText(VLAB,10,12);
+cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);cx.fillStyle="#a9748c";cx.font="9px sans-serif";cx.fillText(VLAB,10,12);
 var since=(t-lastHit)/1000,idle=hasDisp?0:1;
 if(VIZ==="bars"){var n=16,bw=(W-20)/n;for(var i=0;i<n;i++){var tg=hasDisp?disp[i]:.2+.18*Math.sin(t/700+i*.6)*Math.sin(t/1300+i);sm[i]+=(tg-sm[i])*.35;var h=Math.max(2,sm[i]*(H-30)),x=10+i*bw+bw*.12,w=bw*.76;
-var gr=cx.createLinearGradient(0,H-8,0,H-8-h);gr.addColorStop(0,"rgba(231,194,106,.2)");gr.addColorStop(1,"rgba(255,240,201,.95)");cx.fillStyle=gr;cx.fillRect(x,H-8-h,w,h)}}
+var gr=cx.createLinearGradient(0,H-8,0,H-8-h);gr.addColorStop(0,"rgba(255,110,168,.2)");gr.addColorStop(1,"rgba(255,208,228,.95)");cx.fillStyle=gr;cx.fillRect(x,H-8-h,w,h)}}
 else{var lv=hasDisp?Math.min(1,disp[0]):(ISI?Math.exp(-since*1.2):.35+.2*Math.sin(t/900)),rich=VIZP>=0?(V[VIZP]-PARAMS[VIZP].min)/(PARAMS[VIZP].max-PARAMS[VIZP].min):.5,mid=H/2+6,amp=(H-40)/2*(.12+.88*lv);
-sm[0]+=(lv-sm[0])*.3;cx.beginPath();cx.strokeStyle="#fff0c9";cx.lineWidth=1.8;
+sm[0]+=(lv-sm[0])*.3;cx.beginPath();cx.strokeStyle="#ffd0e4";cx.lineWidth=1.8;
 for(var x2=0;x2<=W;x2+=3){var u=x2/W*6.2832*3,y=Math.sin(u+t/300)+rich*.6*Math.sin(2*u+t/220)+rich*.35*Math.sin(3*u+t/170)+rich*.2*Math.sin(5*u);y/=(1+rich*1.15);if(x2)cx.lineTo(x2,mid+y*amp);else cx.moveTo(x2,mid+y*amp)}
-cx.stroke();cx.strokeStyle="rgba(231,194,106,.18)";cx.beginPath();cx.moveTo(0,mid);cx.lineTo(W,mid);cx.stroke()}
+cx.stroke();cx.strokeStyle="rgba(255,110,168,.18)";cx.beginPath();cx.moveTo(0,mid);cx.lineTo(W,mid);cx.stroke()}
 requestAnimationFrame(draw)}
 function on(n){if(held[n])return;held[n]=1;lastHit=performance.now();host("noteOn",n,.8);var e=KEYS[n];if(e)e.classList.add("on")}
 function off(n){if(!held[n])return;delete held[n];host("noteOff",n);var e=KEYS[n];if(e)e.classList.remove("on")}

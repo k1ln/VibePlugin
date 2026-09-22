@@ -1,0 +1,26 @@
+export default {
+  name: "Engine Eight", isInstrument: true, subtitle: "Macro-oscillator", category: "Digital & Experimental",
+  explanation: "A macro-oscillator voice: one instrument, eight selectable digital synthesis engines, all played through the same three macro knobs so switching engines never means re-learning the panel. Harmonics/Timbre/Morph mean something different per engine: Analog is a detuned 2-oscillator blend with a pulse/saw morph and sub; Fold pushes a sine through a folding waveshaper with adjustable asymmetry and a second fold stage; Chord plays a 4-voice interval set (unison through add9) off one wavetable-style oscillator with ensemble detune; Speech morphs a pulse/noise exciter through three vowel formants (A-E-I-O-U) that can track the played pitch; Granular spawns overlapping Hann-windowed grains with adjustable density, waveform and pitch scatter; Modal is a damped, dispersive Karplus-Strong string/bell pluck; Noise runs white or 'dust' impulse noise through a bank of resonators tuned to harmonics of the note; Percussion is four self-contained analog-style drum models (kick/snare/hihat/clap) selected by Harmonics. A shared glide, ADSR, resonant low-pass with envelope amount, a routable LFO (pitch/cutoff/timbre) and a width/pan output stage sit underneath every engine.",
+  theme: { accent: "#5be2ff", accent2: "#c9f7ff", bg1: "#0c1a24", bg2: "#050c12", panel: "#0f1e29", ink: "#eaf9ff", dim: "#6f97a8" },
+  params: [
+    ["Engine", 0, 7, 0, 1, ["ANALOG", "FOLD", "CHORD", "SPEECH", "GRAIN", "MODAL", "NOISE", "PERC"]],
+    ["Harmonics", 0, 1, 0.4], ["Timbre", 0, 1, 0.4], ["Morph", 0, 1, 0.2],
+    ["Octave", 0, 1, 0.5], ["Glide", 0, 1, 0.1],
+    ["Attack", 0, 1, 0.03], ["Decay", 0, 1, 0.4], ["Sustain", 0, 1, 0.65], ["Release", 0, 1, 0.3],
+    ["Cutoff", 0, 1, 0.7], ["Resonance", 0, 1, 0.2], ["Filter Env", 0, 1, 0.3],
+    ["LFO Rate", 0, 1, 0.3], ["LFO Amount", 0, 1, 0.0],
+    ["LFO Dest", 0, 2, 0, 1, ["PITCH", "CUTOFF", "TIMBRE"]],
+    ["Level", 0, 1, 0.8], ["Pan", 0, 1, 0.5], ["Width", 0, 1, 0.3], ["Vel Sens", 0, 1, 0.5],
+  ],
+  groups: [
+    { title: "ENGINE", items: [{ k: "seg", i: 0, label: "ENGINE", opts: ["ANALOG", "FOLD", "CHORD", "SPEECH", "GRAIN", "MODAL", "NOISE", "PERC"] }] },
+    { title: "MACROS", items: [{ k: "knob", i: [1, 2, 3] }] },
+    { title: "PITCH", items: [{ k: "knob", i: [4, 5] }] },
+    { title: "ENVELOPE", items: [{ k: "knob", i: [6, 7, 8, 9] }] },
+    { title: "FILTER", items: [{ k: "knob", i: [10, 11, 12] }] },
+    { title: "LFO", items: [{ k: "seg", i: 15, label: "DEST", opts: ["PITCH", "CUTOFF", "TIMBRE"] }, { k: "knob", i: [13, 14] }] },
+    { title: "OUTPUT", items: [{ k: "knob", i: [16, 17, 18, 19] }] },
+  ],
+  viz: "wave", vizLabel: "CORE", vizParam: 1, kb: { base: 36, n: 49 },
+  testParams: { 0: 6, 11: 0.6, 14: 0.45 },
+};

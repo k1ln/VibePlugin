@@ -1,0 +1,25 @@
+export default {
+  name: "Modal Strike", isInstrument: true, subtitle: "Modal resonator", category: "Digital & Experimental",
+  explanation: "A general-purpose modal resonator: excite it and it rings like a struck bar, a bowed rod, a blown tube, or a plucked string — one shared physical-modeling algorithm, not a dedicated instrument model. Exciter picks how energy gets in: Strike is a fast, bright noise burst (mallet); Bow is continuous, gate-sustained low-passed noise (bowed friction); Blow is continuous highpassed breath noise; Pluck is a slower, softer burst. Six parallel damped resonators are tuned to a partial set that Structure morphs from a plain harmonic stack to a stretched, inharmonic bell/bar series. Position emulates striking or plucking at a point along the body — partials whose mode has a node there get suppressed, exactly like a real string or bar. Brightness tilts how much extra damping the upper partials get; Damping sets the overall ring length. Differs from Pluckwork (a single dedicated waveguide plucked-string model for guitar/harp/koto/sitar): this is the 'hit or bow or blow anything' resonator — metal, glass, wood, membrane, string.",
+  theme: { accent: "#ffb454", accent2: "#ffe3b0", bg1: "#241608", bg2: "#0e0904", panel: "#2c1c0e", ink: "#fff2df", dim: "#b08a5c" },
+  params: [
+    ["Exciter", 0, 3, 0, 1, ["STRIKE", "BOW", "BLOW", "PLUCK"]],
+    ["Structure", 0, 1, 0.2], ["Brightness", 0, 1, 0.6], ["Damping", 0, 1, 0.55], ["Position", 0, 1, 0.3],
+    ["Strength", 0, 1, 0.7], ["Hardness", 0, 1, 0.5],
+    ["Octave", 0, 1, 0.5], ["Glide", 0, 1, 0.08],
+    ["Attack", 0, 1, 0.01], ["Decay", 0, 1, 0.3], ["Sustain", 0, 1, 0.5], ["Release", 0, 1, 0.55],
+    ["LFO Rate", 0, 1, 0.3], ["LFO Amount", 0, 1, 0.0],
+    ["LFO Dest", 0, 2, 0, 1, ["STRUCTURE", "BRIGHTNESS", "POSITION"]],
+    ["Level", 0, 1, 0.8], ["Pan", 0, 1, 0.5], ["Width", 0, 1, 0.3], ["Vel Sens", 0, 1, 0.5],
+  ],
+  groups: [
+    { title: "EXCITER", items: [{ k: "seg", i: 0, label: "EXCITER", opts: ["STRIKE", "BOW", "BLOW", "PLUCK"] }, { k: "knob", i: [5, 6] }] },
+    { title: "RESONATOR", items: [{ k: "knob", i: [1, 2, 3, 4] }] },
+    { title: "PITCH", items: [{ k: "knob", i: [7, 8] }] },
+    { title: "ENVELOPE", items: [{ k: "knob", i: [9, 10, 11, 12] }] },
+    { title: "LFO", items: [{ k: "seg", i: 15, label: "DEST", opts: ["STRUCTURE", "BRIGHTNESS", "POSITION"] }, { k: "knob", i: [13, 14] }] },
+    { title: "OUTPUT", items: [{ k: "knob", i: [16, 17, 18, 19] }] },
+  ],
+  viz: "wave", vizLabel: "RESONATOR", vizParam: 1, kb: { base: 36, n: 49 },
+  testParams: { 0: 1, 3: 0.8, 12: 0.7 },
+};
