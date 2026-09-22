@@ -83,6 +83,7 @@
   .grow.ac .gc.on{background:var(--red)}
   .gc.play{box-shadow:inset 0 0 0 2px #fff}
   .foot{display:flex;gap:12px;align-items:flex-end;margin-top:10px;flex-wrap:wrap}
+  .patsel{background:#161617;color:var(--cream);border:1px solid #444;border-radius:5px;font:700 10.5px/1 inherit;padding:6px 6px;min-width:150px;cursor:pointer}
   .hint{color:var(--muted);font-size:10px;margin-left:auto;text-align:right;max-width:330px}
   .meter{width:10px;height:44px;background:#0a0a0b;border-radius:3px;position:relative;overflow:hidden;border:1px solid #333}
   .meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#3fbf5a,#f2d23c 70%,#e2382a)}
@@ -262,6 +263,79 @@ var Kit = (function () {
     return b;
   }
 
+  // ---- rhythm presets ------------------------------------------------------
+  // A preset is role -> 16-char row ("x" hit, "f" hit + flam, "." rest). Roles:
+  // K kick, S snare, C clap, H closed hat, O open hat, L/M/T low/mid/hi tom,
+  // R rim, B cowbell, Y crash/cymbal, D ride, A total accent. Each machine's
+  // `target` says which slot a role plays on it (a role it lacks is skipped;
+  // roles mapped to the same slot are OR-ed):
+  //   target = { map:{role:slot}, sets:[{trig:{slot:idx}, flam:{slot:idx}, accent:idx, zero:[idx]}],
+  //              scale:[idx,val], last:idx, variation:idx }
+  // `sets` holds one entry per pattern memory (the 808 has A and B; B takes the
+  // preset's `fill` rows if it has any, else the same rows as A).
+  var PATTERNS = [
+  {"name":"Four on the Floor","rows":{"K":"x...x...x...x...","C":"....x.......x...","H":"x...x...x...x...","O":"..x...x...x...x.","A":"....x.......x..."}},
+  {"name":"Techno","rows":{"K":"x...x...x...x...","C":"....x.......x...","H":"xxxxxxxxxxxxxxxx","O":"..x...x...x...x.","R":"...x..x.....x...","A":"x...x...x...x..."}},
+  {"name":"Disco","rows":{"K":"x...x...x...x...","S":"....x.......x...","C":"....x.......x...","H":"xxxxxxxxxxxxxxxx","O":"..x...x...x...x.","A":"....x.......x..."}},
+  {"name":"Electro","rows":{"K":"x.....x...x.x...","S":"....x.......x...","C":"....x.......x...","H":"x.x.x.x.x.x.x.x.","B":"......x.......x.","A":"....x.......x..."}},
+  {"name":"Boom Bap","rows":{"K":"x.....x..x......","S":"....x.......f...","H":"x.x.x.x.x.x.x.x.","O":"..............x.","A":"....x.......x..."}},
+  {"name":"Trap","rows":{"K":"x..........x..x.","S":"........x.......","C":"........x.......","H":"x.x.x.x.x.x.xxxx","O":"......x.........","A":"........x......."}},
+  {"name":"Drum & Bass","rows":{"K":"x.........x.....","S":"....x.......x...","H":"x.x.x.x.x.x.x.x.","O":"..............x.","A":"....x.......x..."}},
+  {"name":"Breakbeat","rows":{"K":"x.x.......xx....","S":"....x.....x.x..x","H":"x.x.x.x.x.x.x.x.","O":"......x.........","A":"....x.......x..."}},
+  {"name":"Funk","rows":{"K":"x.....x..x.x....","S":"....x..x.x..x...","H":"xxxxxxxxxxxxxxxx","O":"..............x.","A":"....x.......x..."}},
+  {"name":"Reggae One Drop","rows":{"K":"........x.......","R":"........x.......","S":"........x.......","H":"x.x.x.x.x.x.x.x.","A":"........x......."}},
+  {"name":"Reggaeton","rows":{"K":"x...x...x...x...","S":"...x..x....x..x.","H":"x.x.x.x.x.x.x.x.","A":"...x..x....x..x."}},
+  {"name":"Latin Clave","rows":{"K":"x.......x.......","R":"x..x..x...x.x...","B":"x.x.x.x.x.x.x.x.","L":"....x.......x...","M":".......x.......x","A":"x.......x......."}},
+  {"name":"Rock","rows":{"K":"x.......x.x.....","S":"....x.......x...","H":"x.x.x.x.x.x.x.x.","Y":"x...............","A":"....x.......x..."}},
+  {"name":"Tom Fill","rows":{"K":"x...............","Y":"x...............","L":"....x.x.........","M":"........x.x.....","T":"............x.f.","A":"x...........x..."}}
+]
+;
+
+  function rowBits(row, flamOnly) {
+    var w = 0;
+    for (var s = 0; s < 16; s++) {
+      var c = (row || "").charAt(s);
+      if (flamOnly ? c === "f" : (c === "x" || c === "f")) w |= 1 << s;
+    }
+    return w;
+  }
+  function applyPattern(pat, t) {
+    t.sets.forEach(function (ps, n) {
+      var rows = (n > 0 && pat.fill) || pat.rows;
+      var trig = {}, flam = {};
+      for (var slot in ps.trig) trig[slot] = 0;
+      for (var fs in ps.flam || {}) flam[fs] = 0;
+      for (var role in rows) {
+        var slot2 = t.map[role];
+        if (!slot2 || !(slot2 in trig)) continue;
+        trig[slot2] |= rowBits(rows[role]);
+        if (slot2 in flam) flam[slot2] |= rowBits(rows[role], true);
+      }
+      for (var k in trig) set(ps.trig[k], trig[k]);
+      for (var f in flam) set(ps.flam[f], flam[f]);
+      if (ps.accent != null) set(ps.accent, rowBits(rows.A));
+      (ps.zero || []).forEach(function (i) { set(i, 0); });
+    });
+    if (t.scale) set(t.scale[0], t.scale[1]);
+    if (t.last != null) set(t.last, 16);
+    if (t.variation != null) set(t.variation, pat.fill ? 1 : 0);
+  }
+
+  // <select> of presets: picking one rewrites the sequencer. `cls` styles it per panel.
+  function patternPicker(parent, target, cls) {
+    var wrap = el("div", "col-stack", parent);
+    el("div", "sel-label", wrap, "Rhythm preset");
+    var sel = el("select", "patsel" + (cls ? " " + cls : ""), wrap);
+    el("option", "", sel, "Pick a rhythm…").value = "";
+    el("option", "", sel, "— Clear pattern —").value = "clear";
+    PATTERNS.forEach(function (p, j) { el("option", "", sel, p.name).value = String(j); });
+    sel.addEventListener("change", function () {
+      if (sel.value === "") return;
+      applyPattern(sel.value === "clear" ? { name: "Clear", rows: {} } : PATTERNS[+sel.value], target);
+    });
+    return wrap;
+  }
+
   // A 16-bit step row stored in one parameter.
   function rowBit(i, step) { return (Math.round(vals[i]) >> step) & 1; }
   function toggleStep(i, step) { set(i, Math.round(vals[i]) ^ (1 << step)); }
@@ -269,7 +343,7 @@ var Kit = (function () {
   return {
     define: define, get: get, set: set, listen: listen, onDisplay: onDisplay, start: start,
     knob: knob, selector: selector, bitSwitch: bitSwitch, toggle: toggle, pad: pad, note: note,
-    rowBit: rowBit, toggleStep: toggleStep, el: el, svg: svg, PD: PD
+    rowBit: rowBit, toggleStep: toggleStep, patternPicker: patternPicker, applyPattern: applyPattern, el: el, svg: svg, PD: PD
   };
 })();
 
@@ -355,6 +429,16 @@ var Kit = (function () {
   Kit.knob(g1, P.LAST, { label: "Last step", size: 36, sens: 0.5, fmt: function (v) { return v + ""; } });
   Kit.selector(g1, P.VAR, { label: "Basic variation", options: ["A", "AB", "B"] });
 
+  var gp = el("div", "grp", bar);
+  (function () {
+    var SL = ["BD","SD","LT","MT","HT","RS","CP","CB","CY","OH","CH"];
+    var sets = ["ROW_A_", "ROW_B_"].map(function (pre) {
+      var trig = {}; SL.forEach(function (k, i) { trig[k] = P[pre + "BD"] + i; });
+      return { trig: trig, accent: P[pre + "AC"] };
+    });
+    Kit.patternPicker(gp, { map: { K: "BD", S: "SD", C: "CP", H: "CH", O: "OH", L: "LT", M: "MT", T: "HT", R: "RS", B: "CB", Y: "CY" },
+      sets: sets, scale: [P.SCALE, 3], last: P.LAST, variation: P.VAR });
+  })();
   var g2 = el("div", "grp", bar);
   var editWrap = el("div", "col-stack", g2);
   el("div", "sel-label", editWrap, "Write to");

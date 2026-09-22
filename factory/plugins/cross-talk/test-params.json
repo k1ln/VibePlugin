@@ -1,0 +1,145 @@
+[
+  {
+    "name": "Algorithm",
+    "index": 0,
+    "min": 0,
+    "max": 1,
+    "default": 0.85
+  },
+  {
+    "name": "Timbre",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Carrier Source",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "Modulator Level",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "Carrier Level",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "Pitch",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "Chord",
+    "index": 6,
+    "min": 0,
+    "max": 6,
+    "default": 3,
+    "step": 1
+  },
+  {
+    "name": "Waveform",
+    "index": 7,
+    "min": 0,
+    "max": 1,
+    "default": 0.15
+  },
+  {
+    "name": "Detune",
+    "index": 8,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "Formant Shift",
+    "index": 9,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Band Width",
+    "index": 10,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Attack",
+    "index": 11,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "Release",
+    "index": 12,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "Freeze",
+    "index": 13,
+    "min": 0,
+    "max": 1,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "Sibilance",
+    "index": 14,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Gate",
+    "index": 15,
+    "min": 0,
+    "max": 1,
+    "default": 0.05
+  },
+  {
+    "name": "Dry Modulator",
+    "index": 16,
+    "min": 0,
+    "max": 1,
+    "default": 0
+  },
+  {
+    "name": "Drive",
+    "index": 17,
+    "min": 0,
+    "max": 1,
+    "default": 0.15
+  },
+  {
+    "name": "Width",
+    "index": 18,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Level",
+    "index": 19,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  }
+]

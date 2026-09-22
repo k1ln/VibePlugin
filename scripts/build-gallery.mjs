@@ -59,6 +59,28 @@ for (const f of files) {
   });
 }
 
+// ---- categories (factory/gallery-categories.json) ---------------------
+// Every row gets a `category` (Reverb, Analog Synths, …). Consumers group and
+// filter on it; the display order lives in the same file. An id with no entry —
+// or one filed under the wrong kind — falls back to "Other …" and is reported.
+let cats = { synth: { order: [], fallback: "Other Synths" }, effect: { order: [], fallback: "Other Effects" }, assign: {} };
+try {
+  cats = JSON.parse(await fs.readFile(path.join(HERE, "..", "factory", "gallery-categories.json"), "utf8"));
+} catch {
+  console.warn("! no factory/gallery-categories.json — everything lands in the Other categories");
+}
+const uncategorised = [];
+for (const r of rows) {
+  const kind = r.isInstrument ? cats.synth : cats.effect;
+  const c = cats.assign && cats.assign[r.id];
+  if (c && kind.order.includes(c)) r.category = c;
+  else { r.category = kind.fallback; uncategorised.push(r.id); }
+  // Position in the display order, so a consumer can sort its category chips and
+  // section headings from index.json alone (the in-editor browser fetches nothing else).
+  const at = kind.order.indexOf(r.category);
+  r.categoryOrder = at < 0 ? kind.order.length : at;
+}
+
 rows.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0) || a.name.localeCompare(b.name));
 
 // ---- quality gate (factory/quality-gate.json) ------------------------
@@ -82,6 +104,11 @@ try {
 } catch {
   // no gate file — list everything
 }
+
+// Only the listed plugins matter: hidden ones get a category when they are rebuilt.
+const shown = new Set(visible.map((r) => r.id));
+const missing = uncategorised.filter((id) => shown.has(id));
+if (missing.length) console.warn(`! ${missing.length} listed plugin(s) not categorised (add to factory/gallery-categories.json): ${missing.join(", ")}`);
 
 // ---- pinned (quality-gate.json "pinned") ----------------------------
 // Ids listed here float to the top of the catalogue in the order given,

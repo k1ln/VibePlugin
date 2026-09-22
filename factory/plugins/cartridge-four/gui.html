@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cartridge Four</title>
+<style>
+:root{--a:#ff6b6b;--a2:#ffd0c2;--pn:#231416;--ink:#f7e6e2;--dim:#b08f8a;--ln:rgba(255,107,107,.16)}
+*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#3a1a1e,#12080a 65%);color:var(--ink);font:12px/1.3 -apple-system,"Segoe UI",Helvetica,sans-serif;min-height:100%}
+#app{max-width:1040px;margin:0 auto;padding:12px}
+h1{margin:0 0 8px;font-size:18px;letter-spacing:.3em;font-weight:300;color:var(--a2)}h1 small{letter-spacing:.15em;color:var(--dim);font-size:10px;margin-left:10px}
+canvas{width:100%;height:130px;display:block;background:#0d0507;border:1px solid var(--ln);border-radius:8px}
+.row{display:grid;gap:8px;margin-top:8px}.r3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 10px}
+.g h2{margin:0 0 6px;font-size:9px;letter-spacing:.25em;color:var(--a);font-weight:600}
+.ks{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px 2px;margin-top:6px}
+.tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:74px}
+.tg button{background:#1b0f11;color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 7px;font:600 9px/1 inherit;letter-spacing:.1em;cursor:pointer}
+.tg button.on{background:var(--a);color:#1c0a0c;border-color:var(--a)}
+.k{display:flex;flex-direction:column;align-items:center;user-select:none;touch-action:none;cursor:ns-resize}
+.k svg{width:40px;height:40px}.k .n{font-size:9px;color:var(--dim);text-align:center;margin-top:1px}.k .v{font-size:9px;color:var(--a2)}
+#kb{position:relative;height:76px;margin-top:8px;user-select:none;touch-action:none}
+.w{position:absolute;top:0;height:100%;background:linear-gradient(#fbeeea,#d9b5ae);border:1px solid #12080a;border-radius:0 0 4px 4px}.w.on,.w.dz.on{background:var(--a)}
+.w.dz{background:linear-gradient(#f3c7bf,#c98d84)}.b{position:absolute;top:0;height:58%;background:linear-gradient(#3a2226,#170b0d);border-radius:0 0 3px 3px;z-index:2}.b.on{background:var(--a)}
+</style></head><body><div id="app"><h1>CARTRIDGE FOUR<small>8-BIT CONSOLE VOICE</small></h1><canvas id="cv"></canvas><div class="row r3" id="voices"></div><div class="row r3" id="rest"></div><div id="kb"></div></div>
+<script>
+(function(){
+var PARAMS=[{"name": "Channel Mode", "index": 0, "min": 0, "max": 1, "default": 0, "step": 1}, {"name": "Drum Zone", "index": 1, "min": 0, "max": 1, "default": 1, "step": 1}, {"name": "Console", "index": 2, "min": 0, "max": 2, "default": 1, "step": 1}, {"name": "Period Quantize", "index": 3, "min": 0, "max": 1, "default": 1, "step": 1}, {"name": "Smooth", "index": 4, "min": 0, "max": 1, "default": 0.25}, {"name": "Pulse 1 Duty", "index": 5, "min": 0, "max": 3, "default": 1, "step": 1}, {"name": "Pulse 1 Volume", "index": 6, "min": 0, "max": 15, "default": 11, "step": 1}, {"name": "Pulse 1 Decay Env", "index": 7, "min": 0, "max": 1, "default": 1, "step": 1}, {"name": "Pulse 1 Decay Rate", "index": 8, "min": 0, "max": 15, "default": 6, "step": 1}, {"name": "Pulse 1 Loop", "index": 9, "min": 0, "max": 1, "default": 0, "step": 1}, {"name": "Pulse 2 Duty", "index": 10, "min": 0, "max": 3, "default": 2, "step": 1}, {"name": "Pulse 2 Volume", "index": 11, "min": 0, "max": 15, "default": 8, "step": 1}, {"name": "Pulse 2 Decay Env", "index": 12, "min": 0, "max": 1, "default": 1, "step": 1}, {"name": "Pulse 2 Decay Rate", "index": 13, "min": 0, "max": 15, "default": 6, "step": 1}, {"name": "Pulse 2 Loop", "index": 14, "min": 0, "max": 1, "default": 0, "step": 1}, {"name": "Pulse 2 Detune", "index": 15, "min": 0, "max": 1, "default": 0.6}, {"name": "Duty Animation", "index": 16, "min": 0, "max": 3, "default": 0, "step": 1}, {"name": "Sweep", "index": 17, "min": -7, "max": 7, "default": 0, "step": 1}, {"name": "Sweep Rate", "index": 18, "min": 0, "max": 7, "default": 3, "step": 1}, {"name": "Vibrato", "index": 19, "min": 0, "max": 1, "default": 0.15}, {"name": "Vibrato Rate", "index": 20, "min": 0, "max": 1, "default": 0.4}, {"name": "Vibrato Delay", "index": 21, "min": 0, "max": 1, "default": 0.4}, {"name": "Triangle Level", "index": 22, "min": 0, "max": 1, "default": 1}, {"name": "Triangle Octave", "index": 23, "min": -2, "max": 0, "default": -1, "step": 1}, {"name": "Triangle Length", "index": 24, "min": 0, "max": 1, "default": 0}, {"name": "Noise Level", "index": 25, "min": 0, "max": 15, "default": 3, "step": 1}, {"name": "Noise Period", "index": 26, "min": 0, "max": 15, "default": 6, "step": 1}, {"name": "Noise Short Mode", "index": 27, "min": 0, "max": 1, "default": 0, "step": 1}, {"name": "Noise Decay", "index": 28, "min": 0, "max": 15, "default": 3, "step": 1}, {"name": "Noise Key Track", "index": 29, "min": 0, "max": 1, "default": 0, "step": 1}, {"name": "DPCM Level", "index": 30, "min": 0, "max": 1, "default": 0.8}, {"name": "DPCM Rate", "index": 31, "min": 0, "max": 1, "default": 0.6}, {"name": "Arp Chord", "index": 32, "min": 0, "max": 6, "default": 0, "step": 1}, {"name": "Arp Speed", "index": 33, "min": 0, "max": 1, "default": 0.5}, {"name": "Release", "index": 34, "min": 0, "max": 1, "default": 0.15}, {"name": "Velocity Sens", "index": 35, "min": 0, "max": 1, "default": 0.5}, {"name": "Bend Range", "index": 36, "min": 0, "max": 1, "default": 0.1667}, {"name": "Master", "index": 37, "min": 0, "max": 1, "default": 0.75}];
+var V={},R={},SV="http://www.w3.org/2000/svg",held={},lastHit=0,disp=[0,0,0,0,0,0,0,0],hasDisp=0;
+function host(f){var a=[].slice.call(arguments,1);if(window.vstai&&typeof window.vstai[f]==="function")window.vstai[f].apply(window.vstai,a)}
+function set(i,v){V[i]=v;host("setParam",i,v);if(R[i])R[i]()}
+var DUTYN=["12.5%","25%","50%","75%"],CHN=["OFF","MAJ","MIN","OCT","DOM7","MAJ7","SUS4"];
+function fmt(i,v){var p=PARAMS[i];if(i==5||i==10)return DUTYN[Math.round(v)];if(i==23)return v+" oct";if(i==17)return(v>0?"+":"")+v;if(i==32)return CHN[Math.round(v)];if(i==33)return Math.round(15+v*105)+" Hz";if(i==36)return Math.round(v*12)+" st";if(i==31)return(0.5+v*1.1).toFixed(2)+"x";if(p.step)return Math.round(v);return Math.round(v*100)+"%"}
+function knob(i,label){var p=PARAMS[i];V[i]=p.default;var w=document.createElement("div");w.className="k";
+var s=document.createElementNS(SV,"svg");s.setAttribute("viewBox","0 0 44 44");
+s.innerHTML='<circle cx="22" cy="22" r="19" fill="#1b0f11" stroke="rgba(255,107,107,.2)"/><path class="tr" fill="none" stroke="rgba(255,107,107,.18)" stroke-width="3" stroke-linecap="round"/><path class="ar" fill="none" stroke="#ff6b6b" stroke-width="3" stroke-linecap="round"/><line class="nd" x1="22" y1="22" stroke="#ffd0c2" stroke-width="2" stroke-linecap="round"/>';
+var n=document.createElement("div");n.className="n";n.textContent=label||p.name;var vv=document.createElement("div");vv.className="v";w.appendChild(s);w.appendChild(n);w.appendChild(vv);
+function arc(a0,a1){var r=15,x0=22+r*Math.sin(a0),y0=22-r*Math.cos(a0),x1=22+r*Math.sin(a1),y1=22-r*Math.cos(a1);return"M"+x0+" "+y0+"A"+r+" "+r+" 0 "+((a1-a0)>Math.PI?1:0)+" 1 "+x1+" "+y1}
+function norm(){return(V[i]-p.min)/(p.max-p.min)}
+function paint(){var a0=-2.35,a1=2.35,t=a0+(a1-a0)*norm();s.querySelector(".tr").setAttribute("d",arc(a0,a1));s.querySelector(".ar").setAttribute("d",arc(a0,Math.max(t,a0+.001)));
+var nd=s.querySelector(".nd");nd.setAttribute("x2",22+13*Math.sin(t));nd.setAttribute("y2",22-13*Math.cos(t));vv.textContent=fmt(i,V[i])}
+R[i]=paint;paint();
+var y0,n0,drag=false;
+function put(nv){nv=Math.min(1,Math.max(0,nv));var v=p.min+nv*(p.max-p.min);if(p.step)v=Math.round(v/p.step)*p.step;set(i,v)}
+function mv(e){if(!drag)return;var y=e.touches?e.touches[0].clientY:e.clientY;put(n0+(y0-y)/(e.shiftKey?600:160));if(e.cancelable)e.preventDefault()}
+w.addEventListener("mousedown",function(e){drag=true;y0=e.clientY;n0=norm();e.preventDefault()});
+w.addEventListener("touchstart",function(e){drag=true;y0=e.touches[0].clientY;n0=norm()},{passive:false});
+window.addEventListener("mousemove",mv);window.addEventListener("touchmove",mv,{passive:false});window.addEventListener("mouseup",function(){drag=false});window.addEventListener("touchend",function(){drag=false});
+w.addEventListener("dblclick",function(){set(i,p.default)});
+w.addEventListener("wheel",function(e){var st=p.step?p.step:(p.max-p.min)*.02;set(i,Math.min(p.max,Math.max(p.min,V[i]-Math.sign(e.deltaY)*st)));e.preventDefault()},{passive:false});
+return w}
+// toggle-bit group (mask param) / plain toggle / segmented choice
+function bits(i,label,names){V[i]=PARAMS[i].default;var row=document.createElement("div");row.className="tg";row.innerHTML="<span>"+label+"</span>";var bs=[];
+names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,(Math.round(V[i])^(1<<k)))};row.appendChild(b);bs.push(b)});
+R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])&(1<<k))?"on":""})};R[i]();return row}
+function seg(i,label,names){V[i]=PARAMS[i].default;var row=document.createElement("div");row.className="tg";row.innerHTML="<span>"+label+"</span>";var bs=[];
+names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,k)};row.appendChild(b);bs.push(b)});
+R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])===k)?"on":""})};R[i]();return row}
+function card(title){var d=document.createElement("div");d.className="g";d.innerHTML="<h2>"+title+"</h2>";return d}
+function knobs(ids,labels){var ks=document.createElement("div");ks.className="ks";ids.forEach(function(i,k){ks.appendChild(knob(i,labels&&labels[k]))});return ks}
+var cv=document.getElementById("cv"),cx=cv.getContext("2d"),LEV=[0,0,0,0],DUT=[[0,1,0,0,0,0,0,0],[0,1,1,0,0,0,0,0],[0,1,1,1,1,0,0,0],[1,0,0,1,1,1,1,1]],seed=1;
+function rn(){seed=(seed*16807)%2147483647;return seed/2147483647}
+function draw(t){var dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);var pw=(W-50)/4,names=["PULSE 1","PULSE 2","TRIANGLE","NOISE / DPCM"];
+for(var c=0;c<4;c++){var x0=10+c*(pw+10),y0=22,hh=H-34,mid=y0+hh/2,lv=hasDisp?Math.min(1,disp[c==0||c==1?0:(c==2?1:2)]*(c<2?1.6:1.1)+(c==3?disp[3]:0)):.5,amp=hh*.38*(.25+.75*lv);
+cx.fillStyle="#b08f8a";cx.font="9px sans-serif";cx.fillText(names[c],x0,12);
+cx.strokeStyle="rgba(255,107,107,.15)";cx.beginPath();cx.moveTo(x0,mid);cx.lineTo(x0+pw,mid);cx.stroke();
+cx.beginPath();cx.strokeStyle="rgba(255,208,194,.95)";cx.lineWidth=1.6;var cyc=3+(c==2?0:0),N=64;
+for(var k=0;k<=N;k++){var ph=(k/N*cyc+t/900*(c==1?1.02:1))%1,y=0;
+if(c<2){var d=DUT[Math.round(V[c==0?5:10])];y=d[Math.floor(ph*8)%8]?-1:1}
+else if(c==2){var s=Math.floor(ph*32);y=(s<16?15-s:s-16)/7.5-1;y=-y}
+else{y=(rn()<.5?-1:1)*(k%3?1:.4)}
+var xx=x0+k/N*pw;if(k)cx.lineTo(xx,mid+y*amp);else cx.moveTo(xx,mid+y*amp);if(c<2||c==3)cx.lineTo(xx,mid+y*amp)}
+cx.stroke()}
+requestAnimationFrame(draw)}
+var kb=document.getElementById("kb"),KEYS=[],BLK={1:1,3:1,6:1,8:1,10:1},BASE=24,N=49,wn=0;
+function on(n){if(held[n])return;held[n]=1;lastHit=performance.now();host("noteOn",n,.8);if(KEYS[n])KEYS[n].classList.add("on")}
+function off(n){if(!held[n])return;delete held[n];host("noteOff",n);if(KEYS[n])KEYS[n].classList.remove("on")}
+for(var n=BASE;n<BASE+N;n++)if(!BLK[n%12])wn++;
+var wi=0;for(var n=BASE;n<BASE+N;n++){var e=document.createElement("div"),bk=BLK[n%12];e.className=bk?"b":(n<36?"w dz":"w");
+if(bk){e.style.left=(wi/wn*100-.75)+"%";e.style.width="1.5%"}else{e.style.left=(wi/wn*100)+"%";e.style.width=(100/wn)+"%";wi++}
+(function(n,e){e.addEventListener("mousedown",function(ev){on(n);ev.preventDefault();ev.stopPropagation()});e.addEventListener("mouseup",function(){off(n)});e.addEventListener("mouseleave",function(){off(n)});
+e.addEventListener("touchstart",function(ev){on(n);ev.preventDefault()},{passive:false});e.addEventListener("touchend",function(ev){off(n);ev.preventDefault()})})(n,e);
+KEYS[n]=e;kb.appendChild(e)}
+var MAP="awsedftgyhujkolp;".split("");window.addEventListener("keydown",function(e){if(e.repeat)return;var i=MAP.indexOf(e.key);if(i>=0)on(60+i)});
+window.addEventListener("keyup",function(e){var i=MAP.indexOf(e.key);if(i>=0)off(60+i)});
+function boot(){var vs=document.getElementById("voices"),rest=document.getElementById("rest");
+function tog(i,label){var bt=document.createElement("button");V[i]=PARAMS[i].default;bt.textContent=label;bt.onclick=function(){set(i,V[i]>.5?0:1)};R[i]=function(){bt.className=V[i]>.5?"on":""};R[i]();return bt}
+function trow(label,list){var r=document.createElement("div");r.className="tg";r.innerHTML="<span>"+label+"</span>";list.forEach(function(q){r.appendChild(tog(q[0],q[1]))});return r}
+var p1=card("PULSE 1");p1.appendChild(trow("ENV",[[7,"DECAY"],[9,"LOOP"]]));p1.appendChild(knobs([5,6,8],["Duty","Volume","Decay Rate"]));vs.appendChild(p1);
+var p2=card("PULSE 2");p2.appendChild(trow("ENV",[[12,"DECAY"],[14,"LOOP"]]));p2.appendChild(knobs([10,11,13,15],["Duty","Volume","Decay Rate","Detune"]));vs.appendChild(p2);
+var tr=card("TRIANGLE");tr.appendChild(knobs([22,23,24],["Level","Octave","Length"]));vs.appendChild(tr);
+var nz=card("NOISE");nz.appendChild(trow("MODE",[[27,"SHORT"],[29,"KEY TRACK"]]));nz.appendChild(knobs([25,26,28],["Level","Period","Decay"]));rest.appendChild(nz);
+var dp=card("DPCM DRUMS (C1-B1)");dp.appendChild(trow("ZONE",[[1,"DRUM ZONE"]]));dp.appendChild(knobs([30,31],["Level","Rate"]));rest.appendChild(dp);
+var md=card("MOTION");md.appendChild(knobs([16,17,18,19,20,21,32,33],["Duty Anim","Sweep","Sweep Rate","Vibrato","Vib Rate","Vib Delay","Arp Chord","Arp Speed"]));vs.appendChild(md);
+var gl=card("CONSOLE");gl.appendChild(seg(0,"CHANNELS",["LAYERED","POLY"]));gl.appendChild(seg(2,"CONSOLE",["RAW","FAMICOM","NES"]));gl.appendChild(trow("PITCH",[[3,"PERIOD QUANTIZE"]]));gl.appendChild(knobs([4,34,35,36,37],["Smooth","Release","Velocity","Bend","Master"]));rest.appendChild(gl);
+PARAMS.forEach(function(p,i){host("setParam",i,p.default)});
+if(window.vstai&&window.vstai.onDisplay)window.vstai.onDisplay(function(d){hasDisp=1;for(var i=0;i<8;i++)disp[i]=d[i]||0});
+if(window.vstai&&window.vstai.onParam)window.vstai.onParam(function(i,v){if(!(i in V))return;V[i]=+v;if(R[i])R[i]()});
+requestAnimationFrame(draw)}
+if(window.vstai&&typeof window.vstai.onReady==="function")window.vstai.onReady(boot);else boot();
+})();
+</script></body></html>

@@ -15,7 +15,7 @@ as done.
    - compiles + base64s the wasm,
    - generates a **stunning themeable GUI** (rotary knobs, glow, per-plugin accent),
    - writes the name-based `plugins/<slug>/<slug>.vstai`,
-   - **deploys a copy to `docs/gallery/data/`** (then `scripts/build-gallery.mjs` rebuilds the catalogue),
+   - **deploys a copy to `docs/gallery/data/`** (then add its id to `factory/gallery-categories.json` and run `scripts/build-gallery.mjs` to rebuild the catalogue),
    - emits a standalone **`test.html`** bench.
 5. Document in `plugins/<slug>/README.md`; cross the entry off the list.
 

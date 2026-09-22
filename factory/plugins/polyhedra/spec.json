@@ -1,0 +1,185 @@
+{
+  "name": "Polyhedra",
+  "isInstrument": true,
+  "explanation": "A nine-engine macro voice with a low-pass gate. Engine selects the source: analog saw/pulse pair, FM, wavefolder, 12-harmonic additive, Karplus-Strong string, inharmonic bell, resonant noise/dust, vowel formants or a pitch-swept kick. Harmonics, Timbre and Morph are re-mapped by each engine to its three most musical axes. A struck-or-gated envelope drives loudness and the gate filter (Color); envelope, LFO, velocity and aftertouch can all move Timbre/Morph. Sub, Air noise, stereo spread across eight voices, vibrato (mod wheel), pitch bend, drive and a ping-pong echo complete the voice.",
+  "assembly": "factory/plugins/polyhedra/assembly.ts",
+  "out": "factory/plugins/polyhedra/x.vstai",
+  "publishedAt": 1790000100000,
+  "theme": {
+    "accent": "#f0a35c",
+    "accent2": "#ffe2bd"
+  },
+  "guiFile": "factory/plugins/polyhedra/gui.html",
+  "params": [
+    {
+      "name": "Engine",
+      "index": 0,
+      "min": 0,
+      "max": 8,
+      "default": 0.0,
+      "step": 1
+    },
+    {
+      "name": "Harmonics",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Timbre",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Morph",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Decay",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Attack",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Gate Mode",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.0,
+      "step": 1
+    },
+    {
+      "name": "Release",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "LPG Color",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Env \u2192 Timbre",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "LFO \u2192 Morph",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "LFO Rate",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Velocity \u2192 Timbre",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Sub",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.0
+    },
+    {
+      "name": "Air",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.0
+    },
+    {
+      "name": "Spread",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Vibrato",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Vibrato Rate",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Fine Tune",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Echo",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Echo Time",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Drive",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Level",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

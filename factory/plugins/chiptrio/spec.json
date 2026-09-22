@@ -1,0 +1,355 @@
+{
+  "name": "Chiptrio",
+  "isInstrument": true,
+  "explanation": "A three-voice home-computer sound-chip instrument modelled on the architecture of the MOS 6581/8580. Each voice has a phase-accumulator oscillator with triangle, sawtooth, pulse and LFSR-noise waveforms (any combination, combined by bitwise AND), pulse width, ring modulation and hard sync in the chip's 1-2-3-1 ring, and an 8-bit ADSR using the chip's sixteen attack/decay/release times. One shared 12 dB state-variable filter (low/band/high in any mix, per-voice routing) has a 6581 mode with input overload and softer cutoff and a clean 8580 mode. Play Poly, Unison or Arp (held notes cycle at chip speed). PWM, vibrato/mod wheel, lo-fi bit and clock reduction and unison detune round it out.",
+  "assembly": "factory/plugins/chiptrio/assembly.ts",
+  "out": "factory/plugins/chiptrio/x.vstai",
+  "publishedAt": 1790000300000,
+  "theme": {
+    "accent": "#6cc7ff",
+    "accent2": "#c9ecff"
+  },
+  "guiFile": "factory/plugins/chiptrio/gui.html",
+  "params": [
+    {
+      "name": "Voice 1 Wave",
+      "index": 0,
+      "min": 0,
+      "max": 15,
+      "default": 4,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Pulse Width",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.42
+    },
+    {
+      "name": "Voice 1 Ring",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Sync",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Attack",
+      "index": 4,
+      "min": 0,
+      "max": 15,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Decay",
+      "index": 5,
+      "min": 0,
+      "max": 15,
+      "default": 9,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Sustain",
+      "index": 6,
+      "min": 0,
+      "max": 15,
+      "default": 6,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Release",
+      "index": 7,
+      "min": 0,
+      "max": 15,
+      "default": 5,
+      "step": 1
+    },
+    {
+      "name": "Voice 1 Tune",
+      "index": 8,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "Voice 1 Level",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    },
+    {
+      "name": "Voice 2 Wave",
+      "index": 10,
+      "min": 0,
+      "max": 15,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Pulse Width",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Voice 2 Ring",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Sync",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Attack",
+      "index": 14,
+      "min": 0,
+      "max": 15,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Decay",
+      "index": 15,
+      "min": 0,
+      "max": 15,
+      "default": 9,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Sustain",
+      "index": 16,
+      "min": 0,
+      "max": 15,
+      "default": 6,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Release",
+      "index": 17,
+      "min": 0,
+      "max": 15,
+      "default": 5,
+      "step": 1
+    },
+    {
+      "name": "Voice 2 Tune",
+      "index": 18,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "Voice 2 Level",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Voice 3 Wave",
+      "index": 20,
+      "min": 0,
+      "max": 15,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Pulse Width",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Voice 3 Ring",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Sync",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Attack",
+      "index": 24,
+      "min": 0,
+      "max": 15,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Decay",
+      "index": 25,
+      "min": 0,
+      "max": 15,
+      "default": 9,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Sustain",
+      "index": 26,
+      "min": 0,
+      "max": 15,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Release",
+      "index": 27,
+      "min": 0,
+      "max": 15,
+      "default": 5,
+      "step": 1
+    },
+    {
+      "name": "Voice 3 Tune",
+      "index": 28,
+      "min": -24,
+      "max": 24,
+      "default": -12
+    },
+    {
+      "name": "Voice 3 Level",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mode",
+      "index": 30,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Arp Rate",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Filter Mode",
+      "index": 32,
+      "min": 0,
+      "max": 7,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Cutoff",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Resonance",
+      "index": 34,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Filter Route",
+      "index": 35,
+      "min": 0,
+      "max": 7,
+      "default": 7,
+      "step": 1
+    },
+    {
+      "name": "Chip Model",
+      "index": 36,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "PWM Depth",
+      "index": 37,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "PWM Rate",
+      "index": 38,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Vibrato",
+      "index": 39,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Lo-Fi",
+      "index": 40,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Clock Reduce",
+      "index": 41,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Volume",
+      "index": 42,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Bend Range",
+      "index": 43,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Unison Detune",
+      "index": 44,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    }
+  ]
+}

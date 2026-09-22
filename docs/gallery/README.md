@@ -22,6 +22,7 @@ docs/gallery/
   worklet.js                AudioWorklet DSP host (same ABI as src/WasmAbi.h)
   data/*.vstai              the published synths/effects (committed)
   data/index.json           generated catalogue — DO NOT edit by hand
+                            (each row has `category` + `categoryOrder`)
   samples/*.wav             120 synthesised, copyright-free test loops
   samples/index.json        generated sample list
 ```
@@ -33,6 +34,17 @@ docs/gallery/
 node scripts/build-gallery.mjs     # rebuild data/index.json
 node scripts/gen-samples.mjs       # (re)generate the royalty-free samples
 ```
+
+### Categories
+
+Every plugin is filed under one category (Reverb, Analog Synths, Drum Voices, …), shown
+as section headings and filter chips in this page and in the plugin's in-editor
+**Gallery** browser. The mapping lives in `factory/gallery-categories.json`: `synth` and
+`effect` list the categories in display order, and `assign` maps a plugin id to one of
+them. **Add a new plugin's id there** before rebuilding the catalogue — `build-gallery.mjs`
+warns about any listed plugin that has no category (it files it under "Other Synths" /
+"Other Effects"). The web page and the editor read `category` straight from `index.json`,
+so no other consumer needs touching.
 
 The samples are **synthesised from scratch** in `scripts/gen-samples.mjs` (oscillators
 + noise + envelopes) — no recorded audio, so they carry no licence/copyright.

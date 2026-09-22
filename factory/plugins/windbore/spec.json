@@ -1,0 +1,143 @@
+{
+  "name": "Windbore",
+  "isInstrument": true,
+  "explanation": "Physical-model wind instruments built from digital waveguides. Three excitation engines share one monophonic breath-controlled voice: a single-reed valve driving a bore that morphs from cylinder (clarinet, odd harmonics) to cone (saxophone, all harmonics); an air jet blowing across an open bore (flute); and a lip resonator squeezing against bore pressure (brass). Breath pressure has attack and release, noise, vibrato and is driven by velocity, aftertouch and CC2/CC11. A tone-hole low-pass, bell/body resonance, glide, legato and a small room complete it. Character presets set clarinet, saxophone, oboe, flute, trumpet or trombone; every control stays free.",
+  "assembly": "factory/plugins/windbore/assembly.ts",
+  "out": "factory/plugins/windbore/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#e7c26a",
+    "accent2": "#fff0c9"
+  },
+  "guiFile": "factory/plugins/windbore/gui.html",
+  "params": [
+    {
+      "name": "Engine",
+      "index": 0,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Bore Shape",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Embouchure",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Breath",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Breath Noise",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Attack",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Release",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Vibrato",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Vibrato Rate",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Tone",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Velocity Sens",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Glide",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Legato",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Body",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Space",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Space Size",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Level",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

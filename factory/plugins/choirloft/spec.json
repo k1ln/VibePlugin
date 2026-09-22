@@ -1,0 +1,150 @@
+{
+  "name": "Choirloft",
+  "isInstrument": true,
+  "explanation": "A vocal choir and formant synthesiser. Each note is sung by up to four singers, each a glottal-style source (band-limited saw with spectral tilt set by Effort, plus breath noise) run through five parallel formant resonators. Formant frequencies, bandwidths and levels come from vowel tables for bass, tenor, alto and soprano voices and morph continuously across the vowels A-E-I-O-U, with the mod wheel pushing the morph further and Formant Shift changing apparent size. Singers differ in tuning, vibrato phase and rate and entry time (Ensemble, Human); pitch can scoop up into each note; CC11 and aftertouch shape expression. A stereo choir spread and a small hall finish it. Six notes, four singers each.",
+  "assembly": "factory/plugins/choirloft/assembly.ts",
+  "out": "factory/plugins/choirloft/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c9a8ff",
+    "accent2": "#f0e6ff"
+  },
+  "guiFile": "factory/plugins/choirloft/gui.html",
+  "params": [
+    {
+      "name": "Voice Type",
+      "index": 0,
+      "min": 0,
+      "max": 3,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Vowel",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Formant Shift",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Choir Size",
+      "index": 3,
+      "min": 1,
+      "max": 4,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Ensemble",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Vibrato",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Vibrato Rate",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Human",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Attack",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Release",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Breath",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Effort",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Scoop",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Width",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Space",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Hall Size",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Bend Range",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Level",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Velocity Sens",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    }
+  ]
+}

@@ -169,6 +169,63 @@ var Kit = (function () {
     return b;
   }
 
+  // ---- rhythm presets ------------------------------------------------------
+  // A preset is role -> 16-char row ("x" hit, "f" hit + flam, "." rest). Roles:
+  // K kick, S snare, C clap, H closed hat, O open hat, L/M/T low/mid/hi tom,
+  // R rim, B cowbell, Y crash/cymbal, D ride, A total accent. Each machine's
+  // `target` says which slot a role plays on it (a role it lacks is skipped;
+  // roles mapped to the same slot are OR-ed):
+  //   target = { map:{role:slot}, sets:[{trig:{slot:idx}, flam:{slot:idx}, accent:idx, zero:[idx]}],
+  //              scale:[idx,val], last:idx, variation:idx }
+  // `sets` holds one entry per pattern memory (the 808 has A and B; B takes the
+  // preset's `fill` rows if it has any, else the same rows as A).
+  var PATTERNS = /*@PATTERNS@*/;
+
+  function rowBits(row, flamOnly) {
+    var w = 0;
+    for (var s = 0; s < 16; s++) {
+      var c = (row || "").charAt(s);
+      if (flamOnly ? c === "f" : (c === "x" || c === "f")) w |= 1 << s;
+    }
+    return w;
+  }
+  function applyPattern(pat, t) {
+    t.sets.forEach(function (ps, n) {
+      var rows = (n > 0 && pat.fill) || pat.rows;
+      var trig = {}, flam = {};
+      for (var slot in ps.trig) trig[slot] = 0;
+      for (var fs in ps.flam || {}) flam[fs] = 0;
+      for (var role in rows) {
+        var slot2 = t.map[role];
+        if (!slot2 || !(slot2 in trig)) continue;
+        trig[slot2] |= rowBits(rows[role]);
+        if (slot2 in flam) flam[slot2] |= rowBits(rows[role], true);
+      }
+      for (var k in trig) set(ps.trig[k], trig[k]);
+      for (var f in flam) set(ps.flam[f], flam[f]);
+      if (ps.accent != null) set(ps.accent, rowBits(rows.A));
+      (ps.zero || []).forEach(function (i) { set(i, 0); });
+    });
+    if (t.scale) set(t.scale[0], t.scale[1]);
+    if (t.last != null) set(t.last, 16);
+    if (t.variation != null) set(t.variation, pat.fill ? 1 : 0);
+  }
+
+  // <select> of presets: picking one rewrites the sequencer. `cls` styles it per panel.
+  function patternPicker(parent, target, cls) {
+    var wrap = el("div", "col-stack", parent);
+    el("div", "sel-label", wrap, "Rhythm preset");
+    var sel = el("select", "patsel" + (cls ? " " + cls : ""), wrap);
+    el("option", "", sel, "Pick a rhythm…").value = "";
+    el("option", "", sel, "— Clear pattern —").value = "clear";
+    PATTERNS.forEach(function (p, j) { el("option", "", sel, p.name).value = String(j); });
+    sel.addEventListener("change", function () {
+      if (sel.value === "") return;
+      applyPattern(sel.value === "clear" ? { name: "Clear", rows: {} } : PATTERNS[+sel.value], target);
+    });
+    return wrap;
+  }
+
   // A 16-bit step row stored in one parameter.
   function rowBit(i, step) { return (Math.round(vals[i]) >> step) & 1; }
   function toggleStep(i, step) { set(i, Math.round(vals[i]) ^ (1 << step)); }
@@ -176,6 +233,6 @@ var Kit = (function () {
   return {
     define: define, get: get, set: set, listen: listen, onDisplay: onDisplay, start: start,
     knob: knob, selector: selector, bitSwitch: bitSwitch, toggle: toggle, pad: pad, note: note,
-    rowBit: rowBit, toggleStep: toggleStep, el: el, svg: svg, PD: PD
+    rowBit: rowBit, toggleStep: toggleStep, patternPicker: patternPicker, applyPattern: applyPattern, el: el, svg: svg, PD: PD
   };
 })();

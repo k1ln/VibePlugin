@@ -1,0 +1,183 @@
+{
+  "name": "Glasswork",
+  "isInstrument": true,
+  "explanation": "A modal-resonator instrument. Each voice is a bank of up to 24 resonators tuned to a partial series that morphs from vibrating string through free bar and cast bell to singing bowl (Structure, with Stretch for inharmonicity). A mallet strikes the modes (Hardness, Strike, Position); Bow and Breath exciters sustain them while a key is held (Flow shapes the attack). Brightness, Damping and Tilt control mode gains and frequency-dependent decay; a detuned twin bank per voice gives Width. Mod wheel and aftertouch add vibrato and bow pressure, pitch bend, a small stereo reverb and drive finish it. Eight voices.",
+  "assembly": "factory/plugins/glasswork/assembly.ts",
+  "out": "factory/plugins/glasswork/x.vstai",
+  "publishedAt": 1790000000000,
+  "theme": {
+    "accent": "#7fd6d0",
+    "accent2": "#d9fbf5"
+  },
+  "guiFile": "factory/plugins/glasswork/gui.html",
+  "params": [
+    {
+      "name": "Structure",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Brightness",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Damping",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Tilt",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Position",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.28
+    },
+    {
+      "name": "Stretch",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Modes",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Hardness",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Strike",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "Bow",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Breath",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Flow",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Release",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Detune",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Width",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Velocity Bright",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Vibrato",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Vibrato Rate",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Fine Tune",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Space",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Space Size",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Drive",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Level",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

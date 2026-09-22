@@ -1,0 +1,25 @@
+export default {
+  name: "Waveloom", isInstrument: true, subtitle: "Wavetable synthesiser", category: "Digital & Experimental",
+  explanation: "A wavetable synthesiser. Three table sets (Analog, Vocal, Digital), each of eight frames, are synthesised at start-up from harmonic spectra and stored as six band-limited octave mip levels so oscillators do not alias on the fundamental. Two oscillators scan their tables with linear morphing between frames (Position); five warp modes (none, sync, bend, mirror, pulse-width) reshape the phase; up to seven-voice unison adds detune and stereo spread; a sub oscillator and noise fill out the sound. A multimode filter (LP24, LP12, BP, HP, notch) has drive, key-track and velocity control. An amp ADSR, a modulation envelope (to Position and filter) and two LFOs (Position, filter and vibrato) shape everything over time. Eight voices.",
+  theme: { accent: "#a4ff5c", accent2: "#e9ffd2", bg1: "#1c3a12", bg2: "#08120a", panel: "#12240c", ink: "#eaf7e2", dim: "#86a878" },
+  params: [
+    ["Table Set", 0, 2, 0, 1, ["Analog", "Vocal", "Digital"]], ["Osc 1 Position", 0, 1, 0.2], ["Osc 2 Position", 0, 1, 0.45], ["Osc 2 Level", 0, 1, 0.6],
+    ["Osc 2 Semitone", -12, 12, 0, 1, "semi"], ["Osc 2 Fine", 0, 1, 0.5], ["Warp Mode", 0, 4, 0, 1, ["Off", "Sync", "Bend", "Mirror", "Pulse"]], ["Warp Amount", 0, 1, 0.3],
+    ["Unison Voices", 1, 7, 3, 1], ["Unison Detune", 0, 1, 0.3], ["Stereo Spread", 0, 1, 0.6], ["Sub", 0, 1, 0], ["Noise", 0, 1, 0],
+    ["Filter Mode", 0, 4, 0, 1, ["LP24", "LP12", "BP", "HP", "Notch"]], ["Cutoff", 0, 1, 0.7], ["Resonance", 0, 1, 0.2], ["Drive", 0, 1, 0.15],
+    ["Key Track", 0, 1, 0.5], ["Filter Env", 0, 1, 0.35], ["Amp Attack", 0, 1, 0.02], ["Amp Decay", 0, 1, 0.4], ["Amp Sustain", 0, 1, 0.75], ["Amp Release", 0, 1, 0.3],
+    ["Mod Attack", 0, 1, 0.02], ["Mod Decay", 0, 1, 0.5], ["Env → Position", 0, 1, 0.35], ["LFO 1 Rate", 0, 1, 0.25], ["LFO 1 Shape", 0, 4, 0, 1, ["Sine", "Tri", "Saw", "Square", "Random"]],
+    ["LFO 1 → Position", 0, 1, 0.25], ["LFO 2 Rate", 0, 1, 0.3], ["LFO 2 → Filter", 0, 1, 0.5], ["LFO 2 → Pitch", 0, 1, 0], ["Velocity", 0, 1, 0.5],
+    ["Bend Range", 0, 1, 0.1667], ["Level", 0, 1, 0.7],
+  ],
+  groups: [
+    { title: "OSCILLATORS", items: [{ k: "seg", i: 0, label: "TABLE", opts: ["ANALOG", "VOCAL", "DIGITAL"] }, { k: "knob", i: [1, 2, 3, 4, 5, 11, 12] }] },
+    { title: "WARP & UNISON", items: [{ k: "seg", i: 6, label: "WARP", opts: ["OFF", "SYNC", "BEND", "MIRROR", "PULSE"] }, { k: "knob", i: [7, 8, 9, 10] }] },
+    { title: "FILTER", items: [{ k: "seg", i: 13, label: "MODE", opts: ["LP24", "LP12", "BP", "HP", "NOTCH"] }, { k: "knob", i: [14, 15, 16, 17, 18] }] },
+    { title: "AMP ENVELOPE", items: [{ k: "knob", i: [19, 20, 21, 22, 32] }] },
+    { title: "MOD ENVELOPE & LFOS", items: [{ k: "seg", i: 27, label: "LFO 1", opts: ["SINE", "TRI", "SAW", "SQR", "RND"] }, { k: "knob", i: [23, 24, 25, 26, 28, 29, 30, 31] }] },
+    { title: "OUTPUT", items: [{ k: "knob", i: [33, 34] }] },
+  ],
+  viz: "wave", vizLabel: "WAVETABLE", vizParam: 7, kb: { base: 36, n: 49 },
+  testParams: { 6: 1, 11: 0.4, 12: 0.2, 31: 0.4 },
+};

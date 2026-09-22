@@ -44,6 +44,22 @@ html,body{height:100%}
 .list-pane{overflow:auto;padding:16px 14px 28px;border-right:1px solid var(--line)}
 .list-pane .search{margin-bottom:14px}
 .list{display:flex;flex-direction:column;gap:9px}
+/* kind tabs + category chips + section headings */
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{flex:1;padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:var(--panel);
+  color:var(--muted);font:600 13px inherit;cursor:pointer}
+.tab:hover{border-color:#33415a}
+.tab.active{color:var(--text);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);font:12px inherit;cursor:pointer}
+.chip i{font-style:normal;font-size:10.5px;opacity:.7}
+.chip:hover{border-color:#33415a;color:var(--text)}
+.chip.active{color:var(--text);border-color:var(--accent);background:rgba(79,141,255,.12)}
+.group-head{display:flex;align-items:baseline;justify-content:space-between;margin:12px 2px 0;padding-bottom:5px;
+  border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.group-head:first-child{margin-top:0}
+.group-head span{font-size:10.5px;letter-spacing:0}
 .row{width:100%;text-align:left;cursor:pointer;background:linear-gradient(180deg,var(--panel),var(--bg2));
   border:1px solid var(--line);border-radius:12px;padding:11px 12px;display:flex;flex-direction:column;gap:6px;
   color:var(--text);font:inherit;transition:border-color .12s}

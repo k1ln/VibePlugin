@@ -390,6 +390,7 @@ async function openGallery(){
   galleryShow(true);
   galleryShowList();
   $("gallerySearch").value = "";
+  galleryCat = null;
   if (galleryItems){ renderGallery(""); return; }
   $("galleryGrid").innerHTML = "";
   $("galleryStatus").textContent = "Loading the gallery…";
@@ -404,20 +405,59 @@ async function openGallery(){
   galleryItems = r.items.filter((it) => !!it.isInstrument === wantInstrument);
   renderGallery("");
 }
+// index.json rows carry `category` + `categoryOrder` (scripts/build-gallery.mjs);
+// an older catalogue without them shows as one "Other" group and no chips.
+const galleryCatOf = (it) => it.category || (it.isInstrument ? "Other Synths" : "Other Effects");
+const galleryCatRank = (it) => it.categoryOrder == null ? 999 : it.categoryOrder;
+let galleryCat = null;   // the selected category chip, or null for all
 function renderGallery(query){
-  const grid = $("galleryGrid");
-  grid.innerHTML = "";
+  const grid = $("galleryGrid"), chips = $("galleryChips");
+  grid.innerHTML = ""; chips.innerHTML = "";
   const q = (query || "").trim().toLowerCase();
-  const list = (galleryItems || []).filter((it) =>
+  const matched = (galleryItems || []).filter((it) =>
     !q || (it.name && it.name.toLowerCase().includes(q))
        || (it.explanation && it.explanation.toLowerCase().includes(q)));
+  if (galleryCat && !matched.some((it) => galleryCatOf(it) === galleryCat)) galleryCat = null;
+  // one chip per category that has a match (so a chip never lands on an empty list)
+  const counts = new Map();
+  for (const it of matched){
+    const c = galleryCatOf(it), e = counts.get(c) || { n: 0, rank: galleryCatRank(it) };
+    e.n++; counts.set(c, e);
+  }
+  if (counts.size > 1){
+    const mk = (label, n, on, fn) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "gallery-chip" + (on ? " active" : "");
+      b.textContent = label + " ";
+      const i = document.createElement("i"); i.textContent = n; b.appendChild(i);
+      b.addEventListener("click", fn); chips.appendChild(b);
+    };
+    mk("All", matched.length, galleryCat === null, () => { galleryCat = null; renderGallery(query); });
+    for (const [c, e] of [...counts].sort((a, b) => a[1].rank - b[1].rank))
+      mk(c, e.n, galleryCat === c, () => { galleryCat = galleryCat === c ? null : c; renderGallery(query); });
+  }
+  const list = matched.filter((it) => !galleryCat || galleryCatOf(it) === galleryCat);
   if (!list.length){
     $("galleryStatus").textContent =
       (galleryItems && galleryItems.length) ? "No matches." : "The gallery has no plugins of this type yet.";
     return;
   }
   $("galleryStatus").textContent = list.length + (list.length === 1 ? " plugin" : " plugins");
+  // group under a heading per category, in the catalogue's display order
+  const groups = new Map();
   for (const it of list){
+    const c = galleryCatOf(it);
+    if (!groups.has(c)) groups.set(c, { rank: galleryCatRank(it), items: [] });
+    groups.get(c).items.push(it);
+  }
+  const ordered = [...groups].sort((a, b) => a[1].rank - b[1].rank);
+  for (const [c, g] of ordered){
+    if (groups.size > 1){
+      const h = document.createElement("div"); h.className = "gallery-group"; h.textContent = c;
+      const n = document.createElement("span"); n.textContent = g.items.length; h.appendChild(n);
+      grid.appendChild(h);
+    }
+    for (const it of g.items){
     const card = document.createElement("button");
     card.className = "gallery-card"; card.type = "button";
     // Rendered-GUI thumbnail (lazy so a long list stays snappy). Entries
@@ -434,6 +474,7 @@ function renderGallery(query){
     card.append(shot, body);
     card.addEventListener("click", () => galleryOpenDetail(it));
     grid.appendChild(card);
+    }
   }
 }
 function galleryOpenDetail(it){

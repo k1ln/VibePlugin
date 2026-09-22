@@ -1,0 +1,327 @@
+{
+  "format": 1,
+  "name": "Chiptrio",
+  "isInstrument": true,
+  "explanation": "A three-voice home-computer sound-chip instrument modelled on the architecture of the MOS 6581/8580. Each voice has a phase-accumulator oscillator with triangle, sawtooth, pulse and LFSR-noise waveforms (any combination, combined by bitwise AND), pulse width, ring modulation and hard sync in the chip's 1-2-3-1 ring, and an 8-bit ADSR using the chip's sixteen attack/decay/release times. One shared 12 dB state-variable filter (low/band/high in any mix, per-voice routing) has a 6581 mode with input overload and softer cutoff and a clean 8580 mode. Play Poly, Unison or Arp (held notes cycle at chip speed). PWM, vibrato/mod wheel, lo-fi bit and clock reduction and unison detune round it out.",
+  "params": [
+    {
+      "name": "Voice 1 Wave",
+      "index": 0,
+      "min": 0,
+      "max": 15,
+      "default": 4
+    },
+    {
+      "name": "Voice 1 Pulse Width",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.42
+    },
+    {
+      "name": "Voice 1 Ring",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Voice 1 Sync",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Voice 1 Attack",
+      "index": 4,
+      "min": 0,
+      "max": 15,
+      "default": 0
+    },
+    {
+      "name": "Voice 1 Decay",
+      "index": 5,
+      "min": 0,
+      "max": 15,
+      "default": 9
+    },
+    {
+      "name": "Voice 1 Sustain",
+      "index": 6,
+      "min": 0,
+      "max": 15,
+      "default": 6
+    },
+    {
+      "name": "Voice 1 Release",
+      "index": 7,
+      "min": 0,
+      "max": 15,
+      "default": 5
+    },
+    {
+      "name": "Voice 1 Tune",
+      "index": 8,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "Voice 1 Level",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    },
+    {
+      "name": "Voice 2 Wave",
+      "index": 10,
+      "min": 0,
+      "max": 15,
+      "default": 2
+    },
+    {
+      "name": "Voice 2 Pulse Width",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Voice 2 Ring",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Voice 2 Sync",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Voice 2 Attack",
+      "index": 14,
+      "min": 0,
+      "max": 15,
+      "default": 0
+    },
+    {
+      "name": "Voice 2 Decay",
+      "index": 15,
+      "min": 0,
+      "max": 15,
+      "default": 9
+    },
+    {
+      "name": "Voice 2 Sustain",
+      "index": 16,
+      "min": 0,
+      "max": 15,
+      "default": 6
+    },
+    {
+      "name": "Voice 2 Release",
+      "index": 17,
+      "min": 0,
+      "max": 15,
+      "default": 5
+    },
+    {
+      "name": "Voice 2 Tune",
+      "index": 18,
+      "min": -24,
+      "max": 24,
+      "default": 0
+    },
+    {
+      "name": "Voice 2 Level",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Voice 3 Wave",
+      "index": 20,
+      "min": 0,
+      "max": 15,
+      "default": 1
+    },
+    {
+      "name": "Voice 3 Pulse Width",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Voice 3 Ring",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Voice 3 Sync",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Voice 3 Attack",
+      "index": 24,
+      "min": 0,
+      "max": 15,
+      "default": 0
+    },
+    {
+      "name": "Voice 3 Decay",
+      "index": 25,
+      "min": 0,
+      "max": 15,
+      "default": 9
+    },
+    {
+      "name": "Voice 3 Sustain",
+      "index": 26,
+      "min": 0,
+      "max": 15,
+      "default": 8
+    },
+    {
+      "name": "Voice 3 Release",
+      "index": 27,
+      "min": 0,
+      "max": 15,
+      "default": 5
+    },
+    {
+      "name": "Voice 3 Tune",
+      "index": 28,
+      "min": -24,
+      "max": 24,
+      "default": -12
+    },
+    {
+      "name": "Voice 3 Level",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Mode",
+      "index": 30,
+      "min": 0,
+      "max": 2,
+      "default": 1
+    },
+    {
+      "name": "Arp Rate",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Filter Mode",
+      "index": 32,
+      "min": 0,
+      "max": 7,
+      "default": 1
+    },
+    {
+      "name": "Cutoff",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Resonance",
+      "index": 34,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Filter Route",
+      "index": 35,
+      "min": 0,
+      "max": 7,
+      "default": 7
+    },
+    {
+      "name": "Chip Model",
+      "index": 36,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "PWM Depth",
+      "index": 37,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "PWM Rate",
+      "index": 38,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Vibrato",
+      "index": 39,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Lo-Fi",
+      "index": 40,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Clock Reduce",
+      "index": 41,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Volume",
+      "index": 42,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Bend Range",
+      "index": 43,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Unison Detune",
+      "index": 44,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    }
+  ],
+  "wasmBase64": "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",
+  "html": "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Chiptrio</title>\n<style>\n:root{--a:#6cc7ff;--a2:#c9ecff;--pn:#0f1c2a;--ink:#dcebf7;--dim:#7b97ad;--ln:rgba(108,199,255,.16)}\n*{box-sizing:border-box}html,body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#12304a,#070f18 65%);color:var(--ink);font:12px/1.3 -apple-system,\"Segoe UI\",Helvetica,sans-serif;min-height:100%}\n#app{max-width:1040px;margin:0 auto;padding:12px}\nh1{margin:0 0 8px;font-size:18px;letter-spacing:.3em;font-weight:300;color:var(--a2)}h1 small{letter-spacing:.15em;color:var(--dim);font-size:10px;margin-left:10px}\ncanvas{width:100%;height:120px;display:block;background:#060c13;border:1px solid var(--ln);border-radius:8px}\n.row{display:grid;gap:8px;margin-top:8px}.r3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}\n.g{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 10px}\n.g h2{margin:0 0 6px;font-size:9px;letter-spacing:.25em;color:var(--a);font-weight:600}\n.ks{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px 2px;margin-top:6px}\n.tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:44px}\n.tg button{background:#08131d;color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 7px;font:600 9px/1 inherit;letter-spacing:.1em;cursor:pointer}\n.tg button.on{background:var(--a);color:#06121c;border-color:var(--a)}\n.k{display:flex;flex-direction:column;align-items:center;user-select:none;touch-action:none;cursor:ns-resize}\n.k svg{width:40px;height:40px}.k .n{font-size:9px;color:var(--dim);text-align:center;margin-top:1px}.k .v{font-size:9px;color:var(--a2)}\n#kb{position:relative;height:76px;margin-top:8px;user-select:none;touch-action:none}\n.w{position:absolute;top:0;height:100%;background:linear-gradient(#eaf5fd,#b8d3e6);border:1px solid #070f18;border-radius:0 0 4px 4px}.w.on{background:var(--a)}\n.b{position:absolute;top:0;height:58%;background:linear-gradient(#1f3346,#08121b);border-radius:0 0 3px 3px;z-index:2}.b.on{background:var(--a)}\n</style></head><body><div id=\"app\"><h1>CHIPTRIO<small>THREE-VOICE CHIP</small></h1><canvas id=\"cv\"></canvas><div class=\"row r3\" id=\"voices\"></div><div class=\"row r3\" id=\"rest\"></div><div id=\"kb\"></div></div>\n<script>\n(function(){\nvar PARAMS=[{\"name\": \"Voice 1 Wave\", \"index\": 0, \"min\": 0, \"max\": 15, \"default\": 4, \"step\": 1}, {\"name\": \"Voice 1 Pulse Width\", \"index\": 1, \"min\": 0, \"max\": 1, \"default\": 0.42}, {\"name\": \"Voice 1 Ring\", \"index\": 2, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 1 Sync\", \"index\": 3, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 1 Attack\", \"index\": 4, \"min\": 0, \"max\": 15, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 1 Decay\", \"index\": 5, \"min\": 0, \"max\": 15, \"default\": 9, \"step\": 1}, {\"name\": \"Voice 1 Sustain\", \"index\": 6, \"min\": 0, \"max\": 15, \"default\": 6, \"step\": 1}, {\"name\": \"Voice 1 Release\", \"index\": 7, \"min\": 0, \"max\": 15, \"default\": 5, \"step\": 1}, {\"name\": \"Voice 1 Tune\", \"index\": 8, \"min\": -24, \"max\": 24, \"default\": 0}, {\"name\": \"Voice 1 Level\", \"index\": 9, \"min\": 0, \"max\": 1, \"default\": 0.9}, {\"name\": \"Voice 2 Wave\", \"index\": 10, \"min\": 0, \"max\": 15, \"default\": 2, \"step\": 1}, {\"name\": \"Voice 2 Pulse Width\", \"index\": 11, \"min\": 0, \"max\": 1, \"default\": 0.5}, {\"name\": \"Voice 2 Ring\", \"index\": 12, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 2 Sync\", \"index\": 13, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 2 Attack\", \"index\": 14, \"min\": 0, \"max\": 15, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 2 Decay\", \"index\": 15, \"min\": 0, \"max\": 15, \"default\": 9, \"step\": 1}, {\"name\": \"Voice 2 Sustain\", \"index\": 16, \"min\": 0, \"max\": 15, \"default\": 6, \"step\": 1}, {\"name\": \"Voice 2 Release\", \"index\": 17, \"min\": 0, \"max\": 15, \"default\": 5, \"step\": 1}, {\"name\": \"Voice 2 Tune\", \"index\": 18, \"min\": -24, \"max\": 24, \"default\": 0}, {\"name\": \"Voice 2 Level\", \"index\": 19, \"min\": 0, \"max\": 1, \"default\": 0.8}, {\"name\": \"Voice 3 Wave\", \"index\": 20, \"min\": 0, \"max\": 15, \"default\": 1, \"step\": 1}, {\"name\": \"Voice 3 Pulse Width\", \"index\": 21, \"min\": 0, \"max\": 1, \"default\": 0.5}, {\"name\": \"Voice 3 Ring\", \"index\": 22, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 3 Sync\", \"index\": 23, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 3 Attack\", \"index\": 24, \"min\": 0, \"max\": 15, \"default\": 0, \"step\": 1}, {\"name\": \"Voice 3 Decay\", \"index\": 25, \"min\": 0, \"max\": 15, \"default\": 9, \"step\": 1}, {\"name\": \"Voice 3 Sustain\", \"index\": 26, \"min\": 0, \"max\": 15, \"default\": 8, \"step\": 1}, {\"name\": \"Voice 3 Release\", \"index\": 27, \"min\": 0, \"max\": 15, \"default\": 5, \"step\": 1}, {\"name\": \"Voice 3 Tune\", \"index\": 28, \"min\": -24, \"max\": 24, \"default\": -12}, {\"name\": \"Voice 3 Level\", \"index\": 29, \"min\": 0, \"max\": 1, \"default\": 0.8}, {\"name\": \"Mode\", \"index\": 30, \"min\": 0, \"max\": 2, \"default\": 1, \"step\": 1}, {\"name\": \"Arp Rate\", \"index\": 31, \"min\": 0, \"max\": 1, \"default\": 0.5}, {\"name\": \"Filter Mode\", \"index\": 32, \"min\": 0, \"max\": 7, \"default\": 1, \"step\": 1}, {\"name\": \"Cutoff\", \"index\": 33, \"min\": 0, \"max\": 1, \"default\": 0.4}, {\"name\": \"Resonance\", \"index\": 34, \"min\": 0, \"max\": 1, \"default\": 0.6}, {\"name\": \"Filter Route\", \"index\": 35, \"min\": 0, \"max\": 7, \"default\": 7, \"step\": 1}, {\"name\": \"Chip Model\", \"index\": 36, \"min\": 0, \"max\": 1, \"default\": 0, \"step\": 1}, {\"name\": \"PWM Depth\", \"index\": 37, \"min\": 0, \"max\": 1, \"default\": 0.25}, {\"name\": \"PWM Rate\", \"index\": 38, \"min\": 0, \"max\": 1, \"default\": 0.35}, {\"name\": \"Vibrato\", \"index\": 39, \"min\": 0, \"max\": 1, \"default\": 0.1}, {\"name\": \"Lo-Fi\", \"index\": 40, \"min\": 0, \"max\": 1, \"default\": 0}, {\"name\": \"Clock Reduce\", \"index\": 41, \"min\": 0, \"max\": 1, \"default\": 0}, {\"name\": \"Volume\", \"index\": 42, \"min\": 0, \"max\": 1, \"default\": 0.8}, {\"name\": \"Bend Range\", \"index\": 43, \"min\": 0, \"max\": 1, \"default\": 0.1667}, {\"name\": \"Unison Detune\", \"index\": 44, \"min\": 0, \"max\": 1, \"default\": 0.35}];\nvar V={},R={},SV=\"http://www.w3.org/2000/svg\",held={},lastHit=0,disp=[0,0,0,0,0,0,0],hasDisp=0;\nfunction host(f){var a=[].slice.call(arguments,1);if(window.vstai&&typeof window.vstai[f]===\"function\")window.vstai[f].apply(window.vstai,a)}\nfunction set(i,v){V[i]=v;host(\"setParam\",i,v);if(R[i])R[i]()}\nfunction fmt(i,v){var p=PARAMS[i],b=i%10;if(i<30){if(b==1||b==9)return Math.round(v*100)+\"%\";if(b==8)return(v>0?\"+\":\"\")+v.toFixed(0)+\" st\";return Math.round(v)}\nif(i==42||i==43)return i==43?Math.round(v*12)+\" st\":Math.round(v*100)+\"%\";return Math.round(v*100)+\"%\"}\nfunction knob(i,label){var p=PARAMS[i];V[i]=p.default;var w=document.createElement(\"div\");w.className=\"k\";\nvar s=document.createElementNS(SV,\"svg\");s.setAttribute(\"viewBox\",\"0 0 44 44\");\ns.innerHTML='<circle cx=\"22\" cy=\"22\" r=\"19\" fill=\"#08131d\" stroke=\"rgba(108,199,255,.2)\"/><path class=\"tr\" fill=\"none\" stroke=\"rgba(108,199,255,.18)\" stroke-width=\"3\" stroke-linecap=\"round\"/><path class=\"ar\" fill=\"none\" stroke=\"#6cc7ff\" stroke-width=\"3\" stroke-linecap=\"round\"/><line class=\"nd\" x1=\"22\" y1=\"22\" stroke=\"#c9ecff\" stroke-width=\"2\" stroke-linecap=\"round\"/>';\nvar n=document.createElement(\"div\");n.className=\"n\";n.textContent=label||p.name;var vv=document.createElement(\"div\");vv.className=\"v\";w.appendChild(s);w.appendChild(n);w.appendChild(vv);\nfunction arc(a0,a1){var r=15,x0=22+r*Math.sin(a0),y0=22-r*Math.cos(a0),x1=22+r*Math.sin(a1),y1=22-r*Math.cos(a1);return\"M\"+x0+\" \"+y0+\"A\"+r+\" \"+r+\" 0 \"+((a1-a0)>Math.PI?1:0)+\" 1 \"+x1+\" \"+y1}\nfunction norm(){return(V[i]-p.min)/(p.max-p.min)}\nfunction paint(){var a0=-2.35,a1=2.35,t=a0+(a1-a0)*norm();s.querySelector(\".tr\").setAttribute(\"d\",arc(a0,a1));s.querySelector(\".ar\").setAttribute(\"d\",arc(a0,Math.max(t,a0+.001)));\nvar nd=s.querySelector(\".nd\");nd.setAttribute(\"x2\",22+13*Math.sin(t));nd.setAttribute(\"y2\",22-13*Math.cos(t));vv.textContent=fmt(i,V[i])}\nR[i]=paint;paint();\nvar y0,n0,drag=false;\nfunction put(nv){nv=Math.min(1,Math.max(0,nv));var v=p.min+nv*(p.max-p.min);if(p.step)v=Math.round(v/p.step)*p.step;set(i,v)}\nfunction mv(e){if(!drag)return;var y=e.touches?e.touches[0].clientY:e.clientY;put(n0+(y0-y)/(e.shiftKey?600:160));if(e.cancelable)e.preventDefault()}\nw.addEventListener(\"mousedown\",function(e){drag=true;y0=e.clientY;n0=norm();e.preventDefault()});\nw.addEventListener(\"touchstart\",function(e){drag=true;y0=e.touches[0].clientY;n0=norm()},{passive:false});\nwindow.addEventListener(\"mousemove\",mv);window.addEventListener(\"touchmove\",mv,{passive:false});window.addEventListener(\"mouseup\",function(){drag=false});window.addEventListener(\"touchend\",function(){drag=false});\nw.addEventListener(\"dblclick\",function(){set(i,p.default)});\nw.addEventListener(\"wheel\",function(e){var st=p.step?p.step:(p.max-p.min)*.02;set(i,Math.min(p.max,Math.max(p.min,V[i]-Math.sign(e.deltaY)*st)));e.preventDefault()},{passive:false});\nreturn w}\n// toggle-bit group (mask param) / plain toggle / segmented choice\nfunction bits(i,label,names){V[i]=PARAMS[i].default;var row=document.createElement(\"div\");row.className=\"tg\";row.innerHTML=\"<span>\"+label+\"</span>\";var bs=[];\nnames.forEach(function(nm,k){var b=document.createElement(\"button\");b.textContent=nm;b.onclick=function(){set(i,(Math.round(V[i])^(1<<k)))};row.appendChild(b);bs.push(b)});\nR[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])&(1<<k))?\"on\":\"\"})};R[i]();return row}\nfunction seg(i,label,names){V[i]=PARAMS[i].default;var row=document.createElement(\"div\");row.className=\"tg\";row.innerHTML=\"<span>\"+label+\"</span>\";var bs=[];\nnames.forEach(function(nm,k){var b=document.createElement(\"button\");b.textContent=nm;b.onclick=function(){set(i,k)};row.appendChild(b);bs.push(b)});\nR[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])===k)?\"on\":\"\"})};R[i]();return row}\nfunction card(title){var d=document.createElement(\"div\");d.className=\"g\";d.innerHTML=\"<h2>\"+title+\"</h2>\";return d}\nfunction knobs(ids,labels){var ks=document.createElement(\"div\");ks.className=\"ks\";ids.forEach(function(i,k){ks.appendChild(knob(i,labels&&labels[k]))});return ks}\nvar cv=document.getElementById(\"cv\"),cx=cv.getContext(\"2d\");\nfunction draw(t){var dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}\ncx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);var cw=(W-40)/3;\nfor(var v=0;v<3;v++){var b=v*10,A=V[b+4]/15,D=V[b+5]/15,S=V[b+6]/15,Rl=V[b+7]/15,x0=10+v*(cw+10),segW=cw/3.6,y1=H-14,y0=14;\nvar ax=x0+A*segW,dx=ax+Math.max(D,.05)*segW,sx=dx+segW*.5,rx=Math.min(x0+cw,sx+Math.max(Rl,.05)*segW);\ncx.beginPath();cx.moveTo(x0,y1);cx.lineTo(ax,y0);cx.lineTo(dx,y1-(y1-y0)*S);cx.lineTo(sx,y1-(y1-y0)*S);cx.lineTo(rx,y1);\ncx.strokeStyle=\"rgba(108,199,255,.9)\";cx.lineWidth=2;cx.stroke();cx.lineTo(x0,y1);cx.fillStyle=\"rgba(108,199,255,.08)\";cx.fill();\nvar lv=hasDisp?disp[v]:0;cx.fillStyle=\"rgba(201,236,255,\"+(.15+lv*.85)+\")\";cx.fillRect(x0,H-8,cw*lv,4);\ncx.fillStyle=\"#7b97ad\";cx.font=\"9px sans-serif\";cx.fillText(\"VOICE \"+(v+1),x0,10)}\nrequestAnimationFrame(draw)}\nvar kb=document.getElementById(\"kb\"),KEYS=[],BLK={1:1,3:1,6:1,8:1,10:1},BASE=36,N=37,wn=0;\nfunction on(n){if(held[n])return;held[n]=1;lastHit=performance.now();host(\"noteOn\",n,.8);if(KEYS[n])KEYS[n].classList.add(\"on\")}\nfunction off(n){if(!held[n])return;delete held[n];host(\"noteOff\",n);if(KEYS[n])KEYS[n].classList.remove(\"on\")}\nfor(var n=BASE;n<BASE+N;n++)if(!BLK[n%12])wn++;\nvar wi=0;for(var n=BASE;n<BASE+N;n++){var e=document.createElement(\"div\"),bk=BLK[n%12];e.className=bk?\"b\":\"w\";\nif(bk){e.style.left=(wi/wn*100-1.1)+\"%\";e.style.width=\"2.2%\"}else{e.style.left=(wi/wn*100)+\"%\";e.style.width=(100/wn)+\"%\";wi++}\n(function(n,e){e.addEventListener(\"mousedown\",function(ev){on(n);ev.preventDefault();ev.stopPropagation()});e.addEventListener(\"mouseup\",function(){off(n)});e.addEventListener(\"mouseleave\",function(){off(n)});\ne.addEventListener(\"touchstart\",function(ev){on(n);ev.preventDefault()},{passive:false});e.addEventListener(\"touchend\",function(ev){off(n);ev.preventDefault()})})(n,e);\nKEYS[n]=e;kb.appendChild(e)}\nvar MAP=\"awsedftgyhujkolp;\".split(\"\");window.addEventListener(\"keydown\",function(e){if(e.repeat)return;var i=MAP.indexOf(e.key);if(i>=0)on(60+i)});\nwindow.addEventListener(\"keyup\",function(e){var i=MAP.indexOf(e.key);if(i>=0)off(60+i)});\nfunction boot(){var vs=document.getElementById(\"voices\"),rest=document.getElementById(\"rest\");\nfor(var v=0;v<3;v++){var b=v*10,c=card(\"VOICE \"+(v+1));\nc.appendChild(bits(b,\"WAVE\",[\"TRI\",\"SAW\",\"PULSE\",\"NOISE\"]));c.appendChild(bits(b+2,\"MOD\",[\"RING\"]));\n// ring / sync are separate params -> plain toggles in one row\nvar row=c.lastChild;row.parentNode.removeChild(row);var tr=document.createElement(\"div\");tr.className=\"tg\";tr.innerHTML=\"<span>MOD</span>\";\n[[b+2,\"RING\"],[b+3,\"SYNC\"]].forEach(function(q){var i=q[0];V[i]=PARAMS[i].default;var bt=document.createElement(\"button\");bt.textContent=q[1];bt.onclick=function(){set(i,V[i]>.5?0:1)};R[i]=function(){bt.className=V[i]>.5?\"on\":\"\"};R[i]();tr.appendChild(bt)});c.appendChild(tr);\nc.appendChild(knobs([b+1,b+4,b+5,b+6,b+7,b+8,b+9],[\"Pulse W\",\"Attack\",\"Decay\",\"Sustain\",\"Release\",\"Tune\",\"Level\"]));vs.appendChild(c)}\nvar f=card(\"FILTER\");f.appendChild(bits(32,\"MODE\",[\"LP\",\"BP\",\"HP\"]));f.appendChild(bits(35,\"ROUTE\",[\"V1\",\"V2\",\"V3\"]));f.appendChild(seg(36,\"CHIP\",[\"6581\",\"8580\"]));f.appendChild(knobs([33,34],[\"Cutoff\",\"Resonance\"]));rest.appendChild(f);\nvar m=card(\"PLAY\");m.appendChild(seg(30,\"MODE\",[\"POLY\",\"UNISON\",\"ARP\"]));m.appendChild(knobs([31,44,43,39],[\"Arp Rate\",\"Detune\",\"Bend\",\"Vibrato\"]));rest.appendChild(m);\nvar o=card(\"PWM & OUTPUT\");o.appendChild(knobs([37,38,40,41,42],[\"PWM Depth\",\"PWM Rate\",\"Lo-Fi\",\"Clock\",\"Volume\"]));rest.appendChild(o);\nPARAMS.forEach(function(p,i){host(\"setParam\",i,p.default)});\nif(window.vstai&&window.vstai.onDisplay)window.vstai.onDisplay(function(d){hasDisp=1;for(var i=0;i<7;i++)disp[i]=d[i]||0});\nif(window.vstai&&window.vstai.onParam)window.vstai.onParam(function(i,v){if(!(i in V))return;V[i]=+v;if(R[i])R[i]()});\nrequestAnimationFrame(draw)}\nif(window.vstai&&typeof window.vstai.onReady===\"function\")window.vstai.onReady(boot);else boot();\n})();\n</script></body></html>\n",
+  "assembly": "// =====================================================================\n//  CHIPTRIO — a three-voice home-computer sound-chip instrument.\n//  Modelled on the architecture of the MOS 6581/8580 (SID):\n//   * three oscillators, each with a 24-bit-style phase accumulator, a\n//     12-bit waveform (triangle / sawtooth / pulse / LFSR noise, any\n//     combination — combined waves are the bitwise AND of the parts)\n//   * ring modulation (triangle MSB xor'd with the previous voice) and\n//     hard sync from the previous voice, in the chip's 1->2->3->1 ring\n//   * 8-bit ADSR with the chip's 16 attack / decay / release times\n//   * one shared 12 dB state-variable filter (low / band / high, any mix)\n//     with a per-voice route mask; \"6581\" adds the old chip's grit and\n//     lower, softer cutoff, \"8580\" is clean\n//   * 4-bit-style output stage, plus lo-fi bit/clock reduction\n//  Play it POLY (notes take voices), UNISON (all three stack on one note)\n//  or ARP (held notes cycle at a chip-style speed). Pure algorithm.\n// =====================================================================\n\nconst MAX_FRAMES: i32 = 8192;\nconst MAX_CHANNELS: i32 = 2;\nconst MAX_PARAMS: i32 = 64;\nconst TWO_PI: f32 = 6.28318530717959;\nconst PI: f32 = 3.14159265358979;\n\nconst inBuf:  StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);\nconst outBuf: StaticArray<f32> = new StaticArray<f32>(MAX_FRAMES * MAX_CHANNELS);\nconst params: StaticArray<f32> = new StaticArray<f32>(MAX_PARAMS);\nconst display: StaticArray<f32> = new StaticArray<f32>(16);\n\n// per-voice parameter block: index = voice * 10 + offset\nconst V_WAVE: i32 = 0; const V_PW: i32 = 1;   const V_RING: i32 = 2;  const V_SYNC: i32 = 3;  const V_A: i32 = 4;\nconst V_D: i32 = 5;    const V_S: i32 = 6;    const V_R: i32 = 7;     const V_TUNE: i32 = 8;  const V_LEVEL: i32 = 9;\nconst G_MODE: i32 = 30;   const G_ARPRATE: i32 = 31; const G_FMODE: i32 = 32; const G_CUT: i32 = 33;  const G_RES: i32 = 34;\nconst G_ROUTE: i32 = 35;  const G_CHIP: i32 = 36;    const G_PWMD: i32 = 37;  const G_PWMR: i32 = 38; const G_VIB: i32 = 39;\nconst G_LOFI: i32 = 40;   const G_CLOCK: i32 = 41;   const G_VOL: i32 = 42;   const G_BEND: i32 = 43; const G_DETUNE: i32 = 44;\nconst NUM_PARAMS: i32 = 45;\n\nlet sampleRate: f32 = 48000.0;\n\nconst ATK_MS: StaticArray<f32> = [2.0, 8.0, 16.0, 24.0, 38.0, 56.0, 68.0, 80.0, 100.0, 250.0, 500.0, 800.0, 1000.0, 3000.0, 5000.0, 8000.0];\n\n// voices\nconst vPh:    StaticArray<f32> = new StaticArray<f32>(3);\nconst vWrap:  StaticArray<i32> = new StaticArray<i32>(3);   // phase wrapped this sample\nconst vNote:  StaticArray<i32> = new StaticArray<i32>(3);\nconst vAge:   StaticArray<i32> = new StaticArray<i32>(3);\nconst vFreq:  StaticArray<f32> = new StaticArray<f32>(3);\nconst vGate:  StaticArray<i32> = new StaticArray<i32>(3);\nconst vStage: StaticArray<i32> = new StaticArray<i32>(3);   // 0 idle 1 attack 2 decay/sustain 3 release\nconst vEnv:   StaticArray<f32> = new StaticArray<f32>(3);\nconst vVel:   StaticArray<f32> = new StaticArray<f32>(3);\nconst vLfsr:  StaticArray<u32> = new StaticArray<u32>(3);\nconst vNoise: StaticArray<i32> = new StaticArray<i32>(3);\nconst vB19:   StaticArray<i32> = new StaticArray<i32>(3);\n\n// held-note list for unison / arp\nconst hId:   StaticArray<i32> = new StaticArray<i32>(8);\nconst hFreq: StaticArray<f32> = new StaticArray<f32>(8);\nlet hCount: i32 = 0;\nlet arpIdx: i32 = 0;\nlet arpTimer: f32 = 0.0;\nlet ageCounter: i32 = 0;\nlet bendN: f32 = 0.0; let modWheel: f32 = 0.0; let pressure: f32 = 0.0;\nlet vibPh: f32 = 0.0; let pwmPh: f32 = 0.0;\nlet fLo: f32 = 0.0; let fBp: f32 = 0.0;\nlet dcX: f32 = 0.0; let dcY: f32 = 0.0;\nlet holdL: f32 = 0.0; let holdCnt: i32 = 0;\nlet sinceCoef: i32 = 1 << 20;\n\n@inline function clampf(x: f32, lo: f32, hi: f32): f32 { return x < lo ? lo : (x > hi ? hi : x); }\n\nexport function getInputPtr(): usize  { return changetype<usize>(inBuf); }\nexport function getOutputPtr(): usize { return changetype<usize>(outBuf); }\nexport function getParamsPtr(): usize { return changetype<usize>(params); }\nexport function getNumParams(): i32   { return NUM_PARAMS; }\nexport function getDisplayPtr(): usize { return changetype<usize>(display); }\n\nexport function init(sr: f32, maxFrames: i32, numChannels: i32): void {\n  sampleRate = sr > 0.0 ? sr : 48000.0;\n  for (let v = 0; v < 3; v++) {\n    vPh[v] = 0.0; vWrap[v] = 0; vNote[v] = -1; vAge[v] = 0; vFreq[v] = 440.0; vGate[v] = 0; vStage[v] = 0;\n    vEnv[v] = 0.0; vVel[v] = 0.0; vLfsr[v] = 0x7ffff8 + u32(v); vNoise[v] = 0; vB19[v] = 0;\n  }\n  hCount = 0; arpIdx = 0; arpTimer = 0.0; ageCounter = 0; bendN = 0.0; modWheel = 0.0; pressure = 0.0;\n  vibPh = 0.0; pwmPh = 0.0; fLo = 0.0; fBp = 0.0; dcX = 0.0; dcY = 0.0; holdL = 0.0; holdCnt = 0; sinceCoef = 1 << 20;\n  for (let i = 0; i < 16; i++) display[i] = 0.0;\n  // voice 1 pulse lead, voice 2 saw, voice 3 sub triangle\n  const d: f32[] = [\n    4.0, 0.42, 0.0, 0.0, 0.0, 9.0, 6.0, 5.0, 0.0, 0.9,\n    2.0, 0.5,  0.0, 0.0, 0.0, 9.0, 6.0, 5.0, 0.0, 0.8,\n    1.0, 0.5,  0.0, 0.0, 0.0, 9.0, 8.0, 5.0, -12.0, 0.8,\n    1.0, 0.5, 1.0, 0.4, 0.6, 7.0, 0.0, 0.25, 0.35, 0.1, 0.0, 0.0, 0.8, 0.1667, 0.35\n  ];\n  for (let i = 0; i < NUM_PARAMS; i++) params[i] = d[i];\n}\n\nexport function controlChange(num: i32, value: f32): void {\n  if (num == 128) bendN = clampf(value, -1.0, 1.0);\n  else if (num == 1) modWheel = clampf(value, 0.0, 1.0);\n  else if (num == 129) pressure = clampf(value, 0.0, 1.0);\n}\n\nfunction gateOn(v: i32, id: i32, f: f32, vel: f32, retrig: bool): void {\n  vNote[v] = id; vFreq[v] = f; vVel[v] = vel; vGate[v] = 1; vAge[v] = ageCounter++;\n  if (retrig || vStage[v] == 0 || vStage[v] == 3) { vStage[v] = 1; }\n}\nfunction gateOff(v: i32): void { vGate[v] = 0; if (vStage[v] != 0) vStage[v] = 3; }\n\nexport function noteOn(id: i32, f: f32, vel: f32): void {\n  const fr: f32 = f > 1.0 ? f : 1.0;\n  const vl: f32 = clampf(vel, 0.0, 1.0);\n  const mode: i32 = i32(params[G_MODE] + 0.5);\n  // held list (unison / arp)\n  if (hCount < 8) { hId[hCount] = id; hFreq[hCount] = fr; hCount++; }\n  if (mode == 0) {\n    let slot: i32 = -1;\n    for (let i = 0; i < 3; i++) if (vGate[i] == 0 && vStage[i] == 0) { slot = i; break; }\n    if (slot < 0) for (let i = 0; i < 3; i++) if (vGate[i] == 0) { slot = i; break; }\n    if (slot < 0) { let o: i32 = 0; for (let i = 1; i < 3; i++) if (vAge[i] < vAge[o]) o = i; slot = o; }\n    gateOn(slot, id, fr, vl, true);\n  } else if (mode == 1) {\n    for (let i = 0; i < 3; i++) gateOn(i, id, fr, vl, true);\n  } else {\n    // arp: the gate stays open across steps; only the first note retriggers\n    const first: bool = hCount == 1;\n    for (let i = 0; i < 3; i++) gateOn(i, id, hFreq[arpIdx % hCount], vl, first);\n    if (first) { arpIdx = 0; arpTimer = 0.0; }\n  }\n}\n\nexport function noteOff(id: i32): void {\n  const mode: i32 = i32(params[G_MODE] + 0.5);\n  let k: i32 = -1;\n  for (let i = 0; i < hCount; i++) if (hId[i] == id) { k = i; break; }\n  if (k >= 0) { for (let i = k; i < hCount - 1; i++) { hId[i] = hId[i + 1]; hFreq[i] = hFreq[i + 1]; } hCount--; }\n  if (mode == 0) {\n    for (let i = 0; i < 3; i++) if (vNote[i] == id && vGate[i] == 1) gateOff(i);\n  } else if (hCount > 0) {\n    // fall back to the most recent held note (mono-style), keep gate open\n    const nf: f32 = hFreq[hCount - 1];\n    for (let i = 0; i < 3; i++) { vFreq[i] = nf; vNote[i] = hId[hCount - 1]; }\n    if (arpIdx >= hCount) arpIdx = 0;\n  } else {\n    for (let i = 0; i < 3; i++) gateOff(i);\n  }\n}\n\n// SID-style 24-bit accumulator bit 19 + 23-bit LFSR noise\n@inline function clockNoise(v: i32): void {\n  let l: u32 = vLfsr[v];\n  const bit: u32 = ((l >> 22) ^ (l >> 17)) & 1;\n  l = ((l << 1) | bit) & 0x7fffff;\n  vLfsr[v] = l;\n  vNoise[v] = i32(((l >> 22) & 1) << 7 | ((l >> 20) & 1) << 6 | ((l >> 16) & 1) << 5 | ((l >> 13) & 1) << 4\n    | ((l >> 11) & 1) << 3 | ((l >> 7) & 1) << 2 | ((l >> 4) & 1) << 1 | (l & 1)) << 4;\n}\n\nexport function process(n: i32): void {\n  const sr: f32 = sampleRate;\n  const mode: i32 = i32(params[G_MODE] + 0.5);\n  const arpStep: f32 = sr / (4.0 + params[G_ARPRATE] * 44.0);\n  const fmode: i32 = i32(params[G_FMODE] + 0.5);\n  const route: i32 = i32(params[G_ROUTE] + 0.5);\n  const chip6581: bool = params[G_CHIP] < 0.5;\n  const res: f32 = params[G_RES];\n  const pwmD: f32 = params[G_PWMD]; const pwmInc: f32 = (0.2 + params[G_PWMR] * params[G_PWMR] * 8.0) / sr;\n  const vibInc: f32 = 5.5 / sr;\n  const bendSemi: f32 = bendN * f32(i32(params[G_BEND] * 12.0 + 0.5));\n  const lofi: f32 = params[G_LOFI];\n  const bits: f32 = 12.0 - lofi * 9.0;\n  const qLevels: f32 = f32(Mathf.pow(2.0, bits));\n  const holdN: i32 = 1 + i32(params[G_CLOCK] * 14.0);\n  const vol: f32 = params[G_VOL] * params[G_VOL] * 1.4;\n  const detCents: f32 = params[G_DETUNE] * 30.0;\n\n  for (let f = 0; f < n; f++) {\n    // ---- arp / lfos ----------------------------------------------------------------\n    if (mode == 2 && hCount > 0) {\n      arpTimer += 1.0;\n      if (arpTimer >= arpStep) {\n        arpTimer = 0.0; arpIdx = (arpIdx + 1) % hCount;\n        const nf: f32 = hFreq[arpIdx];\n        for (let i = 0; i < 3; i++) vFreq[i] = nf;\n      }\n    }\n    vibPh += vibInc; if (vibPh >= 1.0) vibPh -= 1.0;\n    pwmPh += pwmInc; if (pwmPh >= 1.0) pwmPh -= 1.0;\n    const vib: f32 = (params[G_VIB] * 0.5 + modWheel * 0.8) * f32(Mathf.sin(vibPh * TWO_PI)) * 0.5;\n\n    // ---- pass 1: phases, wrap, sync ------------------------------------------------------\n    for (let v = 0; v < 3; v++) {\n      if (vStage[v] == 0) { vWrap[v] = 0; continue; }\n      const b: i32 = v * 10;\n      const det: f32 = (v == 0 ? -detCents : (v == 2 ? detCents : 0.0)) * 0.01;\n      const semi: f32 = params[b + V_TUNE] + det + vib + bendSemi;\n      const fr: f32 = vFreq[v] * f32(Mathf.pow(2.0, semi * (1.0 / 12.0)));\n      let p: f32 = vPh[v] + fr / sr;\n      let wr: i32 = 0;\n      if (p >= 1.0) { p -= 1.0; wr = 1; }\n      vWrap[v] = wr;\n      vPh[v] = p;\n    }\n    for (let v = 0; v < 3; v++) {\n      const src: i32 = v == 0 ? 2 : v - 1;\n      if (params[v * 10 + V_SYNC] > 0.5 && vWrap[src] == 1) vPh[v] = 0.0;\n    }\n\n    // ---- pass 2: waveform, envelope ------------------------------------------------------------\n    let dirt: f32 = 0.0; let filt: f32 = 0.0;\n    for (let v = 0; v < 3; v++) {\n      const stg: i32 = vStage[v];\n      if (stg == 0) continue;\n      const b: i32 = v * 10;\n      // envelope (SID rate table; decay/release are 3x slower)\n      const ai: i32 = i32(params[b + V_A] + 0.5); const di: i32 = i32(params[b + V_D] + 0.5); const ri: i32 = i32(params[b + V_R] + 0.5);\n      const sl: f32 = clampf(params[b + V_S], 0.0, 15.0) / 15.0;\n      let e: f32 = vEnv[v];\n      if (stg == 1) {\n        e += 1.0 / (ATK_MS[ai < 0 ? 0 : (ai > 15 ? 15 : ai)] * 0.001 * sr);\n        if (e >= 1.0) { e = 1.0; vStage[v] = 2; }\n      } else if (stg == 2) {\n        const dt: f32 = ATK_MS[di < 0 ? 0 : (di > 15 ? 15 : di)] * 3.0 * 0.001;\n        e += (sl - e) * (1.0 - f32(Mathf.exp(-4.6 / (dt * sr))));\n      } else {\n        const rt: f32 = ATK_MS[ri < 0 ? 0 : (ri > 15 ? 15 : ri)] * 3.0 * 0.001;\n        e -= e * (1.0 - f32(Mathf.exp(-4.6 / (rt * sr))));\n        if (e < 0.0005) { e = 0.0; vStage[v] = 0; }\n      }\n      vEnv[v] = e;\n\n      // 12-bit waveform\n      const p: f32 = vPh[v];\n      const acc12: i32 = i32(p * 4096.0) & 4095;\n      const src: i32 = v == 0 ? 2 : v - 1;\n      const msbSrc: i32 = i32(vPh[src] * 2.0) & 1;\n      const b19: i32 = i32(p * 32.0) & 1;\n      if (b19 == 1 && vB19[v] == 0) clockNoise(v);\n      vB19[v] = b19;\n      const wmask: i32 = i32(params[b + V_WAVE] + 0.5);\n      let w: i32 = 4095; let any: bool = false;\n      if ((wmask & 1) != 0) {\n        let msb: i32 = (acc12 >> 11) & 1;\n        if (params[b + V_RING] > 0.5) msb ^= msbSrc;\n        const ramp: i32 = msb == 1 ? (~acc12) & 2047 : acc12 & 2047;\n        w &= ramp << 1; any = true;\n      }\n      if ((wmask & 2) != 0) { w &= acc12; any = true; }\n      if ((wmask & 4) != 0) {\n        const pw: f32 = clampf(params[b + V_PW] + pwmD * 0.45 * f32(Mathf.sin((pwmPh + f32(v) * 0.33) * TWO_PI)), 0.02, 0.98);\n        w &= (acc12 >= i32(pw * 4096.0)) ? 4095 : 0; any = true;\n      }\n      if ((wmask & 8) != 0) { w &= vNoise[v] & 4095; any = true; }\n      let o: f32 = any ? f32(w - 2048) / 2048.0 : 0.0;\n      // combined waves on the real chip thin out: soften when several are stacked\n      o *= e * params[b + V_LEVEL] * (0.35 + vVel[v] * 0.65);\n      const routed: bool = (route & (1 << v)) != 0;\n      if (routed) filt += o; else dirt += o;\n    }\n\n    // ---- shared filter (2x oversampled Chamberlin SVF) -------------------------------------------\n    let cutN: f32 = params[G_CUT];\n    let fc: f32 = 30.0 * f32(Mathf.pow(chip6581 ? 150.0 : 300.0, cutN));\n    if (chip6581) fc *= 1.0 + 0.25 * f32(Mathf.exp(-cutN * 6.0));\n    fc = clampf(fc, 20.0, sr * 0.3);\n    const g: f32 = 2.0 * f32(Mathf.sin(PI * fc / (2.0 * sr)));\n    const qd: f32 = 1.0 / (0.6 + (1.0 - res) * (1.0 - res) * 4.0);   // damping: res 1 -> near self-oscillation\n    let xin: f32 = filt;\n    if (chip6581) xin = f32(Mathf.tanh(xin * 1.6 + 0.02)) * 0.75;    // 6581 input overload + DC bump\n    let hp: f32 = 0.0;\n    for (let k = 0; k < 2; k++) {\n      hp = xin - fLo - qd * fBp;\n      fBp += g * hp; fLo += g * fBp;\n      if (chip6581) { fBp = f32(Mathf.tanh(fBp)); }\n    }\n    let fo: f32 = 0.0;\n    if ((fmode & 1) != 0) fo += fLo;\n    if ((fmode & 2) != 0) fo += fBp;\n    if ((fmode & 4) != 0) fo += hp;\n    if (fmode == 0) fo = 0.0;\n\n    let y: f32 = (dirt + fo) * 0.55 * vol;\n    // ---- lo-fi output stage --------------------------------------------------------------------------\n    if (holdN > 1) { holdCnt++; if (holdCnt >= holdN) { holdCnt = 0; holdL = y; } y = holdL; }\n    if (lofi > 0.001) y = f32(Math.round(y * qLevels * 0.5)) / (qLevels * 0.5);\n    const yd: f32 = y - dcX + 0.997 * dcY; dcX = y; dcY = yd; y = yd;\n    y = f32(Mathf.tanh(y * 1.1));\n    outBuf[f] = y;\n    outBuf[MAX_FRAMES + f] = y;\n  }\n  display[0] = vEnv[0]; display[1] = vEnv[1]; display[2] = vEnv[2];\n  display[3] = params[G_CUT];\n  for (let v = 0; v < 3; v++) display[4 + v] = vStage[v] != 0 ? 1.0 : 0.0;\n}\n",
+  "publishedAt": 1790000300000
+}

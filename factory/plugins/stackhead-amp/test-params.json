@@ -1,0 +1,131 @@
+[
+  {
+    "name": "Voicing",
+    "index": 0,
+    "min": 0,
+    "max": 3,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "Gain",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Bright",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Tight",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Bass",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Mid",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Treble",
+    "index": 6,
+    "min": 0,
+    "max": 1,
+    "default": 0.55
+  },
+  {
+    "name": "Presence",
+    "index": 7,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Master",
+    "index": 8,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "Sag",
+    "index": 9,
+    "min": 0,
+    "max": 1,
+    "default": 0.35
+  },
+  {
+    "name": "Gate",
+    "index": 10,
+    "min": 0,
+    "max": 1,
+    "default": 0.15
+  },
+  {
+    "name": "Cabinet",
+    "index": 11,
+    "min": 0,
+    "max": 2,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "Mic Position",
+    "index": 12,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Mic Distance",
+    "index": 13,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Cabinet On",
+    "index": 14,
+    "min": 0,
+    "max": 1,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "Room Width",
+    "index": 15,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Input Trim",
+    "index": 16,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Output",
+    "index": 17,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  }
+]

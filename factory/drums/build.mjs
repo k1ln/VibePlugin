@@ -64,6 +64,7 @@ function buildOne(p) {
   const table = p.defs.map((d, i) => ({ index: i, key: d.key, name: d.name, min: d.min, max: d.max, def: d.def, step: d.step || 0 }));
   const gui = rd(p.gui)
     .replace("/*@KIT@*/", () => rd("ui/kit.js"))
+    .replace("/*@PATTERNS@*/", () => rd("ui/patterns.json"))
     .replace("/*@PARAMS@*/", () => JSON.stringify(table))
     .replace("/*@CONFIG@*/", () => JSON.stringify(p.guiConfig || {}));
   writeFileSync(join(dir, "gui.html"), gui);

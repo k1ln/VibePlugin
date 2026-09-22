@@ -1,0 +1,266 @@
+{
+  "name": "Waveloom",
+  "isInstrument": true,
+  "explanation": "A wavetable synthesiser. Three table sets (Analog, Vocal, Digital), each of eight frames, are synthesised at start-up from harmonic spectra and stored as six band-limited octave mip levels so oscillators do not alias on the fundamental. Two oscillators scan their tables with linear morphing between frames (Position); five warp modes (none, sync, bend, mirror, pulse-width) reshape the phase; up to seven-voice unison adds detune and stereo spread; a sub oscillator and noise fill out the sound. A multimode filter (LP24, LP12, BP, HP, notch) has drive, key-track and velocity control. An amp ADSR, a modulation envelope (to Position and filter) and two LFOs (Position, filter and vibrato) shape everything over time. Eight voices.",
+  "assembly": "factory/plugins/waveloom/assembly.ts",
+  "out": "factory/plugins/waveloom/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#a4ff5c",
+    "accent2": "#e9ffd2"
+  },
+  "guiFile": "factory/plugins/waveloom/gui.html",
+  "params": [
+    {
+      "name": "Table Set",
+      "index": 0,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Osc 1 Position",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Osc 2 Position",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Osc 2 Level",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Osc 2 Semitone",
+      "index": 4,
+      "min": -12,
+      "max": 12,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Osc 2 Fine",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Warp Mode",
+      "index": 6,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Warp Amount",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Unison Voices",
+      "index": 8,
+      "min": 1,
+      "max": 7,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Unison Detune",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Stereo Spread",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Sub",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Noise",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Filter Mode",
+      "index": 13,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Cutoff",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Resonance",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Drive",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Key Track",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Filter Env",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Amp Attack",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.02
+    },
+    {
+      "name": "Amp Decay",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Amp Sustain",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "Amp Release",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Mod Attack",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0.02
+    },
+    {
+      "name": "Mod Decay",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Env → Position",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "LFO 1 Rate",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "LFO 1 Shape",
+      "index": 27,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "LFO 1 → Position",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "LFO 2 Rate",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "LFO 2 → Filter",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "LFO 2 → Pitch",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Velocity",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Level",
+      "index": 34,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

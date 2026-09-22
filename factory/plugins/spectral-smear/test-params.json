@@ -1,0 +1,110 @@
+[
+  {
+    "name": "Freeze",
+    "index": 0,
+    "min": 0,
+    "max": 1,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "Sustain",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Blur Time",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "Blur Freq",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.15
+  },
+  {
+    "name": "Phase",
+    "index": 4,
+    "min": 0,
+    "max": 2,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "Pitch",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Shift",
+    "index": 6,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Gate",
+    "index": 7,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Tilt",
+    "index": 8,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Low Cut",
+    "index": 9,
+    "min": 0,
+    "max": 1,
+    "default": 0
+  },
+  {
+    "name": "High Cut",
+    "index": 10,
+    "min": 0,
+    "max": 1,
+    "default": 1
+  },
+  {
+    "name": "Width",
+    "index": 11,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "FFT Size",
+    "index": 12,
+    "min": 0,
+    "max": 2,
+    "default": 1,
+    "step": 1
+  },
+  {
+    "name": "Mix",
+    "index": 13,
+    "min": 0,
+    "max": 1,
+    "default": 1
+  },
+  {
+    "name": "Output",
+    "index": 14,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  }
+]

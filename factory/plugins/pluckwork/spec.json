@@ -1,0 +1,157 @@
+{
+  "name": "Pluckwork",
+  "isInstrument": true,
+  "explanation": "A plucked-string instrument built on a digital waveguide. Each voice is a double course of strings: a delay-line loop with fractional tuning, loop low-pass (Brightness), two allpass stages of dispersion (Stiffness), an optional nonlinear bridge (Buzz, the sitar jawari), a pitch-falling Twang and a damper felt on release. Strings are struck by a comb-filtered noise burst (Pick Position, Hardness, velocity). The strings drive a four-resonator soundbox (Body Mix and Size) and eight tuned sympathetic strings, then a small stereo room. Character presets set it up as nylon or steel guitar, harp, harpsichord, koto, banjo or sitar, and every knob stays free to tweak.",
+  "assembly": "factory/plugins/pluckwork/assembly.ts",
+  "out": "factory/plugins/pluckwork/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb56b",
+    "accent2": "#ffe6c7"
+  },
+  "guiFile": "factory/plugins/pluckwork/gui.html",
+  "params": [
+    {
+      "name": "Character",
+      "index": 0,
+      "min": 0,
+      "max": 6,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pick Position",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.17
+    },
+    {
+      "name": "Pick Hardness",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Brightness",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Decay",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Stiffness",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.05
+    },
+    {
+      "name": "Body Mix",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Body Size",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Twang",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Buzz",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Course Detune",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Damper",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Palm Mute",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Sympathetic",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Sympathetic Tuning",
+      "index": 14,
+      "min": 0,
+      "max": 4,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Velocity Sens",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Width",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Space",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Bend Range",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Level",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    }
+  ]
+}

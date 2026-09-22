@@ -1,0 +1,150 @@
+{
+  "name": "Antenna Lead",
+  "isInstrument": true,
+  "explanation": "A theremin-style monophonic lead. A near-sine oscillator (Timbre adds the 2nd and 3rd harmonics of a real instrument) glides continuously between notes; a volume-hand envelope opens and closes the sound with velocity as hand height; slow random Drift makes pitch and level wander like an unsupported hand; vibrato fades in after a delay (mod wheel and aftertouch deepen it). Parallel formant resonators (Formant, Body) give the vocal oo-ah character, Beat Noise adds heterodyne hiss, Sub and Octave extend the range, and a small stereo room finishes it. Legato mode glides between overlapping notes.",
+  "assembly": "factory/plugins/antenna-lead/assembly.ts",
+  "out": "factory/plugins/antenna-lead/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#8fd3ff",
+    "accent2": "#eaf7ff"
+  },
+  "guiFile": "factory/plugins/antenna-lead/gui.html",
+  "params": [
+    {
+      "name": "Glide",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Timbre",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Formant",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Body",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Vibrato",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Vibrato Rate",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Vibrato Delay",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Drift",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Hand Attack",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Hand Release",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Beat Noise",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Sub",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Octave",
+      "index": 12,
+      "min": -2,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Legato",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Space",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Space Size",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Level",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Velocity Sens",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    }
+  ]
+}

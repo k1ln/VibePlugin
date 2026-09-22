@@ -1,0 +1,305 @@
+{
+  "name": "Cartridge Four",
+  "isInstrument": true,
+  "explanation": "An 8-bit console sound instrument modelled on the Ricoh 2A03 audio unit. Two pulse channels have the chip's 8-step duty sequences (12.5/25/50/75 %), 4-bit volume, a hardware-style 240 Hz decay envelope with loop, a sweep unit, vibrato, duty animation and chord arpeggios; a triangle channel plays its 32-step 4-bit staircase; a noise channel runs a 15-bit LFSR (long/short mode, the 16-entry period table, envelope, key tracking); a DPCM channel plays delta-modulated kick, snare and tom. Everything goes through the console's nonlinear mixer and output filter chain (Famicom or NES), with optional timer-period pitch quantisation. Notes in C1-B1 play drums (DPCM and noise percussion); other notes are pitched, layered on all channels or assigned across them (Poly).",
+  "assembly": "factory/plugins/cartridge-four/assembly.ts",
+  "out": "factory/plugins/cartridge-four/x.vstai",
+  "publishedAt": 1790000400000,
+  "theme": {
+    "accent": "#ff6b6b",
+    "accent2": "#ffd0c2"
+  },
+  "guiFile": "factory/plugins/cartridge-four/gui.html",
+  "params": [
+    {
+      "name": "Channel Mode",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Drum Zone",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Console",
+      "index": 2,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Period Quantize",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Smooth",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Pulse 1 Duty",
+      "index": 5,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Pulse 1 Volume",
+      "index": 6,
+      "min": 0,
+      "max": 15,
+      "default": 11,
+      "step": 1
+    },
+    {
+      "name": "Pulse 1 Decay Env",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Pulse 1 Decay Rate",
+      "index": 8,
+      "min": 0,
+      "max": 15,
+      "default": 6,
+      "step": 1
+    },
+    {
+      "name": "Pulse 1 Loop",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pulse 2 Duty",
+      "index": 10,
+      "min": 0,
+      "max": 3,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Pulse 2 Volume",
+      "index": 11,
+      "min": 0,
+      "max": 15,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Pulse 2 Decay Env",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Pulse 2 Decay Rate",
+      "index": 13,
+      "min": 0,
+      "max": 15,
+      "default": 6,
+      "step": 1
+    },
+    {
+      "name": "Pulse 2 Loop",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pulse 2 Detune",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Duty Animation",
+      "index": 16,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Sweep",
+      "index": 17,
+      "min": -7,
+      "max": 7,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Sweep Rate",
+      "index": 18,
+      "min": 0,
+      "max": 7,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Vibrato",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Vibrato Rate",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Vibrato Delay",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Triangle Level",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Triangle Octave",
+      "index": 23,
+      "min": -2,
+      "max": 0,
+      "default": -1,
+      "step": 1
+    },
+    {
+      "name": "Triangle Length",
+      "index": 24,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Noise Level",
+      "index": 25,
+      "min": 0,
+      "max": 15,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Noise Period",
+      "index": 26,
+      "min": 0,
+      "max": 15,
+      "default": 6,
+      "step": 1
+    },
+    {
+      "name": "Noise Short Mode",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Noise Decay",
+      "index": 28,
+      "min": 0,
+      "max": 15,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Noise Key Track",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "DPCM Level",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "DPCM Rate",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Arp Chord",
+      "index": 32,
+      "min": 0,
+      "max": 6,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Arp Speed",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Release",
+      "index": 34,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Velocity Sens",
+      "index": 35,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 36,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Master",
+      "index": 37,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    }
+  ]
+}

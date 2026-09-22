@@ -1,0 +1,123 @@
+{
+  "name": "Spectral Smear",
+  "isInstrument": false,
+  "explanation": "An FFT spectral processor: a stereo short-time Fourier transform (Hann analysis and synthesis, 75% overlap, 1024/2048/4096 points) with per-bin magnitude and phase processing. Freeze holds the spectrum, with each bin keeping its measured frequency so tones sustain coherently. Sustain is a spectral hold with adjustable decay, like an infinite reverb. Blur smears magnitudes across time and across neighbouring bins. Gate drops the quietest bins. Pitch and Shift remap bins by ratio and by an absolute Hz offset. Tilt, Low Cut and High Cut are spectral EQ. Phase can be kept, randomised (whisper) or zeroed (robot), and Width decorrelates the right channel. The dry path is delayed to match the analysis latency, so Mix stays coherent.",
+  "assembly": "factory/plugins/spectral-smear/assembly.ts",
+  "out": "factory/plugins/spectral-smear/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#5cf0e0",
+    "accent2": "#d2fff9"
+  },
+  "guiFile": "factory/plugins/spectral-smear/gui.html",
+  "params": [
+    {
+      "name": "Freeze",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Sustain",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Blur Time",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Blur Freq",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Phase",
+      "index": 4,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pitch",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Shift",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Gate",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Tilt",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Low Cut",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "High Cut",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Width",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "FFT Size",
+      "index": 12,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Mix",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

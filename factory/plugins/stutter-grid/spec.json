@@ -1,0 +1,131 @@
+{
+  "name": "Stutter Grid",
+  "isInstrument": false,
+  "explanation": "A tempo-synced stutter and glitch processor. The input is captured continuously; on every grid step (1/4 to 1/32 note, locked to the host transport while it plays, otherwise the internal tempo) a seeded random draw decides what happens to that step: pass through untouched, stutter a slice (with seamless loop crossfade, per-repeat pitch ramp, decay and a falling low-pass), reverse the last step, mute it, tape-stop it, or replay it at double speed. The draw is seeded by the Seed and the step index modulo the Pattern Length, so the same glitch pattern repeats every 1, 2, 4 or 8 bars until the seed changes. Force Stutter holds the stutter on demand. Pass steps have no latency.",
+  "assembly": "factory/plugins/stutter-grid/assembly.ts",
+  "out": "factory/plugins/stutter-grid/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ff7ad9",
+    "accent2": "#ffdcf3"
+  },
+  "guiFile": "factory/plugins/stutter-grid/gui.html",
+  "params": [
+    {
+      "name": "Grid",
+      "index": 0,
+      "min": 0,
+      "max": 3,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Stutter Chance",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Reverse Chance",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Mute Chance",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Tape Stop Chance",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Double-Time Chance",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Slice",
+      "index": 6,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Pitch Ramp",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Decay",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Filter Fall",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Seed",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Pattern Bars",
+      "index": 11,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Force Stutter",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Tempo",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Mix",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

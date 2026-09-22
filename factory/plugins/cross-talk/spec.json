@@ -1,0 +1,158 @@
+{
+  "name": "Cross-Talk",
+  "isInstrument": false,
+  "explanation": "A two-signal cross-modulator and 16-band vocoder. The modulator is the right input (or the mono sum); the carrier is an internal four-note oscillator chord (Pitch, Chord, Waveform saw>pulse>noise, Detune) or the left input. Algorithm sweeps one continuous path through crossfade, cross-fold, ring modulation, bitwise AND/XOR/OR, comparator and a channel vocoder, with Timbre re-mapped by each stage. The vocoder has steep two-stage band-passes, formant shift, band width, attack/release followers, a gate, freeze and modulator sibilance. Drive, stereo width and output level finish it.",
+  "assembly": "factory/plugins/cross-talk/assembly.ts",
+  "out": "factory/plugins/cross-talk/x.vstai",
+  "publishedAt": 1790000200000,
+  "theme": {
+    "accent": "#b48cff",
+    "accent2": "#e6d9ff"
+  },
+  "guiFile": "factory/plugins/cross-talk/gui.html",
+  "params": [
+    {
+      "name": "Algorithm",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Timbre",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Carrier Source",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Modulator Level",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Carrier Level",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Pitch",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Chord",
+      "index": 6,
+      "min": 0,
+      "max": 6,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Waveform",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Detune",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Formant Shift",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Band Width",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Attack",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Release",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Freeze",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Sibilance",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Gate",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.05
+    },
+    {
+      "name": "Dry Modulator",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Drive",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Width",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Level",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

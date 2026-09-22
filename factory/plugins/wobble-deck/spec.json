@@ -1,0 +1,142 @@
+{
+  "name": "Wobble Deck",
+  "isInstrument": false,
+  "explanation": "A tape and cassette degrader. The signal runs through a modulated delay line that wanders: slow wow, faster flutter (both depend on tape speed) and random drift, with a stereo link control. Random dropouts dip the level like oxide loss. A tape-style asymmetric saturator and a fast squash compressor follow, then the head: head bump (low resonance), age- and speed-dependent high-frequency loss, azimuth error (a small delay and treble loss between channels), tape hiss and mains hum. The dry path is delay-matched so Mix never combs. Three tape speeds change the bandwidth, hiss and wobble character.",
+  "assembly": "factory/plugins/wobble-deck/assembly.ts",
+  "out": "factory/plugins/wobble-deck/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffcf5c",
+    "accent2": "#fff3cf"
+  },
+  "guiFile": "factory/plugins/wobble-deck/gui.html",
+  "params": [
+    {
+      "name": "Wow",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Wow Rate",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Flutter",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drift",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Stereo Link",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Dropout Rate",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Dropout Depth",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Saturation",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Squash",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Age",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Head Bump",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Hiss",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Hum",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Azimuth",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Tape Speed",
+      "index": 14,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Mix",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Input Drive",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Output",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

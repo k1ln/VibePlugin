@@ -1,0 +1,95 @@
+{
+  "name": "Orbit Pan",
+  "isInstrument": false,
+  "explanation": "An auto-pan and tremolo unit with one LFO (sine, triangle, soft square, saw, or random sample-and-hold, with an edge-smoothing control) driving four modes: equal-power auto-pan of the stereo image; amplitude tremolo with a left/right phase offset; harmonic tremolo, where a crossover splits the signal and modulates the low and high bands in antiphase for the swirling brownface sound; and ping-pong, where left and right alternate. The rate is free (0.05 to 20 Hz) or locked to the host tempo from 1/1 down to 1/32 and phase-locked to the host beat position while the transport plays.",
+  "assembly": "factory/plugins/orbit-pan/assembly.ts",
+  "out": "factory/plugins/orbit-pan/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#7ab8ff",
+    "accent2": "#d9ebff"
+  },
+  "guiFile": "factory/plugins/orbit-pan/gui.html",
+  "params": [
+    {
+      "name": "Mode",
+      "index": 0,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Rate",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Sync",
+      "index": 2,
+      "min": 0,
+      "max": 5,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Depth",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Shape",
+      "index": 4,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Smooth",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Phase",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Crossover",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Width",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Mix",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}

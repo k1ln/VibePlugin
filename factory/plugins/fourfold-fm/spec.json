@@ -1,0 +1,442 @@
+{
+  "name": "Fourfold FM",
+  "isInstrument": true,
+  "explanation": "A four-operator FM instrument in the style of the Yamaha OPN2/OPM sound chips. Four sine operators are wired by the chip's eight connection algorithms, with self-feedback on operator 1. Every operator has total level in 0.75 dB steps, frequency multiple, detune, key-scale rate and a five-stage chip envelope (attack rate, decay-1 rate and level, decay-2 rate, release rate) computed in dB. A shared LFO (eight rates) applies AM (per-operator enable, four depths) and FM (eight depths) with the mod wheel adding vibrato. Each operator can also switch to OPL-style half, absolute and quarter-pulse sine shapes. DAC grit adds the converter's crunch; eight voices spread across the stereo field.",
+  "assembly": "factory/plugins/fourfold-fm/assembly.ts",
+  "out": "factory/plugins/fourfold-fm/x.vstai",
+  "publishedAt": 1790000500000,
+  "theme": {
+    "accent": "#4fe0a4",
+    "accent2": "#c6ffe8"
+  },
+  "guiFile": "factory/plugins/fourfold-fm/gui.html",
+  "params": [
+    {
+      "name": "Op1 TL",
+      "index": 0,
+      "min": 0,
+      "max": 127,
+      "default": 30,
+      "step": 1
+    },
+    {
+      "name": "Op1 Multiple",
+      "index": 1,
+      "min": 0,
+      "max": 15,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op1 Detune",
+      "index": 2,
+      "min": -3,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op1 Attack Rate",
+      "index": 3,
+      "min": 0,
+      "max": 31,
+      "default": 31,
+      "step": 1
+    },
+    {
+      "name": "Op1 Decay 1 Rate",
+      "index": 4,
+      "min": 0,
+      "max": 31,
+      "default": 14,
+      "step": 1
+    },
+    {
+      "name": "Op1 Decay 1 Level",
+      "index": 5,
+      "min": 0,
+      "max": 15,
+      "default": 6,
+      "step": 1
+    },
+    {
+      "name": "Op1 Decay 2 Rate",
+      "index": 6,
+      "min": 0,
+      "max": 31,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Op1 Release Rate",
+      "index": 7,
+      "min": 0,
+      "max": 15,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Op1 Key Scale",
+      "index": 8,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op1 AM Enable",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op1 Wave",
+      "index": 10,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op2 TL",
+      "index": 11,
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op2 Multiple",
+      "index": 12,
+      "min": 0,
+      "max": 15,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op2 Detune",
+      "index": 13,
+      "min": -3,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op2 Attack Rate",
+      "index": 14,
+      "min": 0,
+      "max": 31,
+      "default": 31,
+      "step": 1
+    },
+    {
+      "name": "Op2 Decay 1 Rate",
+      "index": 15,
+      "min": 0,
+      "max": 31,
+      "default": 10,
+      "step": 1
+    },
+    {
+      "name": "Op2 Decay 1 Level",
+      "index": 16,
+      "min": 0,
+      "max": 15,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Op2 Decay 2 Rate",
+      "index": 17,
+      "min": 0,
+      "max": 31,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Op2 Release Rate",
+      "index": 18,
+      "min": 0,
+      "max": 15,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Op2 Key Scale",
+      "index": 19,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op2 AM Enable",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op2 Wave",
+      "index": 21,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op3 TL",
+      "index": 22,
+      "min": 0,
+      "max": 127,
+      "default": 38,
+      "step": 1
+    },
+    {
+      "name": "Op3 Multiple",
+      "index": 23,
+      "min": 0,
+      "max": 15,
+      "default": 4,
+      "step": 1
+    },
+    {
+      "name": "Op3 Detune",
+      "index": 24,
+      "min": -3,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op3 Attack Rate",
+      "index": 25,
+      "min": 0,
+      "max": 31,
+      "default": 31,
+      "step": 1
+    },
+    {
+      "name": "Op3 Decay 1 Rate",
+      "index": 26,
+      "min": 0,
+      "max": 31,
+      "default": 20,
+      "step": 1
+    },
+    {
+      "name": "Op3 Decay 1 Level",
+      "index": 27,
+      "min": 0,
+      "max": 15,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Op3 Decay 2 Rate",
+      "index": 28,
+      "min": 0,
+      "max": 31,
+      "default": 4,
+      "step": 1
+    },
+    {
+      "name": "Op3 Release Rate",
+      "index": 29,
+      "min": 0,
+      "max": 15,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Op3 Key Scale",
+      "index": 30,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op3 AM Enable",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op3 Wave",
+      "index": 32,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op4 TL",
+      "index": 33,
+      "min": 0,
+      "max": 127,
+      "default": 4,
+      "step": 1
+    },
+    {
+      "name": "Op4 Multiple",
+      "index": 34,
+      "min": 0,
+      "max": 15,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op4 Detune",
+      "index": 35,
+      "min": -3,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op4 Attack Rate",
+      "index": 36,
+      "min": 0,
+      "max": 31,
+      "default": 31,
+      "step": 1
+    },
+    {
+      "name": "Op4 Decay 1 Rate",
+      "index": 37,
+      "min": 0,
+      "max": 31,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Op4 Decay 1 Level",
+      "index": 38,
+      "min": 0,
+      "max": 15,
+      "default": 10,
+      "step": 1
+    },
+    {
+      "name": "Op4 Decay 2 Rate",
+      "index": 39,
+      "min": 0,
+      "max": 31,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Op4 Release Rate",
+      "index": 40,
+      "min": 0,
+      "max": 15,
+      "default": 9,
+      "step": 1
+    },
+    {
+      "name": "Op4 Key Scale",
+      "index": 41,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Op4 AM Enable",
+      "index": 42,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Op4 Wave",
+      "index": 43,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Algorithm",
+      "index": 44,
+      "min": 0,
+      "max": 7,
+      "default": 4,
+      "step": 1
+    },
+    {
+      "name": "Feedback",
+      "index": 45,
+      "min": 0,
+      "max": 7,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "LFO Rate",
+      "index": 46,
+      "min": 0,
+      "max": 7,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "AM Sensitivity",
+      "index": 47,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "FM Sensitivity",
+      "index": 48,
+      "min": 0,
+      "max": 7,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "DAC Grit",
+      "index": 49,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Velocity Sens",
+      "index": 50,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Width",
+      "index": 51,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Bend Range",
+      "index": 52,
+      "min": 0,
+      "max": 1,
+      "default": 0.1667
+    },
+    {
+      "name": "Level",
+      "index": 53,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ]
+}
