@@ -1,0 +1,52 @@
+{
+  "name": "Spectrum Analyzer",
+  "isInstrument": false,
+  "explanation": "A 16-band real-time spectrum display. Audio passes through completely unaltered — safe to drop on a master bus without changing the sound — except for Input Trim, a real pre-analysis gain stage. A bank of 16 log-spaced (60 Hz - 16 kHz) resonant bandpass filters, one per band, each drives an attack/release envelope follower; the 16 band levels are converted to a dB scale (-60..0 dB) and streamed live to the display. Tilt adds up to +4.5 dB/octave of pink-noise-style boost to the high bands so broadband material reads flat instead of naturally sloping down, exactly like the tilt control on real hardware analyzers. Channel selects Left, Right or the L+R sum; Freeze holds the current picture for A/B comparison. 16 bands is a deliberate, not arbitrary, choice: the plugin format's DSP-to-GUI telemetry channel is a fixed 16 floats, the same budget many real hardware spectrum displays (10-31 band) work within for the same practical reason.",
+  "assembly": "factory/plugins/spectrum-analyzer/assembly.ts",
+  "out": "factory/plugins/spectrum-analyzer/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#5ee6a0",
+    "accent2": "#c8ffe4"
+  },
+  "guiFile": "factory/plugins/spectrum-analyzer/gui.html",
+  "params": [
+    {
+      "name": "Input Trim",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Ballistics",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Tilt",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Channel",
+      "index": 3,
+      "min": 0,
+      "max": 2,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Freeze",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    }
+  ]
+}

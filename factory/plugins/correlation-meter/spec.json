@@ -1,0 +1,16 @@
+{
+  "name": "Correlation Meter",
+  "isInstrument": false,
+  "explanation": "A phase/correlation meter with a live goniometer. Correlation is a running coefficient (exponential moving averages of L*R, L^2, R^2): +1 fully correlated (mono-safe), 0 uncorrelated, -1 fully out of phase (will cancel to silence in mono). Goniometer mode plots the standard 45-degree-rotated Mid/Side basis (mono collapses to a vertical line); Lissajous mode plots raw L/R (mono draws a diagonal instead). The meter always analyzes the true, pre-sum stereo signal - Mono Check only changes what you HEAR (sums L+R to both channels) so you can audition mono compatibility while still watching the real stereo relationship causing whatever you hear.",
+  "assembly": "factory/plugins/correlation-meter/assembly.ts",
+  "out": "factory/plugins/correlation-meter/x.vstai",
+  "publishedAt": 1790030100000,
+  "theme": { "accent": "#7ee0ff", "accent2": "#d8f7ff" },
+  "guiFile": "factory/plugins/correlation-meter/gui.html",
+  "params": [
+    { "name": "Mono Check", "index": 0, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Ballistics", "index": 1, "min": 0, "max": 1, "default": 0.4 },
+    { "name": "Mode", "index": 2, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Freeze", "index": 3, "min": 0, "max": 1, "default": 0, "step": 1 }
+  ]
+}

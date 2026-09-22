@@ -1,0 +1,126 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Correlation Meter — test bench</title><style>
+  :root{--ac:#7ee0ff}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font:13px ui-sans-serif,system-ui,-apple-system,sans-serif;color:#e7eef6;
+    background:radial-gradient(130% 100% at 50% -20%,#171f2d,#070a0f 72%);display:flex;flex-direction:column;align-items:center;gap:13px;padding:18px}
+  .top{display:flex;align-items:center;gap:11px;width:100%;max-width:1000px}
+  .top .led{width:9px;height:9px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+  .top b{font-size:15px;letter-spacing:.05em;color:var(--ac)}
+  .top .sub{font-size:11px;color:#7c8aa3;margin-left:auto}
+  iframe{width:100%;max-width:1000px;height:600px;border:0;background:transparent;display:block}
+  .bar{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:11px;
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:14px 16px;
+    box-shadow:0 16px 40px rgba(0,0,0,.4)}
+  canvas{width:100%;height:74px;display:block;border-radius:10px;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.06)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  button{font:inherit;color:#06080c;background:var(--ac);border:0;border-radius:10px;padding:9px 17px;font-weight:800;cursor:pointer;transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.off{background:#28313f;color:#e7eef6}
+  select,input[type=file]{font:inherit;color:#e7eef6;background:#10151e;border:1px solid rgba(255,255,255,.13);border-radius:9px;padding:7px 9px}
+  label{display:flex;gap:8px;align-items:center;color:#aeb9cc}
+  .st{font-size:12px;color:#8da0bd;min-height:16px}
+  .krow{display:flex;gap:8px;align-items:center;color:#aeb9cc;font-size:12px}
+  .krow .klabel{font-weight:600;letter-spacing:.03em}
+  .krow .oct{padding:4px 13px;font-size:16px;line-height:1;background:#28313f;color:#e7eef6;border-radius:8px}
+  .krow .octval{min-width:22px;text-align:center;font-weight:800;color:var(--ac);font-variant-numeric:tabular-nums}
+  .krow .khint{margin-left:4px;color:#7c8aa3;font-size:11px}
+  .kb{display:flex;gap:3px;flex-wrap:wrap}
+  .kb .key{width:30px;height:80px;border-radius:0 0 7px 7px;background:linear-gradient(#f4f7fb,#cdd5e0);
+    border:1px solid #2a3344;cursor:pointer;color:#1a2230;font-size:9px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;transition:.08s}
+  .kb .key.bk{background:linear-gradient(#2b3340,#10151d);color:#9fb0c8;height:52px;width:22px;margin:0 -12px;z-index:2}
+  .kb .key.dn{background:linear-gradient(var(--ac),#fff);color:#06080c;transform:translateY(2px)}
+  </style></head><body>
+  <div class="top"><span class="led"></span><b>Correlation Meter</b><span class="sub">live test bench — turn the knobs, play audio</span></div>
+  <iframe id="gui"></iframe>
+  <div class="bar">
+    <canvas id="scope" width="620" height="74"></canvas>
+    <div class="row"><button id="go" class="off">▶ Start audio</button><span class="st" id="st">click Start (browsers need a gesture to begin audio)</span></div>
+    <div class="row"><label>Source
+         <select id="src"><option value="riff">Musical riff</option><option value="mic">Microphone</option><option value="file">Audio file…</option></select></label>
+         <input type="file" id="file" accept="audio/*" style="display:none"></div>
+  </div>
+  <script>
+  var WB="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", IS_SYNTH=false;
+  var gf=document.getElementById('gui');
+  gf.srcdoc="<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Correlation Meter<\/title>\n<style>\n  :root {\n    --accent: #7ee0ff; --accent2: #d8f7ff;\n    --bg0: #050a0c; --bg1: #0a161a;\n    --ink: #eafcff; --ink-dim: #6d95a0;\n    --panel: rgba(12, 28, 32, 0.6); --stroke: rgba(126, 224, 255, 0.18);\n    --ok: #6fcf97; --warn: #f2c94c; --bad: #eb5757;\n  }\n  * { box-sizing: border-box; }\n  html, body {\n    margin: 0; padding: 0; background: var(--bg0); color: var(--ink);\n    font-family: ui-sans-serif, -apple-system, \"Segoe UI\", system-ui, sans-serif;\n    -webkit-font-smoothing: antialiased;\n  }\n  .stage { min-height: 100vh; padding: 18px; background: linear-gradient(180deg, var(--bg1), var(--bg0) 70%); }\n  h1 { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }\n  .layout { display: flex; gap: 12px; flex-wrap: wrap; }\n  .panel { background: var(--panel); border: 1px solid var(--stroke); border-radius: 12px; padding: 16px; backdrop-filter: blur(6px); }\n  #gonio { width: 260px; height: 260px; display: block; border-radius: 10px; background: #020508; }\n  .side { display: flex; flex-direction: column; gap: 12px; min-width: 200px; }\n  .corrRo .lbl { font-size: 10px; letter-spacing: 0.1em; color: var(--ink-dim); text-transform: uppercase; }\n  .corrRo .val { font-family: ui-monospace, \"SF Mono\", Menlo, monospace; font-size: 30px; font-weight: 700; margin-top: 2px; }\n  .corrBar { width: 100%; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.08); margin-top: 8px; position: relative; overflow: hidden; }\n  .corrBar .fill { position: absolute; top: 0; bottom: 0; left: 50%; background: var(--accent); }\n  .ctl { display: flex; flex-direction: column; gap: 4px; }\n  .ctl .lbl { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-dim); text-transform: uppercase; }\n  input[type=\"range\"] { width: 100%; accent-color: var(--accent); }\n  .seg { display: flex; border: 1px solid var(--stroke); border-radius: 6px; overflow: hidden; width: fit-content; }\n  .seg button { background: transparent; border: none; color: var(--ink-dim); padding: 6px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }\n  .seg button.on { background: var(--accent); color: #05282f; font-weight: 700; }\n  .tgBtn { background: rgba(126,224,255,0.1); border: 1px solid var(--stroke); color: var(--ink); border-radius: 6px; padding: 7px 12px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: inherit; width: fit-content; }\n  .tgBtn.on { background: var(--accent); color: #05282f; font-weight: 700; }\n<\/style>\n<script>window.vstai={onReady:function(f){f()},setParam:function(i,v){parent.postMessage({t:\"p\",i:i,v:v},\"*\")},noteOn:function(n,v){parent.postMessage({t:\"on\",id:n,v:v},\"*\")},noteOff:function(id){parent.postMessage({t:\"off\",id:id},\"*\")}};<\/script><\/head>\n<body>\n<div class=\"stage\">\n  <h1>Correlation Meter<\/h1>\n  <div class=\"layout\">\n    <div class=\"panel\"><canvas id=\"gonio\"><\/canvas><\/div>\n    <div class=\"panel side\">\n      <div class=\"corrRo\">\n        <div class=\"lbl\">Correlation<\/div>\n        <div class=\"val\" id=\"corrVal\">0.00<\/div>\n        <div class=\"corrBar\"><div class=\"fill\" id=\"corrFill\"><\/div><\/div>\n      <\/div>\n      <div class=\"ctl\"><div class=\"lbl\">Ballistics<\/div><input type=\"range\" id=\"ball\" min=\"0\" max=\"1\" step=\"0.001\" value=\"0.4\"><\/div>\n      <div class=\"ctl\"><div class=\"lbl\">Mode<\/div><div class=\"seg\" id=\"modeSeg\"><\/div><\/div>\n      <div class=\"ctl\"><button class=\"tgBtn\" id=\"monoBtn\">Mono Check<\/button><\/div>\n      <div class=\"ctl\"><button class=\"tgBtn\" id=\"freezeBtn\">Freeze<\/button><\/div>\n    <\/div>\n  <\/div>\n<\/div>\n<script>\n(function () {\n  var V = {};\n  function set(i, v) { V[i] = v; if (window.vstai && typeof window.vstai.setParam === \"function\") window.vstai.setParam(i, v); }\n\n  function buildSeg(host, idx, opts) {\n    host.innerHTML = \"\";\n    var btns = opts.map(function (label, k) {\n      var b = document.createElement(\"button\");\n      b.textContent = label;\n      b.onclick = function () { set(idx, k); refresh(); };\n      host.appendChild(b);\n      return b;\n    });\n    function refresh() { btns.forEach(function (b, k) { b.className = Math.round(V[idx]) === k ? \"on\" : \"\"; }); }\n    refresh();\n    return refresh;\n  }\n  function buildToggle(el, idx) {\n    el.onclick = function () { set(idx, V[idx] > 0.5 ? 0 : 1); refresh(); };\n    function refresh() { el.className = \"tgBtn\" + (V[idx] > 0.5 ? \" on\" : \"\"); }\n    refresh();\n    return refresh;\n  }\n\n  var refreshMode, refreshMono, refreshFreeze;\n  var hasDisp = false;\n  var disp = new Array(16).fill(0);\n\n  var cv = document.getElementById(\"gonio\");\n  var cx = cv.getContext(\"2d\");\n  function colorForCorr(c) {\n    if (c > 0.3) return \"var(--ok)\";\n    if (c > -0.3) return \"var(--warn)\";\n    return \"var(--bad)\";\n  }\n\n  function drawGonio() {\n    var dpr = window.devicePixelRatio || 1;\n    var W = cv.clientWidth, H = cv.clientHeight;\n    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }\n    cx.setTransform(dpr, 0, 0, dpr, 0, 0);\n    // phosphor persistence: partial-clear instead of full clear\n    cx.fillStyle = \"rgba(2,5,8,0.14)\";\n    cx.fillRect(0, 0, W, H);\n    // crosshair\n    cx.strokeStyle = \"rgba(126,224,255,0.15)\"; cx.lineWidth = 1;\n    cx.beginPath(); cx.moveTo(W / 2, 0); cx.lineTo(W / 2, H); cx.moveTo(0, H / 2); cx.lineTo(W, H / 2); cx.stroke();\n\n    if (!hasDisp) return;\n    var cx0 = W / 2, cy0 = H / 2, s = Math.min(W, H) * 0.46;\n    cx.fillStyle = \"#7ee0ff\";\n    for (var k = 0; k < 7; k++) {\n      var x = disp[1 + k * 2], y = disp[2 + k * 2];\n      var px = cx0 + x * s, py = cy0 - y * s;\n      cx.beginPath(); cx.arc(px, py, 2, 0, 6.2832); cx.fill();\n    }\n  }\n\n  function tick() {\n    if (hasDisp) {\n      var c = disp[0];\n      document.getElementById(\"corrVal\").textContent = c.toFixed(2);\n      document.getElementById(\"corrVal\").style.color = colorForCorr(c);\n      var fill = document.getElementById(\"corrFill\");\n      var pct = Math.abs(c) * 50;\n      fill.style.width = pct + \"%\";\n      fill.style.left = c >= 0 ? \"50%\" : (50 - pct) + \"%\";\n      fill.style.background = colorForCorr(c);\n    }\n    drawGonio();\n    requestAnimationFrame(tick);\n  }\n\n  function boot() {\n    set(0, 0); set(1, 0.4); set(2, 0); set(3, 0);\n    document.getElementById(\"ball\").addEventListener(\"input\", function (e) { set(1, +e.target.value); });\n    refreshMode = buildSeg(document.getElementById(\"modeSeg\"), 2, [\"GONIO\", \"LISSAJOUS\"]);\n    refreshMono = buildToggle(document.getElementById(\"monoBtn\"), 0);\n    refreshFreeze = buildToggle(document.getElementById(\"freezeBtn\"), 3);\n\n    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {\n      V[i] = +v;\n      if (i === 1) document.getElementById(\"ball\").value = v;\n      if (i === 2 && refreshMode) refreshMode();\n      if (i === 0 && refreshMono) refreshMono();\n      if (i === 3 && refreshFreeze) refreshFreeze();\n    });\n    if (window.vstai && window.vstai.onDisplay) window.vstai.onDisplay(function (d) {\n      hasDisp = true;\n      for (var i = 0; i < 16; i++) disp[i] = d[i] || 0;\n    });\n    requestAnimationFrame(tick);\n  }\n\n  if (window.vstai && typeof window.vstai.onReady === \"function\") window.vstai.onReady(boot);\n  else boot();\n})();\n<\/script>\n<\/body>\n<\/html>\n";
+  // Size the iframe to the GUI's true content so nothing is cut off (buttons,
+  // keyboard, patch bay). Collapse-then-measure defeats the GUI's min-height:100%.
+  function sizeGui(){ try{ var d=gf.contentDocument; if(!d||!d.body) return;
+    gf.style.height='60px';
+    var h=Math.max(d.documentElement.scrollHeight,d.body.scrollHeight);
+    gf.style.height=(h+6)+'px'; }catch(e){} }
+  gf.addEventListener('load',function(){ sizeGui(); setTimeout(sizeGui,150); setTimeout(sizeGui,500); });
+  window.addEventListener('resize',sizeGui);
+  var ctx,node,src,analyser,wav,ex,inPtr,outPtr,parPtr,STRIDE=8192,started=false,running=false;
+  var pcache=new Float32Array(64);
+  function memF(){return new Float32Array(ex.memory.buffer);}
+  window.addEventListener('message',function(e){var d=e.data||{};
+    if(d.t==='p'){pcache[d.i]=d.v; if(ex) memF()[parPtr+d.i]=d.v;}
+    else if(d.t==='on'&&ex&&ex.noteOn) ex.noteOn(d.id,440*Math.pow(2,(d.id-69)/12),d.v==null?0.9:d.v);
+    else if(d.t==='off'&&ex&&ex.noteOff) ex.noteOff(d.id);});
+  function st(m){document.getElementById('st').textContent=m;}
+  var cv=document.getElementById('scope'), g=cv.getContext('2d');
+  var ACC=getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#ffb454';
+  function draw(){
+    requestAnimationFrame(draw);
+    var W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
+    g.strokeStyle='rgba(255,255,255,.07)'; g.lineWidth=1; g.beginPath(); g.moveTo(0,H/2); g.lineTo(W,H/2); g.stroke();
+    if(!analyser){ return; }
+    analyser.getFloatTimeDomainData(wav);
+    g.lineWidth=2; g.strokeStyle=ACC; g.shadowBlur=10; g.shadowColor=ACC; g.beginPath();
+    for(var i=0;i<wav.length;i++){ var x=i/(wav.length-1)*W, y=H/2 - wav[i]*H*0.46; if(i===0)g.moveTo(x,y); else g.lineTo(x,y); }
+    g.stroke(); g.shadowBlur=0;
+  }
+  draw();
+  function makeRiff(){
+    var sr=ctx.sampleRate, len=Math.floor(sr*3.2), b=ctx.createBuffer(2,len,sr), d=b.getChannelData(0);
+    var riff=[45,52,57,60,64,57,52,48], nl=Math.floor(sr*0.4);
+    for(var i=0;i<len;i++){var idx=Math.floor(i/nl),lt=(i-idx*nl)/sr,hz=440*Math.pow(2,(riff[idx%riff.length]-69)/12),
+      ph=2*Math.PI*hz*(i/sr),env=Math.exp(-lt*5);
+      d[i]=env*(Math.sin(ph)+0.5*Math.sin(2*ph)+0.3*Math.sin(3*ph))*0.18;}
+    b.copyToChannel(d,1); return b;
+  }
+  async function ensure(){
+    if(started)return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    var bytes=Uint8Array.from(atob(WB),function(c){return c.charCodeAt(0);});
+    var inst=await WebAssembly.instantiate(await WebAssembly.compile(bytes),{env:{abort:function(){},seed:function(){return 0;}}});
+    ex=inst.exports; ex.init(ctx.sampleRate,STRIDE,2);
+    inPtr=ex.getInputPtr()>>>2; outPtr=ex.getOutputPtr()>>>2; parPtr=ex.getParamsPtr()>>>2;
+    var m=memF(); for(var i=0;i<64;i++) m[parPtr+i]=pcache[i];
+    node=ctx.createScriptProcessor(1024,2,2);
+    node.onaudioprocess=function(e){var n=e.outputBuffer.length,m=memF(),
+      iL=e.inputBuffer.getChannelData(0),iR=e.inputBuffer.numberOfChannels>1?e.inputBuffer.getChannelData(1):e.inputBuffer.getChannelData(0);
+      for(var i=0;i<n;i++){m[inPtr+i]=iL[i];m[inPtr+STRIDE+i]=iR[i];}
+      ex.process(n);
+      var oL=e.outputBuffer.getChannelData(0),oR=e.outputBuffer.getChannelData(1);
+      for(var i=0;i<n;i++){oL[i]=m[outPtr+i];oR[i]=m[outPtr+STRIDE+i];}};
+    analyser=ctx.createAnalyser(); analyser.fftSize=1024; wav=new Float32Array(analyser.fftSize);
+    node.connect(analyser); node.connect(ctx.destination); started=true;
+  }
+  function disconnectSrc(){ if(src){try{src.disconnect();}catch(e){}; src=null;} }
+  function setSource(kind){
+    disconnectSrc();
+    if(kind==='riff'){ src=ctx.createBufferSource(); src.buffer=makeRiff(); src.loop=true; src.connect(node); src.start(); st('playing musical riff through the plugin'); }
+    else if(kind==='mic'){ navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){ src=ctx.createMediaStreamSource(s); src.connect(node); st('microphone → plugin'); }).catch(function(){ st('mic blocked'); }); }
+  }
+  document.getElementById('go').addEventListener('click',async function(){
+    await ensure();
+    if(ctx.state==='suspended') await ctx.resume();
+    if(!running){ running=true; this.textContent='⏸ Stop'; this.className='';
+      if(!IS_SYNTH){ setSource(document.getElementById('src').value); } else { st('press the keys (or computer keys A–K) to play'); }
+    } else { running=false; this.textContent='▶ Start audio'; this.className='off'; disconnectSrc(); st('stopped'); }
+  });
+  
+  document.getElementById('src').addEventListener('change',function(){
+    var v=this.value, fi=document.getElementById('file'); fi.style.display=v==='file'?'inline-block':'none';
+    if(running&&v!=='file') setSource(v);
+  });
+  document.getElementById('file').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f)return; ensure().then(function(){ f.arrayBuffer().then(function(ab){ ctx.decodeAudioData(ab,function(buf){
+      disconnectSrc(); src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; src.connect(node); if(ctx.state==='suspended')ctx.resume(); src.start(); st('looping '+f.name+' through the plugin'); }); }); });
+  });
+  
+  </script></body></html>

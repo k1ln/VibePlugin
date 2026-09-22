@@ -46,6 +46,13 @@ private:
     VstaiAudioProcessor& processor;
     std::unique_ptr<juce::WebBrowserComponent> web;
 
+    // A minimal preset menu, the one piece of native chrome this "nothing to escape
+    // to" editor allows — it's product surface (like a hardware synth's preset
+    // knob), not an authoring escape hatch. Only created when the baked document
+    // actually carries presets, so a plugin without any looks exactly as before.
+    static constexpr int kPresetBarHeight = 28;
+    std::unique_ptr<juce::ComboBox> presetBox;
+
 #if JUCE_MAC
     // FL Studio (macOS) receives keyUp NSEvents but doesn't forward them to the
     // WKWebView, latching GUI keyboard notes. This watches the host process's

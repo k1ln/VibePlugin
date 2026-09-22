@@ -120,6 +120,12 @@ public:
     // GUI param bridge.
     void setParamFromGui (int index, float value);
     float getParamValue (int index) const { return engine.getParam (index); }
+
+    // Apply a factory/saved preset by its index into document.presets: sets every
+    // param it names via setParamFromGui (so engine, document, host and any
+    // listening GUI all pick it up through the existing param-change paths — no
+    // separate propagation needed). No-op if index is out of range.
+    void applyPreset (int presetIndex);
     bool  hasDisplay() const               { return engine.hasDisplay(); }
     float getDisplayValue (int i) const    { return engine.getDisplay (i); }
 

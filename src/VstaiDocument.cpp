@@ -45,6 +45,30 @@ namespace
         return p;
     }
 
+    juce::var presetToVar (const VstaiPreset& p)
+    {
+        auto* po = new juce::DynamicObject();
+        po->setProperty ("name", p.name);
+        auto* vo = new juce::DynamicObject();
+        for (const auto& kv : p.values)
+            vo->setProperty (juce::String (kv.first), kv.second);
+        po->setProperty ("values", juce::var (vo));
+        return juce::var (po);
+    }
+
+    VstaiPreset presetFromVar (const juce::var& pv)
+    {
+        VstaiPreset p;
+        if (auto* po = pv.getDynamicObject())
+        {
+            p.name = po->getProperty ("name").toString();
+            if (auto* vo = po->getProperty ("values").getDynamicObject())
+                for (const auto& prop : vo->getProperties())
+                    p.values[prop.name.toString().getIntValue()] = (double) prop.value;
+        }
+        return p;
+    }
+
     juce::var revisionToVar (const VstaiRevision& r)
     {
         auto* o = new juce::DynamicObject();
@@ -123,6 +147,10 @@ juce::var VstaiDocument::toVar() const
     }
     obj->setProperty ("params", ps);
 
+    juce::Array<juce::var> presetsVar;
+    for (const auto& p : presets) presetsVar.add (presetToVar (p));
+    obj->setProperty ("presets", presetsVar);
+
     juce::Array<juce::var> revs;
     for (const auto& r : revisions) revs.add (revisionToVar (r));
     obj->setProperty ("revisions",      revs);
@@ -170,6 +198,9 @@ VstaiDocument VstaiDocument::fromVar (const juce::var& v)
                 }
             }
         }
+
+        if (auto* pr = obj->getProperty ("presets").getArray())
+            for (const auto& pv : *pr) d.presets.push_back (presetFromVar (pv));
 
         if (auto* revs = obj->getProperty ("revisions").getArray())
             for (const auto& rv : *revs) d.revisions.push_back (revisionFromVar (rv));

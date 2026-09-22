@@ -1,0 +1,16 @@
+{
+  "name": "Loudness Meter",
+  "isInstrument": false,
+  "explanation": "A real ITU-R BS.1770-4 / EBU R128 loudness meter. K-weighting (2 cascaded biquads, the published 48kHz coefficients) feeds 400ms gating blocks on a 100ms hop: Momentary is the latest block, Short-term is the mean of the last 3 seconds, and Integrated uses the standard's two-gate method (absolute gate at -70 LUFS, then a relative gate 10 LU below that mean) via a 701-bin histogram - the same approach the open-source reference implementation libebur128 uses. True Peak is an honestly-scoped approximation (4x linear interpolation between samples, not a full oversampling filter). Audio passes through unaltered except Input Trim and Channel Mode's Mono-sum option, which sums L+R to both channels so you can audition what summing to mono does to the reading. Reset zeroes the Integrated/Short-term history.",
+  "assembly": "factory/plugins/loudness-meter/assembly.ts",
+  "out": "factory/plugins/loudness-meter/x.vstai",
+  "publishedAt": 1790030000000,
+  "theme": { "accent": "#ffd166", "accent2": "#fff2cc" },
+  "guiFile": "factory/plugins/loudness-meter/gui.html",
+  "params": [
+    { "name": "Input Trim", "index": 0, "min": 0, "max": 1, "default": 0.5 },
+    { "name": "Channel Mode", "index": 1, "min": 0, "max": 1, "default": 0, "step": 1 },
+    { "name": "Target Reference", "index": 2, "min": 0, "max": 2, "default": 0, "step": 1 },
+    { "name": "Reset", "index": 3, "min": 0, "max": 1, "default": 0, "step": 1 }
+  ]
+}

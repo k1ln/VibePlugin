@@ -188,6 +188,15 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             if (safe != nullptr) safe->processor.setGenerationThinking (a.size() > 0 && (bool) a[0]);
             complete (var());
         })
+        // Load a factory/saved preset by index into document.presets. Just sets
+        // params through the normal GUI-param path — the existing per-frame
+        // reflectParamsToGui() timer picks up the change and pushes it into the
+        // /preview iframe, so no extra propagation is needed here.
+        .withNativeFunction ("applyPreset", [safe] (const VarArray& a, Completion complete)
+        {
+            if (safe != nullptr) safe->processor.applyPreset (argStr (a, 0).getIntValue());
+            complete (var());
+        })
         // ---- generation -------------------------------------------------
         .withNativeFunction ("generate", [safe] (const VarArray& a, Completion complete)
         {
@@ -1015,6 +1024,16 @@ juce::var WebEditor::currentState() const
     // generated GUI on every state refresh (incl. live design switches).
     o->setProperty ("designTheme",
                     vstai::appsettings::designMeta (vstai::appsettings::selectedDesignId()).theme);
+
+    juce::Array<juce::var> presetsVar;
+    for (const auto& p : d.presets)
+    {
+        auto* po = new juce::DynamicObject();
+        po->setProperty ("name", p.name);
+        presetsVar.add (juce::var (po));
+    }
+    o->setProperty ("presets", presetsVar);
+
     return var (o);
 }
 

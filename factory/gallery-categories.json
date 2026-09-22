@@ -22,11 +22,18 @@
    "Filters",
    "EQ & Tone",
    "Pitch & Granular",
+   "Metering",
    "Creative"
   ],
   "fallback": "Other Effects"
  },
  "assign": {
+  "correlation-meter": "Metering",
+  "loudness-meter": "Metering",
+  "spectrum-analyzer": "Metering",
+  "cross-modulator": "Creative",
+  "modal-strike": "Digital & Experimental",
+  "engine-eight": "Digital & Experimental",
   "waveloom": "Digital & Experimental",
   "orbit-pan": "Modulation",
   "stutter-grid": "Creative",

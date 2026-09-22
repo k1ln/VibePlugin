@@ -52,6 +52,27 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
     web = std::move (browser);
     addAndMakeVisible (*web);
 
+    if (! processor.getDocument().presets.empty())
+    {
+        presetBox = std::make_unique<juce::ComboBox> ("presets");
+        presetBox->setTextWhenNothingSelected ("Presets");
+        presetBox->setColour (juce::ComboBox::backgroundColourId, juce::Colour (0xff141a24));
+        presetBox->setColour (juce::ComboBox::textColourId,       juce::Colour (0xffe7ecf4));
+        presetBox->setColour (juce::ComboBox::outlineColourId,    juce::Colour (0xff243049));
+        presetBox->setColour (juce::ComboBox::arrowColourId,      juce::Colour (0xff8aa0c8));
+        int itemId = 1;
+        for (const auto& preset : processor.getDocument().presets)
+            presetBox->addItem (preset.name.isNotEmpty() ? preset.name
+                                                           : ("Preset " + juce::String (itemId)), itemId++);
+        presetBox->onChange = [safe]
+        {
+            if (safe == nullptr || safe->presetBox == nullptr) return;
+            const int idx = safe->presetBox->getSelectedItemIndex();
+            if (idx >= 0) safe->processor.applyPreset (idx);
+        };
+        addAndMakeVisible (*presetBox);
+    }
+
 #if JUCE_MAC
     // Keyups the WKWebView swallows: re-inject into the page (GUI key handlers)
     // and hand them back to the host window (FL typing-piano note-off) — see
@@ -93,7 +114,10 @@ LockedEditor::~LockedEditor()
 
 void LockedEditor::resized()
 {
-    if (web != nullptr) web->setBounds (getLocalBounds());
+    auto bounds = getLocalBounds();
+    if (presetBox != nullptr)
+        presetBox->setBounds (bounds.removeFromTop (kPresetBarHeight).reduced (4, 2));
+    if (web != nullptr) web->setBounds (bounds);
 }
 
 void LockedEditor::releaseGuiNotes()

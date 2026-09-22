@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loudness Meter</title>
+<style>
+  :root {
+    --accent: #ffd166;
+    --accent2: #fff2cc;
+    --bg0: #0b0906;
+    --bg1: #15110a;
+    --ink: #fdf6e3;
+    --ink-dim: #9c8f6e;
+    --panel: rgba(30, 24, 14, 0.6);
+    --stroke: rgba(255, 209, 102, 0.18);
+    --ok: #6fcf97;
+    --warn: #f2c94c;
+    --bad: #eb5757;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg0); color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .stage {
+    min-height: 100vh; padding: 18px;
+    background: linear-gradient(180deg, var(--bg1), var(--bg0) 70%);
+  }
+  h1 {
+    font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 14px; font-weight: 700;
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--stroke); border-radius: 12px;
+    padding: 16px; margin-bottom: 12px;
+    backdrop-filter: blur(6px);
+  }
+  .readouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .ro {
+    background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px 12px;
+    border: 1px solid var(--stroke);
+  }
+  .ro .lbl { font-size: 10px; letter-spacing: 0.1em; color: var(--ink-dim); text-transform: uppercase; }
+  .ro .val { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 26px; font-weight: 600; margin-top: 2px; }
+  .ro .unit { font-size: 11px; color: var(--ink-dim); margin-left: 4px; }
+  .strip { width: 100%; height: 64px; display: block; border-radius: 8px; background: rgba(0,0,0,0.3); }
+  .row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .ctl { display: flex; flex-direction: column; gap: 4px; }
+  .ctl .lbl { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-dim); text-transform: uppercase; }
+  input[type="range"] { width: 130px; accent-color: var(--accent); }
+  .seg { display: flex; border: 1px solid var(--stroke); border-radius: 6px; overflow: hidden; }
+  .seg button {
+    background: transparent; border: none; color: var(--ink-dim); padding: 6px 10px;
+    font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+  .seg button.on { background: var(--accent); color: #2a1e05; font-weight: 700; }
+  .resetBtn {
+    background: rgba(235,87,87,0.15); border: 1px solid rgba(235,87,87,0.5); color: #ff9b9b;
+    border-radius: 6px; padding: 7px 14px; font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer; font-family: inherit;
+  }
+  .resetBtn:active { background: rgba(235,87,87,0.35); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <h1>Loudness Meter</h1>
+  <div class="panel">
+    <div class="readouts">
+      <div class="ro"><div class="lbl">Momentary</div><div class="val" id="roM">-70.0<span class="unit">LUFS</span></div></div>
+      <div class="ro"><div class="lbl">Short-term</div><div class="val" id="roS">-70.0<span class="unit">LUFS</span></div></div>
+      <div class="ro"><div class="lbl">Integrated</div><div class="val" id="roI">-70.0<span class="unit">LUFS</span></div></div>
+      <div class="ro"><div class="lbl">True Peak</div><div class="val" id="roP">-inf<span class="unit">dBTP</span></div></div>
+    </div>
+    <canvas class="strip" id="strip"></canvas>
+  </div>
+  <div class="panel">
+    <div class="row">
+      <div class="ctl"><div class="lbl">Input Trim</div><input type="range" id="trim" min="0" max="1" step="0.001" value="0.5"></div>
+      <div class="ctl"><div class="lbl">Channel Mode</div><div class="seg" id="chanSeg"></div></div>
+      <div class="ctl"><div class="lbl">Target Reference</div><div class="seg" id="targetSeg"></div></div>
+      <div class="ctl"><div class="lbl">&nbsp;</div><button class="resetBtn" id="resetBtn">Reset</button></div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var V = {};
+  function set(i, v) {
+    V[i] = v;
+    if (window.vstai && typeof window.vstai.setParam === "function") window.vstai.setParam(i, v);
+  }
+
+  var TARGETS = [-23, -16, -14];
+  var targetIdx = 0;
+
+  function buildSeg(host, idx, opts, onPick) {
+    host.innerHTML = "";
+    var btns = opts.map(function (label, k) {
+      var b = document.createElement("button");
+      b.textContent = label;
+      b.onclick = function () { set(idx, k); refresh(); if (onPick) onPick(k); };
+      host.appendChild(b);
+      return b;
+    });
+    function refresh() { btns.forEach(function (b, k) { b.className = Math.round(V[idx]) === k ? "on" : ""; }); }
+    refresh();
+    return refresh;
+  }
+
+  var refreshChan, refreshTarget;
+
+  function fmt(v) { return Number.isFinite(v) ? v.toFixed(1) : "-inf"; }
+
+  var hasDisp = false;
+  var disp = new Array(16).fill(0);
+  var stHistory = [];
+  var stripCv = document.getElementById("strip");
+  var stripCx = stripCv.getContext("2d");
+
+  function colorFor(lufs, target) {
+    var d = lufs - target;
+    if (Math.abs(d) <= 1) return "var(--ok)";
+    if (Math.abs(d) <= 3) return "var(--warn)";
+    return "var(--bad)";
+  }
+
+  function drawStrip() {
+    var dpr = window.devicePixelRatio || 1;
+    var W = stripCv.clientWidth, H = stripCv.clientHeight;
+    if (stripCv.width !== Math.round(W * dpr)) { stripCv.width = Math.round(W * dpr); stripCv.height = Math.round(H * dpr); }
+    stripCx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stripCx.clearRect(0, 0, W, H);
+    var n = stHistory.length;
+    if (n < 2) return;
+    stripCx.beginPath();
+    stripCx.strokeStyle = "#ffd166";
+    stripCx.lineWidth = 1.5;
+    for (var i = 0; i < n; i++) {
+      var x = (i / (Math.max(1, stHistory.length - 1))) * W;
+      var lufs = stHistory[i];
+      var y = H - Math.max(0, Math.min(1, (lufs + 40) / 40)) * H;
+      if (i) stripCx.lineTo(x, y); else stripCx.moveTo(x, y);
+    }
+    stripCx.stroke();
+  }
+
+  function tick() {
+    if (hasDisp) {
+      document.getElementById("roM").innerHTML = fmt(disp[0]) + '<span class="unit">LUFS</span>';
+      document.getElementById("roS").innerHTML = fmt(disp[1]) + '<span class="unit">LUFS</span>';
+      var ro = document.getElementById("roI");
+      ro.innerHTML = fmt(disp[2]) + '<span class="unit">LUFS</span>';
+      ro.style.color = colorFor(disp[2], TARGETS[targetIdx]);
+      var pk = Math.max(disp[3], disp[4]);
+      document.getElementById("roP").innerHTML = fmt(pk) + '<span class="unit">dBTP</span>';
+      document.getElementById("roP").style.color = pk > -1 ? "var(--bad)" : "var(--ink)";
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function boot() {
+    set(0, 0.5); set(1, 0); set(2, 0); set(3, 0);
+    document.getElementById("trim").addEventListener("input", function (e) { set(0, +e.target.value); });
+    refreshChan = buildSeg(document.getElementById("chanSeg"), 1, ["STEREO", "MONO"]);
+    refreshTarget = buildSeg(document.getElementById("targetSeg"), 2, ["-23", "-16", "-14"], function (k) { targetIdx = k; });
+    document.getElementById("resetBtn").onclick = function () {
+      set(3, 1);
+      setTimeout(function () { set(3, 0); }, 80);
+      stHistory = [];
+    };
+
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      V[i] = +v;
+      if (i === 0) document.getElementById("trim").value = v;
+      if (i === 1 && refreshChan) refreshChan();
+      if (i === 2 && refreshTarget) { targetIdx = Math.round(v); refreshTarget(); }
+    });
+    if (window.vstai && window.vstai.onDisplay) window.vstai.onDisplay(function (d) {
+      hasDisp = true;
+      for (var i = 0; i < 16; i++) disp[i] = d[i] || 0;
+      stHistory.push(disp[1]);
+      if (stHistory.length > 200) stHistory.shift();
+      drawStrip();
+    });
+    requestAnimationFrame(tick);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") window.vstai.onReady(boot);
+  else boot();
+})();
+</script>
+</body>
+</html>

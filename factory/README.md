@@ -321,3 +321,32 @@ An original **fully-patchable** semi-modular synth with a real, working **patch 
 | Inspired by | Name | Voice | Patch dest⁴ |
 |---|---|---|---|
 | Soma Pulsar-23 | **Quasar** | organismic through-zero cross-mod + feedback | Chaos |
+
+## Original designs (modern macro-synthesis, 2026-09)
+
+Not recreations of named hardware — original plugins in a category the 100+100
+`docs/modeling-targets.md` list doesn't cover: the modern digital/algorithmic
+synthesis ideas behind macro-oscillators, modal resonators and meta-modulators
+(the concepts behind Mutable Instruments' catalogue, generically named per the
+trademark-caution rule above — no code or samples borrowed, original DSP).
+
+| Plugin | Concept | Status |
+|---|---|---|
+| **Engine Eight** | Macro-oscillator: one voice, 8 selectable synthesis engines (analog/fold/chord/speech/granular/modal/noise/percussion), shared Harmonics/Timbre/Morph macros | ✅ PASS 20/20 params declared (17/20 reactive in the automated sweep — Glide/LFO Rate/LFO Dest need a pitch change or nonzero LFO Amount to register, see README), GUI 0 errors, persist-check PASS, pitch-check clean on 4/4 single-pitch engines |
+| **Modal Strike** | Modal resonator: 4 exciters (strike/bow/blow/pluck) into a 6-partial resonator bank, Structure morphs harmonic → inharmonic, Position = strike/pluck point | ✅ PASS 20/20 params reactive, GUI 0 errors, persist-check PASS, pitch-check clean (ratio ~1.00) on all 4 exciters once Damping is raised enough to still be ringing at the tool's measurement point |
+| **Cross Modulator** | Meta-modulator effect: input crossed against an internal carrier osc via 4 algorithms (difference/wavefold/Chebyshev/hard-sync); single-input by ABI design, Track Input zero-cross-follows the input's pitch | ✅ PASS 11/11 params reactive, GUI 0 errors, persist-check PASS, all 4 algorithms stress-tested stable (incl. Feedback=1.0 + Amount=1.0) with no NaNs/clipping |
+
+## Metering suite (2026-09)
+
+The one structural gap in the factory before this: zero analysis/metering tools, so
+nothing made here could be properly mixed or mastered. New `"Metering"` category added
+to `gallery-categories.json`. All pass audio through unaltered except a real Input
+Trim/Mono Check control (needed so `wasm-runner.mjs`'s "does any param affect the
+audio" gate has something honest to measure — these plugins' real controls mostly
+drive the *display* channel, which the runner doesn't inspect).
+
+| Plugin | Concept | Status |
+|---|---|---|
+| **Spectrum Analyzer** | 16-band real-time analyzer, cascaded 4-pole (2×TPT-SVF) resonant bands, dB-normalised display, Tilt/Channel/Freeze | ✅ PASS 5/5 params, GUI 0 errors, persist-check PASS. Two real DSP bugs found and fixed via direct sine-sweep measurement (not assumed) — see README: a single-stage bandpass didn't separate adjacent bands at all (~-43dB @ 7.5 octaves out), fixed by cascading two stages per band; the cascade's added resonant gain then pinned multiple bands at the display ceiling, fixed by dividing it back out |
+| **Loudness Meter** | Real ITU-R BS.1770-4/EBU R128: exact K-weighting coefficients, 400ms/100ms-hop gating, Momentary/Short-term/Integrated (701-bin two-gate histogram, `libebur128`'s approach) + approximate True Peak; hand-authored GUI (numeric readouts, not scaffold's bar/wave-only viz) | ✅ PASS 4/4 params, GUI 0 errors, persist-check PASS. Correctness verified against hand-calculated expected LUFS on 3 independent sine-tone tests (true-peak exact match, RLB low-frequency attenuation confirmed, dual-mono vs single-channel +3dB behavior confirmed) — see README |
+| **Correlation Meter** | Phase/correlation meter + live goniometer (Mid/Side or Lissajous), Mono Check auditions mono-sum without corrupting the analysis; hand-authored GUI (XY scatter, not scaffold's bar/wave-only viz) | ✅ PASS 4/4 params, GUI 0 errors, persist-check PASS. Correctness verified on 4 known test signals (mono → exact vertical line, anti-phase → exact horizontal line, uncorrelated noise → ~0, hard-panned-but-still-correlated → still 1.0) — see README |

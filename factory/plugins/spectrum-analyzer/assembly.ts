@@ -2,10 +2,14 @@
 //  SPECTRUM ANALYZER — a 16-band real-time spectrum display. Audio
 //  passes through unaltered (safe on a master bus) except for the Input
 //  Trim gain stage, which also feeds the analysis. A bank of 16
-//  log-spaced (60 Hz - 16 kHz) Chamberlin state-variable bandpass
-//  filters (the same proven per-band math as Vowel Filter's 3-formant
-//  bank, extended to 16 fixed bands) each drive an attack/release
-//  envelope follower; the 16 band magnitudes are written straight into
+//  log-spaced (60 Hz - 16 kHz) resonant bandpass filters, each driving
+//  an attack/release envelope follower. Uses a topology-preserving
+//  (tan-prewarped) state-variable filter (Andrew Simper / Cytomic's
+//  well-documented formulation), not the naive sin()-based Chamberlin
+//  SVF used elsewhere in the factory (e.g. Vowel Filter) - that form
+//  measurably smears/loses selectivity as centre frequency approaches
+//  Nyquist, which matters here since the top band is 16 kHz. The
+//  16 band magnitudes are written straight into
 //  the getDisplayPtr() telemetry channel every block, at whatever rate
 //  the host calls process() - the GUI reads them via onDisplay() at
 //  ~30 Hz and draws the bars (see gui.html). 16 floats is the entire
@@ -42,9 +46,22 @@ const BAND_HZ: StaticArray<f32> = StaticArray.fromArray<f32>([
   1400.0, 2050.0, 3000.0, 4400.0, 6400.0, 9400.0, 12500.0, 16000.0,
 ]);
 
-const bandBP: StaticArray<f32> = new StaticArray<f32>(NB);
-const bandLP: StaticArray<f32> = new StaticArray<f32>(NB);
+// TPT SVF state (per band, TWO cascaded stages): a single 2nd-order
+// resonant bandpass only rolls off ~6 dB/octave per side far from centre -
+// on a 16-band log display that's not enough separation (a 100 Hz tone
+// still shows barely attenuated at 12 kHz, ~7.5 octaves away). Cascading
+// two identical stages (4-pole, ~12 dB/octave per side) roughly doubles
+// that, which is what actually fixes the smearing - verified below, not
+// assumed (see README for the before/after sine-sweep numbers).
+const ic1eqA: StaticArray<f32> = new StaticArray<f32>(NB);
+const ic2eqA: StaticArray<f32> = new StaticArray<f32>(NB);
+const ic1eqB: StaticArray<f32> = new StaticArray<f32>(NB);
+const ic2eqB: StaticArray<f32> = new StaticArray<f32>(NB);
 const bandEnv: StaticArray<f32> = new StaticArray<f32>(NB);
+const bandA1: StaticArray<f32> = new StaticArray<f32>(NB);
+const bandA2: StaticArray<f32> = new StaticArray<f32>(NB);
+const bandA3: StaticArray<f32> = new StaticArray<f32>(NB);
+const BAND_Q: f32 = 5.0;   // ~1/4-octave-ish selectivity per stage, typical analyzer bandwidth
 
 let sampleRate: f32 = 48000.0;
 let channels: i32 = 2;
@@ -52,7 +69,10 @@ let channels: i32 = 2;
 export function init(sr: f32, maxFrames: i32, numChannels: i32): void {
   sampleRate = sr > 0.0 ? sr : 48000.0;
   channels = numChannels < MAX_CHANNELS ? numChannels : MAX_CHANNELS;
-  for (let k = 0; k < NB; k++) { bandBP[k] = 0.0; bandLP[k] = 0.0; bandEnv[k] = 0.0; }
+  for (let k = 0; k < NB; k++) {
+    ic1eqA[k] = 0.0; ic2eqA[k] = 0.0; ic1eqB[k] = 0.0; ic2eqB[k] = 0.0;
+    bandEnv[k] = 0.0; bandA1[k] = 0.0; bandA2[k] = 0.0; bandA3[k] = 0.0;
+  }
   for (let k = 0; k < 16; k++) display[k] = 0.0;
 
   params[P_TRIM] = 0.5; params[P_BALL] = 0.4; params[P_TILT] = 0.5;
@@ -77,7 +97,20 @@ export function process(n: i32): void {
   const atkCoef: f32 = f32(1.0 - Mathf.exp(-1.0 / ((0.001 + (1.0 - ballN) * 0.02) * sampleRate)));
   const relCoef: f32 = f32(1.0 - Mathf.exp(-1.0 / ((0.05 + ballN * 0.9) * sampleRate)));
   const nyq: f32 = sampleRate * 0.45;
-  const q: f32 = 0.09;
+
+  // TPT SVF coefficients per band - fixed centre frequencies, so these only
+  // need recomputing once per block, not once per sample (Simper/Cytomic
+  // "Linear Trapezoidal State Variable Filter": g = tan(pi*fc/sr), k = 1/Q,
+  // a1 = 1/(1+g*(g+k)), a2 = g*a1, a3 = g*a2; bandpass output is v1).
+  // (bandA1/A2/A3 are module-scope StaticArrays, just overwritten here - no
+  // allocation inside process().)
+  const kDamp: f32 = 1.0 / BAND_Q;
+  for (let k = 0; k < NB; k++) {
+    const fc: f32 = clampf(BAND_HZ[k], 20.0, nyq);
+    const g: f32 = f32(Mathf.tan(PI * fc / sampleRate));
+    const a1: f32 = 1.0 / (1.0 + g * (g + kDamp));
+    bandA1[k] = a1; bandA2[k] = g * a1; bandA3[k] = g * bandA2[k];
+  }
 
   for (let i = 0; i < n; i++) {
     const l: f32 = inBuf[i] * trimGain;
@@ -89,14 +122,26 @@ export function process(n: i32): void {
     if (!frozen) {
       const src: f32 = chan == 0 ? l : (chan == 1 ? r : (l + r) * 0.5);
       for (let k = 0; k < NB; k++) {
-        const fc: f32 = clampf(BAND_HZ[k], 20.0, nyq);
-        const g: f32 = f32(2.0 * Mathf.sin(PI * fc / sampleRate));
-        const hp: f32 = src - bandLP[k] - q * bandBP[k];
-        bandBP[k] = f32(bandBP[k] + g * hp);
-        bandLP[k] = f32(bandLP[k] + g * bandBP[k]);
-        const mag: f32 = f32(Mathf.abs(bandBP[k]));
+        // stage A
+        const v3a: f32 = src - ic2eqA[k];
+        const v1a: f32 = f32(bandA1[k] * ic1eqA[k] + bandA2[k] * v3a);
+        const v2a: f32 = f32(ic2eqA[k] + bandA2[k] * ic1eqA[k] + bandA3[k] * v3a);
+        ic1eqA[k] = f32(2.0 * v1a - ic1eqA[k]);
+        ic2eqA[k] = f32(2.0 * v2a - ic2eqA[k]);
+        // stage B, fed from stage A's bandpass output
+        const v3b: f32 = v1a - ic2eqB[k];
+        const v1b: f32 = f32(bandA1[k] * ic1eqB[k] + bandA2[k] * v3b);
+        const v2b: f32 = f32(ic2eqB[k] + bandA2[k] * ic1eqB[k] + bandA3[k] * v3b);
+        ic1eqB[k] = f32(2.0 * v1b - ic1eqB[k]);
+        ic2eqB[k] = f32(2.0 * v2b - ic2eqB[k]);
+
+        const mag: f32 = f32(Mathf.abs(v1b));
         const tilt: f32 = f32(Mathf.pow(f32(k) / f32(NB - 1), tiltN * 0.9));
-        const target: f32 = mag * (0.5 + tilt * 3.5);
+        // cascaded resonant bands have real gain at resonance (roughly Q^2
+        // for two identical stages) - divide it back out so 0 dBFS at the
+        // input reads near the top of the display instead of pinning
+        // several neighbouring bands at the ceiling simultaneously.
+        const target: f32 = mag / (BAND_Q * BAND_Q) * (0.5 + tilt * 3.5);
         if (target > bandEnv[k]) bandEnv[k] = f32(bandEnv[k] + (target - bandEnv[k]) * atkCoef);
         else bandEnv[k] = f32(bandEnv[k] + (target - bandEnv[k]) * relCoef);
       }

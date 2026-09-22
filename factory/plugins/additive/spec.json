@@ -11,69 +11,908 @@
     "accent2": "#8fd0f0"
   },
   "params": [
-    { "name": "S1 Profile",   "index": 0,  "min": 0,  "max": 5,  "default": 0, "step": 1 },
-    { "name": "S1 Tilt",      "index": 1,  "min": -1, "max": 1,  "default": 0.1 },
-    { "name": "S1 Odd/Even",  "index": 2,  "min": -1, "max": 1,  "default": 0.0 },
-    { "name": "S1 Density",   "index": 3,  "min": 0,  "max": 1,  "default": 0.7 },
-    { "name": "S1 Form Freq", "index": 4,  "min": 0,  "max": 1,  "default": 0.3 },
-    { "name": "S1 Form Wid",  "index": 5,  "min": 0,  "max": 1,  "default": 0.4 },
-    { "name": "S1 Form Amt",  "index": 6,  "min": 0,  "max": 1,  "default": 0.35 },
-    { "name": "S1 Lo Atk",    "index": 7,  "min": 0,  "max": 1,  "default": 0.02 },
-    { "name": "S1 Lo Dec",    "index": 8,  "min": 0,  "max": 1,  "default": 0.6 },
-    { "name": "S1 Mid Atk",   "index": 9,  "min": 0,  "max": 1,  "default": 0.05 },
-    { "name": "S1 Mid Dec",   "index": 10, "min": 0,  "max": 1,  "default": 0.4 },
-    { "name": "S1 Hi Atk",    "index": 11, "min": 0,  "max": 1,  "default": 0.08 },
-    { "name": "S1 Hi Dec",    "index": 12, "min": 0,  "max": 1,  "default": 0.25 },
-    { "name": "S1 DDF Cut",   "index": 13, "min": 0,  "max": 1,  "default": 0.7 },
-    { "name": "S1 DDF Res",   "index": 14, "min": 0,  "max": 1,  "default": 0.2 },
-    { "name": "S1 DDF Env",   "index": 15, "min": -1, "max": 1,  "default": 0.3 },
-    { "name": "S1 DDF Atk",   "index": 16, "min": 0,  "max": 1,  "default": 0.05 },
-    { "name": "S1 DDF Dec",   "index": 17, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S1 DDA Atk",   "index": 18, "min": 0,  "max": 1,  "default": 0.02 },
-    { "name": "S1 DDA Dec",   "index": 19, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S1 DDA Sus",   "index": 20, "min": 0,  "max": 1,  "default": 0.7 },
-    { "name": "S1 DDA Rel",   "index": 21, "min": 0,  "max": 1,  "default": 0.4 },
-
-    { "name": "S2 Profile",   "index": 22, "min": 0,  "max": 5,  "default": 1, "step": 1 },
-    { "name": "S2 Tilt",      "index": 23, "min": -1, "max": 1,  "default": -0.1 },
-    { "name": "S2 Odd/Even",  "index": 24, "min": -1, "max": 1,  "default": 0.4 },
-    { "name": "S2 Density",   "index": 25, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S2 Form Freq", "index": 26, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S2 Form Wid",  "index": 27, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S2 Form Amt",  "index": 28, "min": 0,  "max": 1,  "default": 0.25 },
-    { "name": "S2 Lo Atk",    "index": 29, "min": 0,  "max": 1,  "default": 0.03 },
-    { "name": "S2 Lo Dec",    "index": 30, "min": 0,  "max": 1,  "default": 0.7 },
-    { "name": "S2 Mid Atk",   "index": 31, "min": 0,  "max": 1,  "default": 0.1 },
-    { "name": "S2 Mid Dec",   "index": 32, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S2 Hi Atk",    "index": 33, "min": 0,  "max": 1,  "default": 0.15 },
-    { "name": "S2 Hi Dec",    "index": 34, "min": 0,  "max": 1,  "default": 0.3 },
-    { "name": "S2 DDF Cut",   "index": 35, "min": 0,  "max": 1,  "default": 0.6 },
-    { "name": "S2 DDF Res",   "index": 36, "min": 0,  "max": 1,  "default": 0.25 },
-    { "name": "S2 DDF Env",   "index": 37, "min": -1, "max": 1,  "default": 0.25 },
-    { "name": "S2 DDF Atk",   "index": 38, "min": 0,  "max": 1,  "default": 0.08 },
-    { "name": "S2 DDF Dec",   "index": 39, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S2 DDA Atk",   "index": 40, "min": 0,  "max": 1,  "default": 0.04 },
-    { "name": "S2 DDA Dec",   "index": 41, "min": 0,  "max": 1,  "default": 0.6 },
-    { "name": "S2 DDA Sus",   "index": 42, "min": 0,  "max": 1,  "default": 0.65 },
-    { "name": "S2 DDA Rel",   "index": 43, "min": 0,  "max": 1,  "default": 0.45 },
-
-    { "name": "Mode Flags",   "index": 44, "min": 0,  "max": 15, "default": 5, "step": 1 },
-    { "name": "S1/S2 Bal",    "index": 45, "min": 0,  "max": 1,  "default": 0.5 },
-    { "name": "S2 Coarse",    "index": 46, "min": -24,"max": 24, "default": 0, "step": 1 },
-    { "name": "S2 Detune",    "index": 47, "min": -1, "max": 1,  "default": 0.08 },
-    { "name": "Master Tune",  "index": 48, "min": -1, "max": 1,  "default": 0.0 },
-    { "name": "Portamento",   "index": 49, "min": 0,  "max": 1,  "default": 0.0 },
-    { "name": "Pitch Env",    "index": 50, "min": -1, "max": 1,  "default": 0.0 },
-    { "name": "P.Env Rate",   "index": 51, "min": 0,  "max": 1,  "default": 0.4 },
-    { "name": "LFO Rate",     "index": 52, "min": 0,  "max": 1,  "default": 0.35 },
-    { "name": "LFO Shape",    "index": 53, "min": 0,  "max": 4,  "default": 0, "step": 1 },
-    { "name": "LFO Depth",    "index": 54, "min": 0,  "max": 1,  "default": 0.1 },
-    { "name": "LFO Dest",     "index": 55, "min": 0,  "max": 15, "default": 1, "step": 1 },
-    { "name": "DDF KeyTrk",   "index": 56, "min": 0,  "max": 1,  "default": 0.4 },
-    { "name": "Bend Range",   "index": 57, "min": 0,  "max": 12, "default": 2, "step": 1 },
-    { "name": "Pitch Wheel",  "index": 58, "min": -1, "max": 1,  "default": 0.0 },
-    { "name": "Mod Wheel",    "index": 59, "min": 0,  "max": 1,  "default": 0.0 },
-    { "name": "Aftertouch",   "index": 60, "min": 0,  "max": 1,  "default": 0.0 },
-    { "name": "Volume",       "index": 61, "min": 0,  "max": 1,  "default": 0.7 }
+    {
+      "name": "S1 Profile",
+      "index": 0,
+      "min": 0,
+      "max": 5,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "S1 Tilt",
+      "index": 1,
+      "min": -1,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "S1 Odd/Even",
+      "index": 2,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "S1 Density",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "S1 Form Freq",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "S1 Form Wid",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "S1 Form Amt",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "S1 Lo Atk",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.02
+    },
+    {
+      "name": "S1 Lo Dec",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "S1 Mid Atk",
+      "index": 9,
+      "min": 0,
+      "max": 1,
+      "default": 0.05
+    },
+    {
+      "name": "S1 Mid Dec",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "S1 Hi Atk",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.08
+    },
+    {
+      "name": "S1 Hi Dec",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "S1 DDF Cut",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "S1 DDF Res",
+      "index": 14,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "S1 DDF Env",
+      "index": 15,
+      "min": -1,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "S1 DDF Atk",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.05
+    },
+    {
+      "name": "S1 DDF Dec",
+      "index": 17,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S1 DDA Atk",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.02
+    },
+    {
+      "name": "S1 DDA Dec",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S1 DDA Sus",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "S1 DDA Rel",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "S2 Profile",
+      "index": 22,
+      "min": 0,
+      "max": 5,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "S2 Tilt",
+      "index": 23,
+      "min": -1,
+      "max": 1,
+      "default": -0.1
+    },
+    {
+      "name": "S2 Odd/Even",
+      "index": 24,
+      "min": -1,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "S2 Density",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S2 Form Freq",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S2 Form Wid",
+      "index": 27,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S2 Form Amt",
+      "index": 28,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "S2 Lo Atk",
+      "index": 29,
+      "min": 0,
+      "max": 1,
+      "default": 0.03
+    },
+    {
+      "name": "S2 Lo Dec",
+      "index": 30,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "S2 Mid Atk",
+      "index": 31,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "S2 Mid Dec",
+      "index": 32,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S2 Hi Atk",
+      "index": 33,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "S2 Hi Dec",
+      "index": 34,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "S2 DDF Cut",
+      "index": 35,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "S2 DDF Res",
+      "index": 36,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "S2 DDF Env",
+      "index": 37,
+      "min": -1,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "S2 DDF Atk",
+      "index": 38,
+      "min": 0,
+      "max": 1,
+      "default": 0.08
+    },
+    {
+      "name": "S2 DDF Dec",
+      "index": 39,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S2 DDA Atk",
+      "index": 40,
+      "min": 0,
+      "max": 1,
+      "default": 0.04
+    },
+    {
+      "name": "S2 DDA Dec",
+      "index": 41,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "S2 DDA Sus",
+      "index": 42,
+      "min": 0,
+      "max": 1,
+      "default": 0.65
+    },
+    {
+      "name": "S2 DDA Rel",
+      "index": 43,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Mode Flags",
+      "index": 44,
+      "min": 0,
+      "max": 15,
+      "default": 5,
+      "step": 1
+    },
+    {
+      "name": "S1/S2 Bal",
+      "index": 45,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "S2 Coarse",
+      "index": 46,
+      "min": -24,
+      "max": 24,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "S2 Detune",
+      "index": 47,
+      "min": -1,
+      "max": 1,
+      "default": 0.08
+    },
+    {
+      "name": "Master Tune",
+      "index": 48,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Portamento",
+      "index": 49,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pitch Env",
+      "index": 50,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "P.Env Rate",
+      "index": 51,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "LFO Rate",
+      "index": 52,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "LFO Shape",
+      "index": 53,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "LFO Depth",
+      "index": 54,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "LFO Dest",
+      "index": 55,
+      "min": 0,
+      "max": 15,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "DDF KeyTrk",
+      "index": 56,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Bend Range",
+      "index": 57,
+      "min": 0,
+      "max": 12,
+      "default": 2,
+      "step": 1
+    },
+    {
+      "name": "Pitch Wheel",
+      "index": 58,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Mod Wheel",
+      "index": 59,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Aftertouch",
+      "index": 60,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Volume",
+      "index": 61,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ],
+  "presets": [
+    {
+      "name": "Init",
+      "values": {
+        "0": 0,
+        "1": 0.1,
+        "2": 0,
+        "3": 0.7,
+        "4": 0.3,
+        "5": 0.4,
+        "6": 0.35,
+        "7": 0.02,
+        "8": 0.6,
+        "9": 0.05,
+        "10": 0.4,
+        "11": 0.08,
+        "12": 0.25,
+        "13": 0.7,
+        "14": 0.2,
+        "15": 0.3,
+        "16": 0.05,
+        "17": 0.5,
+        "18": 0.02,
+        "19": 0.5,
+        "20": 0.7,
+        "21": 0.4,
+        "22": 1,
+        "23": -0.1,
+        "24": 0.4,
+        "25": 0.5,
+        "26": 0.5,
+        "27": 0.5,
+        "28": 0.25,
+        "29": 0.03,
+        "30": 0.7,
+        "31": 0.1,
+        "32": 0.5,
+        "33": 0.15,
+        "34": 0.3,
+        "35": 0.6,
+        "36": 0.25,
+        "37": 0.25,
+        "38": 0.08,
+        "39": 0.5,
+        "40": 0.04,
+        "41": 0.6,
+        "42": 0.65,
+        "43": 0.45,
+        "44": 5,
+        "45": 0.5,
+        "46": 0,
+        "47": 0.08,
+        "48": 0,
+        "49": 0,
+        "50": 0,
+        "51": 0.4,
+        "52": 0.35,
+        "53": 0,
+        "54": 0.1,
+        "55": 1,
+        "56": 0.4,
+        "57": 2,
+        "58": 0,
+        "59": 0,
+        "60": 0,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Glass Bar Pluck",
+      "values": {
+        "0": 3,
+        "1": 0.3,
+        "2": 0,
+        "3": 0.6,
+        "4": 0.4,
+        "5": 0.3,
+        "6": 0.3,
+        "7": 0.01,
+        "8": 0.3,
+        "9": 0.02,
+        "10": 0.2,
+        "11": 0.01,
+        "12": 0.1,
+        "13": 0.8,
+        "14": 0.1,
+        "15": 0.2,
+        "16": 0.01,
+        "17": 0.2,
+        "18": 0.005,
+        "19": 0.3,
+        "20": 0.1,
+        "21": 0.3,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Bowed Glass Pad",
+      "values": {
+        "0": 4,
+        "1": 0.1,
+        "2": 0,
+        "3": 0.8,
+        "7": 0.3,
+        "8": 0.8,
+        "9": 0.35,
+        "10": 0.7,
+        "11": 0.4,
+        "12": 0.6,
+        "18": 0.4,
+        "19": 0.7,
+        "20": 0.8,
+        "21": 0.8,
+        "44": 4,
+        "61": 0.65
+      }
+    },
+    {
+      "name": "Twin Detune Beating",
+      "values": {
+        "0": 0,
+        "22": 0,
+        "44": 0,
+        "45": 0.5,
+        "47": 0.4,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Organ Octaves Full",
+      "values": {
+        "0": 4,
+        "1": 0,
+        "3": 0.9,
+        "22": 4,
+        "23": 0,
+        "25": 0.8,
+        "44": 5,
+        "46": 12,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Resonant Formant Wow",
+      "values": {
+        "0": 5,
+        "4": 0.5,
+        "5": 0.2,
+        "6": 0.85,
+        "52": 0.4,
+        "54": 0.5,
+        "55": 9,
+        "61": 0.65
+      }
+    },
+    {
+      "name": "Odd Harmonic Clarinet",
+      "values": {
+        "0": 1,
+        "1": 0.15,
+        "2": 1,
+        "3": 0.7,
+        "13": 0.6,
+        "18": 0.1,
+        "19": 0.5,
+        "20": 0.75,
+        "21": 0.4,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Even Harmonic Bell",
+      "values": {
+        "0": 3,
+        "1": 0.4,
+        "2": -1,
+        "3": 0.6,
+        "13": 0.75,
+        "18": 0.01,
+        "19": 0.35,
+        "20": 0.15,
+        "21": 0.5,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Evolving Spectral Morph",
+      "values": {
+        "0": 0,
+        "1": 0.2,
+        "3": 0.8,
+        "7": 0.05,
+        "8": 0.9,
+        "9": 0.1,
+        "10": 0.5,
+        "11": 0.02,
+        "12": 0.1,
+        "18": 0.02,
+        "19": 0.6,
+        "20": 0.5,
+        "21": 0.5,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "DDF Sweep Pluck",
+      "values": {
+        "0": 0,
+        "13": 0.25,
+        "14": 0.3,
+        "15": 0.85,
+        "16": 0.02,
+        "17": 0.4,
+        "18": 0.005,
+        "19": 0.4,
+        "20": 0.2,
+        "21": 0.3,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "DDF Negative Sweep",
+      "values": {
+        "0": 0,
+        "13": 0.9,
+        "14": 0.2,
+        "15": -0.8,
+        "16": 0.03,
+        "17": 0.5,
+        "18": 0.01,
+        "19": 0.5,
+        "20": 0.3,
+        "21": 0.4,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Formant Vowel Ahh",
+      "values": {
+        "0": 2,
+        "4": 0.3,
+        "5": 0.3,
+        "6": 0.8,
+        "18": 0.03,
+        "19": 0.4,
+        "20": 0.7,
+        "21": 0.4,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Formant Vowel Ooh",
+      "values": {
+        "0": 2,
+        "4": 0.7,
+        "5": 0.15,
+        "6": 0.8,
+        "18": 0.03,
+        "19": 0.4,
+        "20": 0.7,
+        "21": 0.4,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Dense Partial Wall",
+      "values": {
+        "0": 0,
+        "1": 0,
+        "3": 1,
+        "22": 0,
+        "23": 0,
+        "25": 1,
+        "44": 0,
+        "45": 0.5,
+        "47": 0.15,
+        "61": 0.65
+      }
+    },
+    {
+      "name": "Sparse Thin Partial",
+      "values": {
+        "0": 0,
+        "3": 0.15,
+        "18": 0.01,
+        "19": 0.3,
+        "20": 0.4,
+        "21": 0.3,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Pitch Env Bend Up",
+      "values": {
+        "0": 0,
+        "18": 0.005,
+        "19": 0.4,
+        "20": 0.6,
+        "21": 0.35,
+        "50": 0.6,
+        "51": 0.6,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Pitch Env Bend Down",
+      "values": {
+        "0": 0,
+        "18": 0.005,
+        "19": 0.4,
+        "20": 0.6,
+        "21": 0.35,
+        "50": -0.6,
+        "51": 0.5,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "LFO Vibrato Sine",
+      "values": {
+        "52": 0.3,
+        "53": 4,
+        "54": 0.3,
+        "55": 1,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "LFO Tremolo Amp",
+      "values": {
+        "52": 0.4,
+        "53": 0,
+        "54": 0.4,
+        "55": 4,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "LFO Spectral Wobble",
+      "values": {
+        "0": 0,
+        "3": 0.7,
+        "52": 0.5,
+        "53": 2,
+        "54": 0.5,
+        "55": 2,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Aftertouch Brighten Pad",
+      "values": {
+        "3": 0.85,
+        "18": 0.5,
+        "19": 0.6,
+        "20": 0.85,
+        "21": 0.7,
+        "60": 0.6,
+        "61": 0.65
+      }
+    },
+    {
+      "name": "Mod Wheel Vibrato Lead",
+      "values": {
+        "0": 0,
+        "18": 0.01,
+        "19": 0.4,
+        "20": 0.6,
+        "21": 0.3,
+        "55": 1,
+        "59": 0.5,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Portamento Slide Lead",
+      "values": {
+        "0": 0,
+        "1": 0.4,
+        "13": 0.85,
+        "18": 0.005,
+        "19": 0.35,
+        "20": 0.6,
+        "21": 0.3,
+        "49": 0.6,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Twin Unison Pad Wide",
+      "values": {
+        "18": 0.5,
+        "19": 0.6,
+        "20": 0.85,
+        "21": 0.75,
+        "40": 0.5,
+        "41": 0.6,
+        "42": 0.85,
+        "43": 0.75,
+        "44": 0,
+        "45": 0.5,
+        "47": 0.6,
+        "61": 0.65
+      }
+    },
+    {
+      "name": "S2 Octave Layer Full",
+      "values": {
+        "44": 5,
+        "45": 0.3,
+        "46": 12,
+        "61": 0.68
+      }
+    },
+    {
+      "name": "Bright Bell Strike",
+      "values": {
+        "0": 5,
+        "4": 0.6,
+        "5": 0.15,
+        "6": 0.7,
+        "11": 0.01,
+        "12": 0.08,
+        "18": 0.005,
+        "19": 0.15,
+        "20": 0.05,
+        "21": 0.25,
+        "61": 0.7
+      }
+    },
+    {
+      "name": "Dark Sub Pad",
+      "values": {
+        "0": 0,
+        "1": -1,
+        "3": 0.4,
+        "13": 0.3,
+        "18": 0.4,
+        "19": 0.6,
+        "20": 0.8,
+        "21": 0.7,
+        "61": 0.65
+      }
+    },
+    {
+      "name": "Metallic Inharmonic Clang",
+      "values": {
+        "0": 5,
+        "2": 0.6,
+        "4": 0.9,
+        "5": 0.1,
+        "6": 0.7,
+        "13": 0.65,
+        "14": 0.7,
+        "18": 0.005,
+        "19": 0.3,
+        "20": 0.15,
+        "21": 0.4,
+        "61": 0.68
+      }
+    }
   ]
 }

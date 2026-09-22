@@ -11,6 +11,7 @@
 #pragma once
 
 #include <juce_core/juce_core.h>
+#include <map>
 #include <vector>
 
 struct VstaiParam
@@ -21,6 +22,15 @@ struct VstaiParam
     double       maxVal  = 1.0;
     double       defVal  = 0.0;
     double       value   = 0.0; // last value (persisted)
+};
+
+// A named snapshot of param values (factory preset or user-saved). `values` is
+// sparse — only params the preset actually sets; anything else keeps its
+// current value. Keyed by the same host param index as VstaiParam::index.
+struct VstaiPreset
+{
+    juce::String           name;
+    std::map<int, double>  values;
 };
 
 // One entry in the prompt browser: a full snapshot of the plugin after a build
@@ -56,6 +66,11 @@ public:
     std::vector<VstaiParam>   params;
     juce::String              lastExplanation;
     bool                      isInstrument = false; // effect vs synth
+
+    // Factory (and, later, user-saved) presets. Survives whitelabel export
+    // (PluginExport.h bakes the document as-is) and rides through save/load,
+    // gallery download, and DAW session state like everything else here.
+    std::vector<VstaiPreset>  presets;
 
     // Whitelabel/share lock: when true the plugin opens straight into the product
     // GUI with no authoring chrome and no way back (see LockedEditor). Set when a

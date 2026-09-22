@@ -9,7 +9,7 @@ const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
 const N = {};
 for (const name of ["getState","setModel","setGenerationSource","setApplyDesignStyle","setEffort","setThinking","generate",
                     "buildManualPrompt","buildManualUpdatePrompt","applyManualReply","applyManualParts","manualFixPrompt","newDoc","compile","fixWithAI",
-                    "save","load","galleryIndex","galleryLoad","publish","exportPlugin","getStandardUi","saveStandardUi","resetStandardUi",
+                    "save","load","galleryIndex","galleryLoad","applyPreset","publish","exportPlugin","getStandardUi","saveStandardUi","resetStandardUi",
                     "getSettings","saveSettings","getDesigns","setDesign","removeDesign","exportDesign","importDesign",
                     "getDiagnostics","clearDiagnostics","getPreviewHtml",
                     "openAccount","getAccount","openKeys","getHistory","restoreRevision","ready"])
@@ -65,7 +65,7 @@ backend.addEventListener("thinking", (txt) => {
   $("thinkToggle").hidden = !v.textContent;
   v.scrollTop = v.scrollHeight;
 });
-backend.addEventListener("documentChanged", (s) => { state = s; applyTheme(s.designTheme); reseed(s); rebuildModelSelect(s); reloadPreview(); if (activeTab === "history") renderHistory(); });
+backend.addEventListener("documentChanged", (s) => { state = s; applyTheme(s.designTheme); reseed(s); rebuildModelSelect(s); rebuildPresetSelect(s); reloadPreview(); if (activeTab === "history") renderHistory(); });
 // Host/automation param changes → forward into the sandboxed preview iframe so the
 // generated GUI's controls visually follow along.
 backend.addEventListener("paramUpdate", (p) => {
@@ -236,6 +236,32 @@ on("modelSel","change", async () => {
 });
 on("effortSel","change", () => N.setEffort($("effortSel").value));
 on("thinkChk","change", () => N.setThinking($("thinkChk").checked));
+
+/* ---------- preset picker --------------------------------------------- */
+function rebuildPresetSelect(s){
+  const sel = $("presetSel"), wrap = $("presetWrap");
+  const presets = s.presets || [];
+  const has = presets.length > 0;
+  sel.hidden = wrap.hidden = !has;
+  if (!has) { sel.innerHTML = ""; return; }
+  sel.innerHTML = "";
+  const placeholder = document.createElement("option");
+  placeholder.textContent = "Presets (" + presets.length + ")";
+  placeholder.value = "";
+  placeholder.disabled = true; placeholder.selected = true;
+  sel.appendChild(placeholder);
+  presets.forEach((p, i) => {
+    const o = document.createElement("option");
+    o.value = String(i); o.textContent = p.name || ("Preset " + (i + 1));
+    sel.appendChild(o);
+  });
+}
+on("presetSel","change", () => {
+  const i = $("presetSel").value;
+  if (i === "") return;
+  N.applyPreset(i);
+  setStatus("Loaded preset “" + $("presetSel").selectedOptions[0].textContent + "”.");
+});
 
 /* ---------- editors (Monaco, with textarea fallback) ---------------- */
 async function loadMonaco(){
@@ -871,12 +897,13 @@ on("copyFixBtn","click", async () => {
   state = await N.getState();
   applyTheme(state.designTheme);
   rebuildModelSelect(state);
+  rebuildPresetSelect(state);
   reseed(state);
   edSet("std", await N.getStandardUi());
   selectTab("preview");
   // Signal the backend our bridge is live; it returns the freshest state
   // (e.g. Ollama models discovered during startup) and starts emitting events.
-  try { state = await N.ready(); applyTheme(state.designTheme); rebuildModelSelect(state); reseed(state); } catch (e) {}
+  try { state = await N.ready(); applyTheme(state.designTheme); rebuildModelSelect(state); rebuildPresetSelect(state); reseed(state); } catch (e) {}
   setStatus("Ready.");
   refreshAccount();   // show the signed-in account's cloud credits in the header
 })();

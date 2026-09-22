@@ -30,7 +30,26 @@
       "Bash(rm -rf /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/win2)",
       "Bash(unzip -q -o VibePlugin-windows/*.zip -d y)",
       "Bash(rm -f /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/VibePlugin-v0.4.4-win-test-windows.zip)",
-      "Bash(zip -r -q -X /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/VibePlugin-v0.4.4-win-test-windows.zip VibePlugin-v0.4.4-win-test-windows)"
+      "Bash(zip -r -q -X /private/tmp/claude-501/-Users-k-projects-VibePlugin/a30a03a4-480c-46ac-8d16-13417f2e0e1a/scratchpad/VibePlugin-v0.4.4-win-test-windows.zip VibePlugin-v0.4.4-win-test-windows)",
+      "Bash(node factory/tools/persist-check.mjs factory/plugins/engine-eight)",
+      "Bash(node factory/tools/scaffold.mjs modal-strike --pack)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=0,3=1.0\" --secs 1.0)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=0,3=1.0\" --secs 0.3)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=3,3=1.0\" --secs 0.3)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=0\" --secs 0.3)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=1,1=0,3=0.8\" --secs 1.0)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=1,1=0,2=1.0,3=0.8\" --secs 1.0)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=2,1=0,3=0.8\" --secs 1.0)",
+      "Bash(node factory/tools/pitch-check.mjs /tmp/modal-strike.wasm --freq 220 --set \"0=1,1=0,3=0.8,4=0.0\" --secs 1.0)",
+      "Bash(node factory/tools/persist-check.mjs factory/plugins/modal-strike)",
+      "Bash(node factory/tools/persist-check.mjs factory/plugins/cross-modulator)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('factory/gallery-categories.json'\\)\\); print\\(d['effect']['order']\\)\")",
+      "Bash(node factory/tools/scaffold.mjs spectrum-analyzer --pack)",
+      "Bash(node /private/tmp/claude-501/-Users-k-projects-VibePlugin/d0c8c9b4-5133-4b5d-a1a8-d1200eb15368/scratchpad/lufs-check2.mjs /tmp/loudness-meter.wasm 60 -20 6)",
+      "Bash(node /private/tmp/claude-501/-Users-k-projects-VibePlugin/d0c8c9b4-5133-4b5d-a1a8-d1200eb15368/scratchpad/lufs-check2.mjs /tmp/loudness-meter.wasm 1000 -20 6)",
+      "Bash(node /private/tmp/claude-501/-Users-k-projects-VibePlugin/d0c8c9b4-5133-4b5d-a1a8-d1200eb15368/scratchpad/lufs-check2.mjs /tmp/loudness-meter.wasm 1000 -20 6 dual)",
+      "Bash(node /private/tmp/claude-501/-Users-k-projects-VibePlugin/d0c8c9b4-5133-4b5d-a1a8-d1200eb15368/scratchpad/lufs-check2.mjs /tmp/loudness-meter.wasm 1000 -20 6 mono1ch)"
     ],
     "additionalDirectories": [
       "/private/tmp/claude-501/-Users-k-projects-VibePlugin/8768562d-d4aa-4287-93ac-8bdafdf5bcd3/scratchpad"

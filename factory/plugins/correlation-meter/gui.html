@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Correlation Meter</title>
+<style>
+  :root {
+    --accent: #7ee0ff; --accent2: #d8f7ff;
+    --bg0: #050a0c; --bg1: #0a161a;
+    --ink: #eafcff; --ink-dim: #6d95a0;
+    --panel: rgba(12, 28, 32, 0.6); --stroke: rgba(126, 224, 255, 0.18);
+    --ok: #6fcf97; --warn: #f2c94c; --bad: #eb5757;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg0); color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .stage { min-height: 100vh; padding: 18px; background: linear-gradient(180deg, var(--bg1), var(--bg0) 70%); }
+  h1 { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }
+  .layout { display: flex; gap: 12px; flex-wrap: wrap; }
+  .panel { background: var(--panel); border: 1px solid var(--stroke); border-radius: 12px; padding: 16px; backdrop-filter: blur(6px); }
+  #gonio { width: 260px; height: 260px; display: block; border-radius: 10px; background: #020508; }
+  .side { display: flex; flex-direction: column; gap: 12px; min-width: 200px; }
+  .corrRo .lbl { font-size: 10px; letter-spacing: 0.1em; color: var(--ink-dim); text-transform: uppercase; }
+  .corrRo .val { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 30px; font-weight: 700; margin-top: 2px; }
+  .corrBar { width: 100%; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.08); margin-top: 8px; position: relative; overflow: hidden; }
+  .corrBar .fill { position: absolute; top: 0; bottom: 0; left: 50%; background: var(--accent); }
+  .ctl { display: flex; flex-direction: column; gap: 4px; }
+  .ctl .lbl { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-dim); text-transform: uppercase; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .seg { display: flex; border: 1px solid var(--stroke); border-radius: 6px; overflow: hidden; width: fit-content; }
+  .seg button { background: transparent; border: none; color: var(--ink-dim); padding: 6px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+  .seg button.on { background: var(--accent); color: #05282f; font-weight: 700; }
+  .tgBtn { background: rgba(126,224,255,0.1); border: 1px solid var(--stroke); color: var(--ink); border-radius: 6px; padding: 7px 12px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; font-family: inherit; width: fit-content; }
+  .tgBtn.on { background: var(--accent); color: #05282f; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <h1>Correlation Meter</h1>
+  <div class="layout">
+    <div class="panel"><canvas id="gonio"></canvas></div>
+    <div class="panel side">
+      <div class="corrRo">
+        <div class="lbl">Correlation</div>
+        <div class="val" id="corrVal">0.00</div>
+        <div class="corrBar"><div class="fill" id="corrFill"></div></div>
+      </div>
+      <div class="ctl"><div class="lbl">Ballistics</div><input type="range" id="ball" min="0" max="1" step="0.001" value="0.4"></div>
+      <div class="ctl"><div class="lbl">Mode</div><div class="seg" id="modeSeg"></div></div>
+      <div class="ctl"><button class="tgBtn" id="monoBtn">Mono Check</button></div>
+      <div class="ctl"><button class="tgBtn" id="freezeBtn">Freeze</button></div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var V = {};
+  function set(i, v) { V[i] = v; if (window.vstai && typeof window.vstai.setParam === "function") window.vstai.setParam(i, v); }
+
+  function buildSeg(host, idx, opts) {
+    host.innerHTML = "";
+    var btns = opts.map(function (label, k) {
+      var b = document.createElement("button");
+      b.textContent = label;
+      b.onclick = function () { set(idx, k); refresh(); };
+      host.appendChild(b);
+      return b;
+    });
+    function refresh() { btns.forEach(function (b, k) { b.className = Math.round(V[idx]) === k ? "on" : ""; }); }
+    refresh();
+    return refresh;
+  }
+  function buildToggle(el, idx) {
+    el.onclick = function () { set(idx, V[idx] > 0.5 ? 0 : 1); refresh(); };
+    function refresh() { el.className = "tgBtn" + (V[idx] > 0.5 ? " on" : ""); }
+    refresh();
+    return refresh;
+  }
+
+  var refreshMode, refreshMono, refreshFreeze;
+  var hasDisp = false;
+  var disp = new Array(16).fill(0);
+
+  var cv = document.getElementById("gonio");
+  var cx = cv.getContext("2d");
+  function colorForCorr(c) {
+    if (c > 0.3) return "var(--ok)";
+    if (c > -0.3) return "var(--warn)";
+    return "var(--bad)";
+  }
+
+  function drawGonio() {
+    var dpr = window.devicePixelRatio || 1;
+    var W = cv.clientWidth, H = cv.clientHeight;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // phosphor persistence: partial-clear instead of full clear
+    cx.fillStyle = "rgba(2,5,8,0.14)";
+    cx.fillRect(0, 0, W, H);
+    // crosshair
+    cx.strokeStyle = "rgba(126,224,255,0.15)"; cx.lineWidth = 1;
+    cx.beginPath(); cx.moveTo(W / 2, 0); cx.lineTo(W / 2, H); cx.moveTo(0, H / 2); cx.lineTo(W, H / 2); cx.stroke();
+
+    if (!hasDisp) return;
+    var cx0 = W / 2, cy0 = H / 2, s = Math.min(W, H) * 0.46;
+    cx.fillStyle = "#7ee0ff";
+    for (var k = 0; k < 7; k++) {
+      var x = disp[1 + k * 2], y = disp[2 + k * 2];
+      var px = cx0 + x * s, py = cy0 - y * s;
+      cx.beginPath(); cx.arc(px, py, 2, 0, 6.2832); cx.fill();
+    }
+  }
+
+  function tick() {
+    if (hasDisp) {
+      var c = disp[0];
+      document.getElementById("corrVal").textContent = c.toFixed(2);
+      document.getElementById("corrVal").style.color = colorForCorr(c);
+      var fill = document.getElementById("corrFill");
+      var pct = Math.abs(c) * 50;
+      fill.style.width = pct + "%";
+      fill.style.left = c >= 0 ? "50%" : (50 - pct) + "%";
+      fill.style.background = colorForCorr(c);
+    }
+    drawGonio();
+    requestAnimationFrame(tick);
+  }
+
+  function boot() {
+    set(0, 0); set(1, 0.4); set(2, 0); set(3, 0);
+    document.getElementById("ball").addEventListener("input", function (e) { set(1, +e.target.value); });
+    refreshMode = buildSeg(document.getElementById("modeSeg"), 2, ["GONIO", "LISSAJOUS"]);
+    refreshMono = buildToggle(document.getElementById("monoBtn"), 0);
+    refreshFreeze = buildToggle(document.getElementById("freezeBtn"), 3);
+
+    if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) {
+      V[i] = +v;
+      if (i === 1) document.getElementById("ball").value = v;
+      if (i === 2 && refreshMode) refreshMode();
+      if (i === 0 && refreshMono) refreshMono();
+      if (i === 3 && refreshFreeze) refreshFreeze();
+    });
+    if (window.vstai && window.vstai.onDisplay) window.vstai.onDisplay(function (d) {
+      hasDisp = true;
+      for (var i = 0; i < 16; i++) disp[i] = d[i] || 0;
+    });
+    requestAnimationFrame(tick);
+  }
+
+  if (window.vstai && typeof window.vstai.onReady === "function") window.vstai.onReady(boot);
+  else boot();
+})();
+</script>
+</body>
+</html>

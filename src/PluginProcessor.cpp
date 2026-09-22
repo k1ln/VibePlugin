@@ -830,6 +830,13 @@ void VstaiAudioProcessor::setParamFromGui (int index, float value)
         hostParams[index]->setValueNotifyingHost (actualToNorm (index, value));
 }
 
+void VstaiAudioProcessor::applyPreset (int presetIndex)
+{
+    if (presetIndex < 0 || presetIndex >= (int) document.presets.size()) return;
+    for (const auto& kv : document.presets[(size_t) presetIndex].values)
+        setParamFromGui (kv.first, (float) kv.second);
+}
+
 void VstaiAudioProcessor::setupHostParameters()
 {
     hostParams.reserve (vstai::kMaxParams);
