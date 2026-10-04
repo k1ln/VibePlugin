@@ -84,7 +84,7 @@ private:
 
     Provider     provider { Provider::anthropic };
     juce::String apiKey;
-    juce::String model   { "claude-opus-5" };
+    juce::String model   { "claude-opus-5-5" };
     juce::String effort  { "medium" };   // low|medium|high|max (anthropic only)
     // Output ceiling. A from-scratch build legitimately needs the model's full
     // 128K (a whole DSP module + GUI); a small edit does not, and leaving the

@@ -1,0 +1,72 @@
+{
+  "name": "StdPhaser",
+  "isInstrument": false,
+  "explanation": "A phaser: the signal passes through a cascade of first-order allpass filters whose corner frequency is swept by an LFO, and the result is mixed with the dry signal. Every pair of allpass stages adds one notch to the response, so 2 stages is a single gentle swoosh and 12 is a deep, complex sweep. Center sets where the sweep sits, Depth how many octaves it moves, Feedback (positive or negative) turns the notches into resonant peaks, and Spread offsets the right channel's LFO from the left. The picture shows the live notch pattern.",
+  "assembly": "factory/plugins/std-phaser/assembly.ts",
+  "out": "factory/plugins/std-phaser/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c58bff",
+    "accent2": "#ebd6ff"
+  },
+  "guiFile": "factory/plugins/std-phaser/gui.html",
+  "params": [
+    {
+      "name": "Stages",
+      "index": 0,
+      "min": 0,
+      "max": 5,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Rate",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Depth",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Center",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Feedback",
+      "index": 4,
+      "min": -0.9,
+      "max": 0.9,
+      "default": 0.4
+    },
+    {
+      "name": "Spread",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Mix",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Output",
+      "index": 7,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

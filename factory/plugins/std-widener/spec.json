@@ -1,0 +1,57 @@
+{
+  "name": "StdWidener",
+  "isInstrument": false,
+  "explanation": "A mid/side stereo widener. The signal is split into its centre (mid, what both channels share) and sides (what differs), and the sides are scaled by Width: 0% collapses to mono, 100% leaves the image untouched, 200% doubles the side content for a very wide mix. Bass Mono removes the stereo information below the chosen frequency so the low end stays solid and centred (important for vinyl, club systems and mono compatibility), and Mid Level and Side Level trim the two components independently. Balance shifts the whole image left or right. The picture is a goniometer-style view of how the image is being reshaped.",
+  "assembly": "factory/plugins/std-widener/assembly.ts",
+  "out": "factory/plugins/std-widener/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#9fb4cc",
+    "accent2": "#dbe5f0"
+  },
+  "guiFile": "factory/plugins/std-widener/gui.html",
+  "params": [
+    {
+      "name": "Width",
+      "index": 0,
+      "min": 0,
+      "max": 2,
+      "default": 1
+    },
+    {
+      "name": "Bass Mono",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Mid Level",
+      "index": 2,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Side Level",
+      "index": 3,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Balance",
+      "index": 4,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

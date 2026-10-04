@@ -1,0 +1,50 @@
+{
+  "name": "StdLimiter",
+  "isInstrument": false,
+  "explanation": "A look-ahead brickwall limiter for the end of a chain. The audio is delayed by the Lookahead time while a sliding-window minimum finds the gain reduction each upcoming peak needs, and the gain is eased down before the peak arrives (so there is no overshoot or crackle) and released smoothly afterwards at the Release rate. Gain drives the signal into the limiter, Ceiling is the level nothing will ever exceed, and Soft Clip rounds the peaks with a tanh stage before limiting for a louder, warmer result with less gain reduction. Left and right are linked so the stereo image does not shift.",
+  "assembly": "factory/plugins/std-limiter/assembly.ts",
+  "out": "factory/plugins/std-limiter/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#8fe388",
+    "accent2": "#d6f7d2"
+  },
+  "guiFile": "factory/plugins/std-limiter/gui.html",
+  "params": [
+    {
+      "name": "Gain",
+      "index": 0,
+      "min": 0,
+      "max": 24,
+      "default": 6
+    },
+    {
+      "name": "Ceiling",
+      "index": 1,
+      "min": -12,
+      "max": 0,
+      "default": -0.3
+    },
+    {
+      "name": "Release",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Lookahead",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.22
+    },
+    {
+      "name": "Soft Clip",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  ]
+}

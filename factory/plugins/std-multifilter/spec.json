@@ -1,0 +1,58 @@
+{
+  "name": "StdMultiFilter",
+  "isInstrument": false,
+  "explanation": "A 12 dB per octave multimode state-variable filter (zero-delay-feedback topology) with low-pass, high-pass, band-pass and notch outputs, a resonance control that runs from gentle to near self-oscillation, and an input drive that saturates the signal before it enters the filter. The cutoff stays stable and well behaved when swept quickly. A live response curve shows the selected mode.",
+  "assembly": "factory/plugins/std-multifilter/assembly.ts",
+  "out": "factory/plugins/std-multifilter/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb347",
+    "accent2": "#ffe2b0"
+  },
+  "guiFile": "factory/plugins/std-multifilter/gui.html",
+  "params": [
+    {
+      "name": "Cutoff",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Resonance",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drive",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Mode",
+      "index": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Mix",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

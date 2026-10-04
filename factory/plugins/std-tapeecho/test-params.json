@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Time",
+    "index": 0,
+    "min": 0,
+    "max": 1,
+    "default": 0.6
+  },
+  {
+    "name": "Feedback",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.45
+  },
+  {
+    "name": "Tone",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Wow",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "Flutter",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.2
+  },
+  {
+    "name": "Drive",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Mix",
+    "index": 6,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Output",
+    "index": 7,
+    "min": -24,
+    "max": 12,
+    "default": 0
+  }
+]

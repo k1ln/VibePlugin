@@ -1,0 +1,86 @@
+{
+  "name": "StdWah",
+  "isInstrument": false,
+  "explanation": "A wah-wah filter built on a resonant band-pass. In Manual mode the Pedal knob is the foot position (automate it or map it to a controller); in Auto mode an envelope follower sweeps the filter with your playing dynamics (Sensitivity sets how far, Decay how quickly it falls back); in LFO mode a sine sweeps it at a fixed rate. Low and High set the bottom and top of the sweep and Resonance sets how vocal the peak is.",
+  "assembly": "factory/plugins/std-wah/assembly.ts",
+  "out": "factory/plugins/std-wah/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb347",
+    "accent2": "#ffe2b0"
+  },
+  "guiFile": "factory/plugins/std-wah/gui.html",
+  "params": [
+    {
+      "name": "Mode",
+      "index": 0,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Pedal",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Low",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "High",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Resonance",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Sensitivity",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Decay",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Rate",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Mix",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 9,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

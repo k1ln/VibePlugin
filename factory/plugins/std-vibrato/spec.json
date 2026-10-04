@@ -1,0 +1,58 @@
+{
+  "name": "StdVibrato",
+  "isInstrument": false,
+  "explanation": "A pure vibrato: the signal runs through a short delay whose time is swept by an LFO, which bends the pitch up and down in time with the sweep. Rate sets the vibrato speed, Depth the width of the pitch wobble (the picture shows the resulting pitch deviation in cents), Shape chooses a sine or a triangle LFO, and Stereo offsets the right channel's LFO against the left for a wide, slightly seasick image. Mix blends the dry signal back in, which turns vibrato into chorus.",
+  "assembly": "factory/plugins/std-vibrato/assembly.ts",
+  "out": "factory/plugins/std-vibrato/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c58bff",
+    "accent2": "#ebd6ff"
+  },
+  "guiFile": "factory/plugins/std-vibrato/gui.html",
+  "params": [
+    {
+      "name": "Rate",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Depth",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Shape",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Stereo",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Mix",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

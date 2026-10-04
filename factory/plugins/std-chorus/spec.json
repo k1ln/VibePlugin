@@ -1,0 +1,72 @@
+{
+  "name": "StdChorus",
+  "isInstrument": false,
+  "explanation": "A classic chorus: one to four short, slowly modulated delay lines are mixed with the dry signal, so the pitch of each voice drifts a few cents sharp and flat and the sound thickens into a small ensemble. Rate sets the speed of the modulation, Depth how far each voice wanders, Delay the centre delay time, Voices how many copies are stacked (their LFOs are spread evenly around the cycle), and Spread offsets the right channel's LFO against the left for a wide, swirling image. Tone smooths the wet signal's top end.",
+  "assembly": "factory/plugins/std-chorus/assembly.ts",
+  "out": "factory/plugins/std-chorus/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c58bff",
+    "accent2": "#ebd6ff"
+  },
+  "guiFile": "factory/plugins/std-chorus/gui.html",
+  "params": [
+    {
+      "name": "Rate",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Depth",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Delay",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Voices",
+      "index": 3,
+      "min": 1,
+      "max": 4,
+      "default": 3,
+      "step": 1
+    },
+    {
+      "name": "Spread",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.8
+    },
+    {
+      "name": "Tone",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "Mix",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Output",
+      "index": 7,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

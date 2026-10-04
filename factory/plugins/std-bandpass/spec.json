@@ -1,0 +1,58 @@
+{
+  "name": "StdBandPass",
+  "isInstrument": false,
+  "explanation": "A band-pass filter with a free centre frequency and a bandwidth control from a wide, gentle bell to a narrow resonant whistle. The 12 dB setting is one constant-peak biquad band-pass; the 24 dB setting cascades two of them, which narrows and steepens the passband. Use it to isolate a region (telephone and radio voices, resonant sweeps) or blend it back with the dry signal using Mix. A live frequency-response curve shows the centre and the width.",
+  "assembly": "factory/plugins/std-bandpass/assembly.ts",
+  "out": "factory/plugins/std-bandpass/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb347",
+    "accent2": "#ffe2b0"
+  },
+  "guiFile": "factory/plugins/std-bandpass/gui.html",
+  "params": [
+    {
+      "name": "Center",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Width",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Slope",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Gain",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Mix",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

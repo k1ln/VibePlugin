@@ -1,0 +1,71 @@
+{
+  "name": "StdReverb",
+  "isInstrument": false,
+  "explanation": "The textbook algorithmic reverb: a pre-delay feeds eight parallel damped feedback comb filters whose outputs run through four series allpass diffusers, with a slightly different set of lengths on the right channel for stereo width. Decay sets how long the tail rings, Damping rolls off the highs inside the loop so the tail darkens like a real room, Width blends the stereo image toward mono, and Low Cut and High Cut shape the wet signal. Smooth, dense and unfussy - the reverb you reach for first.",
+  "assembly": "factory/plugins/std-reverb/assembly.ts",
+  "out": "factory/plugins/std-reverb/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#7aa8ff",
+    "accent2": "#d4e2ff"
+  },
+  "guiFile": "factory/plugins/std-reverb/gui.html",
+  "params": [
+    {
+      "name": "Decay",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Damping",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Pre-Delay",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.08
+    },
+    {
+      "name": "Width",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Low Cut",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "High Cut",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    },
+    {
+      "name": "Mix",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Output",
+      "index": 7,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

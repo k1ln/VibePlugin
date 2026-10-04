@@ -1,0 +1,64 @@
+{
+  "name": "StdTone",
+  "isInstrument": false,
+  "explanation": "The simple tone stack everyone understands: Bass and Treble are shelving filters at adjustable corner frequencies, Mid is a broad bell at an adjustable centre, and each gives up to 12 dB of boost or cut. Meant for quick, musical broad strokes rather than surgical work: warm up a dull bass, lift a vocal's presence, tame a harsh top end. The curve shows the combined response.",
+  "assembly": "factory/plugins/std-tone/assembly.ts",
+  "out": "factory/plugins/std-tone/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#f2e06b",
+    "accent2": "#fbf4c4"
+  },
+  "guiFile": "factory/plugins/std-tone/gui.html",
+  "params": [
+    {
+      "name": "Bass",
+      "index": 0,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Mid",
+      "index": 1,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Treble",
+      "index": 2,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Bass Freq",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Mid Freq",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Treble Freq",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Output",
+      "index": 6,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

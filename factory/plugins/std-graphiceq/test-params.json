@@ -1,0 +1,79 @@
+[
+  {
+    "name": "31 Hz",
+    "index": 0,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "62 Hz",
+    "index": 1,
+    "min": -12,
+    "max": 12,
+    "default": 8
+  },
+  {
+    "name": "125 Hz",
+    "index": 2,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "250 Hz",
+    "index": 3,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "500 Hz",
+    "index": 4,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "1 kHz",
+    "index": 5,
+    "min": -12,
+    "max": 12,
+    "default": -8
+  },
+  {
+    "name": "2 kHz",
+    "index": 6,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "4 kHz",
+    "index": 7,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "8 kHz",
+    "index": 8,
+    "min": -12,
+    "max": 12,
+    "default": 8
+  },
+  {
+    "name": "16 kHz",
+    "index": 9,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "Output",
+    "index": 10,
+    "min": -24,
+    "max": 12,
+    "default": 0
+  }
+]

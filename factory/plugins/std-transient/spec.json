@@ -1,0 +1,43 @@
+{
+  "name": "StdTransient",
+  "isInstrument": false,
+  "explanation": "A transient shaper that changes the punch of a sound without any threshold to set. Two envelope followers, one fast and one slow, track the signal, and the difference between them separates the attack of each note from its sustained tail: when the fast follower is above the slow one a transient is happening, and when it falls below, the note is decaying. Attack boosts or cuts the transients by up to 12 dB and Sustain boosts or cuts the tails, so you can add snap to a dull snare, tighten a boomy kick, or dry out a roomy drum loop. Speed sets how fine the detection is.",
+  "assembly": "factory/plugins/std-transient/assembly.ts",
+  "out": "factory/plugins/std-transient/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#8fe388",
+    "accent2": "#d6f7d2"
+  },
+  "guiFile": "factory/plugins/std-transient/gui.html",
+  "params": [
+    {
+      "name": "Attack",
+      "index": 0,
+      "min": -12,
+      "max": 12,
+      "default": 4
+    },
+    {
+      "name": "Sustain",
+      "index": 1,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Speed",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Output",
+      "index": 3,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

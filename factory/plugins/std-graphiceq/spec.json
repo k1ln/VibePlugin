@@ -1,0 +1,92 @@
+{
+  "name": "StdGraphicEQ",
+  "isInstrument": false,
+  "explanation": "A ten-band graphic equaliser with one band per octave from 31 Hz to 16 kHz, each a peaking filter of octave bandwidth with up to 12 dB of boost or cut. Bands that are set flat are bypassed completely, so an untouched EQ costs nothing and cannot colour the sound. Output trims the overall level. The curve shows the combined response of all ten bands.",
+  "assembly": "factory/plugins/std-graphiceq/assembly.ts",
+  "out": "factory/plugins/std-graphiceq/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#f2e06b",
+    "accent2": "#fbf4c4"
+  },
+  "guiFile": "factory/plugins/std-graphiceq/gui.html",
+  "params": [
+    {
+      "name": "31 Hz",
+      "index": 0,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "62 Hz",
+      "index": 1,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "125 Hz",
+      "index": 2,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "250 Hz",
+      "index": 3,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "500 Hz",
+      "index": 4,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "1 kHz",
+      "index": 5,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "2 kHz",
+      "index": 6,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "4 kHz",
+      "index": 7,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "8 kHz",
+      "index": 8,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "16 kHz",
+      "index": 9,
+      "min": -12,
+      "max": 12,
+      "default": 0
+    },
+    {
+      "name": "Output",
+      "index": 10,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

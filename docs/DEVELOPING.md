@@ -98,7 +98,7 @@ Copy [`src/Config.example.h`](../src/Config.example.h) → `src/Config.h`
 
 ```cpp
 #define VSTAI_CONFIG_API_KEY  "sk-ant-..."
-#define VSTAI_CONFIG_MODEL    ""            // empty -> claude-opus-4-8
+#define VSTAI_CONFIG_MODEL    ""            // empty -> claude-opus-5-5
 #define VSTAI_CONFIG_COMPILER ""            // empty -> found next to the plugin
 ```
 

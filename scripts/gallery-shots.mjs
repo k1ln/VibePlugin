@@ -45,6 +45,18 @@ const SHIM = `<script>
     onParam: function(){}, noteOn: function(){}, noteOff: function(){},
     loadSample: function(){ return new Promise(function(){}); }
   };
+  // Many GUIs fade/pop in with CSS entrance animations. Headless virtual time
+  // doesn't advance those reliably, so the shot can catch them at opacity 0
+  // (blank/dim). Fast-forward every finite animation shortly after load.
+  function finishIntro(){
+    try { document.getAnimations().forEach(function(a){
+      var t = a.effect && a.effect.getComputedTiming();
+      if (t && isFinite(t.endTime)) a.finish();
+    }); } catch(e){}
+  }
+  window.addEventListener("load", function(){
+    setTimeout(finishIntro, 400); setTimeout(finishIntro, 1500);
+  });
 <\/script>`;
 
 async function main() {

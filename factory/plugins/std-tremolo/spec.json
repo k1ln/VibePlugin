@@ -1,0 +1,59 @@
+{
+  "name": "StdTremolo",
+  "isInstrument": false,
+  "explanation": "A tremolo: the level of the signal is modulated by an LFO. Rate runs free from 0.1 to 20 Hz, or Sync locks it to the host tempo (quarter, eighth, sixteenth or thirty-second notes) and phase-locks it to the song position while the transport plays. Depth sets how far the level dips, Shape chooses sine, triangle, a soft square for a choppy gate-like pulse, or a falling saw, and Stereo shifts the right channel's LFO against the left, up to opposite phase, for a swirling auto-pan feel.",
+  "assembly": "factory/plugins/std-tremolo/assembly.ts",
+  "out": "factory/plugins/std-tremolo/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c58bff",
+    "accent2": "#ebd6ff"
+  },
+  "guiFile": "factory/plugins/std-tremolo/gui.html",
+  "params": [
+    {
+      "name": "Rate",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Sync",
+      "index": 1,
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Depth",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Shape",
+      "index": 3,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Stereo",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

@@ -13,7 +13,7 @@
 //     theme: { accent, accent2, bg1, bg2, panel, ink, dim },
 //     params: [[name, min, max, default, step?, fmt?], ...]   (index = position)
 //        fmt: undefined (percent, or integer if step) | "int" | "pct" | "semi"
-//             | "cents" | ["A","B",...] (names for integer values from min)
+//             | "cents" | "db" (raw dB value) | {exp:[lo,hi],unit:" ms"} (exponential map) | ["A","B",...] (names for integer values from min)
 //             | {hz:[lo,hi]} | {ms:[lo,hi]} | {unit:"x", scale:[a,b]}
 //     groups: [{ title, items: [
 //        {k:"knob", i:[idx...], labels?:[...]},
@@ -21,7 +21,9 @@
 //        {k:"tog",  i:idx, label, text},              // 0/1 button
 //        {k:"bits", i:idx, label, opts:[...]}         // bit mask buttons
 //     ]}],
-//     viz: "bars" | "wave" | "none",  vizLabel, vizParam (index for wave richness),
+//     viz: "bars" | "wave" | "none" | "custom",  vizLabel, vizParam (index for wave richness),
+//     vizCode: JS body of custom(cx,W,H,t) for viz:"custom" (V[i]=param values, disp[]=display[],
+//              helpers: plot(cx,r,fn,x0,x1,y0,y1,logx) frame(cx,r) bqMag(type,f0,Q,gainDb,f) RC=[x,y,w,h]),
 //     kb: { base, n }                 // instruments: on-screen keyboard
 //     testParams: { idx: value }      // engaged patch for the runner sweep
 //     publishedAt }
@@ -72,8 +74,8 @@ canvas{width:100%;height:130px;display:block;background:rgba(0,0,0,.35);border:1
 .g{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 10px}
 .g h2{margin:0 0 6px;font-size:9px;letter-spacing:.25em;color:var(--a);font-weight:600}
 .ks{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px 2px;margin-top:6px}
-.tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:74px}
-.tg button{background:rgba(0,0,0,.3);color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 7px;font:600 9px/1 inherit;letter-spacing:.1em;cursor:pointer}
+.tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:56px}
+.tg button{background:rgba(0,0,0,.3);color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 6px;font:600 9px/1 inherit;letter-spacing:.06em;cursor:pointer}
 .tg button.on{background:var(--a);color:${T.bg2};border-color:var(--a)}
 .k{display:flex;flex-direction:column;align-items:center;user-select:none;touch-action:none;cursor:ns-resize}
 .k svg{width:40px;height:40px}.k .n{font-size:9px;color:var(--dim);text-align:center;margin-top:1px}.k .v{font-size:9px;color:var(--a2)}
@@ -96,11 +98,13 @@ if(f==="pct"||(f===null&&!p.step))return Math.round((v-p.min)/(p.max-p.min)*100)
 if(f===null||f==="int")return String(Math.round(v));
 if(f==="semi")return(v>0?"+":"")+(Math.round(v*10)/10)+" st";
 if(f==="cents")return(v>0?"+":"")+Math.round(v)+" c";
+if(f==="db")return(v>0?"+":"")+v.toFixed(1)+" dB";
+if(f.exp){var te=(v-p.min)/(p.max-p.min),ev=f.exp[0]*Math.pow(f.exp[1]/f.exp[0],te);return(ev>=100?String(Math.round(ev)):ev>=10?ev.toFixed(1):ev.toFixed(2))+(f.unit||"")}
 if(f==="note"){var n=Math.round(v);return NOTES[((n%12)+12)%12]+(Math.floor(n/12)-1)}
 if(Array.isArray(f))return f[Math.round(v)-p.min]||String(Math.round(v));
 if(f.hz){var t=(v-p.min)/(p.max-p.min),hz=f.hz[0]*Math.pow(f.hz[1]/f.hz[0],t);return hz>=1000?(hz/1000).toFixed(1)+" kHz":Math.round(hz)+" Hz"}
 if(f.ms){var t2=(v-p.min)/(p.max-p.min),ms=f.ms[0]+(f.ms[1]-f.ms[0])*t2;return ms>=1000?(ms/1000).toFixed(2)+" s":Math.round(ms)+" ms"}
-if(f.unit){var t3=(v-p.min)/(p.max-p.min);return(f.scale[0]+(f.scale[1]-f.scale[0])*t3).toFixed(2)+f.unit}
+if(f.unit){var t3=(v-p.min)/(p.max-p.min),uv=f.scale[0]+(f.scale[1]-f.scale[0])*t3;return uv.toFixed(Math.abs(f.scale[1]-f.scale[0])>=10?1:2)+f.unit}
 return String(v)}
 function knob(i,label){var p=PARAMS[i];V[i]=p.def;var w=document.createElement("div");w.className="k";
 var s=document.createElementNS(SV,"svg");s.setAttribute("viewBox","0 0 44 44");
@@ -124,11 +128,27 @@ function row(label){var r=document.createElement("div");r.className="tg";r.inner
 function bits(i,label,names){V[i]=PARAMS[i].def;var r=row(label),bs=[];names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,Math.round(V[i])^(1<<k))};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])&(1<<k))?"on":""})};R[i]();return r}
 function seg(i,label,names,pre){if(i<0){var r0=row(label);names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r0.appendChild(b)});return r0}V[i]=PARAMS[i].def;var r=row(label),bs=[],mn=PARAMS[i].min;names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,mn+k);if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])===mn+k)?"on":""})};R[i]();return r}
 function tog(i,label,text){V[i]=PARAMS[i].def;var r=row(label),b=document.createElement("button");b.textContent=text||label;b.onclick=function(){set(i,V[i]>.5?0:1)};R[i]=function(){b.className=V[i]>.5?"on":""};R[i]();r.appendChild(b);return r}
+${def.viz === 'custom' ? `var RC=[10,18,0,0];
+function bqMag(t,f0,Q,g,f){var SR=48000,w0=2*Math.PI*f0/SR,c=Math.cos(w0),s=Math.sin(w0),al=s/(2*Q),A=Math.pow(10,g/40),b0,b1,b2,a0,a1,a2,sa;
+if(t===0){b0=(1-c)/2;b1=1-c;b2=b0;a0=1+al;a1=-2*c;a2=1-al}else if(t===1){b0=(1+c)/2;b1=-(1+c);b2=b0;a0=1+al;a1=-2*c;a2=1-al}
+else if(t===2){b0=al;b1=0;b2=-al;a0=1+al;a1=-2*c;a2=1-al}else if(t===3){b0=1;b1=-2*c;b2=1;a0=1+al;a1=-2*c;a2=1-al}
+else if(t===4){b0=1+al*A;b1=-2*c;b2=1-al*A;a0=1+al/A;a1=-2*c;a2=1-al/A}
+else if(t===5){sa=2*Math.sqrt(A)*al;b0=A*((A+1)-(A-1)*c+sa);b1=2*A*((A-1)-(A+1)*c);b2=A*((A+1)-(A-1)*c-sa);a0=(A+1)+(A-1)*c+sa;a1=-2*((A-1)+(A+1)*c);a2=(A+1)+(A-1)*c-sa}
+else{sa=2*Math.sqrt(A)*al;b0=A*((A+1)+(A-1)*c+sa);b1=-2*A*((A-1)+(A+1)*c);b2=A*((A+1)+(A-1)*c-sa);a0=(A+1)-(A-1)*c+sa;a1=2*((A-1)-(A+1)*c);a2=(A+1)-(A-1)*c-sa}
+var w=2*Math.PI*f/SR,cw=Math.cos(w),sw=Math.sin(w),c2=Math.cos(2*w),s2=Math.sin(2*w),nr=b0+b1*cw+b2*c2,ni=-(b1*sw+b2*s2),dr=a0+a1*cw+a2*c2,di=-(a1*sw+a2*s2);
+return 10*Math.log10((nr*nr+ni*ni)/(dr*dr+di*di)+1e-20)}
+function frame(cx,r){cx.strokeStyle="rgba(255,255,255,.1)";cx.lineWidth=1;cx.strokeRect(r[0]+.5,r[1]+.5,r[2],r[3]);cx.beginPath();cx.moveTo(r[0],r[1]+r[3]/2);cx.lineTo(r[0]+r[2],r[1]+r[3]/2);cx.moveTo(r[0]+r[2]/2,r[1]);cx.lineTo(r[0]+r[2]/2,r[1]+r[3]);cx.stroke()}
+function plot(cx,r,fn,x0,x1,y0,y1,logx){cx.beginPath();for(var i=0;i<=r[2];i+=2){var u=i/r[2],x=logx?x0*Math.pow(x1/x0,u):x0+(x1-x0)*u,y=fn(x);y=Math.max(y0,Math.min(y1,y));var py=r[1]+r[3]-(y-y0)/(y1-y0)*r[3];if(i)cx.lineTo(r[0]+i,py);else cx.moveTo(r[0]+i,py)}
+cx.strokeStyle="${T.accent2}";cx.lineWidth=2;cx.stroke();cx.lineTo(r[0]+r[2],r[1]+r[3]);cx.lineTo(r[0],r[1]+r[3]);cx.closePath();cx.fillStyle="rgba(${rgb(T.accent)},.14)";cx.fill()}
+function custom(cx,W,H,t){var r=RC;r[2]=W-20;r[3]=H-26;var vizx=null;
+${def.vizCode}
+}` : ''}
 var cv=document.getElementById("cv"),cx=cv?cv.getContext("2d"):null,sm=[];for(q=0;q<16;q++)sm[q]=0;
 function draw(t){if(!cx)return;var dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
 cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);cx.fillStyle="${T.dim}";cx.font="9px sans-serif";cx.fillText(VLAB,10,12);
 var since=(t-lastHit)/1000,idle=hasDisp?0:1;
-if(VIZ==="bars"){var n=16,bw=(W-20)/n;for(var i=0;i<n;i++){var tg=hasDisp?disp[i]:.2+.18*Math.sin(t/700+i*.6)*Math.sin(t/1300+i);sm[i]+=(tg-sm[i])*.35;var h=Math.max(2,sm[i]*(H-30)),x=10+i*bw+bw*.12,w=bw*.76;
+if(VIZ==="custom"){custom(cx,W,H,t);var lvv=hasDisp?Math.min(1,disp[0]):0;cx.fillStyle="rgba(${rgb(T.accent)},.25)";cx.fillRect(W-8,10,4,H-20);cx.fillStyle="${T.accent2}";cx.fillRect(W-8,H-10-(H-20)*lvv,4,(H-20)*lvv)}
+else if(VIZ==="bars"){var n=16,bw=(W-20)/n;for(var i=0;i<n;i++){var tg=hasDisp?disp[i]:.2+.18*Math.sin(t/700+i*.6)*Math.sin(t/1300+i);sm[i]+=(tg-sm[i])*.35;var h=Math.max(2,sm[i]*(H-30)),x=10+i*bw+bw*.12,w=bw*.76;
 var gr=cx.createLinearGradient(0,H-8,0,H-8-h);gr.addColorStop(0,"rgba(${rgb(T.accent)},.2)");gr.addColorStop(1,"rgba(${rgb(T.accent2)},.95)");cx.fillStyle=gr;cx.fillRect(x,H-8-h,w,h)}}
 else{var lv=hasDisp?Math.min(1,disp[0]):(ISI?Math.exp(-since*1.2):.35+.2*Math.sin(t/900)),rich=VIZP>=0?(V[VIZP]-PARAMS[VIZP].min)/(PARAMS[VIZP].max-PARAMS[VIZP].min):.5,mid=H/2+6,amp=(H-40)/2*(.12+.88*lv);
 sm[0]+=(lv-sm[0])*.3;cx.beginPath();cx.strokeStyle="${T.accent2}";cx.lineWidth=1.8;
@@ -188,10 +208,12 @@ console.log(pk.trim().split("\n").slice(-2).join("\n"));
 if (def.category) {
   const cp = join(root, "factory/gallery-categories.json");
   let s = readFileSync(cp, "utf8");
-  if (!s.includes(`"${slug}"`)) {
+  // build-gallery keys categories by the gallery id = pack-vstai's slug(name), which is not always the folder slug
+  const gid = (def.name || slug).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || slug;
+  if (!s.includes(`"${gid}"`)) {
     const anchor = s.lastIndexOf('"assign"');
     const open = s.indexOf("{", anchor);
-    s = s.slice(0, open + 1) + `\n  "${slug}": "${def.category}",` + s.slice(open + 1);
+    s = s.slice(0, open + 1) + `\n  "${gid}": "${def.category}",` + s.slice(open + 1);
     writeFileSync(cp, s);
     JSON.parse(s);
   }

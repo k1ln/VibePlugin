@@ -1,0 +1,58 @@
+{
+  "name": "StdSaturator",
+  "isInstrument": false,
+  "explanation": "A gentle, level-compensated saturator for warming up and gluing sounds rather than wrecking them. Tape is symmetrical tanh saturation (odd harmonics, rounded peaks), Tube is asymmetric (adds even harmonics, a thick fat low end) and Soft is a very mild x/(1+|x|) curve for a barely-there glue. Drive pushes the signal into the curve while the output is renormalised so more drive sounds richer rather than just louder; Warmth adds a low-shelf bump around 150 Hz after saturation and Tone rolls the highs off like tape does. Runs at twice the sample rate.",
+  "assembly": "factory/plugins/std-saturator/assembly.ts",
+  "out": "factory/plugins/std-saturator/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ff6a4d",
+    "accent2": "#ffc7b8"
+  },
+  "guiFile": "factory/plugins/std-saturator/gui.html",
+  "params": [
+    {
+      "name": "Drive",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Type",
+      "index": 1,
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Warmth",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Tone",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.9
+    },
+    {
+      "name": "Mix",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

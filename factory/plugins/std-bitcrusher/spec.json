@@ -1,0 +1,58 @@
+{
+  "name": "StdBitcrusher",
+  "isInstrument": false,
+  "explanation": "A digital degrader. Bits quantises the signal to between 1 and 16 bits (the fewer, the grittier and more noise-like), Rate resamples it at anything from 200 Hz up to the full sample rate with no anti-aliasing (the reflections are the point), and Dither adds a touch of noise before quantising to soften the stair-steps or, at high settings, to give lo-fi hiss. Tone smooths the result with a low-pass and Mix blends it with the clean signal for parallel crushing. A live picture shows the staircase the signal is being forced onto.",
+  "assembly": "factory/plugins/std-bitcrusher/assembly.ts",
+  "out": "factory/plugins/std-bitcrusher/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ff6a4d",
+    "accent2": "#ffc7b8"
+  },
+  "guiFile": "factory/plugins/std-bitcrusher/gui.html",
+  "params": [
+    {
+      "name": "Bits",
+      "index": 0,
+      "min": 1,
+      "max": 16,
+      "default": 8,
+      "step": 1
+    },
+    {
+      "name": "Rate",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Dither",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.2
+    },
+    {
+      "name": "Tone",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Mix",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 5,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

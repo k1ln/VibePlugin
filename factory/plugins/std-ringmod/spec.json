@@ -1,0 +1,51 @@
+{
+  "name": "StdRingMod",
+  "isInstrument": false,
+  "explanation": "A ring modulator: the input is multiplied by an internal carrier oscillator, which replaces every input frequency with its sum and difference against the carrier. The result is the clangorous, inharmonic metallic tone of old sci-fi robot voices and bell-like synth sounds. Frequency sets the carrier (5 Hz to 5 kHz), Shape chooses a sine, triangle, square or saw carrier, and AM blends from true ring modulation (carrier and input both suppressed) toward ordinary amplitude modulation (input kept, carrier adds a tremolo-like sideband). Mix blends back with the dry signal.",
+  "assembly": "factory/plugins/std-ringmod/assembly.ts",
+  "out": "factory/plugins/std-ringmod/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c58bff",
+    "accent2": "#ebd6ff"
+  },
+  "guiFile": "factory/plugins/std-ringmod/gui.html",
+  "params": [
+    {
+      "name": "Frequency",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Shape",
+      "index": 1,
+      "min": 0,
+      "max": 3,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "AM",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Mix",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Output",
+      "index": 4,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

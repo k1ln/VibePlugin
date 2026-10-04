@@ -47,8 +47,10 @@ namespace
     {
         juce::Array<var> a;
         a.add (modelEntry ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"), "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-opus-5",     "Opus 5 (best value)",    "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-sonnet-5",   "Sonnet 5 (cheaper)",     "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-opus-5-5",   "Opus 5.5 (best value)",  "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-sonnet-5-5", "Sonnet 5.5 (cheaper)",   "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-opus-5",     "Opus 5",                 "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-sonnet-5",   "Sonnet 5",               "Anthropic (your key)"));
         // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
         // (Anthropic-only for now). The backend still supports them — re-add to restore.
         // a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));

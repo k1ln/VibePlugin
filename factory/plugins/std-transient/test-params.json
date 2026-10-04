@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Attack",
+    "index": 0,
+    "min": -12,
+    "max": 12,
+    "default": 4
+  },
+  {
+    "name": "Sustain",
+    "index": 1,
+    "min": -12,
+    "max": 12,
+    "default": 0
+  },
+  {
+    "name": "Speed",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Output",
+    "index": 3,
+    "min": -24,
+    "max": 12,
+    "default": 0
+  }
+]

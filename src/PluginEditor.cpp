@@ -774,7 +774,7 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     if (processor.getGenerationProvider() == "manual")
     {
         processor.setGenerationProvider ("anthropic");
-        processor.setGenerationModel    ("claude-opus-5");
+        processor.setGenerationModel    ("claude-opus-5-5");
         currentProvider = "anthropic";
     }
 
@@ -786,8 +786,10 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
 
     modelBox.addSectionHeading ("Anthropic (your key)");
     add ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"));
-    add ("anthropic", "claude-opus-5",     "Opus 5 (best value)");
-    add ("anthropic", "claude-sonnet-5",   "Sonnet 5 (cheaper)");
+    add ("anthropic", "claude-opus-5-5",   "Opus 5.5 (best value)");
+    add ("anthropic", "claude-sonnet-5-5", "Sonnet 5.5 (cheaper)");
+    add ("anthropic", "claude-opus-5",     "Opus 5");
+    add ("anthropic", "claude-sonnet-5",   "Sonnet 5");
 
     // GLM / Zhipu (Z.ai) — OpenAI-compatible. The exact model id must match what
     // your plan exposes; glm-4.6 is the known-good fallback if glm-5.2 isn't live yet.

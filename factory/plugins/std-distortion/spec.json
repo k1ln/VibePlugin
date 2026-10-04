@@ -1,0 +1,65 @@
+{
+  "name": "StdDistortion",
+  "isInstrument": false,
+  "explanation": "A general-purpose distortion with four clipping curves: Hard (flat-topped digital-style clipping), Soft (tanh, smooth tube-like saturation), Diode (asymmetric, with the even harmonics that give a warm, crunchy edge) and Fold (the signal folds back on itself instead of clipping, for bright, metallic overtones). Drive pushes the signal into the curve by up to 40 dB, Asymmetry offsets it for extra even harmonics, Low Cut tightens the bass before the clipper so the low end stays defined, and Tone rolls off the top afterwards. The shaping runs at twice the sample rate to keep aliasing down, and a DC blocker follows. A live transfer curve shows what the clipper is doing.",
+  "assembly": "factory/plugins/std-distortion/assembly.ts",
+  "out": "factory/plugins/std-distortion/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ff6a4d",
+    "accent2": "#ffc7b8"
+  },
+  "guiFile": "factory/plugins/std-distortion/gui.html",
+  "params": [
+    {
+      "name": "Drive",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Type",
+      "index": 1,
+      "min": 0,
+      "max": 3,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Asymmetry",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Low Cut",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Tone",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "Mix",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 6,
+      "min": -24,
+      "max": 12,
+      "default": -6
+    }
+  ]
+}

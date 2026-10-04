@@ -118,11 +118,11 @@ async function fixture() {
 function stubJs(fx) {
   // Mirrors WebEditor::currentState() and modelCatalog().
   const state = {
-    provider: "anthropic", model: "claude-opus-5", effort: "medium", thinking: true,
+    provider: "anthropic", model: "claude-opus-5-5", effort: "medium", thinking: true,
     models: [
       { provider: "anthropic", id: "claude-fable-5",  label: "Fable 5 (most capable, 2× price)", group: "Anthropic (your key)" },
-      { provider: "anthropic", id: "claude-opus-5",   label: "Opus 5 (best value)",  group: "Anthropic (your key)" },
-      { provider: "anthropic", id: "claude-sonnet-5", label: "Sonnet 5 (cheaper)",   group: "Anthropic (your key)" },
+      { provider: "anthropic", id: "claude-opus-5-5",   label: "Opus 5.5 (best value)",  group: "Anthropic (your key)" },
+      { provider: "anthropic", id: "claude-sonnet-5-5", label: "Sonnet 5.5 (cheaper)",   group: "Anthropic (your key)" },
       { provider: "cloud", id: "claude-haiku-4-5", label: "Cloud · Haiku 4.5",        group: "VibePlugin Cloud (credits)" },
       { provider: "cloud", id: "claude-sonnet-5",  label: "Cloud · Sonnet 5",         group: "VibePlugin Cloud (credits)" },
       { provider: "cloud", id: "claude-opus-4-8",  label: "Cloud · Opus 4.8 (best)",  group: "VibePlugin Cloud (credits)" },

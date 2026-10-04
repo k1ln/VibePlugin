@@ -21,7 +21,7 @@
 // Your Anthropic API key (used for the REST call that generates plugins).
 #define VSTAI_CONFIG_API_KEY  ""
 
-// Model id. Empty -> "claude-opus-5".
+// Model id. Empty -> "claude-opus-5-5".
 #define VSTAI_CONFIG_MODEL    ""
 
 // Absolute path to the bundled AssemblyScript compiler executable

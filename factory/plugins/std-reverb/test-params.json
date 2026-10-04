@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Decay",
+    "index": 0,
+    "min": 0,
+    "max": 1,
+    "default": 0.55
+  },
+  {
+    "name": "Damping",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.45
+  },
+  {
+    "name": "Pre-Delay",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.08
+  },
+  {
+    "name": "Width",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 1
+  },
+  {
+    "name": "Low Cut",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.1
+  },
+  {
+    "name": "High Cut",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0.9
+  },
+  {
+    "name": "Mix",
+    "index": 6,
+    "min": 0,
+    "max": 1,
+    "default": 0.3
+  },
+  {
+    "name": "Output",
+    "index": 7,
+    "min": -24,
+    "max": 12,
+    "default": 0
+  }
+]

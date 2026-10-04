@@ -1,0 +1,64 @@
+{
+  "name": "StdLadder24",
+  "isInstrument": false,
+  "explanation": "A resonant 24 dB per octave low-pass ladder filter in the style of the classic transistor-ladder design: four cascaded one-pole stages in a zero-delay-feedback topology with the resonance loop closed around all four poles, tapped after the fourth pole for the full 24 dB slope. Drive saturates the input stage, an envelope follower can open the cutoff with the playing dynamics (amount in octaves, speed from fast to slow), and the resonance goes all the way to self-oscillation. A live frequency-response curve shows the cutoff and resonant peak.",
+  "assembly": "factory/plugins/std-ladder-24/assembly.ts",
+  "out": "factory/plugins/std-ladder-24/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb347",
+    "accent2": "#ffe2b0"
+  },
+  "guiFile": "factory/plugins/std-ladder-24/gui.html",
+  "params": [
+    {
+      "name": "Cutoff",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.62
+    },
+    {
+      "name": "Resonance",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Drive",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Env Amount",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Env Speed",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Mix",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 6,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

@@ -99,7 +99,7 @@ namespace vstai::settings
     {
         juce::String m (VSTAI_CONFIG_MODEL);
         if (m.isEmpty()) m = juce::SystemStats::getEnvironmentVariable ("VSTAI_MODEL", {});
-        if (m.isEmpty()) m = "claude-opus-5";
+        if (m.isEmpty()) m = "claude-opus-5-5";
         return m;
     }
 

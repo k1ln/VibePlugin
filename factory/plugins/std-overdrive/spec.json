@@ -1,0 +1,50 @@
+{
+  "name": "StdOverdrive",
+  "isInstrument": false,
+  "explanation": "A mid-focused overdrive in the tradition of the classic green-pedal circuit. Instead of clipping everything equally, the gain stage amplifies only the frequencies above the Focus point, so bass stays clean and tight while the mids and upper harmonics are driven into smooth, symmetrical soft clipping. That keeps chords articulate and the low end from turning to mush even at high gain. Tone rolls off the top of the result, Level sets the volume, and Mix blends the dry signal back in for a more dynamic, pick-sensitive sound. The clipping runs at twice the sample rate to reduce aliasing.",
+  "assembly": "factory/plugins/std-overdrive/assembly.ts",
+  "out": "factory/plugins/std-overdrive/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ff6a4d",
+    "accent2": "#ffc7b8"
+  },
+  "guiFile": "factory/plugins/std-overdrive/gui.html",
+  "params": [
+    {
+      "name": "Drive",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Focus",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Tone",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Mix",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 4,
+      "min": -24,
+      "max": 12,
+      "default": -3
+    }
+  ]
+}

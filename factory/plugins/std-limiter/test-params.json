@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Gain",
+    "index": 0,
+    "min": 0,
+    "max": 24,
+    "default": 12
+  },
+  {
+    "name": "Ceiling",
+    "index": 1,
+    "min": -12,
+    "max": 0,
+    "default": -0.3
+  },
+  {
+    "name": "Release",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Lookahead",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0.22
+  },
+  {
+    "name": "Soft Clip",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0
+  }
+]

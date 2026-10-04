@@ -1,0 +1,51 @@
+{
+  "name": "StdLowPass",
+  "isInstrument": false,
+  "explanation": "A clean low-pass filter with a switchable 12 or 24 dB per octave slope. 12 dB is a single Butterworth biquad; 24 dB cascades two biquads with the Butterworth Q pair (0.54 and 1.31) for a maximally flat passband and a steep skirt. Resonance raises the Q of the final section for a peak at the cutoff. A live frequency-response curve shows exactly what the filter is doing.",
+  "assembly": "factory/plugins/std-lowpass/assembly.ts",
+  "out": "factory/plugins/std-lowpass/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#ffb347",
+    "accent2": "#ffe2b0"
+  },
+  "guiFile": "factory/plugins/std-lowpass/gui.html",
+  "params": [
+    {
+      "name": "Cutoff",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Slope",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "step": 1
+    },
+    {
+      "name": "Resonance",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Mix",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Output",
+      "index": 4,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

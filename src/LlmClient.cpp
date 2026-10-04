@@ -344,7 +344,7 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     // Opus 5 and Fable 5 can decline a benign request (stop_reason: refusal); both
     // support the server-side fallback that re-serves it inside the same call.
     const bool wantsFallback = isFable || model.startsWithIgnoreCase ("claude-opus-5");
-    const int  modelCeiling = (isFable || model.startsWithIgnoreCase ("claude-opus")) ? 128000 : 64000;
+    const int  modelCeiling = (isFable || model.startsWithIgnoreCase ("claude-opus") || model.startsWithIgnoreCase ("claude-sonnet-5")) ? 128000 : 64000;
     const int  maxTokens    = maxOutputTokens > 0 ? juce::jmin (maxOutputTokens, modelCeiling)
                                                   : modelCeiling;
 

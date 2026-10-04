@@ -1,0 +1,66 @@
+{
+  "name": "StdDeEsser",
+  "isInstrument": false,
+  "explanation": "A de-esser that tames harsh 's' and 't' sounds in vocals. A band-pass detector tuned to the Frequency watches for sibilance; when it rises above the Threshold the gain is reduced (up to the Range) in just that band (Split mode, which leaves the rest of the voice untouched) or across the whole signal (Wide mode). Release controls how quickly the reduction lets go, and Listen solos the sibilance band so you can tune the Frequency by ear. The picture shows the response with the live reduction applied.",
+  "assembly": "factory/plugins/std-deesser/assembly.ts",
+  "out": "factory/plugins/std-deesser/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#8fe388",
+    "accent2": "#d6f7d2"
+  },
+  "guiFile": "factory/plugins/std-deesser/gui.html",
+  "params": [
+    {
+      "name": "Frequency",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Threshold",
+      "index": 1,
+      "min": -50,
+      "max": 0,
+      "default": -28
+    },
+    {
+      "name": "Range",
+      "index": 2,
+      "min": 0,
+      "max": 24,
+      "default": 10
+    },
+    {
+      "name": "Mode",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Release",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Listen",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Output",
+      "index": 6,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

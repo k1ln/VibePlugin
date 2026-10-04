@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Frequency",
+    "index": 0,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Threshold",
+    "index": 1,
+    "min": -50,
+    "max": 0,
+    "default": -35
+  },
+  {
+    "name": "Range",
+    "index": 2,
+    "min": 0,
+    "max": 24,
+    "default": 10
+  },
+  {
+    "name": "Mode",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "Release",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 0.4
+  },
+  {
+    "name": "Listen",
+    "index": 5,
+    "min": 0,
+    "max": 1,
+    "default": 0,
+    "step": 1
+  },
+  {
+    "name": "Output",
+    "index": 6,
+    "min": -24,
+    "max": 12,
+    "default": 0
+  }
+]

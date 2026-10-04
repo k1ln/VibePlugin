@@ -1,0 +1,45 @@
+[
+  {
+    "name": "Bits",
+    "index": 0,
+    "min": 1,
+    "max": 16,
+    "default": 8,
+    "step": 1
+  },
+  {
+    "name": "Rate",
+    "index": 1,
+    "min": 0,
+    "max": 1,
+    "default": 0.7
+  },
+  {
+    "name": "Dither",
+    "index": 2,
+    "min": 0,
+    "max": 1,
+    "default": 0.2
+  },
+  {
+    "name": "Tone",
+    "index": 3,
+    "min": 0,
+    "max": 1,
+    "default": 1
+  },
+  {
+    "name": "Mix",
+    "index": 4,
+    "min": 0,
+    "max": 1,
+    "default": 1
+  },
+  {
+    "name": "Output",
+    "index": 5,
+    "min": -24,
+    "max": 12,
+    "default": 0
+  }
+]

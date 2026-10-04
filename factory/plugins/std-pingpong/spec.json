@@ -1,0 +1,72 @@
+{
+  "name": "StdPingPong",
+  "isInstrument": false,
+  "explanation": "A ping-pong delay: each echo bounces to the opposite side, left, right, left, right, with the feedback crossed between the two channels. The input is summed to mono and starts on the left; Spread feeds some of it straight into the right line as well for a wider, less strictly alternating pattern. Time can run free (10 ms to 2 s) or lock to the host tempo, and Tone and Low Cut shape each repeat inside the feedback loop so the bounces fade into the distance.",
+  "assembly": "factory/plugins/std-pingpong/assembly.ts",
+  "out": "factory/plugins/std-pingpong/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#4fd6c4",
+    "accent2": "#c4f5ee"
+  },
+  "guiFile": "factory/plugins/std-pingpong/gui.html",
+  "params": [
+    {
+      "name": "Time",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.64
+    },
+    {
+      "name": "Sync",
+      "index": 1,
+      "min": 0,
+      "max": 5,
+      "default": 0,
+      "step": 1
+    },
+    {
+      "name": "Feedback",
+      "index": 2,
+      "min": 0,
+      "max": 0.95,
+      "default": 0.5
+    },
+    {
+      "name": "Tone",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.75
+    },
+    {
+      "name": "Low Cut",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Spread",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Mix",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Output",
+      "index": 7,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}

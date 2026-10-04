@@ -1,0 +1,64 @@
+{
+  "name": "StdFlanger",
+  "isInstrument": false,
+  "explanation": "A flanger: the signal is mixed with a very short, swept copy of itself, which carves a comb of notches into the spectrum that sweeps up and down for the classic jet-engine whoosh. Manual sets the centre delay (short is bright and nasal, long is hollow), Depth how far the sweep travels (it moves exponentially, so it sounds even), and Rate its speed. Feedback, positive or negative, sharpens the notches into resonant peaks; negative feedback gives the hollow, metallic through-zero-ish flavour. Spread offsets the right channel's sweep from the left. The picture shows the live comb response.",
+  "assembly": "factory/plugins/std-flanger/assembly.ts",
+  "out": "factory/plugins/std-flanger/x.vstai",
+  "publishedAt": 1790000600000,
+  "theme": {
+    "accent": "#c58bff",
+    "accent2": "#ebd6ff"
+  },
+  "guiFile": "factory/plugins/std-flanger/gui.html",
+  "params": [
+    {
+      "name": "Rate",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0.35
+    },
+    {
+      "name": "Depth",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Manual",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Feedback",
+      "index": 3,
+      "min": -0.95,
+      "max": 0.95,
+      "default": 0.5
+    },
+    {
+      "name": "Spread",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Mix",
+      "index": 5,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
+    },
+    {
+      "name": "Output",
+      "index": 6,
+      "min": -24,
+      "max": 12,
+      "default": 0
+    }
+  ]
+}
