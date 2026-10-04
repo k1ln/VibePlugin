@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cataclysm</title>
+<style>/*@CSS@*/</style></head>
+<body>
+<div id="app">
+  <div id="top">
+    <div id="logo">CATACLYSM<small>MASTER DRUM SYNTHESIZER · 6 SOURCES · @N@ CONTROLS</small></div>
+    <div id="pre">
+      <button class="btn" id="pPrev" title="Previous preset">◀</button>
+      <select id="pSel" title="Factory presets"></select>
+      <button class="btn" id="pNext" title="Next preset">▶</button>
+      <span id="dirty"></span>
+      <button class="btn" id="bInit" title="Back to the Init kick">INIT</button>
+      <button class="btn" id="bRnd" title="Randomise the patch by the CHAOS amount (levels, pans and output are kept)">RANDOM</button>
+      <button class="btn" id="bMod" title="Fill the mod matrix with random routings">RND MOD</button>
+      <span id="chaos">CHAOS <input type="range" id="chaosAmt" min="5" max="100" value="35"></span>
+      <button class="btn" id="bHelp" title="What is all this?">?</button>
+    </div>
+    <div id="master">
+      <div class="meter" id="mL" title="Output L"><i></i></div><div class="meter" id="mR" title="Output R"><i></i></div>
+      <div class="meter gr" id="mGr" title="Compressor gain reduction"><i></i></div>
+    </div>
+  </div>
+  <div id="layers"></div>
+  <div id="tabs"></div>
+  <div id="content"></div>
+  <div id="pads"></div>
+  <div id="hint"></div>
+</div>
+<script>
+var DATA=/*@DATA@*/;
+/*@JS@*/
+</script>
+</body></html>

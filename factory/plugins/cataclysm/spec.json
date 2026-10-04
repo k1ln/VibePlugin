@@ -1,0 +1,442 @@
+{
+  "name": "Cataclysm",
+  "isInstrument": true,
+  "explanation": "Cataclysm — a master drum synthesizer built to make everything from a clean 808 to a hardcore wall of distortion. Six independent sound sources fire on every hit: TONE (a morphing oscillator with two-stage pitch envelope, hard sync, wavefolder, feedback, sub and membrane tension), FM (two operators with feedback, ring and AM modes), MODAL (a 12-mode resonator that morphs String → Membrane → Plate → Bar → Bell → Junk, with strike position, damping tilt, tension and an excitable body), NOISE (7 colours, a morphing LP/BP/HP filter up to Q 200, clap bursts, snare-wire rattle), METAL (a six-oscillator inharmonic cluster: 808 / classic / harmonic / fifths / cluster / chaos, ring and fold, shimmer) and CLICK (6 beater types). Layers can feed each other: noise FMs the tone, metal ring-modulates it, the tone sweeps the noise filter, and any layer can excite the modal body. A ratchet engine rolls and flams a hit up to 32 times (free or tempo-synced, with pitch and level slopes), an 8-slot modulation matrix routes 16 sources (velocity, key, random, two LFOs, two envelopes, wheel, pressure, bend, four macros) to 63 targets, and the output runs through a transient shaper, two distortions (10 types, 72 dB of drive, optional 2×/4× oversampling, sub-bypass), a bit crusher, a master filter, a self-oscillating comb resonator, ring mod, 6-band EQ, a parallel compressor, echo, gated reverb, a width stage and a limiter that can never exceed its ceiling. 257 controls are packed into the host's 64 parameter slots, so use the four Macro knobs (real DAW parameters) and the matrix to automate. 50+ factory presets: kicks, snares, claps, hats, cymbals, toms, percussion and aggressive macro patches.",
+  "assembly": "factory/plugins/cataclysm/assembly.ts",
+  "out": "factory/plugins/cataclysm/x.vstai",
+  "guiFile": "factory/plugins/cataclysm/gui.html",
+  "publishedAt": 1791133753942,
+  "theme": {
+    "accent": "#ff4a3d",
+    "accent2": "#ffb347"
+  },
+  "params": [
+    {
+      "name": "Macro 1",
+      "index": 0,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Macro 2",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Macro 3",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Macro 4",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pack 04",
+      "index": 4,
+      "min": 0,
+      "max": 16777216,
+      "default": 214084
+    },
+    {
+      "name": "Pack 05",
+      "index": 5,
+      "min": 0,
+      "max": 16777216,
+      "default": 8745842
+    },
+    {
+      "name": "Pack 06",
+      "index": 6,
+      "min": 0,
+      "max": 16777216,
+      "default": 8067096
+    },
+    {
+      "name": "Pack 07",
+      "index": 7,
+      "min": 0,
+      "max": 16777216,
+      "default": 4786567
+    },
+    {
+      "name": "Pack 08",
+      "index": 8,
+      "min": 0,
+      "max": 16777216,
+      "default": 5651510
+    },
+    {
+      "name": "Pack 09",
+      "index": 9,
+      "min": 0,
+      "max": 16777216,
+      "default": 2166664
+    },
+    {
+      "name": "Pack 10",
+      "index": 10,
+      "min": 0,
+      "max": 16777216,
+      "default": 6253292
+    },
+    {
+      "name": "Pack 11",
+      "index": 11,
+      "min": 0,
+      "max": 16777216,
+      "default": 1241467
+    },
+    {
+      "name": "Pack 12",
+      "index": 12,
+      "min": 0,
+      "max": 16777216,
+      "default": 3053630
+    },
+    {
+      "name": "Pack 13",
+      "index": 13,
+      "min": 0,
+      "max": 16777216,
+      "default": 1190351
+    },
+    {
+      "name": "Pack 14",
+      "index": 14,
+      "min": 0,
+      "max": 16777216,
+      "default": 9338073
+    },
+    {
+      "name": "Pack 15",
+      "index": 15,
+      "min": 0,
+      "max": 16777216,
+      "default": 1052823
+    },
+    {
+      "name": "Pack 16",
+      "index": 16,
+      "min": 0,
+      "max": 16777216,
+      "default": 3645987
+    },
+    {
+      "name": "Pack 17",
+      "index": 17,
+      "min": 0,
+      "max": 16777216,
+      "default": 264100
+    },
+    {
+      "name": "Pack 18",
+      "index": 18,
+      "min": 0,
+      "max": 16777216,
+      "default": 331079
+    },
+    {
+      "name": "Pack 19",
+      "index": 19,
+      "min": 0,
+      "max": 16777216,
+      "default": 3695
+    },
+    {
+      "name": "Pack 20",
+      "index": 20,
+      "min": 0,
+      "max": 16777216,
+      "default": 265680
+    },
+    {
+      "name": "Pack 21",
+      "index": 21,
+      "min": 0,
+      "max": 16777216,
+      "default": 259159
+    },
+    {
+      "name": "Pack 22",
+      "index": 22,
+      "min": 0,
+      "max": 16777216,
+      "default": 10472551
+    },
+    {
+      "name": "Pack 23",
+      "index": 23,
+      "min": 0,
+      "max": 16777216,
+      "default": 7865580
+    },
+    {
+      "name": "Pack 24",
+      "index": 24,
+      "min": 0,
+      "max": 16777216,
+      "default": 7863770
+    },
+    {
+      "name": "Pack 25",
+      "index": 25,
+      "min": 0,
+      "max": 16777216,
+      "default": 73008
+    },
+    {
+      "name": "Pack 26",
+      "index": 26,
+      "min": 0,
+      "max": 16777216,
+      "default": 15468456
+    },
+    {
+      "name": "Pack 27",
+      "index": 27,
+      "min": 0,
+      "max": 16777216,
+      "default": 15407938
+    },
+    {
+      "name": "Pack 28",
+      "index": 28,
+      "min": 0,
+      "max": 16777216,
+      "default": 6224332
+    },
+    {
+      "name": "Pack 29",
+      "index": 29,
+      "min": 0,
+      "max": 16777216,
+      "default": 7780340
+    },
+    {
+      "name": "Pack 30",
+      "index": 30,
+      "min": 0,
+      "max": 16777216,
+      "default": 8016568
+    },
+    {
+      "name": "Pack 31",
+      "index": 31,
+      "min": 0,
+      "max": 16777216,
+      "default": 7781222
+    },
+    {
+      "name": "Pack 32",
+      "index": 32,
+      "min": 0,
+      "max": 16777216,
+      "default": 8100152
+    },
+    {
+      "name": "Pack 33",
+      "index": 33,
+      "min": 0,
+      "max": 16777216,
+      "default": 0
+    },
+    {
+      "name": "Pack 34",
+      "index": 34,
+      "min": 0,
+      "max": 16777216,
+      "default": 6726219
+    },
+    {
+      "name": "Pack 35",
+      "index": 35,
+      "min": 0,
+      "max": 16777216,
+      "default": 204522
+    },
+    {
+      "name": "Pack 36",
+      "index": 36,
+      "min": 0,
+      "max": 16777216,
+      "default": 205968
+    },
+    {
+      "name": "Pack 37",
+      "index": 37,
+      "min": 0,
+      "max": 16777216,
+      "default": 205968
+    },
+    {
+      "name": "Pack 38",
+      "index": 38,
+      "min": 0,
+      "max": 16777216,
+      "default": 117308
+    },
+    {
+      "name": "Pack 39",
+      "index": 39,
+      "min": 0,
+      "max": 16777216,
+      "default": 15974440
+    },
+    {
+      "name": "Pack 40",
+      "index": 40,
+      "min": 0,
+      "max": 16777216,
+      "default": 0
+    },
+    {
+      "name": "Pack 41",
+      "index": 41,
+      "min": 0,
+      "max": 16777216,
+      "default": 188416
+    },
+    {
+      "name": "Pack 42",
+      "index": 42,
+      "min": 0,
+      "max": 16777216,
+      "default": 24010
+    },
+    {
+      "name": "Pack 43",
+      "index": 43,
+      "min": 0,
+      "max": 16777216,
+      "default": 2824752
+    },
+    {
+      "name": "Pack 44",
+      "index": 44,
+      "min": 0,
+      "max": 16777216,
+      "default": 4039282
+    },
+    {
+      "name": "Pack 45",
+      "index": 45,
+      "min": 0,
+      "max": 16777216,
+      "default": 5568925
+    },
+    {
+      "name": "Pack 46",
+      "index": 46,
+      "min": 0,
+      "max": 16777216,
+      "default": 9086853
+    },
+    {
+      "name": "Pack 47",
+      "index": 47,
+      "min": 0,
+      "max": 16777216,
+      "default": 0
+    },
+    {
+      "name": "Pack 48",
+      "index": 48,
+      "min": 0,
+      "max": 16777216,
+      "default": 7064402
+    },
+    {
+      "name": "Pack 49",
+      "index": 49,
+      "min": 0,
+      "max": 16777216,
+      "default": 942182
+    },
+    {
+      "name": "Pack 50",
+      "index": 50,
+      "min": 0,
+      "max": 16777216,
+      "default": 575190
+    },
+    {
+      "name": "Pack 51",
+      "index": 51,
+      "min": 0,
+      "max": 16777216,
+      "default": 24593
+    },
+    {
+      "name": "Pack 52",
+      "index": 52,
+      "min": 0,
+      "max": 16777216,
+      "default": 16
+    },
+    {
+      "name": "Pack 53",
+      "index": 53,
+      "min": 0,
+      "max": 16777216,
+      "default": 1151072
+    },
+    {
+      "name": "Pack 54",
+      "index": 54,
+      "min": 0,
+      "max": 16777216,
+      "default": 8265510
+    },
+    {
+      "name": "Pack 55",
+      "index": 55,
+      "min": 0,
+      "max": 16777216,
+      "default": 575520
+    },
+    {
+      "name": "Pack 56",
+      "index": 56,
+      "min": 0,
+      "max": 16777216,
+      "default": 130429
+    },
+    {
+      "name": "Pack 57",
+      "index": 57,
+      "min": 0,
+      "max": 16777216,
+      "default": 10210252
+    },
+    {
+      "name": "Pack 58",
+      "index": 58,
+      "min": 0,
+      "max": 16777216,
+      "default": 4630
+    },
+    {
+      "name": "Pack 59",
+      "index": 59,
+      "min": 0,
+      "max": 16777216,
+      "default": 0
+    },
+    {
+      "name": "Pack 60",
+      "index": 60,
+      "min": 0,
+      "max": 16777216,
+      "default": 577
+    }
+  ]
+}

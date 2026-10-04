@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cataclysm</title>
+<style>:root{--bg:#0b0b0f;--bg2:#101016;--pn:#16161d;--pn2:#1c1c25;--ln:rgba(255,255,255,.08);--ink:#e9e9ef;--dim:#8b8b99;--a:#ff4a3d;--a2:#ffb347;--hot:#ff2d55}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:radial-gradient(120% 90% at 50% -10%,#1b0f12 0%,var(--bg) 55%);color:var(--ink);font:12px/1.3 -apple-system,"Segoe UI",Helvetica,Arial,sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100%;min-width:760px}
+button,select{font:inherit;color:inherit}
+/* ---------- header ---------- */
+#top{display:flex;align-items:center;gap:14px;padding:8px 14px 6px;border-bottom:1px solid var(--ln);background:linear-gradient(180deg,rgba(255,74,61,.10),rgba(0,0,0,0))}
+#logo{font-weight:800;letter-spacing:.42em;font-size:19px;color:var(--a);text-shadow:0 0 18px rgba(255,74,61,.45);white-space:nowrap}
+#logo small{display:block;font-weight:500;letter-spacing:.22em;font-size:8px;color:var(--dim);text-shadow:none;margin-top:2px}
+#pre{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+#pre select{flex:1;min-width:120px;max-width:300px;background:var(--pn2);border:1px solid var(--ln);border-radius:6px;padding:6px 8px}
+.btn{background:var(--pn2);border:1px solid var(--ln);border-radius:6px;padding:6px 9px;cursor:pointer;font-weight:600;font-size:10px;letter-spacing:.08em;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--a)}
+.btn.on{background:var(--a);color:#150a0a;border-color:var(--a)}
+#dirty{font-size:9px;color:var(--a2);min-width:40px}
+#chaos{display:flex;align-items:center;gap:5px;color:var(--dim);font-size:9px;letter-spacing:.1em}
+#chaos input{width:70px;accent-color:var(--a)}
+#master{display:flex;align-items:center;gap:8px}
+.meter{position:relative;width:8px;height:44px;background:#07070a;border:1px solid var(--ln);border-radius:3px;overflow:hidden}
+.meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#3fdc6c,#ffd23f 70%,#ff2d55);height:0}
+.meter.gr i{top:0;bottom:auto;background:linear-gradient(180deg,#ffb347,#ff4a3d)}
+/* ---------- layer strip ---------- */
+#layers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:6px 14px;border-bottom:1px solid var(--ln)}
+.ch{display:flex;align-items:center;gap:6px;background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:4px 6px;border-top:2px solid var(--c)}
+.ch{min-width:0;gap:5px}
+.ch .lt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;width:44px;flex:none}
+.ch .nm{font-size:9px;letter-spacing:.16em;font-weight:700;color:var(--c)}
+.ch .k{width:42px}.ch .k svg{width:31px;height:31px}.ch .k .n{height:11px;font-size:8px}.ch .k .v{font-size:8px}
+.ch .mt{width:6px;height:36px;background:#07070a;border-radius:3px;position:relative;overflow:hidden;flex:none}
+.ch .mt i{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--c)}
+.ch .mb{background:none;border:1px solid var(--ln);border-radius:4px;color:var(--dim);font-size:8px;font-weight:700;padding:2px 4px;cursor:pointer}
+.ch .mb.on{background:#ff2d55;color:#fff;border-color:#ff2d55}
+.ch .ks{display:flex;gap:0;margin-left:auto}
+/* ---------- tabs ---------- */
+#tabs{display:flex;gap:2px;padding:6px 14px 0;border-bottom:1px solid var(--ln);overflow-x:auto}
+#tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--dim);padding:7px 10px;font-weight:700;font-size:10px;letter-spacing:.14em;cursor:pointer;white-space:nowrap}
+#tabs button:hover{color:var(--ink)}
+#tabs button.on{color:var(--ink);border-bottom-color:var(--a)}
+/* ---------- content ---------- */
+#content{flex:1;overflow:auto;padding:10px 14px 12px}
+.vizrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px;margin-bottom:8px}
+.viz{background:#09090d;border:1px solid var(--ln);border-radius:8px;position:relative;overflow:hidden}
+.viz canvas{display:block;width:100%;height:118px}
+.viz .cap{position:absolute;left:8px;top:5px;font-size:8px;letter-spacing:.2em;color:var(--dim);pointer-events:none}
+.viz .rd{position:absolute;right:8px;top:5px;font-size:9px;color:var(--a2);pointer-events:none;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;align-items:start}
+.sec{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 10px 6px}
+.sec h2{margin:0 0 7px;font-size:9px;letter-spacing:.24em;color:var(--a);font-weight:700}
+.ctls{display:flex;flex-wrap:wrap;gap:6px 4px}
+.k{display:flex;flex-direction:column;align-items:center;width:58px;user-select:none;touch-action:none;cursor:ns-resize}
+.k svg{width:40px;height:40px;display:block}
+.k .n{font-size:9px;color:var(--dim);text-align:center;margin-top:1px;line-height:1.1;height:20px;overflow:hidden}
+.k .v{font-size:9px;color:var(--a2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.k:hover .n{color:var(--ink)}
+.row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:100%}
+.row .lb{font-size:9px;letter-spacing:.14em;color:var(--dim);min-width:62px}
+.seg{display:flex;flex-wrap:wrap;gap:3px}
+.seg button,.tgl{background:var(--pn2);border:1px solid var(--ln);border-radius:5px;padding:4px 7px;font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--dim);cursor:pointer}
+.seg button.on,.tgl.on{background:var(--a);border-color:var(--a);color:#160b0b}
+.seg button:hover,.tgl:hover{color:var(--ink)}
+.seg button.on:hover,.tgl.on:hover{color:#160b0b}
+select.dd{background:var(--pn2);border:1px solid var(--ln);border-radius:5px;padding:4px 5px;font-size:10px;max-width:150px}
+/* ---------- mod matrix ---------- */
+.mx{width:100%;border-collapse:collapse}
+.mx td{padding:3px 4px;vertical-align:middle}
+.mx td.i{color:var(--dim);font-size:9px;width:16px}
+.mx input[type=range]{width:100%;accent-color:var(--a)}
+.mx .amt{font-size:9px;color:var(--a2);width:42px;text-align:right;font-variant-numeric:tabular-nums}
+/* ---------- pads ---------- */
+#pads{display:grid;grid-template-columns:repeat(16,1fr);gap:4px;padding:6px 14px 8px;border-top:1px solid var(--ln);background:var(--bg2)}
+.pad{height:34px;background:var(--pn2);border:1px solid var(--ln);border-radius:6px;color:var(--dim);font-size:9px;font-weight:700;cursor:pointer;position:relative;user-select:none;touch-action:none}
+.pad small{display:block;font-size:7px;opacity:.7}
+.pad.hit{background:var(--a);color:#150a0a;border-color:var(--a)}
+#hint{position:absolute;right:16px;bottom:52px;background:#000c;border:1px solid var(--ln);border-radius:8px;padding:8px 10px;max-width:340px;font-size:11px;display:none;z-index:9}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#2a2a35;border-radius:5px}
+
+@media(max-width:920px){#layers{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1040px){#chaos{display:none}}
+.vizrow.sm{grid-template-columns:repeat(4,minmax(0,1fr))}.vizrow.sm .viz canvas{height:84px}
+@media(max-width:900px){.vizrow.sm{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head>
+<body>
+<div id="app">
+  <div id="top">
+    <div id="logo">CATACLYSM<small>MASTER DRUM SYNTHESIZER · 6 SOURCES · 257 CONTROLS</small></div>
+    <div id="pre">
+      <button class="btn" id="pPrev" title="Previous preset">◀</button>
+      <select id="pSel" title="Factory presets"></select>
+      <button class="btn" id="pNext" title="Next preset">▶</button>
+      <span id="dirty"></span>
+      <button class="btn" id="bInit" title="Back to the Init kick">INIT</button>
+      <button class="btn" id="bRnd" title="Randomise the patch by the CHAOS amount (levels, pans and output are kept)">RANDOM</button>
+      <button class="btn" id="bMod" title="Fill the mod matrix with random routings">RND MOD</button>
+      <span id="chaos">CHAOS <input type="range" id="chaosAmt" min="5" max="100" value="35"></span>
+      <button class="btn" id="bHelp" title="What is all this?">?</button>
+    </div>
+    <div id="master">
+      <div class="meter" id="mL" title="Output L"><i></i></div><div class="meter" id="mR" title="Output R"><i></i></div>
+      <div class="meter gr" id="mGr" title="Compressor gain reduction"><i></i></div>
+    </div>
+  </div>
+  <div id="layers"></div>
+  <div id="tabs"></div>
+  <div id="content"></div>
+  <div id="pads"></div>
+  <div id="hint"></div>
+</div>
+<script>
+var DATA={"params":[{"key":"ROOT","name":"Root Note","tab":"hit","sec":"TRIGGER","curve":"int","min":12,"max":72,"def":36,"steps":61,"fmt":"note","slot":34,"mult":274625,"direct":false,"tip":"The MIDI note that plays every layer at its set pitch.","kind":"","silent":false},{"key":"TUNE","name":"Master Tune","tab":"hit","sec":"TRIGGER","curve":"lin","min":-24,"max":24,"def":0,"steps":193,"fmt":"st","slot":7,"mult":257,"direct":false,"tip":"Transposes every layer.","kind":"","silent":false},{"key":"BEND","name":"Bend Range","tab":"hit","sec":"TRIGGER","curve":"int","min":0,"max":24,"def":2,"steps":25,"fmt":"int","slot":56,"mult":858,"direct":false,"tip":"","kind":"","silent":false},{"key":"POLY","name":"Voices","tab":"hit","sec":"TRIGGER","curve":"int","min":1,"max":4,"def":2,"steps":4,"fmt":"int","slot":10,"mult":3652264,"direct":false,"tip":"1 = mono (each hit chokes the last).","kind":"","silent":false},{"key":"GATE","name":"Note-Off","tab":"hit","sec":"TRIGGER","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["one-shot","gate"],"slot":8,"mult":7189057,"direct":false,"tip":"Gate: releasing the key fades the hit.","kind":"","silent":false},{"key":"REL","name":"Release","tab":"hit","sec":"TRIGGER","curve":"exp","min":1,"max":2000,"def":40,"steps":78,"fmt":"ms","slot":22,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"HUMAN","name":"Humanize","tab":"hit","sec":"TRIGGER","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":4,"mult":481401,"direct":false,"tip":"Random pitch / decay / level / detune per hit.","kind":"","silent":false},{"key":"VEL_AMP","name":"→ Level","tab":"hit","sec":"VELOCITY","curve":"lin","min":0,"max":1,"def":0.7,"steps":33,"fmt":"pct","slot":22,"mult":474552,"direct":false,"tip":"","kind":"","silent":false},{"key":"VEL_PITCH","name":"→ Pitch","tab":"hit","sec":"VELOCITY","curve":"lin","min":0,"max":24,"def":0,"steps":49,"fmt":"st","slot":33,"mult":283075,"direct":false,"tip":"","kind":"","silent":false},{"key":"VEL_DEC","name":"→ Decay","tab":"hit","sec":"VELOCITY","curve":"lin","min":-1,"max":1,"def":0,"steps":33,"fmt":"bip","slot":23,"mult":474552,"direct":false,"tip":"","kind":"","silent":false},{"key":"VEL_BRT","name":"→ Bright","tab":"hit","sec":"VELOCITY","curve":"lin","min":-1,"max":1,"def":0,"steps":33,"fmt":"bip","slot":24,"mult":474552,"direct":false,"tip":"Opens filters, boosts click / FM index / drive with velocity.","kind":"","silent":false},{"key":"RAT_N","name":"Repeats","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"int","min":1,"max":32,"def":1,"steps":32,"fmt":"int","slot":21,"mult":518319,"direct":false,"tip":"Re-fires the whole hit this many times.","kind":"","silent":false},{"key":"RAT_SYNC","name":"Rate Sync","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"int","min":0,"max":7,"def":0,"steps":8,"fmt":["free","1/8","1/16","1/32","1/64","1/8T","1/16T","1/32T"],"slot":49,"mult":1830609,"direct":false,"tip":"Locks repeats to the DAW tempo.","kind":"","silent":false},{"key":"RAT_TIME","name":"Spacing","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"exp","min":1.5,"max":500,"def":60,"steps":116,"fmt":"ms","slot":14,"mult":1,"direct":false,"tip":"Down to 1.5 ms the repeats fuse into a buzzing pitch.","kind":"","silent":false},{"key":"RAT_VEL","name":"Level Slope","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"lin","min":-1,"max":1,"def":-0.2,"steps":41,"fmt":"bip","slot":28,"mult":389017,"direct":false,"tip":"","kind":"","silent":false},{"key":"RAT_PITCH","name":"Pitch Step","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"lin","min":-12,"max":12,"def":0,"steps":79,"fmt":"st","slot":21,"mult":6561,"direct":false,"tip":"Added per repeat: rising or falling rolls.","kind":"","silent":false},{"key":"RAT_RAND","name":"Time Jitter","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":25,"mult":474552,"direct":false,"tip":"","kind":"","silent":false},{"key":"RAT_PROB","name":"Probability","tab":"hit","sec":"RATCHET · FLAM · ROLL","curve":"lin","min":0,"max":1,"def":1,"steps":33,"fmt":"pct","slot":26,"mult":474552,"direct":false,"tip":"","kind":"","silent":false},{"key":"MAC1","name":"Macro 1","tab":"hit","sec":"MACROS (AUTOMATABLE)","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":0,"mult":1,"direct":true,"tip":"A real DAW parameter. Route it anywhere in the MOD matrix.","kind":"","silent":false},{"key":"MAC2","name":"Macro 2","tab":"hit","sec":"MACROS (AUTOMATABLE)","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":1,"mult":1,"direct":true,"tip":"","kind":"","silent":false},{"key":"MAC3","name":"Macro 3","tab":"hit","sec":"MACROS (AUTOMATABLE)","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":2,"mult":1,"direct":true,"tip":"","kind":"","silent":false},{"key":"MAC4","name":"Macro 4","tab":"hit","sec":"MACROS (AUTOMATABLE)","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":3,"mult":1,"direct":true,"tip":"","kind":"","silent":false},{"key":"T_LEV","name":"Tone","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":-60,"max":12,"def":0,"steps":73,"fmt":"db","slot":28,"mult":1,"direct":false,"tip":"","kind":"","silent":true},{"key":"T_PAN","name":"Tone Pan","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"pan","slot":29,"mult":389017,"direct":false,"tip":"","kind":"","silent":false},{"key":"T_SHAPE","name":"Shape","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":0,"max":3,"def":0,"steps":73,"fmt":"wave","slot":28,"mult":73,"direct":false,"tip":"Sine → triangle → saw → square (continuous).","kind":"","silent":false},{"key":"T_PW","name":"Pulse Width","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":0.02,"max":0.5,"def":0.5,"steps":33,"fmt":"pct","slot":27,"mult":474552,"direct":false,"tip":"Narrows the square part.","kind":"","silent":false},{"key":"T_FOLD","name":"Fold","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":0,"max":1,"def":0,"steps":49,"fmt":"pct","slot":42,"mult":1,"direct":false,"tip":"Wavefolder: up to 8 folds.","kind":"","silent":false},{"key":"T_FB","name":"Feedback","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":0,"max":2,"def":0,"steps":65,"fmt":"val","slot":33,"mult":67,"direct":false,"tip":"Oscillator phase feedback: sine → raspy → noise.","kind":"","silent":false},{"key":"T_SYNC","name":"Hard Sync","tab":"tone","sec":"OSCILLATOR","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":42,"mult":5764801,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"T_SYNCR","name":"Sync Ratio","tab":"tone","sec":"OSCILLATOR","curve":"exp","min":1,"max":16,"def":2.5,"steps":78,"fmt":"x","slot":22,"mult":78,"direct":false,"tip":"Slave/master ratio; sweep it with the pitch envelope for a screaming tone.","kind":"","silent":false},{"key":"T_SUB","name":"Sub","tab":"tone","sec":"OSCILLATOR","curve":"lin","min":-60,"max":6,"def":-60,"steps":67,"fmt":"db","slot":33,"mult":1,"direct":false,"tip":"","kind":"","silent":true},{"key":"T_SUBOCT","name":"Sub Octave","tab":"tone","sec":"OSCILLATOR","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["-1","-2"],"slot":43,"mult":5764801,"direct":false,"tip":"","kind":"","silent":false},{"key":"T_PITCH","name":"Pitch","tab":"tone","sec":"PITCH","curve":"exp","min":8,"max":8000,"def":52,"steps":801,"fmt":"hz","slot":4,"mult":1,"direct":false,"tip":"Frequency at the Root Note.","kind":"","silent":false},{"key":"T_KT","name":"Key Track","tab":"tone","sec":"PITCH","curve":"lin","min":0,"max":1.5,"def":1,"steps":4,"fmt":"kt","slot":46,"mult":3634322,"direct":false,"tip":"","kind":"","silent":false},{"key":"T_PE1_AMT","name":"Env 1 Amt","tab":"tone","sec":"PITCH","curve":"lin","min":-120,"max":120,"def":30,"steps":481,"fmt":"st","slot":5,"mult":1,"direct":false,"tip":"Pitch envelope 1: starts this many semitones away, glides home.","kind":"","silent":false},{"key":"T_PE1_TIME","name":"Env 1 Time","tab":"tone","sec":"PITCH","curve":"exp","min":0.1,"max":4000,"def":80,"steps":161,"fmt":"ms","slot":9,"mult":169,"direct":false,"tip":"","kind":"","silent":false},{"key":"T_PE1_CRV","name":"Env 1 Curve","tab":"tone","sec":"PITCH","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":57,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"T_PE2_AMT","name":"Env 2 Amt","tab":"tone","sec":"PITCH","curve":"lin","min":-120,"max":120,"def":0,"steps":193,"fmt":"st","slot":7,"mult":49601,"direct":false,"tip":"Second, slower pitch envelope (the 'sigh').","kind":"","silent":false},{"key":"T_PE2_TIME","name":"Env 2 Time","tab":"tone","sec":"PITCH","curve":"exp","min":0.1,"max":4000,"def":400,"steps":129,"fmt":"ms","slot":11,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"T_TENS","name":"Tension","tab":"tone","sec":"PITCH","curve":"lin","min":0,"max":24,"def":0,"steps":49,"fmt":"st","slot":42,"mult":49,"direct":false,"tip":"Membrane tension modulation: pitch rises with amplitude, settles as the head rings down.","kind":"","silent":false},{"key":"T_ATT","name":"Attack","tab":"tone","sec":"AMP ENVELOPE","curve":"exp","min":0.01,"max":200,"def":0.01,"steps":61,"fmt":"ms","slot":35,"mult":274625,"direct":false,"tip":"Fade-in. 0.01 ms = instant.","kind":"","silent":false},{"key":"T_DEC","name":"Decay","tab":"tone","sec":"AMP ENVELOPE","curve":"exp","min":2,"max":12000,"def":380,"steps":129,"fmt":"ms","slot":11,"mult":129,"direct":false,"tip":"Time to fall 60 dB.","kind":"","silent":false},{"key":"T_CRV","name":"Curve","tab":"tone","sec":"AMP ENVELOPE","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":57,"mult":21,"direct":false,"tip":"<0 snaps down then lingers; >0 holds then drops (gate-like).","kind":"","silent":false},{"key":"T_TAIL","name":"Tail","tab":"tone","sec":"AMP ENVELOPE","curve":"lin","min":-60,"max":0,"def":-60,"steps":31,"fmt":"db","slot":17,"mult":531441,"direct":false,"tip":"Second, slower decay layered under the main one (the 'boom').","kind":"","silent":true},{"key":"T_TAILT","name":"Tail Time","tab":"tone","sec":"AMP ENVELOPE","curve":"exp","min":20,"max":20000,"def":1500,"steps":81,"fmt":"ms","slot":5,"mult":173641,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_LEV","name":"FM","tab":"fm","sec":"OPERATORS","curve":"lin","min":-60,"max":12,"def":-60,"steps":73,"fmt":"db","slot":28,"mult":5329,"direct":false,"tip":"","kind":"","silent":true},{"key":"F_PAN","name":"FM Pan","tab":"fm","sec":"OPERATORS","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"pan","slot":30,"mult":389017,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_FREQ","name":"Carrier","tab":"fm","sec":"OPERATORS","curve":"exp","min":20,"max":8000,"def":180,"steps":361,"fmt":"hz","slot":5,"mult":481,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_KT","name":"Key Track","tab":"fm","sec":"OPERATORS","curve":"lin","min":0,"max":1.5,"def":1,"steps":4,"fmt":"kt","slot":48,"mult":2825761,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_FOLLOW","name":"Follow Tone Env","tab":"fm","sec":"OPERATORS","curve":"lin","min":0,"max":1,"def":1,"steps":33,"fmt":"pct","slot":49,"mult":1681,"direct":false,"tip":"How much of Tone pitch envelope 1 the carrier inherits.","kind":"","silent":false},{"key":"F_MRATIO","name":"Mod Ratio","tab":"fm","sec":"OPERATORS","curve":"exp","min":0.125,"max":32,"def":1.41,"steps":193,"fmt":"ratio","slot":8,"mult":1,"direct":false,"tip":"Non-integer ratios give bells, clanks and toms.","kind":"","silent":false},{"key":"F_DET","name":"Mod Detune","tab":"fm","sec":"OPERATORS","curve":"lin","min":-100,"max":100,"def":0,"steps":81,"fmt":"ct","slot":17,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_MWAVE","name":"Mod Wave","tab":"fm","sec":"OPERATORS","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["sine","tri","square","noise"],"slot":55,"mult":1185921,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_MODE","name":"Mode","tab":"fm","sec":"OPERATORS","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["FM","ring","AM"],"slot":9,"mult":4380649,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_IDX","name":"Index","tab":"fm","sec":"INDEX","curve":"lin","min":0,"max":48,"def":3,"steps":78,"fmt":"val","slot":22,"mult":6084,"direct":false,"tip":"Modulation depth in radians. Beyond ~10 it is pure noise-like grit.","kind":"","silent":false},{"key":"F_IDXT","name":"Index Decay","tab":"fm","sec":"INDEX","curve":"exp","min":0.5,"max":4000,"def":90,"steps":129,"fmt":"ms","slot":11,"mult":16641,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_IDXC","name":"Index Curve","tab":"fm","sec":"INDEX","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":57,"mult":441,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_FB","name":"Feedback","tab":"fm","sec":"INDEX","curve":"lin","min":0,"max":2,"def":0,"steps":65,"fmt":"val","slot":33,"mult":4355,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_ATT","name":"Attack","tab":"fm","sec":"AMP ENVELOPE","curve":"exp","min":0.01,"max":200,"def":0.01,"steps":61,"fmt":"ms","slot":36,"mult":274625,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_DEC","name":"Decay","tab":"fm","sec":"AMP ENVELOPE","curve":"exp","min":2,"max":12000,"def":250,"steps":129,"fmt":"ms","slot":12,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"F_CRV","name":"Curve","tab":"fm","sec":"AMP ENVELOPE","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":57,"mult":9261,"direct":false,"tip":"","kind":"","silent":false},{"key":"M_LEV","name":"Modal","tab":"modal","sec":"RESONATOR","curve":"lin","min":-60,"max":12,"def":-60,"steps":73,"fmt":"db","slot":29,"mult":1,"direct":false,"tip":"","kind":"","silent":true},{"key":"M_WIDTH","name":"Stereo Spread","tab":"modal","sec":"RESONATOR","curve":"lin","min":0,"max":1,"def":0.5,"steps":33,"fmt":"pct","slot":49,"mult":55473,"direct":false,"tip":"Alternate modes are panned left / right.","kind":"","silent":false},{"key":"M_PITCH","name":"Pitch","tab":"modal","sec":"RESONATOR","curve":"exp","min":15,"max":4000,"def":180,"steps":601,"fmt":"hz","slot":4,"mult":801,"direct":false,"tip":"Lowest mode.","kind":"","silent":false},{"key":"M_KT","name":"Key Track","tab":"modal","sec":"RESONATOR","curve":"lin","min":0,"max":1.5,"def":1,"steps":4,"fmt":"kt","slot":57,"mult":4084101,"direct":false,"tip":"","kind":"","silent":false},{"key":"M_FOLLOW","name":"Follow Tone Env","tab":"modal","sec":"RESONATOR","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":50,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"M_MAT","name":"Material","tab":"modal","sec":"RESONATOR","curve":"lin","min":0,"max":5,"def":1,"steps":101,"fmt":"mat","slot":15,"mult":103,"direct":false,"tip":"String · Membrane · Plate · Bar · Bell · Junk — morphs continuously.","kind":"","silent":false},{"key":"M_STR","name":"Stretch","tab":"modal","sec":"RESONATOR","curve":"lin","min":-0.5,"max":1.5,"def":0,"steps":81,"fmt":"val","slot":17,"mult":81,"direct":false,"tip":"Inharmonicity: >0 spreads the modes apart (stiffer), <0 squeezes them.","kind":"","silent":false},{"key":"M_NUM","name":"Modes","tab":"modal","sec":"RESONATOR","curve":"int","min":1,"max":12,"def":8,"steps":12,"fmt":"int","slot":14,"mult":1230644,"direct":false,"tip":"","kind":"","silent":false},{"key":"M_DEC","name":"Decay","tab":"modal","sec":"DAMPING","curve":"exp","min":5,"max":20000,"def":300,"steps":161,"fmt":"ms","slot":9,"mult":27209,"direct":false,"tip":"Ring time of the lowest mode.","kind":"","silent":false},{"key":"M_TILT","name":"Damping Tilt","tab":"modal","sec":"DAMPING","curve":"lin","min":-1,"max":3,"def":1,"steps":81,"fmt":"val","slot":17,"mult":6561,"direct":false,"tip":"Higher modes die faster (>0, wood and skin) or ring longer (<0, metal).","kind":"","silent":false},{"key":"M_POS","name":"Strike Pos","tab":"modal","sec":"EXCITATION","curve":"lin","min":0,"max":1,"def":0.3,"steps":65,"fmt":"pct","slot":34,"mult":1,"direct":false,"tip":"Where the stick lands: nodes of modes cancel them.","kind":"","silent":false},{"key":"M_BRT","name":"Brightness","tab":"modal","sec":"EXCITATION","curve":"lin","min":-1,"max":3,"def":0.6,"steps":81,"fmt":"val","slot":18,"mult":1,"direct":false,"tip":"Tilt of the excitation spectrum across the modes.","kind":"","silent":false},{"key":"M_SPREAD","name":"Detune Spread","tab":"modal","sec":"EXCITATION","curve":"lin","min":0,"max":200,"def":0,"steps":65,"fmt":"ct","slot":34,"mult":65,"direct":false,"tip":"Random detune per mode per hit.","kind":"","silent":false},{"key":"M_EXCN","name":"Exciter Noise","tab":"modal","sec":"EXCITATION","curve":"lin","min":0,"max":1,"def":0.2,"steps":33,"fmt":"pct","slot":50,"mult":33,"direct":false,"tip":"0 = a single impulse (stick), 1 = a noise burst (brush).","kind":"","silent":false},{"key":"M_EXCL","name":"Exciter Length","tab":"modal","sec":"EXCITATION","curve":"exp","min":0.05,"max":30,"def":1,"steps":81,"fmt":"ms","slot":18,"mult":81,"direct":false,"tip":"","kind":"","silent":false},{"key":"M_EXCLP","name":"Exciter Tone","tab":"modal","sec":"EXCITATION","curve":"exp","min":100,"max":20000,"def":6000,"steps":78,"fmt":"hz","slot":23,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"M_TENS","name":"Tension","tab":"modal","sec":"NONLINEARITY","curve":"lin","min":0,"max":36,"def":0,"steps":73,"fmt":"st","slot":29,"mult":73,"direct":false,"tip":"Pitch rises with the resonator's amplitude (real membranes do this).","kind":"","silent":false},{"key":"M_NL","name":"Saturation","tab":"modal","sec":"NONLINEARITY","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":50,"mult":1089,"direct":false,"tip":"Soft-clips the mode sum: spreads energy between modes.","kind":"","silent":false},{"key":"N_LEV","name":"Noise","tab":"noise","sec":"SOURCE","curve":"lin","min":-60,"max":12,"def":-60,"steps":73,"fmt":"db","slot":29,"mult":5329,"direct":false,"tip":"","kind":"","silent":true},{"key":"N_PAN","name":"Noise Pan","tab":"noise","sec":"SOURCE","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"pan","slot":31,"mult":389017,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_WIDTH","name":"Stereo Width","tab":"noise","sec":"SOURCE","curve":"lin","min":0,"max":1,"def":0.5,"steps":33,"fmt":"pct","slot":50,"mult":35937,"direct":false,"tip":"Decorrelates left and right noise.","kind":"","silent":false},{"key":"N_TYPE","name":"Colour","tab":"noise","sec":"SOURCE","curve":"int","min":0,"max":6,"def":0,"steps":7,"fmt":["white","pink","brown","blue","dust","S&H","crackle"],"slot":11,"mult":2146689,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_RATE","name":"Rate / Density","tab":"noise","sec":"SOURCE","curve":"exp","min":20,"max":20000,"def":6000,"steps":78,"fmt":"hz","slot":23,"mult":78,"direct":false,"tip":"S&H clock, dust density, crackle speed.","kind":"","silent":false},{"key":"N_MODE","name":"Mode","tab":"noise","sec":"FILTER","curve":"lin","min":0,"max":2,"def":1,"steps":65,"fmt":"fmode","slot":34,"mult":4225,"direct":false,"tip":"Low-pass → band-pass → high-pass.","kind":"","silent":false},{"key":"N_CUT","name":"Cutoff","tab":"noise","sec":"FILTER","curve":"exp","min":20,"max":20000,"def":3000,"steps":193,"fmt":"hz","slot":8,"mult":193,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_RES","name":"Resonance","tab":"noise","sec":"FILTER","curve":"lin","min":0,"max":1,"def":0.2,"steps":49,"fmt":"pct","slot":42,"mult":2401,"direct":false,"tip":"Up to Q = 200: the filter rings like a tuned metal plate.","kind":"","silent":false},{"key":"N_SLOPE","name":"24 dB","tab":"noise","sec":"FILTER","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":44,"mult":5764801,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"N_KT","name":"Key Track","tab":"noise","sec":"FILTER","curve":"lin","min":0,"max":1.5,"def":0,"steps":4,"fmt":"kt","slot":58,"mult":2370816,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_FE_AMT","name":"Env Amount","tab":"noise","sec":"FILTER","curve":"lin","min":-8,"max":8,"def":0,"steps":65,"fmt":"oct","slot":35,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_FE_TIME","name":"Env Time","tab":"noise","sec":"FILTER","curve":"exp","min":1,"max":4000,"def":100,"steps":103,"fmt":"ms","slot":14,"mult":116,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_ATT","name":"Attack","tab":"noise","sec":"AMP ENVELOPE","curve":"exp","min":0.01,"max":200,"def":0.01,"steps":61,"fmt":"ms","slot":37,"mult":274625,"direct":false,"tip":"Fade-in. 0.01 ms = instant.","kind":"","silent":false},{"key":"N_DEC","name":"Decay","tab":"noise","sec":"AMP ENVELOPE","curve":"exp","min":2,"max":12000,"def":150,"steps":129,"fmt":"ms","slot":12,"mult":129,"direct":false,"tip":"Time to fall 60 dB.","kind":"","silent":false},{"key":"N_CRV","name":"Curve","tab":"noise","sec":"AMP ENVELOPE","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":57,"mult":194481,"direct":false,"tip":"<0 snaps down then lingers; >0 holds then drops (gate-like).","kind":"","silent":false},{"key":"N_TAIL","name":"Tail","tab":"noise","sec":"AMP ENVELOPE","curve":"lin","min":-60,"max":0,"def":-60,"steps":31,"fmt":"db","slot":18,"mult":531441,"direct":false,"tip":"Second, slower decay layered under the main one (the 'boom').","kind":"","silent":true},{"key":"N_TAILT","name":"Tail Time","tab":"noise","sec":"AMP ENVELOPE","curve":"exp","min":20,"max":20000,"def":1500,"steps":81,"fmt":"ms","slot":18,"mult":6561,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_GATE","name":"Gate Mode","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["normal","clap","rattle"],"slot":55,"mult":4743684,"direct":false,"tip":"Clap: stuttering bursts then a tail. Rattle: snare wires that buzz only while the modal body rings.","kind":"","silent":false},{"key":"N_BN","name":"Bursts","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"int","min":1,"max":16,"def":4,"steps":16,"fmt":"int","slot":16,"mult":912673,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_BSP","name":"Spacing","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"exp","min":0.5,"max":80,"def":9,"steps":78,"fmt":"ms","slot":23,"mult":6084,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_BJIT","name":"Jitter","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"lin","min":0,"max":1,"def":0.25,"steps":33,"fmt":"pct","slot":51,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_BLEN","name":"Burst Decay","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"exp","min":0.3,"max":60,"def":6,"steps":78,"fmt":"ms","slot":24,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_BSLOPE","name":"Burst Slope","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"lin","min":-1,"max":1,"def":0.2,"steps":33,"fmt":"bip","slot":51,"mult":33,"direct":false,"tip":"","kind":"","silent":false},{"key":"N_RAT","name":"Rattle Depth","tab":"noise","sec":"GATE · CLAP BURSTS","curve":"lin","min":0,"max":1,"def":0.7,"steps":33,"fmt":"pct","slot":51,"mult":1089,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_LEV","name":"Metal","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":-60,"max":12,"def":-60,"steps":73,"fmt":"db","slot":30,"mult":1,"direct":false,"tip":"","kind":"","silent":true},{"key":"X_PAN","name":"Metal Pan","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"pan","slot":32,"mult":389017,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_FREQ","name":"Base Freq","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"exp","min":20,"max":4000,"def":330,"steps":361,"fmt":"hz","slot":6,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_KT","name":"Key Track","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0,"max":1.5,"def":0.5,"steps":4,"fmt":"kt","slot":60,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_SET","name":"Ratio Set","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0,"max":5,"def":0,"steps":101,"fmt":"mset","slot":15,"mult":10403,"direct":false,"tip":"808 · classic 2/3/4.16/5.43/6.79/8.21 · harmonic · fifths · cluster · chaos.","kind":"","silent":false},{"key":"X_SPREAD","name":"Spread","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0.25,"max":2.5,"def":1,"steps":73,"fmt":"val","slot":30,"mult":73,"direct":false,"tip":"Compresses (<1) or expands (>1) the ratios around their centre.","kind":"","silent":false},{"key":"X_PW","name":"Pulse Width","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0.05,"max":0.5,"def":0.5,"steps":46,"fmt":"pct","slot":46,"mult":47,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_RING","name":"Ring Mix","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0,"max":1,"def":0,"steps":49,"fmt":"pct","slot":42,"mult":117649,"direct":false,"tip":"Crossfades the summed oscillators into pairwise ring-modulated products.","kind":"","silent":false},{"key":"X_FOLD","name":"Fold","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0,"max":1,"def":0,"steps":49,"fmt":"pct","slot":43,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_SHM","name":"Shimmer","tab":"metal","sec":"OSCILLATOR CLUSTER","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":51,"mult":35937,"direct":false,"tip":"Random-walk drift of every oscillator: cymbal shimmer.","kind":"","silent":false},{"key":"X_BPF","name":"Band Centre","tab":"metal","sec":"FILTER","curve":"exp","min":400,"max":18000,"def":8000,"steps":193,"fmt":"hz","slot":8,"mult":37249,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_BPQ","name":"Band Q","tab":"metal","sec":"FILTER","curve":"exp","min":0.3,"max":30,"def":2,"steps":65,"fmt":"val","slot":35,"mult":65,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_HPF","name":"High-Pass","tab":"metal","sec":"FILTER","curve":"exp","min":50,"max":16000,"def":5000,"steps":154,"fmt":"hz","slot":10,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_BAND","name":"Band ↔ High","tab":"metal","sec":"FILTER","curve":"lin","min":0,"max":1,"def":0.5,"steps":33,"fmt":"pct","slot":52,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_FE_AMT","name":"Env Amount","tab":"metal","sec":"FILTER","curve":"lin","min":-6,"max":6,"def":0,"steps":49,"fmt":"oct","slot":43,"mult":49,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_FE_TIME","name":"Env Time","tab":"metal","sec":"FILTER","curve":"exp","min":1,"max":4000,"def":80,"steps":78,"fmt":"ms","slot":24,"mult":78,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_PE_AMT","name":"Env Amount","tab":"metal","sec":"PITCH","curve":"lin","min":-48,"max":48,"def":0,"steps":155,"fmt":"st","slot":6,"mult":104329,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_PE_TIME","name":"Env Time","tab":"metal","sec":"PITCH","curve":"exp","min":0.1,"max":2000,"def":30,"steps":78,"fmt":"ms","slot":24,"mult":6084,"direct":false,"tip":"","kind":"","silent":false},{"key":"X_ATT","name":"Attack","tab":"metal","sec":"AMP ENVELOPE","curve":"exp","min":0.01,"max":200,"def":0.01,"steps":61,"fmt":"ms","slot":38,"mult":274625,"direct":false,"tip":"Fade-in. 0.01 ms = instant.","kind":"","silent":false},{"key":"X_DEC","name":"Decay","tab":"metal","sec":"AMP ENVELOPE","curve":"exp","min":2,"max":12000,"def":80,"steps":129,"fmt":"ms","slot":12,"mult":16641,"direct":false,"tip":"Time to fall 60 dB.","kind":"","silent":false},{"key":"X_CRV","name":"Curve","tab":"metal","sec":"AMP ENVELOPE","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":58,"mult":1,"direct":false,"tip":"<0 snaps down then lingers; >0 holds then drops (gate-like).","kind":"","silent":false},{"key":"X_TAIL","name":"Tail","tab":"metal","sec":"AMP ENVELOPE","curve":"lin","min":-60,"max":0,"def":-60,"steps":31,"fmt":"db","slot":19,"mult":531441,"direct":false,"tip":"Second, slower decay layered under the main one (the 'boom').","kind":"","silent":true},{"key":"X_TAILT","name":"Tail Time","tab":"metal","sec":"AMP ENVELOPE","curve":"exp","min":20,"max":20000,"def":1500,"steps":81,"fmt":"ms","slot":19,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"C_LEV","name":"Click","tab":"click","sec":"CLICK / BEATER","curve":"lin","min":-60,"max":12,"def":-16,"steps":73,"fmt":"db","slot":30,"mult":5329,"direct":false,"tip":"","kind":"","silent":true},{"key":"C_PAN","name":"Click Pan","tab":"click","sec":"CLICK / BEATER","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"pan","slot":46,"mult":2162,"direct":false,"tip":"","kind":"","silent":false},{"key":"C_TYPE","name":"Type","tab":"click","sec":"CLICK / BEATER","curve":"int","min":0,"max":5,"def":1,"steps":6,"fmt":["impulse","noise","ping","chirp","tick","thud"],"slot":12,"mult":2146689,"direct":false,"tip":"The transient: DC impulse, noise burst, pinged sine, falling chirp, filtered tick, felt thud.","kind":"","silent":false},{"key":"C_FREQ","name":"Frequency","tab":"click","sec":"CLICK / BEATER","curve":"exp","min":100,"max":16000,"def":3000,"steps":154,"fmt":"hz","slot":10,"mult":154,"direct":false,"tip":"","kind":"","silent":false},{"key":"C_LEN","name":"Length","tab":"click","sec":"CLICK / BEATER","curve":"exp","min":0.02,"max":20,"def":1,"steps":81,"fmt":"ms","slot":19,"mult":81,"direct":false,"tip":"","kind":"","silent":false},{"key":"C_INV","name":"Invert","tab":"click","sec":"CLICK / BEATER","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":45,"mult":5764801,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"X_NFM","name":"Noise → Tone FM","tab":"click","sec":"CROSS-MODULATION","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":52,"mult":33,"direct":false,"tip":"Noise phase-modulates the tone oscillator: snare-like rasp, zaps.","kind":"","silent":false},{"key":"X_MRM","name":"Metal × Tone","tab":"click","sec":"CROSS-MODULATION","curve":"lin","min":0,"max":1,"def":0,"steps":49,"fmt":"pct","slot":43,"mult":2401,"direct":false,"tip":"Ring-modulates the tone oscillator with the metal cluster.","kind":"","silent":false},{"key":"X_TFC","name":"Tone → Noise Cutoff","tab":"click","sec":"CROSS-MODULATION","curve":"lin","min":0,"max":4,"def":0,"steps":33,"fmt":"oct","slot":52,"mult":1089,"direct":false,"tip":"Audio-rate filter FM: the tone sweeps the noise filter.","kind":"","silent":false},{"key":"X_TFM","name":"Tone → Metal FM","tab":"click","sec":"CROSS-MODULATION","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":52,"mult":35937,"direct":false,"tip":"","kind":"","silent":false},{"key":"S_CLK","name":"Click →","tab":"click","sec":"RESONATOR SENDS (INTO MODAL)","curve":"lin","min":0,"max":2,"def":1,"steps":41,"fmt":"val","slot":46,"mult":88642,"direct":false,"tip":"How hard each layer excites the modal resonator.","kind":"","silent":false},{"key":"S_NOI","name":"Noise →","tab":"click","sec":"RESONATOR SENDS (INTO MODAL)","curve":"lin","min":0,"max":2,"def":0,"steps":41,"fmt":"val","slot":47,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"S_TONE","name":"Tone →","tab":"click","sec":"RESONATOR SENDS (INTO MODAL)","curve":"lin","min":0,"max":2,"def":0,"steps":41,"fmt":"val","slot":47,"mult":41,"direct":false,"tip":"","kind":"","silent":false},{"key":"S_MET","name":"Metal →","tab":"click","sec":"RESONATOR SENDS (INTO MODAL)","curve":"lin","min":0,"max":2,"def":0,"steps":41,"fmt":"val","slot":47,"mult":1681,"direct":false,"tip":"","kind":"","silent":false},{"key":"S_FM","name":"FM →","tab":"click","sec":"RESONATOR SENDS (INTO MODAL)","curve":"lin","min":0,"max":2,"def":0,"steps":41,"fmt":"val","slot":47,"mult":68921,"direct":false,"tip":"","kind":"","silent":false},{"key":"L1_SHAPE","name":"Shape","tab":"mod","sec":"LFO 1","curve":"int","min":0,"max":5,"def":0,"steps":6,"fmt":["Sine","Tri","Saw","Square","S&H","Noise"],"slot":13,"mult":2146689,"direct":false,"tip":"","kind":"","silent":false},{"key":"L1_RATE","name":"Rate","tab":"mod","sec":"LFO 1","curve":"exp","min":0.05,"max":200,"def":4,"steps":129,"fmt":"hz","slot":13,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"L1_SYNC","name":"Sync","tab":"mod","sec":"LFO 1","curve":"int","min":0,"max":7,"def":0,"steps":8,"fmt":["Free","1/4","1/8","1/16","1/32","1/8T","1/16T","1/32T"],"slot":51,"mult":1185921,"direct":false,"tip":"","kind":"","silent":false},{"key":"L1_RETRIG","name":"Retrigger","tab":"mod","sec":"LFO 1","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["off","on"],"slot":54,"mult":7115526,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"L2_SHAPE","name":"Shape","tab":"mod","sec":"LFO 2","curve":"int","min":0,"max":5,"def":0,"steps":6,"fmt":["Sine","Tri","Saw","Square","S&H","Noise"],"slot":54,"mult":1185921,"direct":false,"tip":"","kind":"","silent":false},{"key":"L2_RATE","name":"Rate","tab":"mod","sec":"LFO 2","curve":"exp","min":0.05,"max":200,"def":4,"steps":129,"fmt":"hz","slot":13,"mult":129,"direct":false,"tip":"","kind":"","silent":false},{"key":"L2_SYNC","name":"Sync","tab":"mod","sec":"LFO 2","curve":"int","min":0,"max":7,"def":0,"steps":8,"fmt":["Free","1/4","1/8","1/16","1/32","1/8T","1/16T","1/32T"],"slot":52,"mult":1185921,"direct":false,"tip":"","kind":"","silent":false},{"key":"L2_RETRIG","name":"Retrigger","tab":"mod","sec":"LFO 2","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["off","on"],"slot":60,"mult":576,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"EA_ATT","name":"Attack","tab":"mod","sec":"ENV A","curve":"exp","min":0.1,"max":2000,"def":0.1,"steps":81,"fmt":"ms","slot":19,"mult":6561,"direct":false,"tip":"","kind":"","silent":false},{"key":"EA_DEC","name":"Decay","tab":"mod","sec":"ENV A","curve":"exp","min":1,"max":8000,"def":200,"steps":103,"fmt":"ms","slot":14,"mult":11948,"direct":false,"tip":"","kind":"","silent":false},{"key":"EA_CRV","name":"Curve","tab":"mod","sec":"ENV A","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":58,"mult":21,"direct":false,"tip":"","kind":"","silent":false},{"key":"EB_ATT","name":"Attack","tab":"mod","sec":"ENV B","curve":"exp","min":0.1,"max":2000,"def":0.1,"steps":81,"fmt":"ms","slot":20,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"EB_DEC","name":"Decay","tab":"mod","sec":"ENV B","curve":"exp","min":1,"max":8000,"def":200,"steps":103,"fmt":"ms","slot":15,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"EB_CRV","name":"Curve","tab":"mod","sec":"ENV B","curve":"lin","min":-1,"max":1,"def":0,"steps":21,"fmt":"bip","slot":58,"mult":441,"direct":false,"tip":"","kind":"","silent":false},{"key":"MX1_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":58,"mult":9261,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX1_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":39,"mult":65,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX1_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":35,"mult":4225,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX2_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":58,"mult":148176,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX2_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":39,"mult":4160,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX2_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":36,"mult":1,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX3_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":59,"mult":1,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX3_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":40,"mult":1,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX3_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":36,"mult":65,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX4_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":59,"mult":16,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX4_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":40,"mult":64,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX4_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":36,"mult":4225,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX5_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":59,"mult":256,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX5_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":40,"mult":4096,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX5_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":37,"mult":1,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX6_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":59,"mult":4096,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX6_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":40,"mult":262144,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX6_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":37,"mult":65,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX7_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":59,"mult":65536,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX7_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":41,"mult":1,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX7_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":37,"mult":4225,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX8_SRC","name":"Source","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"slot":59,"mult":1048576,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX8_DST","name":"Target","tab":"mod","sec":"MODULATION MATRIX","curve":"int","min":0,"max":63,"def":0,"steps":64,"fmt":"dst","slot":41,"mult":64,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"MX8_AMT","name":"Amount","tab":"mod","sec":"MODULATION MATRIX","curve":"lin","min":-1,"max":1,"def":0.5,"steps":65,"fmt":"bip","slot":38,"mult":1,"direct":false,"tip":"","kind":"mx","silent":false},{"key":"TS_ATK","name":"Attack","tab":"drive","sec":"TRANSIENT SHAPER","curve":"lin","min":-30,"max":30,"def":0,"steps":97,"fmt":"db","slot":16,"mult":1,"direct":false,"tip":"Boost or squash the first few ms of each hit.","kind":"","silent":false},{"key":"TS_SUS","name":"Sustain","tab":"drive","sec":"TRANSIENT SHAPER","curve":"lin","min":-30,"max":30,"def":0,"steps":97,"fmt":"db","slot":16,"mult":97,"direct":false,"tip":"Boost or squash everything after the attack.","kind":"","silent":false},{"key":"DS_OS","name":"Distortion OS","tab":"drive","sec":"OVERSAMPLING","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["off","2×","4×"],"slot":60,"mult":64,"direct":false,"tip":"Runs the clippers/folders at 2× or 4× the sample rate (half-band filters) to tame aliasing. Off keeps the raw, digital, aliased bite.","kind":"","silent":false},{"key":"D1_TYPE","name":"Type","tab":"drive","sec":"DISTORTION A","curve":"int","min":0,"max":9,"def":1,"steps":10,"fmt":["Off","Soft","Hard","Fold","Diode","Tube","Rectify","Cheby","Sine","Fuzz"],"slot":15,"mult":1050703,"direct":false,"tip":"","kind":"","silent":false},{"key":"D1_DRV","name":"Drive","tab":"drive","sec":"DISTORTION A","curve":"lin","min":0,"max":72,"def":6,"steps":73,"fmt":"db","slot":31,"mult":1,"direct":false,"tip":"Up to +72 dB.","kind":"","silent":false},{"key":"D1_BIAS","name":"Bias","tab":"drive","sec":"DISTORTION A","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"bip","slot":48,"mult":1,"direct":false,"tip":"Asymmetry: adds even harmonics, or rectifies.","kind":"","silent":false},{"key":"D1_TONE","name":"Tone","tab":"drive","sec":"DISTORTION A","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"bip","slot":48,"mult":41,"direct":false,"tip":"Tilt EQ after the clipper (− dark, + bright).","kind":"","silent":false},{"key":"D1_LOW","name":"Low Bypass","tab":"drive","sec":"DISTORTION A","curve":"exp","min":20,"max":800,"def":20,"steps":78,"fmt":"hz","slot":25,"mult":1,"direct":false,"tip":"Only distorts above this frequency; the sub below stays clean. Minimum = off.","kind":"","silent":false},{"key":"D1_MIX","name":"Mix","tab":"drive","sec":"DISTORTION A","curve":"lin","min":0,"max":1,"def":1,"steps":33,"fmt":"pct","slot":53,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"D2_TYPE","name":"Type","tab":"drive","sec":"DISTORTION B","curve":"int","min":0,"max":9,"def":0,"steps":10,"fmt":["Off","Soft","Hard","Fold","Diode","Tube","Rectify","Cheby","Sine","Fuzz"],"slot":50,"mult":1185921,"direct":false,"tip":"","kind":"","silent":false},{"key":"D2_DRV","name":"Drive","tab":"drive","sec":"DISTORTION B","curve":"lin","min":0,"max":72,"def":12,"steps":73,"fmt":"db","slot":31,"mult":73,"direct":false,"tip":"Up to +72 dB.","kind":"","silent":false},{"key":"D2_BIAS","name":"Bias","tab":"drive","sec":"DISTORTION B","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"bip","slot":48,"mult":1681,"direct":false,"tip":"Asymmetry: adds even harmonics, or rectifies.","kind":"","silent":false},{"key":"D2_TONE","name":"Tone","tab":"drive","sec":"DISTORTION B","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"bip","slot":48,"mult":68921,"direct":false,"tip":"Tilt EQ after the clipper (− dark, + bright).","kind":"","silent":false},{"key":"D2_LOW","name":"Low Bypass","tab":"drive","sec":"DISTORTION B","curve":"exp","min":20,"max":800,"def":20,"steps":78,"fmt":"hz","slot":25,"mult":78,"direct":false,"tip":"Only distorts above this frequency; the sub below stays clean. Minimum = off.","kind":"","silent":false},{"key":"D2_MIX","name":"Mix","tab":"drive","sec":"DISTORTION B","curve":"lin","min":0,"max":1,"def":1,"steps":33,"fmt":"pct","slot":53,"mult":33,"direct":false,"tip":"","kind":"","silent":false},{"key":"CR_BITS","name":"Bits","tab":"drive","sec":"BIT CRUSHER · DECIMATOR","curve":"lin","min":1,"max":16,"def":16,"steps":61,"fmt":"bits","slot":39,"mult":266240,"direct":false,"tip":"Fractional bit depths are allowed. 1 bit = square-wave mush.","kind":"","silent":false},{"key":"CR_RATE","name":"Rate","tab":"drive","sec":"BIT CRUSHER · DECIMATOR","curve":"exp","min":100,"max":48000,"def":48000,"steps":97,"fmt":"hz","slot":16,"mult":9409,"direct":false,"tip":"Sample-rate reduction. Maximum = off.","kind":"","silent":false},{"key":"CR_JIT","name":"Jitter","tab":"drive","sec":"BIT CRUSHER · DECIMATOR","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":53,"mult":1089,"direct":false,"tip":"Random clock jitter: shatters the aliasing into noise.","kind":"","silent":false},{"key":"CR_MODE","name":"Law","tab":"drive","sec":"BIT CRUSHER · DECIMATOR","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["linear","µ-law"],"slot":60,"mult":1152,"direct":false,"tip":"","kind":"","silent":false},{"key":"CR_MIX","name":"Mix","tab":"drive","sec":"BIT CRUSHER · DECIMATOR","curve":"lin","min":0,"max":1,"def":1,"steps":33,"fmt":"pct","slot":53,"mult":35937,"direct":false,"tip":"","kind":"","silent":false},{"key":"RM_FREQ","name":"Frequency","tab":"drive","sec":"RING MODULATOR","curve":"exp","min":5,"max":8000,"def":300,"steps":129,"fmt":"hz","slot":13,"mult":16641,"direct":false,"tip":"","kind":"","silent":false},{"key":"RM_MIX","name":"Mix","tab":"drive","sec":"RING MODULATOR","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":54,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"FL_ON","name":"On","tab":"filter","sec":"MASTER FILTER","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":60,"mult":2304,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"FL_TYPE","name":"Type","tab":"filter","sec":"MASTER FILTER","curve":"int","min":0,"max":4,"def":0,"steps":5,"fmt":["low-pass","band-pass","high-pass","notch","peak"],"slot":47,"mult":2825761,"direct":false,"tip":"","kind":"","silent":false},{"key":"FL_CUT","name":"Cutoff","tab":"filter","sec":"MASTER FILTER","curve":"exp","min":15,"max":20000,"def":4000,"steps":257,"fmt":"hz","slot":7,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"FL_RES","name":"Resonance Q","tab":"filter","sec":"MASTER FILTER","curve":"exp","min":0.4,"max":120,"def":1,"steps":78,"fmt":"val","slot":25,"mult":6084,"direct":false,"tip":"Self-oscillates above ~60. The output limiter keeps it civil.","kind":"","silent":false},{"key":"FL_DRV","name":"Drive","tab":"filter","sec":"MASTER FILTER","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":54,"mult":33,"direct":false,"tip":"Saturates into the filter.","kind":"","silent":false},{"key":"FL_ENV","name":"Env Amount","tab":"filter","sec":"MASTER FILTER","curve":"lin","min":-6,"max":6,"def":0,"steps":49,"fmt":"oct","slot":43,"mult":117649,"direct":false,"tip":"Cutoff follows each hit.","kind":"","silent":false},{"key":"FL_ENVT","name":"Env Time","tab":"filter","sec":"MASTER FILTER","curve":"exp","min":5,"max":4000,"def":200,"steps":78,"fmt":"ms","slot":26,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"FL_KT","name":"Key Track","tab":"filter","sec":"MASTER FILTER","curve":"lin","min":0,"max":1.5,"def":0,"steps":4,"fmt":"kt","slot":60,"mult":4,"direct":false,"tip":"","kind":"","silent":false},{"key":"FL_SLOPE","name":"24 dB","tab":"filter","sec":"MASTER FILTER","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":60,"mult":4608,"direct":false,"tip":"","kind":"tog","silent":false},{"key":"CB_FREQ","name":"Pitch","tab":"filter","sec":"COMB RESONATOR","curve":"exp","min":20,"max":4000,"def":110,"steps":289,"fmt":"hz","slot":6,"mult":361,"direct":false,"tip":"A tuned feedback delay: turns any hit into a pitched, metallic, resonant instrument.","kind":"","silent":false},{"key":"CB_KT","name":"Key Track","tab":"filter","sec":"COMB RESONATOR","curve":"lin","min":0,"max":1.5,"def":0,"steps":4,"fmt":"kt","slot":60,"mult":16,"direct":false,"tip":"","kind":"","silent":false},{"key":"CB_FB","name":"Feedback","tab":"filter","sec":"COMB RESONATOR","curve":"lin","min":-1.05,"max":1.05,"def":0,"steps":169,"fmt":"fb","slot":9,"mult":1,"direct":false,"tip":"Negative = hollow (odd harmonics). Beyond ±1 it self-oscillates into saturation.","kind":"","silent":false},{"key":"CB_DAMP","name":"Damping","tab":"filter","sec":"COMB RESONATOR","curve":"exp","min":400,"max":20000,"def":8000,"steps":65,"fmt":"hz","slot":38,"mult":65,"direct":false,"tip":"","kind":"","silent":false},{"key":"CB_MIX","name":"Mix","tab":"filter","sec":"COMB RESONATOR","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":54,"mult":1089,"direct":false,"tip":"","kind":"","silent":false},{"key":"CB_STEREO","name":"Stereo Detune","tab":"filter","sec":"COMB RESONATOR","curve":"lin","min":0,"max":50,"def":0,"steps":26,"fmt":"ct","slot":56,"mult":33,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_HPF","name":"High-Pass","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":10,"max":800,"def":10,"steps":73,"fmt":"hz","slot":31,"mult":5329,"direct":false,"tip":"Minimum = off.","kind":"","silent":false},{"key":"EQ_LS_F","name":"Low Shelf Freq","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":30,"max":500,"def":100,"steps":65,"fmt":"hz","slot":38,"mult":4225,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_LS_G","name":"Low Gain","tab":"eqdyn","sec":"EQUALISER","curve":"lin","min":-30,"max":30,"def":0,"steps":81,"fmt":"db","slot":20,"mult":81,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_LM_F","name":"Low-Mid Freq","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":50,"max":2000,"def":300,"steps":78,"fmt":"hz","slot":26,"mult":78,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_LM_G","name":"LM Gain","tab":"eqdyn","sec":"EQUALISER","curve":"lin","min":-30,"max":30,"def":0,"steps":81,"fmt":"db","slot":20,"mult":6561,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_LM_Q","name":"LM Q","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":0.3,"max":12,"def":1,"steps":49,"fmt":"val","slot":44,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_HM_F","name":"High-Mid Freq","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":500,"max":10000,"def":3000,"steps":78,"fmt":"hz","slot":26,"mult":6084,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_HM_G","name":"HM Gain","tab":"eqdyn","sec":"EQUALISER","curve":"lin","min":-30,"max":30,"def":0,"steps":81,"fmt":"db","slot":21,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_HM_Q","name":"HM Q","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":0.3,"max":12,"def":1,"steps":49,"fmt":"val","slot":44,"mult":49,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_HS_F","name":"High Shelf Freq","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":2000,"max":18000,"def":8000,"steps":65,"fmt":"hz","slot":39,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_HS_G","name":"High Gain","tab":"eqdyn","sec":"EQUALISER","curve":"lin","min":-30,"max":30,"def":0,"steps":81,"fmt":"db","slot":21,"mult":81,"direct":false,"tip":"","kind":"","silent":false},{"key":"EQ_LPF","name":"Low-Pass","tab":"eqdyn","sec":"EQUALISER","curve":"exp","min":1000,"max":20000,"def":20000,"steps":73,"fmt":"hz","slot":32,"mult":1,"direct":false,"tip":"Maximum = off.","kind":"","silent":false},{"key":"CP_THR","name":"Threshold","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"lin","min":-60,"max":0,"def":-14,"steps":61,"fmt":"db","slot":41,"mult":4096,"direct":false,"tip":"","kind":"","silent":false},{"key":"CP_RATIO","name":"Ratio","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"exp","min":1,"max":100,"def":1,"steps":73,"fmt":"ratio","slot":32,"mult":73,"direct":false,"tip":"Maximum is effectively ∞:1.","kind":"","silent":false},{"key":"CP_ATT","name":"Attack","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"exp","min":0.01,"max":100,"def":5,"steps":78,"fmt":"ms","slot":27,"mult":1,"direct":false,"tip":"0.01 ms flattens even the click.","kind":"","silent":false},{"key":"CP_REL","name":"Release","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"exp","min":5,"max":2000,"def":120,"steps":78,"fmt":"ms","slot":27,"mult":78,"direct":false,"tip":"","kind":"","silent":false},{"key":"CP_KNEE","name":"Knee","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"lin","min":0,"max":24,"def":6,"steps":25,"fmt":"db","slot":56,"mult":21450,"direct":false,"tip":"","kind":"","silent":false},{"key":"CP_MAKE","name":"Makeup","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"lin","min":0,"max":30,"def":0,"steps":61,"fmt":"db","slot":41,"mult":249856,"direct":false,"tip":"","kind":"","silent":false},{"key":"CP_MIX","name":"Mix","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"lin","min":0,"max":1,"def":1,"steps":33,"fmt":"pct","slot":54,"mult":35937,"direct":false,"tip":"Below 100 % = parallel ('New York') compression.","kind":"","silent":false},{"key":"CP_HPF","name":"Sidechain HPF","tab":"eqdyn","sec":"COMPRESSOR (PARALLEL)","curve":"exp","min":20,"max":500,"def":60,"steps":49,"fmt":"hz","slot":44,"mult":2401,"direct":false,"tip":"Keeps the sub from ducking the whole sound.","kind":"","silent":false},{"key":"DL_MIX","name":"Mix","tab":"space","sec":"ECHO","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":55,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"DL_TIME","name":"Time","tab":"space","sec":"ECHO","curve":"exp","min":1,"max":1500,"def":180,"steps":154,"fmt":"ms","slot":10,"mult":23716,"direct":false,"tip":"","kind":"","silent":false},{"key":"DL_SYNC","name":"Sync","tab":"space","sec":"ECHO","curve":"int","min":0,"max":7,"def":0,"steps":8,"fmt":["Free","1/4","1/8","1/16","1/32","1/8T","1/16T","1/32T"],"slot":53,"mult":1185921,"direct":false,"tip":"","kind":"","silent":false},{"key":"DL_FB","name":"Feedback","tab":"space","sec":"ECHO","curve":"lin","min":0,"max":1.15,"def":0.35,"steps":47,"fmt":"pct","slot":46,"mult":1,"direct":false,"tip":"Above 100 % it runs away into saturation.","kind":"","silent":false},{"key":"DL_DAMP","name":"Damping","tab":"space","sec":"ECHO","curve":"exp","min":500,"max":20000,"def":7000,"steps":49,"fmt":"hz","slot":44,"mult":117649,"direct":false,"tip":"","kind":"","silent":false},{"key":"DL_PING","name":"Ping-Pong","tab":"space","sec":"ECHO","curve":"lin","min":0,"max":1,"def":0.5,"steps":33,"fmt":"pct","slot":55,"mult":33,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_MIX","name":"Mix","tab":"space","sec":"REVERB","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":55,"mult":1089,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_SIZE","name":"Size","tab":"space","sec":"REVERB","curve":"lin","min":0,"max":1,"def":0.5,"steps":33,"fmt":"pct","slot":55,"mult":35937,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_DEC","name":"Decay","tab":"space","sec":"REVERB","curve":"exp","min":0.1,"max":20,"def":1.2,"steps":78,"fmt":"s","slot":27,"mult":6084,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_DAMP","name":"Damping","tab":"space","sec":"REVERB","curve":"lin","min":0,"max":1,"def":0.4,"steps":33,"fmt":"pct","slot":56,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_PRE","name":"Pre-Delay","tab":"space","sec":"REVERB","curve":"lin","min":0,"max":200,"def":8,"steps":41,"fmt":"ms","slot":49,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_GATE","name":"Gate","tab":"space","sec":"REVERB","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":60,"mult":9216,"direct":false,"tip":"Gated reverb: the tail is chopped after the hold time.","kind":"tog","silent":false},{"key":"RV_GHOLD","name":"Gate Hold","tab":"space","sec":"REVERB","curve":"exp","min":20,"max":800,"def":150,"steps":49,"fmt":"ms","slot":45,"mult":1,"direct":false,"tip":"","kind":"","silent":false},{"key":"RV_GREL","name":"Gate Release","tab":"space","sec":"REVERB","curve":"exp","min":5,"max":400,"def":30,"steps":49,"fmt":"ms","slot":45,"mult":49,"direct":false,"tip":"","kind":"","silent":false},{"key":"OUT_WIDTH","name":"Width","tab":"space","sec":"OUTPUT","curve":"lin","min":0,"max":3,"def":1,"steps":49,"fmt":"pct","slot":45,"mult":2401,"direct":false,"tip":"Mid/side width. 0 = mono, 300 % = extreme.","kind":"","silent":false},{"key":"OUT_HAAS","name":"Haas","tab":"space","sec":"OUTPUT","curve":"lin","min":0,"max":30,"def":0,"steps":31,"fmt":"ms","slot":20,"mult":531441,"direct":false,"tip":"Micro-delay on one side.","kind":"","silent":false},{"key":"OUT_PAN","name":"Pan","tab":"space","sec":"OUTPUT","curve":"lin","min":-1,"max":1,"def":0,"steps":41,"fmt":"pan","slot":49,"mult":41,"direct":false,"tip":"","kind":"","silent":false},{"key":"OUT_DRIVE","name":"Clip Drive","tab":"space","sec":"OUTPUT","curve":"lin","min":0,"max":24,"def":0,"steps":25,"fmt":"db","slot":56,"mult":536250,"direct":false,"tip":"Pushed into the final clipper.","kind":"","silent":false},{"key":"OUT_CLIP","name":"Limiter","tab":"space","sec":"OUTPUT","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["soft","hard","limit"],"slot":60,"mult":192,"direct":false,"tip":"Soft: tanh. Hard: brick clip. Limit: instant-attack limiter.","kind":"","silent":false},{"key":"OUT_CEIL","name":"Ceiling","tab":"space","sec":"OUTPUT","curve":"lin","min":-24,"max":0,"def":-0.5,"steps":49,"fmt":"db","slot":45,"mult":117649,"direct":false,"tip":"","kind":"","silent":false},{"key":"OUT_LEVEL","name":"Output","tab":"space","sec":"OUTPUT","curve":"lin","min":-60,"max":12,"def":0,"steps":73,"fmt":"db","slot":32,"mult":5329,"direct":false,"tip":"","kind":"","silent":true}],"slots":61,"slotMax":16777216,"tabs":[["hit","HIT"],["tone","TONE"],["fm","FM"],["modal","MODAL"],["noise","NOISE"],["metal","METAL"],["click","CLICK·X"],["mod","MOD"],["drive","DRIVE"],["filter","FILTER·COMB"],["eqdyn","EQ·COMP"],["space","SPACE·OUT"]],"tabColors":{"hit":"#ff4a3d","tone":"#ff4a3d","fm":"#ff8a2b","modal":"#ffc233","noise":"#7ee06a","metal":"#37d0e6","click":"#b07bff","mod":"#ffb347","drive":"#ff2d55","filter":"#ff6a5a","eqdyn":"#8ab4ff","space":"#6fe0c0"},"layers":[["T","TONE","#ff4a3d"],["F","FM","#ff8a2b"],["M","MODAL","#ffc233"],["N","NOISE","#7ee06a"],["X","METAL","#37d0e6"],["C","CLICK","#b07bff"]],"modSrc":["Off","Velocity","Key","Random","Env A","Env B","LFO 1","LFO 2","Mod Wheel","Pressure","Pitch Bend","Ratchet #","Macro 1","Macro 2","Macro 3","Macro 4"],"modSlots":8,"modDests":[{"key":"T_LEV","label":"TONE · Tone","fx":false},{"key":"T_SHAPE","label":"TONE · Shape","fx":false},{"key":"T_FOLD","label":"TONE · Fold","fx":false},{"key":"T_FB","label":"TONE · Feedback","fx":false},{"key":"T_PITCH","label":"TONE · Pitch","fx":false},{"key":"T_PE1_AMT","label":"TONE · Env 1 Amt","fx":false},{"key":"T_PE1_TIME","label":"TONE · Env 1 Time","fx":false},{"key":"T_PE2_AMT","label":"TONE · Env 2 Amt","fx":false},{"key":"T_TENS","label":"TONE · Tension","fx":false},{"key":"T_DEC","label":"TONE · Decay","fx":false},{"key":"F_LEV","label":"FM · FM","fx":false},{"key":"F_FREQ","label":"FM · Carrier","fx":false},{"key":"F_MRATIO","label":"FM · Mod Ratio","fx":false},{"key":"F_IDX","label":"FM · Index","fx":false},{"key":"F_IDXT","label":"FM · Index Decay","fx":false},{"key":"F_FB","label":"FM · Feedback","fx":false},{"key":"F_DEC","label":"FM · Decay","fx":false},{"key":"M_LEV","label":"MODAL · Modal","fx":false},{"key":"M_PITCH","label":"MODAL · Pitch","fx":false},{"key":"M_MAT","label":"MODAL · Material","fx":false},{"key":"M_STR","label":"MODAL · Stretch","fx":false},{"key":"M_DEC","label":"MODAL · Decay","fx":false},{"key":"M_TILT","label":"MODAL · Damping Tilt","fx":false},{"key":"M_POS","label":"MODAL · Strike Pos","fx":false},{"key":"M_BRT","label":"MODAL · Brightness","fx":false},{"key":"M_TENS","label":"MODAL · Tension","fx":false},{"key":"N_LEV","label":"NOISE · Noise","fx":false},{"key":"N_MODE","label":"NOISE · Mode","fx":false},{"key":"N_CUT","label":"NOISE · Cutoff","fx":false},{"key":"N_RES","label":"NOISE · Resonance","fx":false},{"key":"N_FE_AMT","label":"NOISE · Env Amount","fx":false},{"key":"N_DEC","label":"NOISE · Decay","fx":false},{"key":"X_LEV","label":"METAL · Metal","fx":false},{"key":"X_FREQ","label":"METAL · Base Freq","fx":false},{"key":"X_SET","label":"METAL · Ratio Set","fx":false},{"key":"X_SPREAD","label":"METAL · Spread","fx":false},{"key":"X_RING","label":"METAL · Ring Mix","fx":false},{"key":"X_FOLD","label":"METAL · Fold","fx":false},{"key":"X_BPF","label":"METAL · Band Centre","fx":false},{"key":"X_HPF","label":"METAL · High-Pass","fx":false},{"key":"X_DEC","label":"METAL · Decay","fx":false},{"key":"C_LEV","label":"CLICK · Click","fx":false},{"key":"C_FREQ","label":"CLICK · Frequency","fx":false},{"key":"TS_ATK","label":"DRIVE · TRANSIENT SHAPER · Attack","fx":true},{"key":"TS_SUS","label":"DRIVE · TRANSIENT SHAPER · Sustain","fx":true},{"key":"D1_DRV","label":"DRIVE · DISTORTION A · Drive","fx":true},{"key":"D1_BIAS","label":"DRIVE · DISTORTION A · Bias","fx":true},{"key":"D1_MIX","label":"DRIVE · DISTORTION A · Mix","fx":true},{"key":"D2_DRV","label":"DRIVE · DISTORTION B · Drive","fx":true},{"key":"CR_BITS","label":"DRIVE · BIT CRUSHER · DECIMATOR · Bits","fx":true},{"key":"CR_RATE","label":"DRIVE · BIT CRUSHER · DECIMATOR · Rate","fx":true},{"key":"FL_CUT","label":"FILTER · MASTER FILTER · Cutoff","fx":true},{"key":"FL_RES","label":"FILTER · MASTER FILTER · Resonance Q","fx":true},{"key":"CB_FREQ","label":"FILTER · COMB RESONATOR · Pitch","fx":true},{"key":"CB_FB","label":"FILTER · COMB RESONATOR · Feedback","fx":true},{"key":"CB_MIX","label":"FILTER · COMB RESONATOR · Mix","fx":true},{"key":"EQ_LM_G","label":"EQ · EQUALISER · LM Gain","fx":true},{"key":"EQ_HM_G","label":"EQ · EQUALISER · HM Gain","fx":true},{"key":"EQ_HS_G","label":"EQ · EQUALISER · High Gain","fx":true},{"key":"DL_MIX","label":"SPACE · ECHO · Mix","fx":true},{"key":"DL_FB","label":"SPACE · ECHO · Feedback","fx":true},{"key":"RV_MIX","label":"SPACE · REVERB · Mix","fx":true},{"key":"OUT_WIDTH","label":"SPACE · OUTPUT · Width","fx":true}],"presets":[{"name":"808 Sub","cat":"Kick","diff":{"C_LEV":-14,"T_PE1_AMT":17,"T_PE2_AMT":4,"CP_RATIO":2.5,"CP_MAKE":2,"OUT_LEVEL":-2,"HUMAN":0.12,"T_PITCH":49,"T_PE1_TIME":28,"T_PE2_TIME":350,"T_ATT":0.4,"T_DEC":1400,"T_CRV":0.1,"C_TYPE":0,"C_FREQ":1500,"C_LEN":1.2,"EQ_HPF":20,"CP_ATT":15,"CP_REL":160}},{"name":"909 Punch","cat":"Kick","diff":{"C_LEV":-8,"T_PE1_AMT":36,"D1_TYPE":2,"CP_RATIO":4,"CP_MAKE":4,"OUT_LEVEL":-1,"HUMAN":0.12,"T_SHAPE":0.35,"T_PITCH":54,"T_PE1_TIME":42,"T_PE1_CRV":-0.2,"C_FREQ":2600,"C_LEN":1.3,"D1_DRV":11,"D1_MIX":0.35,"D1_LOW":90,"CP_THR":-18,"CP_ATT":8,"CP_REL":90,"EQ_LM_F":320,"EQ_LM_G":-3,"EQ_HS_F":6000,"EQ_HS_G":2}},{"name":"Techno Thump","cat":"Kick","diff":{"C_LEV":-9,"T_TAIL":-18,"D1_TYPE":4,"CP_RATIO":5,"CP_MAKE":4,"OUT_LEVEL":-3,"HUMAN":0.12,"T_SHAPE":0.15,"T_PITCH":57,"T_PE1_TIME":34,"T_DEC":270,"T_TAILT":420,"C_TYPE":4,"C_FREQ":3800,"D1_DRV":14,"D1_LOW":110,"D1_MIX":0.8,"EQ_LM_G":-5,"EQ_HS_F":5000,"EQ_HS_G":3,"CP_THR":-16,"CP_ATT":12,"CP_REL":110}},{"name":"Gabber Distorted","cat":"Kick","diff":{"C_LEV":-8,"T_PE1_AMT":44,"T_TAIL":-8,"D1_TYPE":2,"D2_TYPE":3,"CR_BITS":11,"CR_RATE":30000,"CP_RATIO":12,"CP_MAKE":6,"OUT_CLIP":1,"OUT_LEVEL":-1,"HUMAN":0.12,"T_PITCH":62,"T_PE1_TIME":55,"T_PE1_CRV":-0.15,"T_DEC":520,"T_TAILT":350,"C_TYPE":0,"C_FREQ":2500,"D1_DRV":42,"D1_TONE":0.2,"D2_DRV":14,"D2_MIX":0.5,"EQ_LS_G":4,"EQ_HM_G":3,"EQ_HM_F":2500,"CP_THR":-22,"CP_ATT":0.6,"CP_REL":60}},{"name":"Hardstyle Scream","cat":"Kick","diff":{"C_LEV":-60,"T_PE1_AMT":50,"T_PE2_AMT":-7,"T_TAIL":-4,"D1_TYPE":3,"D2_TYPE":2,"CP_RATIO":10,"CP_MAKE":6,"OUT_CLIP":2,"OUT_LEVEL":-7,"HUMAN":0.12,"T_PITCH":46,"T_PE1_TIME":90,"T_PE1_CRV":-0.4,"T_PE2_TIME":700,"T_DEC":700,"T_TAILT":900,"D1_DRV":26,"D1_LOW":70,"D2_DRV":20,"D2_LOW":180,"EQ_HPF":28,"EQ_HM_F":1800,"EQ_HM_G":3,"CP_THR":-20,"CP_ATT":1}},{"name":"Trap Boom","cat":"Kick","diff":{"C_LEV":-60,"T_PE1_AMT":10,"CP_RATIO":2,"CP_MAKE":2,"OUT_LEVEL":-4,"HUMAN":0.12,"T_PITCH":36,"T_PE1_TIME":90,"T_ATT":1.5,"T_DEC":2800,"T_CRV":0.3,"D1_DRV":14,"D1_LOW":90,"EQ_LS_F":70,"EQ_LS_G":3,"EQ_HPF":18,"CP_THR":-10,"CP_ATT":25,"CP_REL":300}},{"name":"Acoustic Kick","cat":"Kick","diff":{"T_LEV":-7,"M_LEV":-2,"C_LEV":-9,"T_PE1_AMT":14,"D1_TYPE":0,"RV_MIX":0.1,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"M_PITCH":78,"M_NUM":6,"M_DEC":380,"M_TILT":1.4,"M_BRT":0.9,"M_POS":0.15,"M_EXCL":0.6,"M_EXCN":0.15,"M_TENS":6,"T_PITCH":58,"T_PE1_TIME":30,"T_DEC":220,"C_TYPE":5,"C_FREQ":900,"C_LEN":8,"RV_SIZE":0.3,"RV_DEC":0.5,"EQ_LM_F":350,"EQ_LM_G":-4,"EQ_HS_G":2,"CP_THR":-16}},{"name":"House Click","cat":"Kick","diff":{"C_LEV":-5,"T_PE1_AMT":24,"CP_RATIO":4,"CP_MAKE":3,"OUT_LEVEL":-2,"HUMAN":0.12,"T_PITCH":55,"T_PE1_TIME":28,"T_DEC":300,"C_TYPE":4,"C_FREQ":4200,"EQ_HPF":24,"CP_ATT":6,"CP_REL":90}},{"name":"Industrial Crush","cat":"Kick","diff":{"F_LEV":-6,"C_LEV":-60,"D1_TYPE":9,"D2_TYPE":3,"CR_BITS":7,"CR_RATE":11000,"CP_RATIO":20,"CP_MAKE":6,"OUT_CLIP":1,"OUT_LEVEL":-6,"HUMAN":0.12,"T_SHAPE":2,"T_PITCH":55,"T_PE1_TIME":50,"T_DEC":420,"T_FB":0.8,"T_FOLD":0.3,"F_FREQ":110,"F_IDX":8,"F_IDXT":120,"F_DEC":300,"D1_DRV":30,"EQ_HM_F":1500,"EQ_HM_G":4,"CP_THR":-20,"CP_ATT":0.3,"CP_REL":70}},{"name":"Impact Boom","cat":"Kick","diff":{"N_LEV":-8,"C_LEV":-60,"T_PE1_AMT":12,"T_TAIL":-6,"RV_MIX":0.5,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-5,"HUMAN":0.12,"T_PITCH":32,"T_PE1_TIME":200,"T_ATT":3,"T_DEC":6000,"T_TAILT":5000,"N_TYPE":2,"N_MODE":0,"N_CUT":400,"N_DEC":3000,"N_ATT":4,"RV_SIZE":0.9,"RV_DEC":6,"RV_DAMP":0.6,"D1_DRV":8,"D1_LOW":80,"CP_ATT":30,"CP_REL":400}},{"name":"Rolling Kick","cat":"Kick","diff":{"C_LEV":-9,"T_PE1_AMT":28,"D1_TYPE":4,"CP_RATIO":4,"CP_MAKE":3,"OUT_LEVEL":-1,"RAT_N":8,"HUMAN":0.12,"T_PE1_TIME":35,"T_DEC":180,"C_FREQ":2800,"RAT_TIME":70,"RAT_VEL":-0.08,"RAT_PITCH":-0.6,"D1_DRV":12,"D1_LOW":100,"CP_THR":-16,"CP_REL":80}},{"name":"808 Snare","cat":"Snare","diff":{"T_LEV":-4,"F_LEV":-8,"N_LEV":-3,"C_LEV":-14,"T_PE1_AMT":10,"CP_RATIO":3,"CP_MAKE":2,"OUT_LEVEL":-1,"HUMAN":0.12,"T_SHAPE":1,"T_PITCH":190,"T_PE1_TIME":18,"T_DEC":140,"F_FREQ":330,"F_IDX":0,"F_DEC":100,"F_FOLLOW":0,"N_CUT":4800,"N_RES":0.05,"N_DEC":220,"N_CRV":-0.2,"C_FREQ":4000,"D1_DRV":3,"EQ_HM_F":5000,"EQ_HM_G":2,"CP_THR":-16}},{"name":"909 Snare","cat":"Snare","diff":{"T_LEV":-3,"F_LEV":-9,"N_LEV":-1,"C_LEV":-10,"T_PE1_AMT":7,"D1_TYPE":2,"RV_MIX":0.08,"CP_RATIO":4,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"T_SHAPE":0.6,"T_PITCH":185,"T_PE1_TIME":30,"T_DEC":110,"F_FREQ":330,"F_IDX":0,"F_DEC":90,"N_MODE":1.15,"N_CUT":5800,"N_RES":0.05,"N_DEC":190,"C_FREQ":5000,"D1_DRV":8,"D1_MIX":0.3,"RV_SIZE":0.25,"RV_DEC":0.4,"CP_THR":-16,"CP_ATT":4,"CP_REL":70}},{"name":"Acoustic Snare","cat":"Snare","diff":{"T_LEV":-60,"M_LEV":-2,"N_LEV":-5,"C_LEV":-12,"T_PE1_AMT":0,"D1_TYPE":0,"RV_MIX":0.12,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-4,"HUMAN":0.12,"M_PITCH":185,"M_NUM":7,"M_DEC":260,"M_TILT":1.2,"M_BRT":0.4,"M_POS":0.45,"M_EXCL":0.5,"M_EXCN":0.35,"N_GATE":2,"N_RAT":0.85,"N_MODE":1.1,"N_CUT":5200,"N_RES":0.05,"N_DEC":280,"C_FREQ":4000,"RV_SIZE":0.35,"RV_DEC":0.6,"EQ_HM_F":4500,"EQ_HM_G":2,"CP_THR":-18}},{"name":"Gated 80s Snare","cat":"Snare","diff":{"T_LEV":-3,"N_LEV":0,"C_LEV":-8,"T_PE1_AMT":9,"D1_TYPE":2,"RV_MIX":0.95,"CP_RATIO":8,"CP_MAKE":8,"OUT_LEVEL":-4,"HUMAN":0.12,"T_SHAPE":0.6,"T_PITCH":200,"T_PE1_TIME":28,"T_DEC":130,"N_MODE":1.2,"N_CUT":5000,"N_RES":0.1,"N_DEC":240,"C_FREQ":3500,"RV_SIZE":0.6,"RV_DEC":1.8,"RV_GATE":1,"RV_GHOLD":170,"RV_GREL":25,"D1_DRV":10,"D1_MIX":0.4,"CP_THR":-24,"CP_ATT":1,"CP_REL":80}},{"name":"Industrial Snare","cat":"Snare","diff":{"T_LEV":-2,"N_LEV":0,"C_LEV":-8,"T_PE1_AMT":18,"D1_TYPE":2,"D2_TYPE":3,"CR_BITS":8,"CR_RATE":16000,"CP_RATIO":30,"CP_MAKE":6,"OUT_CLIP":1,"OUT_LEVEL":4,"HUMAN":0.12,"T_SHAPE":2,"T_PITCH":215,"T_PE1_TIME":20,"T_DEC":90,"N_MODE":1.4,"N_CUT":4000,"N_RES":0.15,"N_DEC":170,"C_TYPE":4,"D1_DRV":28,"D2_DRV":10,"CP_THR":-22,"CP_ATT":0.1,"CP_REL":60}},{"name":"Rimshot","cat":"Snare","diff":{"T_LEV":-3,"F_LEV":-9,"M_LEV":-10,"C_LEV":-2,"T_PE1_AMT":5,"CP_RATIO":4,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"C_TYPE":4,"C_FREQ":2800,"T_SHAPE":1,"T_PITCH":480,"T_PE1_TIME":6,"T_DEC":40,"F_FREQ":1700,"F_IDX":0,"F_DEC":25,"M_PITCH":900,"M_MAT":2,"M_NUM":4,"M_DEC":60,"M_EXCL":0.1,"CP_THR":-16}},{"name":"Clap 808","cat":"Clap","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"RV_MIX":0.12,"CP_RATIO":3,"CP_MAKE":4,"HUMAN":0.12,"N_GATE":1,"N_BSP":10,"N_BJIT":0.3,"N_BLEN":7,"N_BSLOPE":0.15,"N_CUT":1100,"N_RES":0.35,"N_DEC":330,"N_CRV":-0.1,"N_WIDTH":0.7,"D1_DRV":4,"RV_SIZE":0.3,"RV_DEC":0.5,"CP_THR":-18}},{"name":"Clap 909 Room","cat":"Clap","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"RV_MIX":0.3,"CP_RATIO":3,"CP_MAKE":4,"HUMAN":0.12,"N_GATE":1,"N_BN":3,"N_BSP":14,"N_BJIT":0.35,"N_BLEN":9,"N_CUT":1600,"N_RES":0.3,"N_DEC":240,"N_WIDTH":0.8,"RV_DEC":1.1,"D1_DRV":4,"CP_THR":-18}},{"name":"Wide Clap Stack","cat":"Clap","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"DL_MIX":0.15,"RV_MIX":0.2,"CP_RATIO":4,"CP_MAKE":4,"OUT_LEVEL":-3,"OUT_WIDTH":1.6,"HUMAN":0.12,"N_GATE":1,"N_BN":7,"N_BSP":7,"N_BJIT":0.6,"N_BLEN":5,"N_BSLOPE":0.1,"N_CUT":1300,"N_RES":0.3,"N_DEC":380,"N_WIDTH":1,"DL_TIME":90,"DL_FB":0.3,"RV_SIZE":0.6,"RV_DEC":1.4,"CP_THR":-18}},{"name":"Trap Clap","cat":"Clap","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-9,"T_PE1_AMT":0,"D1_TYPE":4,"RV_MIX":0.18,"CP_RATIO":5,"CP_MAKE":5,"OUT_LEVEL":-3,"HUMAN":0.12,"N_GATE":1,"N_BN":3,"N_BSP":6.5,"N_BJIT":0.2,"N_BLEN":4,"N_CUT":1500,"N_RES":0.45,"N_DEC":130,"C_TYPE":4,"C_FREQ":3500,"D1_DRV":10,"RV_SIZE":0.4,"RV_DEC":0.7,"CP_THR":-20}},{"name":"Broken Clap","cat":"Clap","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":3,"CR_BITS":6,"CR_RATE":14000,"RV_MIX":0.1,"CP_RATIO":5,"CP_MAKE":4,"OUT_LEVEL":-3,"HUMAN":0.12,"N_TYPE":6,"N_RATE":9000,"N_GATE":1,"N_BN":5,"N_BSP":12,"N_BJIT":0.8,"N_BLEN":5,"N_CUT":2200,"N_DEC":220,"D1_DRV":10,"CP_THR":-18}},{"name":"Closed Hat 808","cat":"Hat","diff":{"T_LEV":-60,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"X_FREQ":205,"X_KT":0,"X_BPF":8500,"X_BPQ":1.5,"X_HPF":7000,"X_BAND":0.35,"X_DEC":45,"X_CRV":-0.1,"CP_THR":-20}},{"name":"Open Hat 808","cat":"Hat","diff":{"T_LEV":-60,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"X_TAIL":-10,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"X_FREQ":205,"X_KT":0,"X_BPF":8500,"X_BPQ":1.5,"X_HPF":7000,"X_BAND":0.35,"X_DEC":420,"X_CRV":0.2,"X_TAILT":700,"CP_THR":-20}},{"name":"Closed Hat 909","cat":"Hat","diff":{"T_LEV":-60,"N_LEV":-8,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-4,"HUMAN":0.12,"X_SET":1,"X_FREQ":220,"X_KT":0,"X_BPF":9500,"X_BPQ":1.2,"X_HPF":7500,"X_DEC":38,"N_MODE":2,"N_CUT":9000,"N_RES":0.05,"N_DEC":35,"CP_THR":-20}},{"name":"Pedal Hat","cat":"Hat","diff":{"T_LEV":-60,"X_LEV":0,"C_LEV":-12,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"X_FREQ":190,"X_KT":0,"X_BPF":6000,"X_BPQ":1.2,"X_HPF":4500,"X_BAND":0.2,"X_DEC":22,"C_TYPE":5,"C_FREQ":1800,"C_LEN":5,"CP_THR":-20}},{"name":"Shimmer Hat","cat":"Hat","diff":{"T_LEV":-60,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"DL_MIX":0.1,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"X_SET":4,"X_FREQ":400,"X_KT":0,"X_SPREAD":1.4,"X_SHM":0.8,"X_RING":0.4,"X_BPF":9000,"X_HPF":6500,"X_DEC":160,"X_FE_AMT":1,"X_FE_TIME":120,"DL_TIME":120,"DL_FB":0.3,"CP_THR":-20}},{"name":"Crash","cat":"Cymbal","diff":{"T_LEV":-60,"N_LEV":-8,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"X_TAIL":-6,"D1_TYPE":0,"RV_MIX":0.15,"CP_RATIO":3,"CP_MAKE":4,"OUT_LEVEL":-5,"HUMAN":0.12,"X_SET":1,"X_FREQ":260,"X_KT":0,"X_SPREAD":1.2,"X_RING":0.3,"X_SHM":0.5,"X_BPF":7000,"X_BPQ":0.8,"X_HPF":3500,"X_BAND":0.6,"X_DEC":2400,"X_FE_AMT":2,"X_FE_TIME":1500,"X_TAILT":3500,"N_MODE":2,"N_CUT":5000,"N_DEC":1800,"CP_THR":-22}},{"name":"Ride","cat":"Cymbal","diff":{"T_LEV":-60,"M_LEV":-6,"X_LEV":-2,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":4,"OUT_LEVEL":-3,"HUMAN":0.12,"X_SET":1,"X_KT":0,"X_SPREAD":0.9,"X_BPF":7500,"X_BPQ":1.4,"X_HPF":4500,"X_DEC":1500,"X_CRV":0.1,"M_PITCH":560,"M_MAT":4,"M_NUM":6,"M_DEC":1100,"M_TILT":-0.2,"M_BRT":0.3,"M_EXCL":0.2,"M_KT":0,"CP_THR":-22}},{"name":"China Trash","cat":"Cymbal","diff":{"T_LEV":-60,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":9,"CP_RATIO":5,"CP_MAKE":4,"OUT_LEVEL":-4,"HUMAN":0.12,"X_SET":5,"X_FREQ":300,"X_KT":0,"X_FOLD":0.35,"X_RING":0.5,"X_SHM":0.4,"X_BPF":6500,"X_BPQ":1,"X_HPF":3000,"X_DEC":900,"D1_DRV":12,"D1_LOW":800,"CP_THR":-22}},{"name":"Splash","cat":"Cymbal","diff":{"T_LEV":-60,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":4,"OUT_LEVEL":-4,"HUMAN":0.12,"X_SET":1,"X_FREQ":340,"X_KT":0,"X_SPREAD":1.1,"X_RING":0.2,"X_BPF":9000,"X_BPQ":1,"X_DEC":700,"X_FE_AMT":1.5,"X_FE_TIME":500,"CP_THR":-22}},{"name":"Gong","cat":"Cymbal","diff":{"T_LEV":-60,"M_LEV":0,"X_LEV":-14,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"RV_MIX":0.3,"CP_RATIO":2,"CP_MAKE":3,"HUMAN":0.12,"M_PITCH":110,"M_MAT":4,"M_NUM":12,"M_DEC":6000,"M_TILT":-0.4,"M_BRT":0.2,"M_POS":0.2,"M_EXCL":2,"M_KT":0.5,"M_SPREAD":8,"X_SET":3,"X_FREQ":120,"X_KT":0,"X_SHM":0.6,"X_DEC":4000,"X_BPF":2500,"X_HPF":400,"RV_SIZE":0.8,"RV_DEC":4,"RV_DAMP":0.5,"CP_THR":-20,"CP_ATT":20}},{"name":"Tom Low","cat":"Tom","diff":{"T_LEV":-8,"M_LEV":0,"C_LEV":-12,"T_PE1_AMT":7,"RV_MIX":0.08,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-2,"HUMAN":0.12,"M_PITCH":95,"M_DEC":450,"M_TILT":1.1,"M_BRT":0.8,"M_POS":0.25,"M_EXCL":0.35,"M_EXCN":0.1,"M_TENS":7,"T_PITCH":95,"T_PE1_TIME":60,"T_DEC":300,"C_TYPE":5,"C_FREQ":1200,"C_LEN":6,"D1_DRV":3,"RV_SIZE":0.3,"RV_DEC":0.5,"CP_THR":-16}},{"name":"Tom 808","cat":"Tom","diff":{"C_LEV":-14,"T_PE1_AMT":9,"CP_RATIO":3,"CP_MAKE":3,"HUMAN":0.12,"T_PITCH":120,"T_PE1_TIME":70,"T_DEC":320,"C_TYPE":0,"C_FREQ":1800,"D1_DRV":2,"CP_THR":-16}},{"name":"Electro Tom FM","cat":"Tom","diff":{"T_LEV":-60,"F_LEV":0,"C_LEV":-60,"T_PE1_AMT":24,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-2,"HUMAN":0.12,"F_FREQ":150,"F_IDX":6,"F_IDXT":120,"T_PE1_TIME":60,"D1_DRV":4,"CP_THR":-16}},{"name":"Conga","cat":"Tom","diff":{"T_LEV":-60,"M_LEV":0,"C_LEV":-6,"T_PE1_AMT":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-2,"HUMAN":0.12,"M_PITCH":280,"M_NUM":5,"M_DEC":220,"M_TILT":1.4,"M_BRT":0.5,"M_POS":0.6,"M_EXCL":0.25,"M_EXCN":0.1,"C_TYPE":2,"C_FREQ":1800,"C_LEN":4,"S_CLK":0.6,"D1_DRV":2,"CP_THR":-16}},{"name":"Taiko","cat":"Tom","diff":{"T_LEV":-8,"M_LEV":0,"N_LEV":-14,"C_LEV":-60,"T_PE1_AMT":12,"D1_TYPE":0,"RV_MIX":0.25,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-7,"HUMAN":0.12,"M_PITCH":70,"M_NUM":9,"M_DEC":1400,"M_TILT":0.9,"M_BRT":0.5,"M_POS":0.1,"M_EXCL":0.8,"M_TENS":5,"T_PITCH":55,"T_PE1_TIME":150,"T_DEC":900,"N_TYPE":2,"N_MODE":0,"N_CUT":500,"N_DEC":500,"RV_SIZE":0.7,"RV_DEC":2.5,"CP_THR":-16}},{"name":"Cowbell","cat":"Perc","diff":{"M_LEV":-6,"C_LEV":-10,"T_PE1_AMT":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-4,"HUMAN":0.12,"T_SHAPE":3,"T_PITCH":540,"T_KT":0.5,"T_DEC":360,"M_PITCH":800,"M_KT":0.5,"M_MAT":4,"M_NUM":3,"M_EXCL":0.15,"M_BRT":0.2,"C_TYPE":4,"C_FREQ":2600,"EQ_HM_F":2600,"EQ_HM_G":3,"CP_THR":-18}},{"name":"Clave","cat":"Perc","diff":{"T_LEV":-60,"M_LEV":-4,"C_LEV":-3,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"C_TYPE":2,"C_FREQ":2500,"C_LEN":4,"M_PITCH":2400,"M_KT":0.5,"M_MAT":3,"M_NUM":2,"M_DEC":90,"M_EXCL":0.1,"CP_THR":-16}},{"name":"Wood Block","cat":"Perc","diff":{"T_LEV":-60,"M_LEV":0,"C_LEV":-8,"T_PE1_AMT":0,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-1,"HUMAN":0.12,"M_PITCH":900,"M_MAT":3,"M_NUM":3,"M_DEC":120,"M_BRT":0.4,"M_EXCL":0.15,"M_EXCN":0.15,"C_TYPE":4,"C_FREQ":2800,"D1_DRV":3,"CP_THR":-16}},{"name":"Metal Clank","cat":"Perc","diff":{"T_LEV":-60,"M_LEV":0,"X_LEV":-10,"C_LEV":-6,"T_PE1_AMT":0,"D1_TYPE":0,"CP_RATIO":4,"CP_MAKE":4,"OUT_LEVEL":-7,"HUMAN":0.12,"M_PITCH":380,"M_MAT":5,"M_NUM":12,"M_DEC":700,"M_TILT":-0.2,"M_BRT":-0.3,"M_POS":0.4,"M_EXCL":0.1,"M_SPREAD":12,"X_SET":5,"X_FREQ":250,"X_KT":0,"X_DEC":120,"C_TYPE":4,"C_FREQ":3500,"CP_THR":-18}},{"name":"Anvil","cat":"Perc","diff":{"T_LEV":-60,"M_LEV":0,"X_LEV":-12,"C_LEV":-4,"T_PE1_AMT":0,"D1_TYPE":0,"RV_MIX":0.12,"CP_RATIO":4,"CP_MAKE":4,"OUT_LEVEL":-3,"HUMAN":0.12,"M_PITCH":520,"M_MAT":3,"M_DEC":1800,"M_TILT":0.6,"M_BRT":0.1,"M_POS":0.25,"M_EXCL":0.12,"M_SPREAD":6,"X_SET":1,"X_FREQ":300,"X_KT":0,"X_RING":0.6,"X_DEC":800,"C_TYPE":4,"C_FREQ":4500,"S_CLK":1.2,"CP_THR":-18}},{"name":"Zap","cat":"FX","diff":{"T_LEV":-6,"F_LEV":0,"C_LEV":-60,"T_PE1_AMT":48,"CP_RATIO":4,"CP_MAKE":4,"OUT_LEVEL":-4,"HUMAN":0.12,"T_PITCH":800,"T_PE1_TIME":90,"T_PE1_CRV":-0.3,"T_DEC":220,"F_FREQ":900,"F_MRATIO":2.5,"F_IDX":12,"F_IDXT":120,"F_DEC":220,"F_KT":0.5,"D1_DRV":8,"CP_THR":-16}},{"name":"Laser","cat":"FX","diff":{"C_LEV":-60,"T_PE1_AMT":60,"DL_MIX":0.2,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-3,"HUMAN":0.12,"T_PITCH":200,"T_PE1_TIME":250,"T_PE1_CRV":-0.5,"T_DEC":400,"T_FB":0.5,"DL_TIME":140,"DL_FB":0.4,"CP_THR":-16}},{"name":"Glitch Blip","cat":"FX","diff":{"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":3,"CR_BITS":4,"CR_RATE":8000,"CP_RATIO":4,"CP_MAKE":3,"OUT_LEVEL":-2,"RAT_N":4,"HUMAN":0.12,"T_SHAPE":3,"T_PITCH":800,"T_DEC":40,"RAT_TIME":55,"RAT_PITCH":3,"RAT_VEL":-0.1,"D1_DRV":10,"CP_THR":-16}},{"name":"Noise Burst","cat":"FX","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-60,"T_PE1_AMT":0,"D1_TYPE":0,"RV_MIX":0.3,"CP_RATIO":3,"CP_MAKE":3,"OUT_LEVEL":-2,"HUMAN":0.12,"N_MODE":2,"N_CUT":800,"N_RES":0.4,"N_DEC":900,"N_CRV":-0.3,"N_FE_AMT":4,"N_FE_TIME":600,"N_SLOPE":1,"RV_DEC":2,"RV_SIZE":0.7,"CP_THR":-18}},{"name":"Obliterator (Macros)","cat":"Aggressive","diff":{"C_LEV":-8,"T_PE1_AMT":40,"T_TAIL":-9,"D1_TYPE":2,"D2_TYPE":3,"CP_RATIO":12,"CP_MAKE":5,"OUT_CLIP":1,"OUT_LEVEL":-4,"HUMAN":0.12,"T_PITCH":58,"T_PE1_TIME":60,"T_DEC":480,"T_TAILT":380,"C_TYPE":0,"C_FREQ":2500,"D1_DRV":18,"D2_DRV":8,"CB_FREQ":58,"CB_FB":0.9,"CB_DAMP":5000,"MX1_SRC":12,"MX1_DST":46,"MX1_AMT":0.6,"MX2_SRC":13,"MX2_DST":50,"MX2_AMT":-0.75,"MX3_SRC":14,"MX3_DST":56,"MX3_AMT":0.8,"MX4_SRC":15,"MX4_DST":6,"MX4_AMT":0.3,"CP_THR":-22,"CP_ATT":0.5,"CP_REL":70}},{"name":"Comb Destroyer","cat":"Aggressive","diff":{"T_LEV":-60,"N_LEV":0,"C_LEV":-6,"T_PE1_AMT":0,"D1_TYPE":9,"CB_MIX":1,"CP_RATIO":10,"CP_MAKE":5,"OUT_CLIP":2,"OUT_LEVEL":1,"HUMAN":0.12,"N_MODE":2,"N_CUT":2500,"N_DEC":120,"C_TYPE":4,"CB_FREQ":164,"CB_KT":1,"CB_FB":-0.97,"CB_DAMP":9000,"D1_DRV":18,"D1_LOW":200,"CP_THR":-22,"CP_ATT":0.5}},{"name":"Ring Mod Mayhem","cat":"Aggressive","diff":{"T_LEV":-6,"X_LEV":0,"C_LEV":-60,"T_PE1_AMT":36,"D1_TYPE":3,"RM_MIX":0.5,"CP_RATIO":10,"CP_MAKE":6,"OUT_CLIP":1,"OUT_LEVEL":-1,"HUMAN":0.12,"X_SET":5,"X_FREQ":180,"X_KT":0,"X_RING":1,"X_FOLD":0.5,"X_BPF":4000,"X_BPQ":0.8,"X_HPF":400,"X_BAND":0.7,"X_DEC":260,"T_SHAPE":2,"T_PITCH":90,"T_PE1_TIME":60,"T_DEC":260,"X_MRM":0.6,"RM_FREQ":460,"D1_DRV":20,"CP_THR":-22,"CP_ATT":0.5}},{"name":"Sync Scream","cat":"Aggressive","diff":{"C_LEV":-60,"T_PE1_AMT":24,"D1_TYPE":2,"D2_TYPE":8,"FL_ON":1,"CP_RATIO":10,"CP_MAKE":5,"OUT_CLIP":1,"OUT_LEVEL":-2,"HUMAN":0.12,"T_SHAPE":2,"T_PITCH":120,"T_PE1_TIME":120,"T_SYNC":1,"T_SYNCR":9,"T_DEC":360,"T_FOLD":0.2,"D1_DRV":24,"D2_DRV":14,"D2_MIX":0.4,"FL_TYPE":2,"FL_CUT":700,"FL_RES":8,"FL_ENV":3,"FL_ENVT":300,"CP_THR":-22,"CP_ATT":0.5}},{"name":"Bitcrushed Breaker","cat":"Aggressive","diff":{"N_LEV":-3,"C_LEV":-6,"D1_TYPE":6,"CR_BITS":3.5,"CR_RATE":9000,"CP_RATIO":12,"CP_MAKE":6,"OUT_CLIP":1,"OUT_LEVEL":-8,"HUMAN":0.12,"T_SHAPE":1,"T_PITCH":62,"T_PE1_TIME":40,"T_DEC":300,"N_MODE":1.3,"N_CUT":2800,"N_RES":0.3,"N_DEC":120,"C_FREQ":4000,"CR_JIT":0.4,"D1_DRV":16,"CP_THR":-22,"CP_ATT":0.3}},{"name":"Tension Slam","cat":"Aggressive","diff":{"T_LEV":-4,"M_LEV":0,"C_LEV":-60,"T_PE1_AMT":36,"T_TENS":12,"D1_TYPE":7,"CP_RATIO":10,"CP_MAKE":5,"OUT_CLIP":2,"OUT_LEVEL":-6,"HUMAN":0.12,"M_PITCH":60,"M_NUM":10,"M_DEC":900,"M_TILT":0.6,"M_BRT":-0.4,"M_POS":0.05,"M_EXCL":0.2,"M_EXCN":0.3,"M_TENS":24,"M_NL":0.8,"M_SPREAD":20,"T_PITCH":50,"T_PE1_TIME":70,"T_DEC":700,"D1_DRV":22,"D1_LOW":90,"CP_THR":-22,"CP_ATT":1}}],"tables":{"MAT_NAMES":["String","Membrane","Plate","Bar","Bell","Junk"],"MAT_R":[[1,2,3,4,5,6,7,8,9,10,11,12],[1,1.594,2.136,2.296,2.653,2.918,3.156,3.5,3.6,3.652,4.06,4.154],[1,1.73,2.33,3.65,3.91,5.29,5.86,7.07,8.03,9.01,10.3,11.2],[1,2.756,5.404,8.933,13.344,18.638,24.812,31.87,39.8,48.62,58.33,68.93],[1,2,2.366,3.012,4,5.028,5.324,6.022,8.332,10.866,13.592,16.43],[1,1.37,1.91,2.63,3.17,4.01,4.83,5.29,6.61,7.54,9.12,10.7]],"MET_NAMES":["808","Classic","Harmonic","Fifths","Cluster","Chaos"],"MET_R":[[1,1.4828,1.8003,2.5461,2.6303,3.8968],[1,1.5,2.08,2.715,3.395,4.105],[1,2,3,4,5,6],[1,1.5,2.25,3.375,5.0625,7.59375],[1,1.045,1.12,1.19,1.27,1.39],[1,1.37,2.43,3.17,4.83,6.61]]}};
+(function () {
+"use strict";
+// =====================================================================
+//  CATACLYSM panel. Every control is a "logical parameter"; build.mjs packs
+//  them several-to-a-host-slot (mixed radix). This script owns the packing:
+//  R[key] = raw integer, V[key] = actual value, slot = Σ R·mult.
+// =====================================================================
+var P = DATA.params, BY = {}, FIELDS = {}, SV = "http://www.w3.org/2000/svg";
+var R = {}, V = {}, CTL = {}, VIS = {}, dragSlot = -1;
+P.forEach(function (p) { BY[p.key] = p; (FIELDS[p.slot] = FIELDS[p.slot] || []).push(p); });
+var NSLOT = DATA.slots;
+
+function el(tag, cls, parent, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e; }
+function sv(tag, attrs, parent) { var e = document.createElementNS(SV, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
+function host(f) { var a = [].slice.call(arguments, 1); if (window.vstai && typeof window.vstai[f] === "function") window.vstai[f].apply(window.vstai, a); }
+
+// ---------- packing ----------
+function rawToActual(p, r) {
+  if (p.curve === "int") return p.min + r;
+  var n = p.steps > 1 ? r / (p.steps - 1) : 0;
+  return p.curve === "exp" ? p.min * Math.pow(p.max / p.min, n) : p.min + n * (p.max - p.min);
+}
+function actualToRaw(p, v) {
+  if (p.curve === "int") return clamp(Math.round(v - p.min), 0, p.steps - 1);
+  var n = p.curve === "exp" ? Math.log(Math.max(v, p.min) / p.min) / Math.log(p.max / p.min) : (v - p.min) / (p.max - p.min);
+  return clamp(Math.round(n * (p.steps - 1)), 0, p.steps - 1);
+}
+function slotValue(s) {
+  var f = FIELDS[s], t = 0;
+  for (var i = 0; i < f.length; i++) { if (f[i].direct) return V[f[i].key]; t += R[f[i].key] * f[i].mult; }
+  return t;
+}
+function push(s) { host("setParam", s, slotValue(s)); }
+function norm(p) { return p.direct ? (V[p.key] - p.min) / (p.max - p.min) : (p.steps > 1 ? R[p.key] / (p.steps - 1) : 0); }
+
+var dirty = false;
+function touch(p) { if (CTL[p.key]) CTL[p.key].upd(); if (CTL[p.key] && CTL[p.key].more) CTL[p.key].more(); scheduleVis(); }
+function setRaw(p, r) { r = clamp(Math.round(r), 0, p.steps - 1); R[p.key] = r; V[p.key] = rawToActual(p, r); }
+function setNorm(p, n) {
+  n = clamp(n, 0, 1);
+  if (p.direct) V[p.key] = p.min + n * (p.max - p.min); else setRaw(p, n * (p.steps - 1));
+  touch(p); push(p.slot); markDirty();
+}
+function set(key, actual, quiet) {
+  var p = BY[key]; if (!p) return;
+  if (p.direct) V[key] = clamp(actual, p.min, p.max); else setRaw(p, actualToRaw(p, actual));
+  touch(p); if (!quiet) { push(p.slot); markDirty(); }
+}
+function markDirty() { if (!dirty) { dirty = true; var d = document.getElementById("dirty"); if (d) d.textContent = "edited"; } }
+function decodeSlot(s, value) {
+  var f = FIELDS[s]; if (!f) return;
+  var k = Math.round(value);
+  for (var i = 0; i < f.length; i++) {
+    var p = f[i];
+    if (p.direct) V[p.key] = clamp(+value, p.min, p.max);
+    else { var raw = Math.floor(k / p.mult) % p.steps; R[p.key] = raw; V[p.key] = rawToActual(p, raw); }
+    touch(p);
+  }
+}
+P.forEach(function (p) { if (p.direct) V[p.key] = p.def; else { R[p.key] = actualToRaw(p, p.def); V[p.key] = rawToActual(p, R[p.key]); } });
+
+// ---------- formatting ----------
+var NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function num(v, d) { return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toString(); }
+function sig(v) { var a = Math.abs(v); return a >= 100 ? v.toFixed(0) : a >= 10 ? v.toFixed(1) : a >= 1 ? v.toFixed(2) : v.toFixed(3); }
+function fmtVal(p) {
+  var v = V[p.key], f = p.fmt;
+  if (Array.isArray(f)) return f[Math.round(v - p.min)] || String(v);
+  switch (f) {
+    case "hz": return v >= 1000 ? (v / 1000).toFixed(v >= 10000 ? 1 : 2) + "k" : (v >= 100 ? v.toFixed(0) : v.toFixed(1)) + "Hz";
+    case "ms": return v >= 1000 ? (v / 1000).toFixed(2) + "s" : (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2)) + "ms";
+    case "s": return v.toFixed(2) + "s";
+    case "db": return (v > 0.05 ? "+" : "") + v.toFixed(1) + "dB" + (p.silent && v <= p.min + 0.01 ? "" : "");
+    case "st": return (v > 0.01 ? "+" : "") + v.toFixed(1) + "st";
+    case "ct": return (v > 0.5 ? "+" : "") + Math.round(v) + "ct";
+    case "pct": return Math.round(v * 100) + "%";
+    case "x": return v.toFixed(2) + "×";
+    case "oct": return (v > 0.01 ? "+" : "") + v.toFixed(1) + "oct";
+    case "ratio": return v.toFixed(2) + ":1";
+    case "bip": return (v > 0.005 ? "+" : "") + v.toFixed(2);
+    case "fb": return (v > 0.005 ? "+" : "") + v.toFixed(2);
+    case "bits": return v.toFixed(1) + "bit";
+    case "pan": return Math.abs(v) < 0.03 ? "C" : (v < 0 ? "L" : "R") + Math.round(Math.abs(v) * 100);
+    case "kt": return v < 0.25 ? "off" : v < 0.75 ? "½" : v < 1.25 ? "1×" : "1.5×";
+    case "note": var n = Math.round(v); return NOTES[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1);
+    case "wave": var w = ["sin", "tri", "saw", "sqr"], i = Math.min(2, Math.floor(v)), fr = v - i; return fr < 0.04 ? w[i] : fr > 0.96 ? w[i + 1] : w[i] + "→" + w[i + 1] + " " + Math.round(fr * 100);
+    case "mat": var mi = Math.min(4, Math.floor(v)), mf = v - mi; return mf < 0.04 ? DATA.tables.MAT_NAMES[mi] : mf > 0.96 ? DATA.tables.MAT_NAMES[mi + 1] : DATA.tables.MAT_NAMES[mi].slice(0, 4) + "→" + DATA.tables.MAT_NAMES[mi + 1].slice(0, 4);
+    case "mset": var si = Math.min(4, Math.floor(v)), sf = v - si; return sf < 0.04 ? DATA.tables.MET_NAMES[si] : sf > 0.96 ? DATA.tables.MET_NAMES[si + 1] : DATA.tables.MET_NAMES[si].slice(0, 4) + "→" + DATA.tables.MET_NAMES[si + 1].slice(0, 4);
+    case "fmode": return v < 0.04 ? "LP" : v < 0.96 ? "LP→BP" : v < 1.04 ? "BP" : v < 1.96 ? "BP→HP" : "HP";
+    case "int": return String(Math.round(v));
+    default: return sig(v);
+  }
+}
+
+// ---------- controls ----------
+function knob(p, label) {
+  var w = el("div", "k"); w.title = (p.tip ? p.tip + "\n" : "") + p.key + "   ·   double-click resets, shift = fine";
+  var s = sv("svg", { viewBox: "0 0 44 44" }, w);
+  sv("circle", { cx: 22, cy: 22, r: 19, fill: "rgba(0,0,0,.4)", stroke: "rgba(255,255,255,.1)" }, s);
+  var tr = sv("path", { fill: "none", stroke: "rgba(255,255,255,.13)", "stroke-width": 3, "stroke-linecap": "round" }, s);
+  var ar = sv("path", { fill: "none", stroke: "var(--a)", "stroke-width": 3, "stroke-linecap": "round" }, s);
+  var nd = sv("line", { x1: 22, y1: 22, stroke: "var(--a2)", "stroke-width": 2, "stroke-linecap": "round" }, s);
+  el("div", "n", w, label || p.name); var vv = el("div", "v", w);
+  var bip = p.curve === "lin" && p.min < 0 && p.max > 0;
+  function arc(a0, a1) { var r = 15; return "M" + (22 + r * Math.sin(a0)) + " " + (22 - r * Math.cos(a0)) + "A" + r + " " + r + " 0 " + ((a1 - a0) > Math.PI ? 1 : 0) + " 1 " + (22 + r * Math.sin(a1)) + " " + (22 - r * Math.cos(a1)); }
+  function upd() {
+    var n = norm(p), a0 = -2.35, a1 = 2.35, t = a0 + (a1 - a0) * n;
+    tr.setAttribute("d", arc(a0, a1));
+    var c = bip ? (a0 + a1) / 2 : a0, lo = Math.min(c, t), hi = Math.max(c, t);
+    ar.setAttribute("d", hi - lo < 0.01 ? "" : arc(lo, hi));
+    nd.setAttribute("x2", 22 + 13 * Math.sin(t)); nd.setAttribute("y2", 22 - 13 * Math.cos(t));
+    vv.textContent = fmtVal(p);
+  }
+  CTL[p.key] = { upd: upd };
+  var y0 = 0, n0 = 0, drag = false;
+  w.addEventListener("pointerdown", function (e) { drag = true; dragSlot = p.slot; y0 = e.clientY; n0 = norm(p); try { w.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+  w.addEventListener("pointermove", function (e) { if (!drag) return; var span = p.direct || p.steps > 60 ? 190 : Math.max(70, p.steps * 9); setNorm(p, n0 + (y0 - e.clientY) / (e.shiftKey ? span * 4 : span)); e.preventDefault(); });
+  function end() { drag = false; dragSlot = -1; }
+  w.addEventListener("pointerup", end); w.addEventListener("pointercancel", end);
+  w.addEventListener("dblclick", function () { set(p.key, p.def); });
+  w.addEventListener("wheel", function (e) { var up = e.deltaY < 0 ? 1 : -1; if (p.direct) setNorm(p, norm(p) + up * 0.02); else setRaw(p, R[p.key] + up * (e.shiftKey ? 1 : Math.max(1, Math.round(p.steps / 64)))), touch(p), push(p.slot), markDirty(); e.preventDefault(); }, { passive: false });
+  upd();
+  return w;
+}
+function segCtl(p, label) {
+  var row = el("div", "row"); el("span", "lb", row, label || p.name);
+  var names = p.fmt, host_ = null, btns = [];
+  if (names.length <= 5) {
+    host_ = el("div", "seg", row);
+    names.forEach(function (nm, i) { var b = el("button", "", host_, nm); b.type = "button"; b.addEventListener("click", function () { set(p.key, p.min + i); }); btns.push(b); });
+    CTL[p.key] = { upd: function () { var cur = Math.round(V[p.key] - p.min); btns.forEach(function (b, i) { b.className = i === cur ? "on" : ""; }); } };
+  } else {
+    var sel = el("select", "dd", row);
+    names.forEach(function (nm, i) { var o = el("option", "", sel, nm); o.value = i; });
+    sel.addEventListener("change", function () { set(p.key, p.min + (+sel.value)); });
+    CTL[p.key] = { upd: function () { sel.value = Math.round(V[p.key] - p.min); } };
+  }
+  row.title = (p.tip ? p.tip + "\n" : "") + p.key;
+  CTL[p.key].upd();
+  return row;
+}
+function togCtl(p) {
+  var row = el("div", "row"); var b = el("button", "tgl", row, p.name); b.type = "button"; b.title = (p.tip ? p.tip + "\n" : "") + p.key;
+  b.addEventListener("click", function () { set(p.key, V[p.key] > 0.5 ? 0 : 1); });
+  CTL[p.key] = { upd: function () { b.className = "tgl" + (V[p.key] > 0.5 ? " on" : ""); } };
+  CTL[p.key].upd(); return row;
+}
+function control(p) {
+  if (p.kind === "tog") return togCtl(p);
+  if (Array.isArray(p.fmt)) return segCtl(p);
+  return knob(p);
+}
+
+// ---------- visual kit ----------
+var ACC = "#ff4a3d", ACC2 = "#ffb347", TCOL = {};
+DATA.layers.forEach(function (l) { TCOL[l[0]] = l[2]; });
+function plotArea(cv) {
+  var r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  var w = Math.round(r.width), h = Math.round(r.height);
+  if (w < 30 || h < 20) return null;
+  if (cv.width !== w * dpr || cv.height !== h * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+  var cx = cv.getContext("2d"); cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, w, h);
+  return { cx: cx, w: w, h: h };
+}
+function mkViz(parent, cap) { var d = el("div", "viz", parent); var cv = el("canvas", "", d); el("div", "cap", d, cap); var rd = el("div", "rd", d); return { div: d, cv: cv, rd: rd }; }
+function lg(f, lo, hi) { return Math.log(f / lo) / Math.log(hi / lo); }
+function gridLog(cx, w, h, lo, hi, left) {
+  cx.strokeStyle = "rgba(255,255,255,.06)"; cx.lineWidth = 1; cx.fillStyle = "rgba(255,255,255,.28)"; cx.font = "8px sans-serif";
+  [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000].forEach(function (f) { if (f < lo || f > hi) return; var x = left + lg(f, lo, hi) * (w - left); cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, h - 11); cx.stroke(); cx.fillText(f >= 1000 ? (f / 1000) + "k" : f, x + 2, h - 2); });
+}
+function polyline(cx, pts, color, lw, fill) {
+  if (!pts.length) return; cx.beginPath(); cx.moveTo(pts[0][0], pts[0][1]); for (var i = 1; i < pts.length; i++) cx.lineTo(pts[i][0], pts[i][1]);
+  if (fill) { cx.lineTo(pts[pts.length - 1][0], fill); cx.lineTo(pts[0][0], fill); cx.closePath(); cx.fillStyle = color; cx.fill(); }
+  else { cx.strokeStyle = color; cx.lineWidth = lw || 1.5; cx.stroke(); }
+}
+function dbf(x) { return 20 * Math.log10(Math.max(x, 1e-6)); }
+
+// engine formulas, mirrored for the displays
+function curveEnv(age, T, q) { if (T <= 1e-5) return 0; var u = age / T, x = q === 1 ? u : Math.pow(u, q); if (x > 12) return 0; return Math.exp(-6.907755 * x); }
+function ampEnv(age, att, dec, crv, tailDb, tailT) {
+  var a = 1; if (att > 1e-4) { a = age / att; a = a >= 1 ? 1 : a * a * (3 - 2 * a); }
+  var e1 = curveEnv(age, dec, Math.pow(2, 2 * crv)), e2 = 0, tg = 0;
+  if (tailDb > -59.5) { tg = Math.exp(tailDb * 0.11512925); if (age < tailT * 1.8) e2 = tg * Math.exp(-6.907755 * age / tailT); }
+  return a * (e1 + e2) / (1 + 0.5 * tg);
+}
+function vS(k) { return V[k]; }
+function layerEnv(pre, age) { return ampEnv(age, vS(pre + "_ATT") / 1000, vS(pre + "_DEC") / 1000, vS(pre + "_CRV"), vS(pre + "_TAIL"), vS(pre + "_TAILT") / 1000); }
+function envSpan(pre) { var d = vS(pre + "_DEC") / 1000, t = vS(pre + "_TAIL") > -59.5 ? vS(pre + "_TAILT") / 1000 : 0; return clamp(Math.max(d, t) * 1.25, 0.03, 12); }
+function tAxis(cx, w, h, Tmax, left) {
+  cx.strokeStyle = "rgba(255,255,255,.06)"; cx.fillStyle = "rgba(255,255,255,.28)"; cx.font = "8px sans-serif";
+  [0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10].forEach(function (t) { if (t > Tmax) return; var x = left + lg(t * 1000, 1, Tmax * 1000) * (w - left); cx.beginPath(); cx.moveTo(x, 0); cx.lineTo(x, h - 11); cx.stroke(); cx.fillText(t >= 1 ? t + "s" : (t * 1000) + "ms", x + 2, h - 2); });
+}
+
+// ---- envelope viz (tone / fm / noise / metal) ----
+function vizEnvDraw(pre, extra) {
+  return function (v) {
+    var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, L = 6, top = 16, bot = h - 12;
+    var T = Math.max(envSpan(pre), extra === "fm" ? vS("F_IDXT") / 400 : 0, extra === "tone" ? vS("T_PE2_TIME") / 600 : 0);
+    tAxis(cx, w, h, T, L);
+    var N = 180, pts = [], ppts = [], ipts = [], smin = 0, smax = 0, pe = [];
+    function X(i) { return L + (i / N) * (w - L); }
+    for (var i = 0; i <= N; i++) {
+      var t = Math.exp(Math.log(0.001) + (i / N) * (Math.log(T) - Math.log(0.001)));
+      var e = pre === "N" && vS("N_GATE") === 1 ? clapEnv(t) : layerEnv(pre, t);
+      pts.push([X(i), bot - clamp(e, 0, 1.2) * (bot - top)]);
+      if (extra === "tone") {
+        var e1 = vS("T_PE1_AMT") * curveEnv(t, vS("T_PE1_TIME") / 1000, Math.pow(2, 2 * vS("T_PE1_CRV"))), e2 = vS("T_PE2_AMT") * curveEnv(t, vS("T_PE2_TIME") / 1000, 1), te = vS("T_TENS") * e * e;
+        var s = e1 + e2 + te; pe.push(s); smin = Math.min(smin, s); smax = Math.max(smax, s);
+      } else if (extra === "fm") { ipts.push([X(i), bot - clamp(curveEnv(t, vS("F_IDXT") / 1000, Math.pow(2, 2 * vS("F_IDXC"))), 0, 1) * (bot - top)]); }
+    }
+    var col = TCOL[pre] || ACC;
+    cx.globalAlpha = 0.28; polyline(cx, pts, col, 1, bot); cx.globalAlpha = 1; polyline(cx, pts, col, 1.8);
+    if (extra === "tone") {
+      var span = Math.max(1, smax - smin); for (var j = 0; j <= N; j++) ppts.push([X(j), bot - ((pe[j] - smin) / span) * (bot - top)]);
+      polyline(cx, ppts, "#ffffff", 1.4);
+      cx.fillStyle = "rgba(255,255,255,.7)"; cx.font = "9px sans-serif"; cx.fillText("pitch " + (smax > 0.05 ? "+" + smax.toFixed(1) : "0") + " st", w - 70, top + 12);
+      v.rd.textContent = sig(vS("T_PITCH")) + " Hz";
+    } else if (extra === "fm") { polyline(cx, ipts, "#ffffff", 1.2); cx.fillStyle = "rgba(255,255,255,.7)"; cx.font = "9px sans-serif"; cx.fillText("index", w - 40, top + 12); v.rd.textContent = sig(vS("F_FREQ")) + " Hz · mod ×" + vS("F_MRATIO").toFixed(2); }
+    else v.rd.textContent = "decay " + (vS(pre + "_DEC") >= 1000 ? (vS(pre + "_DEC") / 1000).toFixed(2) + "s" : Math.round(vS(pre + "_DEC")) + "ms");
+  };
+}
+function clapEnv(t) {
+  var n = vS("N_BN"), sp = vS("N_BSP") / 1000, slope = vS("N_BSLOPE"), bl = vS("N_BLEN") / 1000, best = 0, mx = 0, amps = [];
+  for (var i = 0; i < n; i++) { amps.push(Math.exp(slope * i * 0.45)); mx = Math.max(mx, amps[i]); }
+  var tl = (n - 1) * sp, g = 0;
+  for (var k = 0; k < n - 1; k++) { var d = t - k * sp; if (d >= 0) g += amps[k] / mx * Math.exp(-6.907755 * d / bl); }
+  if (t >= tl) g += layerEnv("N", t - tl) * amps[n - 1] / mx;
+  return g;
+}
+
+// ---- modal viz ----
+function modeData() {
+  var T = DATA.tables, mat = clamp(vS("M_MAT"), 0, 5), ma = Math.min(4, Math.floor(mat)), mf = mat - ma, stretch = 1 + vS("M_STR"), nm = vS("M_NUM");
+  var f0 = vS("M_PITCH"), dec = vS("M_DEC") / 1000, tilt = vS("M_TILT"), brt = vS("M_BRT"), pos = vS("M_POS") * 0.9, out = [], ws = 0;
+  for (var k = 0; k < 12; k++) {
+    var lnr = (Math.log(T.MAT_R[ma][k]) * (1 - mf) + Math.log(T.MAT_R[ma + 1][k]) * mf) * stretch, ratio = Math.exp(lnr), f = f0 * ratio, wv = 0;
+    if (k < nm && f < 22000) { wv = (0.1 + 0.9 * Math.abs(Math.cos(Math.PI * ratio * pos))) * Math.exp(-brt * lnr); if (k === nm - 1 && nm > 1) wv *= 0.8; }
+    ws += wv * wv; out.push({ f: f, w: wv, t60: Math.max(0.0004, dec * Math.exp(-tilt * lnr)) });
+  }
+  var nr = ws > 0 ? 1 / Math.sqrt(ws) : 0; out.forEach(function (m) { m.w *= nr; }); return out;
+}
+function vizModal(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lo = 20, hi = 20000, L = 6;
+  gridLog(cx, w, h, lo, hi, L);
+  var md = modeData(), mx = 0; md.forEach(function (m) { mx = Math.max(mx, m.w); });
+  md.forEach(function (m, k) {
+    if (m.w <= 0) return; var x = L + clamp(lg(m.f, lo, hi), 0, 1) * (w - L), hh = (m.w / (mx || 1)) * (h - 32);
+    cx.globalAlpha = 0.35 + 0.65 * clamp(Math.log(m.t60 / 0.01) / Math.log(300), 0, 1); cx.fillStyle = TCOL.M; cx.fillRect(x - 2, h - 12 - hh, 4, hh); cx.globalAlpha = 1;
+    if (k < 8) { cx.fillStyle = "rgba(255,255,255,.55)"; cx.font = "8px sans-serif"; cx.fillText(m.f >= 1000 ? (m.f / 1000).toFixed(1) + "k" : Math.round(m.f), x - 8, h - 14 - hh); }
+  });
+  v.rd.textContent = DATA.tables.MAT_NAMES[Math.round(clamp(vS("M_MAT"), 0, 5))] + " · " + vS("M_NUM") + " modes";
+}
+
+// ---- filter responses ----
+function svfMag(m, f, fc, Q, s24) {
+  var x = f / fc, d = Math.sqrt((1 - x * x) * (1 - x * x) + (x / Q) * (x / Q)) + 1e-9, lp = 1 / d, bp = (x / Q) / d, hp = x * x / d, r;
+  if (m < 1) r = lp * (1 - m) + bp * m; else r = bp * (2 - m) + hp * (m - 1);
+  return s24 ? r * r : r;
+}
+function vizNoiseFilter(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lo = 20, hi = 20000, L = 6;
+  gridLog(cx, w, h, lo, hi, L);
+  var Q = 0.5 * Math.exp(vS("N_RES") * 5.9914645), pts = [], N = 200;
+  for (var i = 0; i <= N; i++) { var f = lo * Math.pow(hi / lo, i / N), mg = dbf(svfMag(vS("N_MODE"), f, vS("N_CUT"), Q, vS("N_SLOPE") > 0.5)); pts.push([L + (i / N) * (w - L), 12 + (1 - clamp((mg + 40) / 70, 0, 1)) * (h - 26)]); }
+  cx.globalAlpha = 0.25; polyline(cx, pts, TCOL.N, 1, h - 12); cx.globalAlpha = 1; polyline(cx, pts, TCOL.N, 1.8);
+  v.rd.textContent = fmtVal(BY.N_CUT) + " · Q " + Q.toFixed(1);
+}
+function vizBursts(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, L = 6, top = 16, bot = h - 12;
+  var T = vS("N_GATE") === 1 ? Math.max(0.05, ((vS("N_BN") - 1) * vS("N_BSP") / 1000) + envSpan("N") * 0.8) : envSpan("N");
+  T = Math.min(T, 3); tAxis(cx, w, h, T, L);
+  var pts = [], N = 220;
+  for (var i = 0; i <= N; i++) { var t = Math.exp(Math.log(0.001) + (i / N) * (Math.log(T) - Math.log(0.001))), e = vS("N_GATE") === 1 ? clapEnv(t) : layerEnv("N", t); pts.push([L + (i / N) * (w - L), bot - clamp(e, 0, 1.2) * (bot - top)]); }
+  cx.globalAlpha = 0.28; polyline(cx, pts, TCOL.N, 1, bot); cx.globalAlpha = 1; polyline(cx, pts, TCOL.N, 1.8);
+  v.rd.textContent = ["normal", "clap ×" + vS("N_BN"), "rattle"][vS("N_GATE")];
+}
+function vizMetal(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lo = 100, hi = 20000, L = 6, NB = 200;
+  gridLog(cx, w, h, lo, hi, L);
+  var T = DATA.tables, ms = clamp(vS("X_SET"), 0, 5), ia = Math.min(4, Math.floor(ms)), fr = ms - ia, sp = vS("X_SPREAD"), base = vS("X_FREQ"), pw = vS("X_PW");
+  var lns = [], mean = 0; for (var k = 0; k < 6; k++) { var l = Math.log(T.MET_R[ia][k]) * (1 - fr) + Math.log(T.MET_R[ia + 1][k]) * fr; lns.push(l); mean += l / 6; }
+  var bins = new Array(NB).fill(0);
+  for (var k2 = 0; k2 < 6; k2++) {
+    var f0 = base * Math.exp(mean + (lns[k2] - mean) * sp);
+    for (var n = 1; n < 400; n++) { var f = f0 * n; if (f > hi) break; if (f < lo) continue; var amp = Math.abs(Math.sin(Math.PI * n * pw)) / n; var bi = Math.floor(lg(f, lo, hi) * NB); if (bi >= 0 && bi < NB) bins[bi] += amp * amp; }
+  }
+  var Qb = vS("X_BPQ"), res = [], mx = 0;
+  for (var i = 0; i < NB; i++) {
+    var ff = lo * Math.pow(hi / lo, (i + 0.5) / NB), hp = svfMag(2, ff, vS("X_HPF"), 0.7, false), bp = svfMag(1, ff, vS("X_BPF"), Qb, false) * 1.6, band = vS("X_BAND");
+    var g = (bp * (1 - band) + hp * band) * hp; res.push(Math.sqrt(bins[i]) * g); mx = Math.max(mx, res[i]);
+  }
+  for (var j = 0; j < NB; j++) { var bh = (res[j] / (mx || 1)) * (h - 30), x = L + (j / NB) * (w - L); cx.fillStyle = TCOL.X; cx.globalAlpha = 0.85; cx.fillRect(x, h - 12 - bh, Math.max(1, (w - L) / NB - 0.5), bh); }
+  cx.globalAlpha = 1;
+  var fp = []; for (var q = 0; q <= 160; q++) { var f2 = lo * Math.pow(hi / lo, q / 160), g2 = (svfMag(1, f2, vS("X_BPF"), Qb, false) * 1.6 * (1 - vS("X_BAND")) + svfMag(2, f2, vS("X_HPF"), 0.7, false) * vS("X_BAND")) * svfMag(2, f2, vS("X_HPF"), 0.7, false); fp.push([L + (q / 160) * (w - L), 14 + (1 - clamp((dbf(g2) + 36) / 42, 0, 1)) * (h - 28)]); }
+  polyline(cx, fp, "#fff", 1.2);
+  v.rd.textContent = DATA.tables.MET_NAMES[Math.round(ms)] + " · base " + sig(base) + " Hz";
+}
+function vizClick(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, sr = 48000, type = vS("C_TYPE"), len = vS("C_LEN") / 1000, f = vS("C_FREQ");
+  var N = Math.min(2400, Math.max(120, Math.round(len * sr * 5))), pts = [], ph = 0, seed = 12345, lp = 0;
+  function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2147483648 - 1; }
+  var cf = Math.exp(-6.907755 / Math.max(1, len * sr));
+  var ce = 1, bp1 = 0, bp2 = 0, g = Math.tan(Math.PI * Math.min(f, 20000) / sr), k = type === 4 ? 0.1 : 1 / 1.2, a1 = 1 / (1 + g * (g + k)), a2 = g * a1, a3 = g * a2, ic1 = 0, ic2 = 0;
+  for (var i = 0; i < N; i++) {
+    var y = 0;
+    if (type === 0) y = i < 0.5 * sr / f + 1 ? ce : 0;
+    else if (type === 2) { y = Math.sin(6.283185 * ph) * ce; ph += f / sr; }
+    else if (type === 3) { y = Math.sin(6.283185 * ph) * ce; ph += f * (1 + 5 * ce * ce) / sr; }
+    else { var x = type === 4 ? (i === 0 ? 1 / Math.max(a2, 0.001) : 0) : rnd(); var v3 = x - ic2, v1 = a1 * ic1 + a2 * v3, v2 = ic2 + a2 * ic1 + a3 * v3; ic1 = 2 * v1 - ic1; ic2 = 2 * v2 - ic2; y = (type === 5 ? v2 : v1 * (type === 4 ? 1 : k)) * ce * (type === 5 ? 2 : 1); }
+    ce *= cf; pts.push([6 + (i / (N - 1)) * (w - 12), h / 2 - clamp(y, -1, 1) * (h / 2 - 14)]);
+  }
+  cx.strokeStyle = "rgba(255,255,255,.07)"; cx.beginPath(); cx.moveTo(0, h / 2); cx.lineTo(w, h / 2); cx.stroke();
+  polyline(cx, pts, TCOL.C, 1.4);
+  v.rd.textContent = DATA.params.filter(function (q) { return q.key === "C_TYPE"; })[0].fmt[type] + " · " + (len * 1000).toFixed(2) + " ms";
+}
+
+// ---- hit / ratchet ----
+function vizRatchet(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, n = vS("RAT_N"), sync = Math.round(vS("RAT_SYNC")), bt = [0, 0.5, 0.25, 0.125, 0.0625, 1 / 3, 1 / 6, 1 / 12];
+  var sp = sync > 0 ? bt[sync] * 60 / 120 : vS("RAT_TIME") / 1000, slope = vS("RAT_VEL"), tot = Math.max(0.05, sp * (n - 1) * 1.05 + 0.04);
+  cx.strokeStyle = "rgba(255,255,255,.06)"; cx.beginPath(); cx.moveTo(6, h - 12); cx.lineTo(w - 6, h - 12); cx.stroke();
+  for (var i = 0; i < n; i++) { var t = i * sp, vel = Math.min(1, 0.9 * Math.pow(1 + slope, i)), x = 10 + (t / tot) * (w - 24), hh = vel * (h - 34); cx.globalAlpha = i === 0 ? 1 : 0.4 + 0.6 * vS("RAT_PROB"); cx.fillStyle = ACC; cx.fillRect(x - 2, h - 12 - hh, 4, hh); }
+  cx.globalAlpha = 1; cx.fillStyle = "rgba(255,255,255,.4)"; cx.font = "8px sans-serif"; cx.fillText((tot * 1000).toFixed(0) + " ms (at 120 BPM if synced)", 8, h - 2);
+  v.rd.textContent = n + (n === 1 ? " hit" : " hits") + (vS("RAT_PITCH") !== 0 ? " · " + (vS("RAT_PITCH") > 0 ? "+" : "") + vS("RAT_PITCH").toFixed(1) + " st each" : "");
+}
+function vizVelocity(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, pts = [];
+  for (var i = 0; i <= 60; i++) { var vel = i / 60, g = (1 - vS("VEL_AMP")) + vS("VEL_AMP") * vel * vel; pts.push([10 + vel * (w - 20), h - 14 - g * (h - 34)]); }
+  cx.strokeStyle = "rgba(255,255,255,.07)"; cx.beginPath(); cx.moveTo(10, h - 14); cx.lineTo(w - 10, 14); cx.stroke();
+  polyline(cx, pts, ACC, 1.8); cx.fillStyle = "rgba(255,255,255,.4)"; cx.font = "8px sans-serif"; cx.fillText("velocity → level", 8, h - 2);
+  v.rd.textContent = "+" + vS("VEL_PITCH").toFixed(0) + " st at full";
+}
+
+// ---- mod tab ----
+function lfoShape(shape, ph) { if (shape === 0) return Math.sin(6.283185 * ph); if (shape === 1) return ph < 0.25 ? ph * 4 : ph < 0.75 ? 2 - ph * 4 : ph * 4 - 4; if (shape === 2) return ph * 2 - 1; if (shape === 3) return ph < 0.5 ? 1 : -1; return (Math.sin(ph * 37.1) + Math.sin(ph * 12.7 + 1)) * 0.5; }
+function vizLfo(n) { return function (v) { var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, pts = []; for (var i = 0; i <= 160; i++) pts.push([8 + (i / 160) * (w - 16), h / 2 - lfoShape(vS("L" + n + "_SHAPE"), (i / 160 * 2) % 1) * (h / 2 - 18)]); cx.strokeStyle = "rgba(255,255,255,.06)"; cx.beginPath(); cx.moveTo(0, h / 2); cx.lineTo(w, h / 2); cx.stroke(); polyline(cx, pts, ACC2, 1.6); v.rd.textContent = vS("L" + n + "_SYNC") ? DATA.params.filter(function (q) { return q.key === "L" + n + "_SYNC"; })[0].fmt[vS("L" + n + "_SYNC")] : sig(vS("L" + n + "_RATE")) + " Hz"; }; }
+function vizEnvAB(n) { return function (v) { var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, att = vS("E" + n + "_ATT") / 1000, dec = vS("E" + n + "_DEC") / 1000, q = Math.pow(2, 2 * vS("E" + n + "_CRV")), T = Math.max(0.05, (att + dec) * 1.1), pts = []; for (var i = 0; i <= 160; i++) { var t = (i / 160) * T, e = t < att ? t / att : curveEnv(t - att, dec, q); pts.push([8 + (i / 160) * (w - 16), h - 16 - e * (h - 34)]); } cx.globalAlpha = 0.25; polyline(cx, pts, ACC2, 1, h - 16); cx.globalAlpha = 1; polyline(cx, pts, ACC2, 1.6); v.rd.textContent = ((att + dec) * 1000).toFixed(0) + " ms"; }; }
+
+// ---- drive tab ----
+function shaperF(type, v) {
+  var sc = function (x) { return x > 3 ? 1 : x < -3 ? -1 : x * (27 + x * x) / (27 + 9 * x * x); };
+  switch (type) {
+    case 1: return sc(v); case 2: return clamp(v, -1, 1);
+    case 3: { var a = v * 0.25 + 0.25; return 4 * Math.abs(a - Math.round(a)) - 1; }
+    case 4: return v >= 0 ? 1 - Math.exp(-v) : -0.7 * (1 - Math.exp(0.9 * v));
+    case 5: return (v >= 0 ? v / (1 + v) : v / (1 - 0.7 * v)) * 0.9;
+    case 6: return Math.abs(sc(v)) * 2;
+    case 7: { var x = sc(v), x2 = x * x; return 0.55 * x * (4 * x2 - 3) + 0.3 * x * (16 * x2 * x2 - 20 * x2 + 5) + 0.15 * (2 * x2 - 1); }
+    case 8: return Math.sin(v);
+    case 9: { var t = sc(v * 3); return t * 0.75 + (Math.abs(t) - 0.5) * 0.35; }
+    default: return v;
+  }
+}
+function vizDist(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, cxm = w / 2, cym = h / 2;
+  cx.strokeStyle = "rgba(255,255,255,.08)"; cx.beginPath(); cx.moveTo(0, cym); cx.lineTo(w, cym); cx.moveTo(cxm, 0); cx.lineTo(cxm, h); cx.stroke();
+  cx.setLineDash([3, 3]); cx.beginPath(); cx.moveTo(cxm - (h / 2 - 14), cym + (h / 2 - 14)); cx.lineTo(cxm + (h / 2 - 14), cym - (h / 2 - 14)); cx.stroke(); cx.setLineDash([]);
+  [["D1", ACC], ["D2", ACC2]].forEach(function (u) {
+    var type = vS(u[0] + "_TYPE"); if (!type) return; var G = Math.pow(10, vS(u[0] + "_DRV") / 20), b = vS(u[0] + "_BIAS") * 0.9, z = shaperF(type, b), comp = 1 / Math.pow(G, 0.12), pts = [];
+    for (var i = 0; i <= 240; i++) { var x = -1 + 2 * i / 240, y = (shaperF(type, x * G + b) - z) * comp; pts.push([cxm + x * (h / 2 - 14), cym - clamp(y, -1.3, 1.3) * (h / 2 - 14)]); }
+    polyline(cx, pts, u[1], 1.7);
+  });
+  v.rd.textContent = "transfer curves  A " + DATA.params.filter(function (q) { return q.key === "D1_TYPE"; })[0].fmt[vS("D1_TYPE")] + " · B " + DATA.params.filter(function (q) { return q.key === "D2_TYPE"; })[0].fmt[vS("D2_TYPE")];
+}
+function vizCrush(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lev = Math.pow(2, vS("CR_BITS") - 1), pts = [], N = 200, hold = vS("CR_RATE") / 48000, phase = 0, held = 0;
+  for (var i = 0; i < N; i++) { var x = Math.sin(6.283185 * i / N * 3) * 0.95; phase += hold; if (phase >= 1) { phase -= 1; held = Math.round(clamp(x, -1, 1) * lev) / lev; } pts.push([8 + (i / N) * (w - 16), h / 2 - held * (h / 2 - 14)]); }
+  var ref = []; for (var j = 0; j < N; j++) ref.push([8 + (j / N) * (w - 16), h / 2 - Math.sin(6.283185 * j / N * 3) * 0.95 * (h / 2 - 14)]);
+  polyline(cx, ref, "rgba(255,255,255,.18)", 1); polyline(cx, pts, ACC, 1.5); v.rd.textContent = vS("CR_BITS").toFixed(1) + " bit · " + (vS("CR_RATE") >= 47000 ? "full rate" : Math.round(vS("CR_RATE")) + " Hz");
+}
+
+// ---- filter / eq / comp / space ----
+function bqMag(kind, f0, Q, g, f, SR) {
+  var w0 = 2 * Math.PI * f0 / SR, c = Math.cos(w0), s = Math.sin(w0), al = s / (2 * Q), A = Math.pow(10, g / 40), b0, b1, b2, a0, a1, a2, sa;
+  if (kind === 2) { b0 = 1 + al * A; b1 = -2 * c; b2 = 1 - al * A; a0 = 1 + al / A; a1 = b1; a2 = 1 - al / A; }
+  else if (kind === 3) { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = b0; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+  else if (kind === 4) { b0 = (1 - c) / 2; b1 = 1 - c; b2 = b0; a0 = 1 + al; a1 = -2 * c; a2 = 1 - al; }
+  else { sa = 2 * Math.sqrt(A) * (s / (2 * 0.7071)); if (kind === 0) { b0 = A * ((A + 1) - (A - 1) * c + sa); b1 = 2 * A * ((A - 1) - (A + 1) * c); b2 = A * ((A + 1) - (A - 1) * c - sa); a0 = (A + 1) + (A - 1) * c + sa; a1 = -2 * ((A - 1) + (A + 1) * c); a2 = (A + 1) + (A - 1) * c - sa; } else { b0 = A * ((A + 1) + (A - 1) * c + sa); b1 = -2 * A * ((A - 1) + (A + 1) * c); b2 = A * ((A + 1) + (A - 1) * c - sa); a0 = (A + 1) - (A - 1) * c + sa; a1 = 2 * ((A - 1) - (A + 1) * c); a2 = (A + 1) - (A - 1) * c - sa; } }
+  var w = 2 * Math.PI * f / SR, cw = Math.cos(w), sw = Math.sin(w), c2 = Math.cos(2 * w), s2 = Math.sin(2 * w), nr = b0 + b1 * cw + b2 * c2, ni = -(b1 * sw + b2 * s2), dr = a0 + a1 * cw + a2 * c2, di = -(a1 * sw + a2 * s2);
+  return Math.sqrt((nr * nr + ni * ni) / (dr * dr + di * di));
+}
+function vizMasterFilter(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lo = 20, hi = 20000, L = 6; gridLog(cx, w, h, lo, hi, L);
+  var t = vS("FL_TYPE"), fc = vS("FL_CUT"), Q = vS("FL_RES"), s24 = vS("FL_SLOPE") > 0.5, pts = [], N = 220;
+  for (var i = 0; i <= N; i++) {
+    var f = lo * Math.pow(hi / lo, i / N), x = f / fc, d = Math.sqrt((1 - x * x) * (1 - x * x) + (x / Q) * (x / Q)) + 1e-9, lp = 1 / d, bp = (x / Q) / d, hp = x * x / d, m;
+    m = t === 0 ? lp : t === 1 ? bp : t === 2 ? hp : t === 3 ? Math.abs(1 - x * x) / d : Math.abs(lp - hp) * (1);
+    if (t === 4) m = Math.sqrt(Math.pow(1 - x * x, 2) + 0) / d * 0 + (1 + (1 / Q) * 0) * (1 / d) * (Math.abs(1 - x * x) + x / Q) / (1 + x / Q + 1e-9);
+    if (s24) m = m * m; var db = dbf(m); pts.push([L + (i / N) * (w - L), 12 + (1 - clamp((db + 40) / 70, 0, 1)) * (h - 26)]);
+  }
+  cx.globalAlpha = 0.2; polyline(cx, pts, ACC, 1, h - 12); cx.globalAlpha = 1; polyline(cx, pts, ACC, 1.8);
+  v.rd.textContent = vS("FL_ON") > 0.5 ? DATA.params.filter(function (q) { return q.key === "FL_TYPE"; })[0].fmt[t] + " " + fmtVal(BY.FL_CUT) : "filter off";
+}
+function vizComb(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lo = 20, hi = 20000, L = 6; gridLog(cx, w, h, lo, hi, L);
+  var f0 = vS("CB_FREQ"), fb = vS("CB_FB"), pts = [], N = 400, damp = vS("CB_DAMP");
+  for (var i = 0; i <= N; i++) { var f = lo * Math.pow(hi / lo, i / N), ph = 2 * Math.PI * f / f0, dmp = 1 / Math.sqrt(1 + Math.pow(f / damp, 2)), re = 1 - fb * dmp * Math.cos(ph), im = fb * dmp * Math.sin(ph), mg = 1 / Math.sqrt(re * re + im * im + 1e-6); pts.push([L + (i / N) * (w - L), 12 + (1 - clamp((dbf(mg) + 24) / 48, 0, 1)) * (h - 26)]); }
+  cx.globalAlpha = 0.2; polyline(cx, pts, ACC2, 1, h - 12); cx.globalAlpha = 1; polyline(cx, pts, ACC2, 1.4);
+  v.rd.textContent = vS("CB_MIX") > 0 ? sig(f0) + " Hz · fb " + fb.toFixed(2) : "comb off";
+}
+function vizEq(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, lo = 20, hi = 20000, L = 6; gridLog(cx, w, h, lo, hi, L);
+  cx.strokeStyle = "rgba(255,255,255,.1)"; cx.beginPath(); cx.moveTo(L, h / 2 - 6); cx.lineTo(w, h / 2 - 6); cx.stroke();
+  var pts = [], N = 260, SR = 48000;
+  for (var i = 0; i <= N; i++) {
+    var f = lo * Math.pow(hi / lo, i / N), g = 0;
+    if (vS("EQ_HPF") > 10.5) g += 2 * dbf(bqMag(3, vS("EQ_HPF"), 0.7071, 0, f, SR));
+    if (Math.abs(vS("EQ_LS_G")) > 0.05) g += dbf(bqMag(0, vS("EQ_LS_F"), 0.7071, vS("EQ_LS_G"), f, SR));
+    if (Math.abs(vS("EQ_LM_G")) > 0.05) g += dbf(bqMag(2, vS("EQ_LM_F"), vS("EQ_LM_Q"), vS("EQ_LM_G"), f, SR));
+    if (Math.abs(vS("EQ_HM_G")) > 0.05) g += dbf(bqMag(2, vS("EQ_HM_F"), vS("EQ_HM_Q"), vS("EQ_HM_G"), f, SR));
+    if (Math.abs(vS("EQ_HS_G")) > 0.05) g += dbf(bqMag(1, vS("EQ_HS_F"), 0.7071, vS("EQ_HS_G"), f, SR));
+    if (vS("EQ_LPF") < 19900) g += 2 * dbf(bqMag(4, vS("EQ_LPF"), 0.7071, 0, f, SR));
+    pts.push([L + (i / N) * (w - L), clamp(h / 2 - 6 - g * 2.2, 8, h - 14)]);
+  }
+  cx.globalAlpha = 0.18; polyline(cx, pts, ACC, 1, h / 2 - 6); cx.globalAlpha = 1; polyline(cx, pts, ACC, 1.8); v.rd.textContent = "±30 dB";
+}
+function vizComp(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, thr = vS("CP_THR"), ratio = vS("CP_RATIO"), knee = vS("CP_KNEE"), mk = vS("CP_MAKE"), pts = [], pad = 14;
+  cx.setLineDash([3, 3]); cx.strokeStyle = "rgba(255,255,255,.12)"; cx.beginPath(); cx.moveTo(pad, h - pad); cx.lineTo(w - pad, pad); cx.stroke(); cx.setLineDash([]);
+  for (var i = 0; i <= 120; i++) {
+    var inDb = -60 + 60 * i / 120, over = inDb - thr, out;
+    if (knee > 0.1 && over > -knee / 2 && over < knee / 2) out = inDb + (1 / ratio - 1) * Math.pow(over + knee / 2, 2) / (2 * knee); else if (over >= knee / 2) out = inDb + (1 / ratio - 1) * over; else out = inDb;
+    out += mk; pts.push([pad + (i / 120) * (w - 2 * pad), clamp(h - pad - ((out + 60) / 60) * (h - 2 * pad), 4, h - 4)]);
+  }
+  polyline(cx, pts, ACC2, 1.8); v.rd.textContent = ratio >= 95 ? "∞:1" : ratio.toFixed(1) + ":1 · mix " + Math.round(vS("CP_MIX") * 100) + "%";
+}
+function vizVerb(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, rt = vS("RV_DEC"), pre = vS("RV_PRE") / 1000, T = Math.max(0.3, rt * 1.1), pts = [], gate = vS("RV_GATE") > 0.5, hold = vS("RV_GHOLD") / 1000;
+  for (var i = 0; i <= 200; i++) { var t = (i / 200) * T, db = t < pre ? -60 : -60 * (t - pre) / rt; if (gate && t > hold + pre) db -= (t - hold - pre) * 600; pts.push([8 + (i / 200) * (w - 16), 14 + clamp(-db / 60, 0, 1) * (h - 32)]); }
+  cx.fillStyle = "rgba(255,255,255,.35)"; cx.font = "8px sans-serif"; cx.fillText("reverb tail (dB over time)  0 → " + T.toFixed(1) + " s", 8, h - 3);
+  polyline(cx, pts, ACC, 1.8); v.rd.textContent = "RT60 " + rt.toFixed(2) + " s";
+}
+function vizEcho(v) {
+  var a = plotArea(v.cv); if (!a) return; var cx = a.cx, w = a.w, h = a.h, sync = Math.round(vS("DL_SYNC")), bt = [0, 1, 0.5, 0.25, 0.125, 1 / 3, 1 / 6, 1 / 12], t1 = sync > 0 ? bt[sync] * 60 / 120 : vS("DL_TIME") / 1000, fb = vS("DL_FB"), mix = vS("DL_MIX"), T = Math.max(0.3, t1 * 7);
+  for (var n = 1; n < 12; n++) { var amp = Math.min(1, Math.pow(fb, n - 1)) * mix * 1.5, x = 10 + (n * t1 / T) * (w - 20); if (x > w - 6) break; var hh = clamp(amp, 0, 1) * (h - 34); cx.fillStyle = ACC2; cx.globalAlpha = 0.9; cx.fillRect(x - 2, h - 12 - hh, 4, hh); }
+  cx.globalAlpha = 1; cx.fillStyle = ACC; cx.fillRect(8, 16, 4, h - 28); cx.fillStyle = "rgba(255,255,255,.35)"; cx.font = "8px sans-serif"; cx.fillText("echo taps (120 BPM if synced)", 20, h - 3);
+  v.rd.textContent = (t1 * 1000).toFixed(0) + " ms · fb " + Math.round(fb * 100) + "%";
+}
+
+// ---------- layout ----------
+var TAB = DATA.tabs, SKIP = {};
+DATA.layers.forEach(function (l) { SKIP[l[0] + "_LEV"] = 1; SKIP[l[0] + "_PAN"] = 1; });
+var content = document.getElementById("content"), tabPanels = {}, activeTab = "hit";
+var VIZDEF = {
+  hit: [["RATCHET", vizRatchet], ["VELOCITY", vizVelocity]],
+  tone: [["AMP + PITCH ENVELOPE", vizEnvDraw("T", "tone")]],
+  fm: [["INDEX + AMP ENVELOPE", vizEnvDraw("F", "fm")]],
+  modal: [["MODES (log frequency · brightness = ring time)", vizModal]],
+  noise: [["FILTER", vizNoiseFilter], ["GATE / ENVELOPE", vizBursts]],
+  metal: [["SPECTRUM", vizMetal], ["AMP ENVELOPE", vizEnvDraw("X", "")]],
+  click: [["CLICK WAVEFORM", vizClick]],
+  mod: [["LFO 1", vizLfo(1)], ["LFO 2", vizLfo(2)], ["ENV A", vizEnvAB("A")], ["ENV B", vizEnvAB("B")]],
+  drive: [["TRANSFER CURVES", vizDist], ["BIT CRUSHER", vizCrush]],
+  filter: [["MASTER FILTER", vizMasterFilter], ["COMB RESONATOR", vizComb]],
+  eqdyn: [["EQUALISER", vizEq], ["COMPRESSOR CURVE", vizComp]],
+  space: [["REVERB", vizVerb], ["ECHO", vizEcho]],
+};
+function buildTab(id) {
+  var panel = el("div", "panel", content); panel.style.display = "none"; tabPanels[id] = panel;
+  panel.style.setProperty("--a", DATA.tabColors[id] || ACC);
+  var vd = VIZDEF[id] || []; VIS[id] = [];
+  if (vd.length) { var vr = el("div", "vizrow" + (id === "mod" ? " sm" : ""), panel); vd.forEach(function (d) { var v = mkViz(vr, d[0]); VIS[id].push(function () { d[1](v); }); }); }
+  var grid = el("div", "grid", panel), secs = {}, order = [];
+  P.forEach(function (p) {
+    if (p.tab !== id || SKIP[p.key] || p.kind === "mx") return;
+    if (!secs[p.sec]) { var c = el("div", "sec", grid); el("h2", "", c, p.sec); secs[p.sec] = el("div", "ctls", c); order.push(p.sec); }
+    secs[p.sec].appendChild(control(p));
+  });
+  if (id === "mod") matrix(grid);
+  P.forEach(function (p) { if (p.tab === id && CTL[p.key] && CTL[p.key].upd) CTL[p.key].upd(); });
+  // a layer's own extra controls (stereo spread for modal lives in its tab)
+}
+function matrix(grid) {
+  var c = el("div", "sec", grid); c.style.gridColumn = "1 / -1"; el("h2", "", c, "MODULATION MATRIX — any source to any target (voice and FX), amounts are bipolar fractions of the target's range");
+  var t = el("table", "mx", c);
+  for (var i = 1; i <= DATA.modSlots; i++) (function (i) {
+    var tr = el("tr", "", t); el("td", "i", tr, i);
+    var ps = BY["MX" + i + "_SRC"], pd = BY["MX" + i + "_DST"], pa = BY["MX" + i + "_AMT"];
+    var s1 = el("select", "dd", el("td", "", tr)); DATA.modSrc.forEach(function (n, k) { el("option", "", s1, n).value = k; });
+    var s2 = el("select", "dd", el("td", "", tr)); el("option", "", s2, "— none —").value = 0; DATA.modDests.forEach(function (d, k) { el("option", "", s2, d.label).value = k + 1; });
+    s2.style.maxWidth = "190px";
+    var td = el("td", "", tr); td.style.width = "45%"; var sl = el("input", "", td); sl.type = "range"; sl.min = 0; sl.max = pa.steps - 1; sl.step = 1;
+    var rd = el("td", "amt", tr);
+    s1.addEventListener("change", function () { set(ps.key, +s1.value); });
+    s2.addEventListener("change", function () { set(pd.key, +s2.value); });
+    sl.addEventListener("pointerdown", function () { dragSlot = pa.slot; }); sl.addEventListener("pointerup", function () { dragSlot = -1; });
+    sl.addEventListener("input", function () { setRaw(pa, +sl.value); touch(pa); push(pa.slot); markDirty(); });
+    sl.addEventListener("dblclick", function () { set(pa.key, pa.def); });
+    CTL[ps.key] = { upd: function () { s1.value = Math.round(V[ps.key]); } };
+    CTL[pd.key] = { upd: function () { s2.value = Math.round(V[pd.key]); } };
+    CTL[pa.key] = { upd: function () { sl.value = R[pa.key]; rd.textContent = (V[pa.key] > 0.005 ? "+" : "") + Math.round(V[pa.key] * 100) + "%"; } };
+    function dim() { tr.style.opacity = (Math.round(V[ps.key]) === 0 || Math.round(V[pd.key]) === 0) ? 0.45 : 1; }
+    CTL[ps.key].more = dim; CTL[pd.key].more = dim;
+    [ps, pd, pa].forEach(function (q) { CTL[q.key].upd(); }); dim();
+  })(i);
+}
+function showTab(id) {
+  activeTab = id; for (var k in tabPanels) tabPanels[k].style.display = k === id ? "" : "none";
+  var bs = document.getElementById("tabs").children; for (var i = 0; i < bs.length; i++) bs[i].className = bs[i].dataset.id === id ? "on" : "";
+  document.documentElement.style.setProperty("--a", DATA.tabColors[id] || ACC);
+  scheduleVis();
+}
+var visQueued = false;
+function scheduleVis() { if (visQueued) return; visQueued = true; requestAnimationFrame(function () { visQueued = false; (VIS[activeTab] || []).forEach(function (f) { try { f(); } catch (e) { if (window.console) console.error("viz " + activeTab + ": " + e.message); } }); }); }
+
+// header: layer strip
+var layerMeters = [];
+function buildLayers() {
+  var host_ = document.getElementById("layers");
+  DATA.layers.forEach(function (l, i) {
+    var c = el("div", "ch", host_); c.style.setProperty("--c", l[2]);
+    var lt = el("div", "lt", c); el("div", "nm", lt, l[1]);
+    var mt = el("div", "mt", c), fill = el("i", "", mt); layerMeters.push(fill);
+    var lev = BY[l[0] + "_LEV"], mb = el("button", "mb", lt, "MUTE"); mb.type = "button"; mb.title = "Mute layer";
+    var saved = null;
+    mb.addEventListener("click", function () { if (saved === null) { saved = V[lev.key]; set(lev.key, lev.min); mb.className = "mb on"; } else { set(lev.key, saved); saved = null; mb.className = "mb"; } });
+    var ks = el("div", "ks", c); ks.appendChild(knob(lev, "Level"));
+    var pn = BY[l[0] + "_PAN"] || BY.M_WIDTH; ks.appendChild(knob(pn, pn.key === "M_WIDTH" ? "Spread" : "Pan"));
+  });
+}
+function buildTabs() {
+  var tb = document.getElementById("tabs");
+  TAB.forEach(function (t) { var b = el("button", "", tb, t[1]); b.dataset.id = t[0]; b.addEventListener("click", function () { showTab(t[0]); }); buildTab(t[0]); });
+}
+
+// ---------- presets / random ----------
+var presetSel = document.getElementById("pSel"), curPreset = 0;
+function buildPresets() {
+  var ph = el("option", "", presetSel, "— current sound —"); ph.value = -1;
+  var cats = {}; DATA.presets.forEach(function (p, i) { (cats[p.cat] = cats[p.cat] || []).push(i); });
+  Object.keys(cats).forEach(function (c) { var og = el("optgroup", "", presetSel); og.label = c; cats[c].forEach(function (i) { var o = el("option", "", og, DATA.presets[i].name); o.value = i; }); });
+}
+function applyPatch(diff) {
+  P.forEach(function (p) {
+    var val = diff && diff[p.key] !== undefined ? diff[p.key] : p.def;
+    if (p.direct) V[p.key] = clamp(val, p.min, p.max); else setRaw(p, actualToRaw(p, val));
+    if (CTL[p.key]) CTL[p.key].upd();
+  });
+  for (var s = 0; s < NSLOT; s++) push(s);
+  document.querySelectorAll(".mb.on").forEach(function (b) { b.className = "mb"; });
+  scheduleVis();
+}
+function loadPreset(i) {
+  i = (i + DATA.presets.length) % DATA.presets.length; curPreset = i; presetSel.value = i;
+  applyPatch(DATA.presets[i].diff); dirty = false; document.getElementById("dirty").textContent = "";
+}
+var NORND = /^(OUT_|MAC|ROOT$|BEND$|POLY$|GATE$|REL$|MX\d_|[TFMNXC]_LEV$|[TFNXC]_PAN$|CP_THR$|RAT_|TUNE$|M_WIDTH$|.*_SYNC$)/;
+function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
+function randomize(amt) {
+  P.forEach(function (p) {
+    if (NORND.test(p.key) || p.kind === "mx") return;
+    if (p.curve === "int") { if (Math.random() < amt * 0.25 && p.steps > 1) { if (p.steps <= 2) setRaw(p, 1 - R[p.key]); else setRaw(p, Math.random() * (p.steps - 1)); } }
+    else if (p.direct) return;
+    else setRaw(p, R[p.key] + gauss() * amt * (p.steps - 1) * 0.5);
+    if (CTL[p.key]) CTL[p.key].upd();
+  });
+  for (var s = 0; s < NSLOT; s++) push(s); markDirty(); scheduleVis();
+}
+function randomMod() {
+  var voice = DATA.modDests.map(function (d, i) { return [d, i + 1]; }).filter(function (x) { return !x[0].fx; });
+  for (var i = 1; i <= DATA.modSlots; i++) {
+    if (Math.random() < 0.55) { var d = voice[Math.floor(Math.random() * voice.length)][1]; set("MX" + i + "_SRC", 1 + Math.floor(Math.random() * 15), true); set("MX" + i + "_DST", d, true); set("MX" + i + "_AMT", (Math.random() < 0.5 ? -1 : 1) * (0.1 + Math.random() * 0.5), true); }
+    else { set("MX" + i + "_SRC", 0, true); set("MX" + i + "_DST", 0, true); }
+  }
+  for (var s = 0; s < NSLOT; s++) push(s); markDirty();
+}
+
+// ---------- pads ----------
+function buildPads() {
+  var pd = document.getElementById("pads"), held = {};
+  for (var i = 0; i < 16; i++) (function (note) {
+    var b = el("button", "pad", pd); b.type = "button"; b.innerHTML = (note - 35) + "<small>" + NOTES[note % 12] + (Math.floor(note / 12) - 1) + "</small>"; b.title = "Click to play · higher on the pad = harder";
+    function off() { if (!held[note]) return; delete held[note]; host("noteOff", note); b.classList.remove("hit"); }
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); var r = b.getBoundingClientRect(); var vel = clamp(1 - (e.clientY - r.top) / r.height * 0.85, 0.15, 1); held[note] = 1; host("noteOn", note, vel); b.classList.add("hit"); try { b.setPointerCapture(e.pointerId); } catch (x) {} });
+    b.addEventListener("pointerup", off); b.addEventListener("pointercancel", off);
+  })(36 + i);
+}
+
+// ---------- display (engine → GUI) ----------
+var disp = [], mL = document.querySelector("#mL i"), mR = document.querySelector("#mR i"), mG = document.querySelector("#mGr i");
+for (var q = 0; q < 16; q++) disp[q] = 0;
+function frame() {
+  for (var i = 0; i < 6; i++) layerMeters[i].style.height = Math.round(clamp(disp[i], 0, 1) * 100) + "%";
+  mL.style.height = Math.round(clamp(disp[6], 0, 1) * 100) + "%"; mR.style.height = Math.round(clamp(disp[7], 0, 1) * 100) + "%"; mG.style.height = Math.round(clamp(disp[8], 0, 1) * 100) + "%";
+  requestAnimationFrame(frame);
+}
+
+// ---------- boot ----------
+function boot() {
+  buildLayers(); buildTabs(); buildPads(); buildPresets();
+  presetSel.addEventListener("change", function () { if (+presetSel.value >= 0) loadPreset(+presetSel.value); });
+  document.getElementById("pPrev").addEventListener("click", function () { loadPreset(curPreset - 1); });
+  document.getElementById("pNext").addEventListener("click", function () { loadPreset(curPreset + 1); });
+  document.getElementById("bInit").addEventListener("click", function () { applyPatch(null); presetSel.value = -1; dirty = false; document.getElementById("dirty").textContent = ""; });
+  document.getElementById("bRnd").addEventListener("click", function () { randomize(+document.getElementById("chaosAmt").value / 100); });
+  document.getElementById("bMod").addEventListener("click", randomMod);
+  var hint = document.getElementById("hint");
+  hint.innerHTML = "<b>Cataclysm</b> layers six sources — Tone, FM, Modal, Noise, Metal, Click — through a mod matrix and a long FX chain.<br><br>The host has only 64 parameter slots, so every control is <i>packed</i> into shared slots. <b>Macros 1–4</b> and the matrix are the DAW-automation path: route a macro to anything.<br><br>Double-click a knob to reset it, shift-drag for fine, wheel to step.";
+  document.getElementById("bHelp").addEventListener("click", function () { hint.style.display = hint.style.display === "block" ? "none" : "block"; });
+  var hs = {}; (location.hash || "").slice(1).split("&").forEach(function (kv) { var q = kv.split("="); if (q[0]) hs[q[0]] = decodeURIComponent(q[1] || ""); });
+  showTab(hs.tab && tabPanels[hs.tab] ? hs.tab : "tone");
+  // push the defaults; the shell restores a saved sound over them during its boot window
+  for (var s = 0; s < NSLOT; s++) push(s);
+  if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) { if (i === dragSlot) return; if (FIELDS[i]) decodeSlot(i, +v); });
+  if (window.vstai && window.vstai.onDisplay) window.vstai.onDisplay(function (d) { for (var i = 0; i < 16; i++) disp[i] = d[i] || 0; });
+  if (hs.preset) { for (var pi = 0; pi < DATA.presets.length; pi++) if (DATA.presets[pi].name === hs.preset) loadPreset(pi); }
+  window.addEventListener("resize", scheduleVis);
+  requestAnimationFrame(frame);
+}
+if (window.__CATA_TEST) window.__cat = { set: set, applyPatch: applyPatch, V: V, R: R, decodeSlot: decodeSlot, slotValue: slotValue, NSLOT: NSLOT };
+if (window.vstai && typeof window.vstai.onReady === "function") window.vstai.onReady(boot); else boot();
+})();
+
+</script>
+</body></html>

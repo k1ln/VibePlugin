@@ -28,6 +28,7 @@
   "fallback": "Other Effects"
  },
  "assign": {
+  "cataclysm": "Drum Machines",
   "correlation-meter": "Metering",
   "loudness-meter": "Metering",
   "spectrum-analyzer": "Metering",

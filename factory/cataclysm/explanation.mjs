@@ -1,0 +1,8 @@
+export const EXPLANATION =
+  "Cataclysm — a master drum synthesizer built to make everything from a clean 808 to a hardcore wall of distortion. " +
+  "Six independent sound sources fire on every hit: TONE (a morphing oscillator with two-stage pitch envelope, hard sync, wavefolder, feedback, sub and membrane tension), " +
+  "FM (two operators with feedback, ring and AM modes), MODAL (a 12-mode resonator that morphs String → Membrane → Plate → Bar → Bell → Junk, with strike position, damping tilt, tension and an excitable body), " +
+  "NOISE (7 colours, a morphing LP/BP/HP filter up to Q 200, clap bursts, snare-wire rattle), METAL (a six-oscillator inharmonic cluster: 808 / classic / harmonic / fifths / cluster / chaos, ring and fold, shimmer) and CLICK (6 beater types). " +
+  "Layers can feed each other: noise FMs the tone, metal ring-modulates it, the tone sweeps the noise filter, and any layer can excite the modal body. " +
+  "A ratchet engine rolls and flams a hit up to 32 times (free or tempo-synced, with pitch and level slopes), an 8-slot modulation matrix routes 16 sources (velocity, key, random, two LFOs, two envelopes, wheel, pressure, bend, four macros) to 63 targets, and the output runs through a transient shaper, two distortions (10 types, 72 dB of drive, optional 2×/4× oversampling, sub-bypass), a bit crusher, a master filter, a self-oscillating comb resonator, ring mod, 6-band EQ, a parallel compressor, echo, gated reverb, a width stage and a limiter that can never exceed its ceiling. " +
+  "256 controls are packed into the host's 64 parameter slots, so use the four Macro knobs (real DAW parameters) and the matrix to automate. 50+ factory presets: kicks, snares, claps, hats, cymbals, toms, percussion and aggressive macro patches.";
