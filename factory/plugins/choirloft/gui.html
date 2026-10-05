@@ -9,20 +9,20 @@ canvas{width:100%;height:130px;display:block;background:rgba(0,0,0,.35);border:1
 .g{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:8px 10px}
 .g h2{margin:0 0 6px;font-size:9px;letter-spacing:.25em;color:var(--a);font-weight:600}
 .ks{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px 2px;margin-top:6px}
-.tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:74px}
-.tg button{background:rgba(0,0,0,.3);color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 7px;font:600 9px/1 inherit;letter-spacing:.1em;cursor:pointer}
+.tg{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:2px}.tg span{font-size:8px;letter-spacing:.2em;color:var(--dim);width:56px}
+.tg button{background:rgba(0,0,0,.3);color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:5px 6px;font:600 9px/1 inherit;letter-spacing:.06em;cursor:pointer}
 .tg button.on{background:var(--a);color:#0d0917;border-color:var(--a)}
 .k{display:flex;flex-direction:column;align-items:center;user-select:none;touch-action:none;cursor:ns-resize}
 .k svg{width:40px;height:40px}.k .n{font-size:9px;color:var(--dim);text-align:center;margin-top:1px}.k .v{font-size:9px;color:var(--a2)}
 #kb{position:relative;height:76px;margin-top:8px;user-select:none;touch-action:none}
 .w{position:absolute;top:0;height:100%;background:linear-gradient(#efe9fa,#b9b9b9);border:1px solid #0d0917;border-radius:0 0 4px 4px}.w.on{background:var(--a)}
 .b{position:absolute;top:0;height:58%;background:linear-gradient(#1a1230,#0d0917);border-radius:0 0 3px 3px;z-index:2}.b.on{background:var(--a)}
-</style></head><body><div id="app"><h1>CHOIRLOFT<small>VOCAL CHOIR</small></h1><canvas id="cv"></canvas><div class="row" id="rest"></div><div id="kb"></div></div>
+</style></head><body><div id="app"><h1>CHOIRLOFT<small>VOCAL CHOIR · UP TO 100 SINGERS</small></h1><canvas id="cv"></canvas><div class="row" id="rest"></div><div id="kb"></div></div>
 <script>
 (function(){
-var PARAMS=[{"name":"Voice Type","min":0,"max":3,"def":2,"step":1,"fmt":["Bass","Tenor","Alto","Soprano"]},{"name":"Vowel","min":0,"max":1,"def":0,"step":0,"fmt":null},{"name":"Formant Shift","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Choir Size","min":1,"max":4,"def":3,"step":1,"fmt":null},{"name":"Ensemble","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Vibrato","min":0,"max":1,"def":0.4,"step":0,"fmt":null},{"name":"Vibrato Rate","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Human","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Attack","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Release","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Breath","min":0,"max":1,"def":0.15,"step":0,"fmt":null},{"name":"Effort","min":0,"max":1,"def":0.55,"step":0,"fmt":null},{"name":"Scoop","min":0,"max":1,"def":0.25,"step":0,"fmt":null},{"name":"Width","min":0,"max":1,"def":0.7,"step":0,"fmt":null},{"name":"Space","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Hall Size","min":0,"max":1,"def":0.6,"step":0,"fmt":null},{"name":"Bend Range","min":0,"max":1,"def":0.1667,"step":0,"fmt":null},{"name":"Level","min":0,"max":1,"def":0.7,"step":0,"fmt":null},{"name":"Velocity Sens","min":0,"max":1,"def":0.3,"step":0,"fmt":null}];
-var GROUPS=[{"title":"VOICE","items":[{"k":"seg","i":0,"label":"TYPE","opts":["BASS","TENOR","ALTO","SOPRANO"]},{"k":"knob","i":[1,2,11,10]}]},{"title":"CHOIR","items":[{"k":"seg","i":3,"label":"SINGERS","opts":["1","2","3","4"]},{"k":"knob","i":[4,7,13]}]},{"title":"EXPRESSION","items":[{"k":"knob","i":[5,6,12,8,9,18]}]},{"title":"SPACE & OUT","items":[{"k":"knob","i":[14,15,16,17]}]}];
-var VIZ="bars",VIZP=-1,VLAB="FORMANT SPECTRUM";
+var PARAMS=[{"name":"Voice Type","min":0,"max":4,"def":4,"step":1,"fmt":["Bass","Tenor","Alto","Soprano","Auto SATB"]},{"name":"Vowel","min":0,"max":1,"def":0,"step":0,"fmt":null},{"name":"Formant Shift","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Choir Size","min":1,"max":100,"def":24,"step":1,"fmt":null},{"name":"Ensemble","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Vibrato","min":0,"max":1,"def":0.4,"step":0,"fmt":null},{"name":"Vibrato Rate","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Human","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Attack","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Release","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Breath","min":0,"max":1,"def":0.15,"step":0,"fmt":null},{"name":"Effort","min":0,"max":1,"def":0.55,"step":0,"fmt":null},{"name":"Scoop","min":0,"max":1,"def":0.25,"step":0,"fmt":null},{"name":"Width","min":0,"max":1,"def":0.7,"step":0,"fmt":null},{"name":"Space","min":0,"max":1,"def":0.4,"step":0,"fmt":null},{"name":"Hall Size","min":0,"max":1,"def":0.62,"step":0,"fmt":null},{"name":"Bend Range","min":0,"max":1,"def":0.1667,"step":0,"fmt":null},{"name":"Level","min":0,"max":1,"def":0.7,"step":0,"fmt":null},{"name":"Velocity Sens","min":0,"max":1,"def":0.3,"step":0,"fmt":null},{"name":"Diversity","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Presence","min":0,"max":1,"def":0.45,"step":0,"fmt":null},{"name":"Pre-Delay","min":0,"max":1,"def":0.25,"step":0,"fmt":null},{"name":"Damping","min":0,"max":1,"def":0.5,"step":0,"fmt":null},{"name":"Early Refl","min":0,"max":1,"def":0.5,"step":0,"fmt":null}];
+var GROUPS=[{"title":"VOICE","items":[{"k":"seg","i":0,"label":"SECTION","opts":["BASS","TENOR","ALTO","SOPRANO","AUTO"]},{"k":"seg","i":-1,"label":"VOWEL","opts":["AH","EH","EE","OH","OO"],"presets":[{"1":0},{"1":0.25},{"1":0.5},{"1":0.75},{"1":1}]},{"k":"knob","i":[1,2,11,10,20]}]},{"title":"CHOIR","items":[{"k":"seg","i":-1,"label":"SINGERS","opts":["1","8","24","50","100"],"presets":[{"3":1},{"3":8},{"3":24},{"3":50},{"3":100}]},{"k":"knob","i":[3,4,19,7,13]}]},{"title":"EXPRESSION","items":[{"k":"knob","i":[5,6,12,8,9,18]}]},{"title":"HALL & OUT","items":[{"k":"knob","i":[14,15,21,22,23,16,17]}]}];
+var VIZ="custom",VIZP=-1,VLAB="CHOIR LOFT";
 var KB={"base":36,"n":49},ISI=true;
 var V={},R={},SV="http://www.w3.org/2000/svg",held={},disp=[],hasDisp=0,lastHit=0;for(var q=0;q<16;q++)disp[q]=0;
 function host(f){var a=[].slice.call(arguments,1);if(window.vstai&&typeof window.vstai[f]==="function")window.vstai[f].apply(window.vstai,a)}
@@ -33,11 +33,13 @@ if(f==="pct"||(f===null&&!p.step))return Math.round((v-p.min)/(p.max-p.min)*100)
 if(f===null||f==="int")return String(Math.round(v));
 if(f==="semi")return(v>0?"+":"")+(Math.round(v*10)/10)+" st";
 if(f==="cents")return(v>0?"+":"")+Math.round(v)+" c";
+if(f==="db")return(v>0?"+":"")+v.toFixed(1)+" dB";
+if(f.exp){var te=(v-p.min)/(p.max-p.min),ev=f.exp[0]*Math.pow(f.exp[1]/f.exp[0],te);return(ev>=100?String(Math.round(ev)):ev>=10?ev.toFixed(1):ev.toFixed(2))+(f.unit||"")}
 if(f==="note"){var n=Math.round(v);return NOTES[((n%12)+12)%12]+(Math.floor(n/12)-1)}
 if(Array.isArray(f))return f[Math.round(v)-p.min]||String(Math.round(v));
 if(f.hz){var t=(v-p.min)/(p.max-p.min),hz=f.hz[0]*Math.pow(f.hz[1]/f.hz[0],t);return hz>=1000?(hz/1000).toFixed(1)+" kHz":Math.round(hz)+" Hz"}
 if(f.ms){var t2=(v-p.min)/(p.max-p.min),ms=f.ms[0]+(f.ms[1]-f.ms[0])*t2;return ms>=1000?(ms/1000).toFixed(2)+" s":Math.round(ms)+" ms"}
-if(f.unit){var t3=(v-p.min)/(p.max-p.min);return(f.scale[0]+(f.scale[1]-f.scale[0])*t3).toFixed(2)+f.unit}
+if(f.unit){var t3=(v-p.min)/(p.max-p.min),uv=f.scale[0]+(f.scale[1]-f.scale[0])*t3;return uv.toFixed(Math.abs(f.scale[1]-f.scale[0])>=10?1:2)+f.unit}
 return String(v)}
 function knob(i,label){var p=PARAMS[i];V[i]=p.def;var w=document.createElement("div");w.className="k";
 var s=document.createElementNS(SV,"svg");s.setAttribute("viewBox","0 0 44 44");
@@ -61,11 +63,42 @@ function row(label){var r=document.createElement("div");r.className="tg";r.inner
 function bits(i,label,names){V[i]=PARAMS[i].def;var r=row(label),bs=[];names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,Math.round(V[i])^(1<<k))};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])&(1<<k))?"on":""})};R[i]();return r}
 function seg(i,label,names,pre){if(i<0){var r0=row(label);names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r0.appendChild(b)});return r0}V[i]=PARAMS[i].def;var r=row(label),bs=[],mn=PARAMS[i].min;names.forEach(function(nm,k){var b=document.createElement("button");b.textContent=nm;b.onclick=function(){set(i,mn+k);if(pre&&pre[k])for(var j in pre[k])set(+j,pre[k][j])};r.appendChild(b);bs.push(b)});R[i]=function(){bs.forEach(function(b,k){b.className=(Math.round(V[i])===mn+k)?"on":""})};R[i]();return r}
 function tog(i,label,text){V[i]=PARAMS[i].def;var r=row(label),b=document.createElement("button");b.textContent=text||label;b.onclick=function(){set(i,V[i]>.5?0:1)};R[i]=function(){b.className=V[i]>.5?"on":""};R[i]();r.appendChild(b);return r}
+var RC=[10,18,0,0];
+function bqMag(t,f0,Q,g,f){var SR=48000,w0=2*Math.PI*f0/SR,c=Math.cos(w0),s=Math.sin(w0),al=s/(2*Q),A=Math.pow(10,g/40),b0,b1,b2,a0,a1,a2,sa;
+if(t===0){b0=(1-c)/2;b1=1-c;b2=b0;a0=1+al;a1=-2*c;a2=1-al}else if(t===1){b0=(1+c)/2;b1=-(1+c);b2=b0;a0=1+al;a1=-2*c;a2=1-al}
+else if(t===2){b0=al;b1=0;b2=-al;a0=1+al;a1=-2*c;a2=1-al}else if(t===3){b0=1;b1=-2*c;b2=1;a0=1+al;a1=-2*c;a2=1-al}
+else if(t===4){b0=1+al*A;b1=-2*c;b2=1-al*A;a0=1+al/A;a1=-2*c;a2=1-al/A}
+else if(t===5){sa=2*Math.sqrt(A)*al;b0=A*((A+1)-(A-1)*c+sa);b1=2*A*((A-1)-(A+1)*c);b2=A*((A+1)-(A-1)*c-sa);a0=(A+1)+(A-1)*c+sa;a1=-2*((A-1)+(A+1)*c);a2=(A+1)+(A-1)*c-sa}
+else{sa=2*Math.sqrt(A)*al;b0=A*((A+1)+(A-1)*c+sa);b1=-2*A*((A-1)+(A+1)*c);b2=A*((A+1)+(A-1)*c-sa);a0=(A+1)-(A-1)*c+sa;a1=2*((A-1)-(A+1)*c);a2=(A+1)-(A-1)*c-sa}
+var w=2*Math.PI*f/SR,cw=Math.cos(w),sw=Math.sin(w),c2=Math.cos(2*w),s2=Math.sin(2*w),nr=b0+b1*cw+b2*c2,ni=-(b1*sw+b2*s2),dr=a0+a1*cw+a2*c2,di=-(a1*sw+a2*s2);
+return 10*Math.log10((nr*nr+ni*ni)/(dr*dr+di*di)+1e-20)}
+function frame(cx,r){cx.strokeStyle="rgba(255,255,255,.1)";cx.lineWidth=1;cx.strokeRect(r[0]+.5,r[1]+.5,r[2],r[3]);cx.beginPath();cx.moveTo(r[0],r[1]+r[3]/2);cx.lineTo(r[0]+r[2],r[1]+r[3]/2);cx.moveTo(r[0]+r[2]/2,r[1]);cx.lineTo(r[0]+r[2]/2,r[1]+r[3]);cx.stroke()}
+function plot(cx,r,fn,x0,x1,y0,y1,logx){cx.beginPath();for(var i=0;i<=r[2];i+=2){var u=i/r[2],x=logx?x0*Math.pow(x1/x0,u):x0+(x1-x0)*u,y=fn(x);y=Math.max(y0,Math.min(y1,y));var py=r[1]+r[3]-(y-y0)/(y1-y0)*r[3];if(i)cx.lineTo(r[0]+i,py);else cx.moveTo(r[0]+i,py)}
+cx.strokeStyle="#f0e6ff";cx.lineWidth=2;cx.stroke();cx.lineTo(r[0]+r[2],r[1]+r[3]);cx.lineTo(r[0],r[1]+r[3]);cx.closePath();cx.fillStyle="rgba(201,168,255,.14)";cx.fill()}
+function custom(cx,W,H,t){var r=RC;r[2]=W-20;r[3]=H-26;var vizx=null;
+
+var N=Math.max(1,Math.round(V[3])),lv=hasDisp?Math.min(1,disp[0]):.25+.2*Math.sin(t/900);
+var rows=Math.max(1,Math.ceil(Math.sqrt(N/6))),cxm=W/2,by=H-12,Rw=Math.min(W*.46,(H-40)*2.4),Rh=H-34,idx=0,tot=0,wt=[],j;
+for(j=0;j<rows;j++){wt[j]=(j+1);tot+=wt[j]}
+for(j=0;j<rows;j++){var cnt=j===rows-1?N-idx:Math.max(1,Math.round(N*wt[j]/tot));if(idx+cnt>N)cnt=N-idx;var rr=(j+1)/rows;
+for(var i2=0;i2<cnt;i2++){var a=Math.PI*(.07+.86*(cnt===1?.5:i2/(cnt-1))),x=cxm+Math.cos(a)*rr*Rw,y=by-Math.sin(a)*rr*Rh*.82;
+var tw=.5+.5*Math.sin(t/(380+(idx*37)%300)+idx*1.7),al=.3+.45*lv*tw+.18*tw;
+cx.fillStyle="rgba(240,230,255,"+al.toFixed(3)+")";cx.beginPath();cx.arc(x,y,N>60?1.7:N>16?2.3:3.2,0,6.2832);cx.fill();idx++}}
+var pts=[],n2=15;for(var b=0;b<n2;b++){var v=hasDisp?disp[1+b]:.4+.3*Math.sin(b*.7+t/800);pts.push([10+(W-30)*b/(n2-1),H-10-v*(H-34)*(.55+.45*Math.min(1,lv*2.2+.25))])}
+cx.beginPath();cx.moveTo(pts[0][0],H-10);cx.lineTo(pts[0][0],pts[0][1]);
+for(var q2=1;q2<pts.length;q2++){var mx=(pts[q2-1][0]+pts[q2][0])/2,my=(pts[q2-1][1]+pts[q2][1])/2;cx.quadraticCurveTo(pts[q2-1][0],pts[q2-1][1],mx,my)}
+cx.lineTo(pts[n2-1][0],pts[n2-1][1]);cx.lineTo(pts[n2-1][0],H-10);cx.closePath();
+var gr=cx.createLinearGradient(0,H-10,0,18);gr.addColorStop(0,"rgba(201,168,255,.05)");gr.addColorStop(1,"rgba(201,168,255,.38)");cx.fillStyle=gr;cx.fill();
+cx.beginPath();cx.moveTo(pts[0][0],pts[0][1]);for(q2=1;q2<pts.length;q2++){mx=(pts[q2-1][0]+pts[q2][0])/2;my=(pts[q2-1][1]+pts[q2][1])/2;cx.quadraticCurveTo(pts[q2-1][0],pts[q2-1][1],mx,my)}
+cx.lineTo(pts[n2-1][0],pts[n2-1][1]);cx.strokeStyle="#f0e6ff";cx.lineWidth=1.6;cx.stroke();
+cx.fillStyle="rgba(240,230,255,.5)";cx.font="9px sans-serif";cx.fillText(N+(N===1?" SINGER":" SINGERS"),W-84,12);
+}
 var cv=document.getElementById("cv"),cx=cv?cv.getContext("2d"):null,sm=[];for(q=0;q<16;q++)sm[q]=0;
 function draw(t){if(!cx)return;var dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
 cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,W,H);cx.fillStyle="#9686b8";cx.font="9px sans-serif";cx.fillText(VLAB,10,12);
 var since=(t-lastHit)/1000,idle=hasDisp?0:1;
-if(VIZ==="bars"){var n=16,bw=(W-20)/n;for(var i=0;i<n;i++){var tg=hasDisp?disp[i]:.2+.18*Math.sin(t/700+i*.6)*Math.sin(t/1300+i);sm[i]+=(tg-sm[i])*.35;var h=Math.max(2,sm[i]*(H-30)),x=10+i*bw+bw*.12,w=bw*.76;
+if(VIZ==="custom"){custom(cx,W,H,t);var lvv=hasDisp?Math.min(1,disp[0]):0;cx.fillStyle="rgba(201,168,255,.25)";cx.fillRect(W-8,10,4,H-20);cx.fillStyle="#f0e6ff";cx.fillRect(W-8,H-10-(H-20)*lvv,4,(H-20)*lvv)}
+else if(VIZ==="bars"){var n=16,bw=(W-20)/n;for(var i=0;i<n;i++){var tg=hasDisp?disp[i]:.2+.18*Math.sin(t/700+i*.6)*Math.sin(t/1300+i);sm[i]+=(tg-sm[i])*.35;var h=Math.max(2,sm[i]*(H-30)),x=10+i*bw+bw*.12,w=bw*.76;
 var gr=cx.createLinearGradient(0,H-8,0,H-8-h);gr.addColorStop(0,"rgba(201,168,255,.2)");gr.addColorStop(1,"rgba(240,230,255,.95)");cx.fillStyle=gr;cx.fillRect(x,H-8-h,w,h)}}
 else{var lv=hasDisp?Math.min(1,disp[0]):(ISI?Math.exp(-since*1.2):.35+.2*Math.sin(t/900)),rich=VIZP>=0?(V[VIZP]-PARAMS[VIZP].min)/(PARAMS[VIZP].max-PARAMS[VIZP].min):.5,mid=H/2+6,amp=(H-40)/2*(.12+.88*lv);
 sm[0]+=(lv-sm[0])*.3;cx.beginPath();cx.strokeStyle="#f0e6ff";cx.lineWidth=1.8;

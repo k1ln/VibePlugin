@@ -1,7 +1,7 @@
 {
   "name": "Silverbox Hats",
   "isInstrument": true,
-  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. Open and closed hi-hat from the metal oscillators' upper band, bright up in the 10 kHz region. The stock open hat has no decay knob: its length follows the tempo.",
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes, as a standalone plugin. Open and closed hi-hat from the metal oscillators' upper band, bright up in the 10 kHz region. The stock open hat has no decay knob: its length follows the tempo.",
   "assembly": "factory/plugins/silverbox-hats/assembly.ts",
   "out": "factory/plugins/silverbox-hats/x.vstai",
   "guiFile": "factory/plugins/silverbox-hats/gui.html",

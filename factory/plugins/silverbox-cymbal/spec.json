@@ -1,7 +1,7 @@
 {
   "name": "Silverbox Cymbal",
   "isInstrument": true,
-  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. Six square oscillators through both band-passes, two VCAs on one envelope and two high-passes.",
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes, as a standalone plugin. Six square oscillators through both band-passes, two VCAs on one envelope and two high-passes.",
   "assembly": "factory/plugins/silverbox-cymbal/assembly.ts",
   "out": "factory/plugins/silverbox-cymbal/x.vstai",
   "guiFile": "factory/plugins/silverbox-cymbal/gui.html",

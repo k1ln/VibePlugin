@@ -1,7 +1,7 @@
 {
   "name": "Silverbox Snare",
   "isInstrument": true,
-  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. A twin-T drum and high-passed noise — bright and thin, the acid-house snare. Mods: the classic pitch-down, and snappy.",
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes, as a standalone plugin. A twin-T drum and high-passed noise — bright and thin, the acid-house snare. Mods: the classic pitch-down, and snappy.",
   "assembly": "factory/plugins/silverbox-snare/assembly.ts",
   "out": "factory/plugins/silverbox-snare/x.vstai",
   "guiFile": "factory/plugins/silverbox-snare/gui.html",

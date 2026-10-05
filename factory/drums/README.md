@@ -23,7 +23,7 @@ and the spec from them. `registry.mjs` lists every plugin.
 |---|---|---|
 | **Bridgewell** | Roland TR-808 | Bridgewell 80 (full machine, 60 params) · Kick · Snare · Toms (toms/congas) · Rim & Claves · Clap & Maracas · Cowbell · Cymbal · Hats · **Bass** (the pitched "808") |
 | **Warehouse** | Roland TR-909 | Warehouse 909 (61 params) · Kick · Snare · Toms · Rim · Clap · Hats · Crash · Ride |
-| **Silverbox** | Roland TR-606 | Silverbox 606 (33 params) · Kick · Snare · Toms · Cymbal · Hats |
+| **Silverbox** | Roland TR-606 | Kick · Snare · Toms · Cymbal · Hats |
 | strings | — | **Tessitura** (physically modelled section) · **Aleatora** (aleatoric textures) · **Colossus** (hybrid trailer strings + ostinato) |
 
 Single-voice plugins exist because VibePlugin has no multi-out: one voice per

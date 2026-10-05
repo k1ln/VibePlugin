@@ -30,7 +30,7 @@ const single909 = (o) => ({
   ...o,
 });
 
-import { FULL_606, KICK_606, SNARE_606, TOMS_606, CYMBAL_606, HATS_606 } from "./tr606/defs.mjs";
+import { KICK_606, SNARE_606, TOMS_606, CYMBAL_606, HATS_606 } from "./tr606/defs.mjs";
 
 const T606 = { accent: "#e5531a", accent2: "#ffd24a", pad: "#e5531a", panel: "#2b2e30", panel2: "#4a4e51" };
 const feel606 = { title: "Feel", controls: [
@@ -38,7 +38,7 @@ const feel606 = { title: "Feel", controls: [
   { key: "VELMODE", type: "selector", label: "Velocity", options: ["606", "Dynamic"] },
   { key: "DRIVE", label: "Drive" } ] };
 const VEL606 = "Velocity: in 606 mode a hit is normal or accented (velocity 100+); Dynamic follows velocity smoothly. Mod knobs fully left = the stock circuit. ";
-const SB = "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. ";
+const SB = "Modelled on the Roland TR-606 from its manual and service notes, as a standalone plugin. ";
 const modFmt = "pct";
 const single606 = (o) => ({
   machine: "tr606", gui: "ui/single.html", theme: { accent: T606.accent, accent2: T606.accent2 },
@@ -189,16 +189,6 @@ export const REGISTRY = [
     sections: [{ title: "Ride", controls: [{ key: "LEV", label: "Level" }, { key: "TUNE", label: "Tune" }] }, feel909], pads: [{ label: "Ride", sub: "any note", note: 51 }],
     hint: VEL909 + "Tune changes the sample clock, so higher is also shorter.",
     explanation: WH + "A 6-bit ride with a bell partial, read at a tunable ~30 kHz clock, decay from the playback position." }),
-  {
-    slug: "silverbox-606", name: "Silverbox 606", machine: "tr606", wrapper: "full.ts", gui: "ui/silverbox606.html",
-    defs: FULL_606, theme: { accent: "#e5531a", accent2: "#ffd24a" },
-    explanation:
-      "The portable analog rhythm box, modelled on the Roland TR-606: bass drum, snare, low and high tom, cymbal, open and " +
-      "closed hi-hat with the panel's ACCENT and six instrument-mix levels, VOLUME and TEMPO. The metals come from six free-running " +
-      "Schmitt oscillators (245–625 Hz) through band-passes at 3.44 and 7.1 kHz; the stock open hat has no decay knob — its length " +
-      "follows the tempo, and a closed hat cuts it, just like the hardware. A Mods section adds the classic hardware mods (decays, " +
-      "tunes, snappy) — fully left is stock. 16-step sequencer with scale 1–4, last step and an accent row, locked to your DAW.",
-  },
   single606({ slug: "silverbox-kick", name: "Silverbox Kick", wrapper: "kick.ts", defs: KICK_606, model: "KICK", sub: "606 bass drum",
     sections: [{ title: "Bass drum", controls: [{ key: "LEV", label: "Level" }] }, { title: "Mods", controls: [{ key: "DEC", label: "Decay" }, { key: "TUNE", label: "Tune", fmt: "semi" }] }, feel606],
     pads: [{ label: "Kick", sub: "any note", note: 36 }], hint: VEL606,

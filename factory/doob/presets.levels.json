@@ -1,0 +1,104 @@
+{
+ "Moog Bass": {
+  "OUTVOL": 0.405
+ },
+ "Sub Bass 32'": {
+  "OUTVOL": 0.459
+ },
+ "Funk Bass": {
+  "OUTVOL": 0.559
+ },
+ "Taurus Pedal": {
+  "OUTVOL": 0.476
+ },
+ "Acid Squelch": {
+  "OUTVOL": 0.717
+ },
+ "Wobble (LFO)": {
+  "OUTVOL": 0.517
+ },
+ "Fat Unison Lead": {
+  "OUTVOL": 0.4
+ },
+ "Emerson Lead": {
+  "OUTVOL": 0.463
+ },
+ "Singing Square Lead": {
+  "OUTVOL": 0.563
+ },
+ "Power Fifths": {
+  "OUTVOL": 0.472
+ },
+ "Soft Triangle Lead": {
+  "OUTVOL": 0.465
+ },
+ "Brass Section": {
+  "OUTVOL": 0.395
+ },
+ "String Ensemble": {
+  "OUTVOL": 0.43
+ },
+ "Warm Pad": {
+  "OUTVOL": 0.416
+ },
+ "Flute": {
+  "OUTVOL": 0.505
+ },
+ "Organ (8-4-2)": {
+  "OUTVOL": 0.385
+ },
+ "Clav Pluck": {
+  "OUTVOL": 0.558
+ },
+ "Harpsichord": {
+  "OUTVOL": 0.539
+ },
+ "Pizzicato": {
+  "OUTVOL": 0.874
+ },
+ "Mellow Electric Piano": {
+  "OUTVOL": 0.478
+ },
+ "Filter Sine": {
+  "OUTVOL": 0.298
+ },
+ "Resonant Kick": {
+  "OUTVOL": 0.355
+ },
+ "Laser Zap": {
+  "OUTVOL": 0.43
+ },
+ "Wind": {
+  "OUTVOL": 1
+ },
+ "Snare Noise": {
+  "OUTVOL": 0.7
+ },
+ "Random Burble": {
+  "OUTVOL": 0.626
+ },
+ "Oscillator 3 Drone": {
+  "OUTVOL": 0.54
+ },
+ "Feedback Growl": {
+  "OUTVOL": 0.6
+ },
+ "Overload Fat Lead": {
+  "OUTVOL": 0.373
+ },
+ "Pythagorean Lead": {
+  "OUTVOL": 0.391
+ },
+ "Partch 43 Keys": {
+  "OUTVOL": 0.599
+ },
+ "Vintage Wobble Bass": {
+  "OUTVOL": 0.565
+ },
+ "Multi-Trigger Stab": {
+  "OUTVOL": 0.465
+ },
+ "Filter-Contour Vibrato": {
+  "OUTVOL": 0.533
+ }
+}

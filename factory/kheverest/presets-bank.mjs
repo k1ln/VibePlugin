@@ -120,3 +120,7 @@ for (const [n, nm, cat, shp] of [
     O(1, { WAVE: MORE, MORE: wt(n), RANGE: isBass ? R16 : R8, SRC: 2, SHLFO: isPad ? 55 : 0, SHAPE: shp, ...(isLead || isBass ? { SRC: 1, SHENV: 45 } : {}) }),
     isPad ? { ...L(1, { RATE: 38 }), UNISON: UNI[2], UNIDET: 22 } : {}, isPad ? AE(70, 90, 115, 90) : isBass ? AE(0, 85, 100, 30) : AE(2, 80, 105, 45), isBass || isLead ? E1(0, 80, 20, 45) : {});
 }
+
+// polyphonic patches first (Keys, Pad, Strings, Brass), mono-bound ones later; Array.sort is stable
+const ORDER = ["Keys", "Pad", "Strings", "Brass", "Lead", "Arp", "Bass", "Percussive", "FX"];
+BANK.sort((a, b) => ORDER.indexOf(a.cat) - ORDER.indexOf(b.cat));

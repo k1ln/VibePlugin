@@ -5,7 +5,7 @@
   "assembly": "factory/plugins/kheverest/assembly.ts",
   "out": "factory/plugins/kheverest/x.vstai",
   "guiFile": "factory/plugins/kheverest/gui.html",
-  "publishedAt": 1791216944876,
+  "publishedAt": 1791229882297,
   "theme": {
     "accent": "#4cc9ff",
     "accent2": "#ffffff"

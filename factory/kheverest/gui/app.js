@@ -613,16 +613,7 @@ function buildKeys() {
 var KEYNODES = {};
 function toggleKeys() { if (!kbBuilt) buildKeys(); keysEl.hidden = !keysEl.hidden; layout(); }
 kbBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); toggleKeys(); });
-// computer keyboard
-var CK = { a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12, o: 13, l: 14, p: 15, ";": 16 }, ckOct = 60, ckDown = {};
-window.addEventListener("keydown", function (e) {
-  if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
-  var k = e.key.toLowerCase();
-  if (k === "z") { ckOct = Math.max(24, ckOct - 12); return; } if (k === "x") { ckOct = Math.min(96, ckOct + 12); return; }
-  if (CK[k] === undefined || e.repeat || ckDown[k]) return;
-  var n = ckOct + CK[k]; ckDown[k] = n; host("noteOn", n, 0.78); if (KEYNODES[n]) KEYNODES[n].classList.add("hit");
-});
-window.addEventListener("keyup", function (e) { var k = e.key.toLowerCase(); if (ckDown[k] !== undefined) { var n = ckDown[k]; delete ckDown[k]; host("noteOff", n); if (KEYNODES[n]) KEYNODES[n].classList.remove("hit"); } });
+// computer-keyboard play is handled by the host / player (it forwards key events), so the panel must not add its own
 
 // =====================================================================
 //  matrix editor (plug-in convenience: all 16 + 4 slots in one table)

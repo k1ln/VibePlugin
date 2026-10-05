@@ -1,7 +1,7 @@
 {
   "name": "Choirloft",
   "isInstrument": true,
-  "explanation": "A vocal choir and formant synthesiser. Each note is sung by up to four singers, each a glottal-style source (band-limited saw with spectral tilt set by Effort, plus breath noise) run through five parallel formant resonators. Formant frequencies, bandwidths and levels come from vowel tables for bass, tenor, alto and soprano voices and morph continuously across the vowels A-E-I-O-U, with the mod wheel pushing the morph further and Formant Shift changing apparent size. Singers differ in tuning, vibrato phase and rate and entry time (Ensemble, Human); pitch can scoop up into each note; CC11 and aftertouch shape expression. A stereo choir spread and a small hall finish it. Six notes, four singers each.",
+  "explanation": "A vocal choir and formant synthesiser that can sing with up to 100 voices. Every singer is an individual: its own tuning, vibrato rate/depth/onset, slow pitch drift, entry time, attack and release, loudness and stage position. Singers are summed into stage groups that each have a slightly different vocal-tract length and bandwidth (Diversity), then run through five resonators tuned from vowel tables for bass, tenor, alto and soprano that morph across A-E-I-O-U (the mod wheel pushes the vowel on, Formant Shift changes apparent size). Voice type Auto is a real SATB choir: each note is split across neighbouring sections by pitch, so low notes are sung by basses and tenors and high notes by altos and sopranos. Effort and velocity shape the voice's brightness, Breath adds pitch-less aspiration, Scoop swells up into each note, CC11 and aftertouch shape expression, and Presence adds the singer's-formant peak. The stage is spread in stereo with arrival-time differences, and an eight-line modulated hall (pre-delay, early reflections, damping, up to 9 seconds) finishes it. Eight notes of polyphony.",
   "assembly": "factory/plugins/choirloft/assembly.ts",
   "out": "factory/plugins/choirloft/x.vstai",
   "publishedAt": 1790000600000,
@@ -15,8 +15,8 @@
       "name": "Voice Type",
       "index": 0,
       "min": 0,
-      "max": 3,
-      "default": 2,
+      "max": 4,
+      "default": 4,
       "step": 1
     },
     {
@@ -37,8 +37,8 @@
       "name": "Choir Size",
       "index": 3,
       "min": 1,
-      "max": 4,
-      "default": 3,
+      "max": 100,
+      "default": 24,
       "step": 1
     },
     {
@@ -116,14 +116,14 @@
       "index": 14,
       "min": 0,
       "max": 1,
-      "default": 0.45
+      "default": 0.4
     },
     {
       "name": "Hall Size",
       "index": 15,
       "min": 0,
       "max": 1,
-      "default": 0.6
+      "default": 0.62
     },
     {
       "name": "Bend Range",
@@ -145,294 +145,41 @@
       "min": 0,
       "max": 1,
       "default": 0.3
-    }
-  ],
-  "presets": [
-    {
-      "name": "Init",
-      "values": {
-        "0": 2,
-        "1": 0,
-        "2": 0.5,
-        "3": 3,
-        "4": 0.5,
-        "5": 0.4,
-        "6": 0.45,
-        "7": 0.5,
-        "8": 0.45,
-        "9": 0.5,
-        "10": 0.15,
-        "11": 0.55,
-        "12": 0.25,
-        "13": 0.7,
-        "14": 0.45,
-        "15": 0.6,
-        "16": 0.1667,
-        "17": 0.7,
-        "18": 0.3
-      }
     },
     {
-      "name": "Breathy Choir Pad",
-      "values": {
-        "0": 2,
-        "3": 4,
-        "4": 0.6,
-        "8": 0.7,
-        "9": 0.8,
-        "10": 0.5,
-        "11": 0.35,
-        "15": 0.7,
-        "17": 0.7
-      }
+      "name": "Diversity",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
     },
     {
-      "name": "Bright Soprano Section",
-      "values": {
-        "0": 3,
-        "1": 0.4,
-        "2": 0.7,
-        "3": 4,
-        "4": 0.5,
-        "8": 0.4,
-        "17": 0.72
-      }
+      "name": "Presence",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
     },
     {
-      "name": "Dark Bass Choir",
-      "values": {
-        "0": 0,
-        "2": 0.25,
-        "3": 4,
-        "8": 0.6,
-        "9": 0.7,
-        "11": 0.7,
-        "17": 0.75
-      }
+      "name": "Pre-Delay",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
     },
     {
-      "name": "Alto Solo Vox",
-      "values": {
-        "0": 1,
-        "3": 1,
-        "4": 0.1,
-        "5": 0.5,
-        "7": 0.6,
-        "17": 0.7
-      }
+      "name": "Damping",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
     },
     {
-      "name": "Tenor Solo Vox",
-      "values": {
-        "0": 1,
-        "2": 0.35,
-        "3": 1,
-        "4": 0.1,
-        "11": 0.6,
-        "17": 0.7
-      }
-    },
-    {
-      "name": "Vowel Ah Open",
-      "values": {
-        "1": 0,
-        "3": 3,
-        "11": 0.55,
-        "17": 0.7
-      }
-    },
-    {
-      "name": "Vowel Ee Bright",
-      "values": {
-        "1": 0.25,
-        "2": 0.6,
-        "3": 3,
-        "17": 0.7
-      }
-    },
-    {
-      "name": "Vowel Oh Round",
-      "values": {
-        "1": 0.6,
-        "3": 3,
-        "11": 0.5,
-        "17": 0.7
-      }
-    },
-    {
-      "name": "Vowel Oo Dark",
-      "values": {
-        "1": 0.99,
-        "2": 0.3,
-        "3": 3,
-        "17": 0.68
-      }
-    },
-    {
-      "name": "Full Ensemble Swell",
-      "values": {
-        "3": 4,
-        "4": 0.8,
-        "8": 0.9,
-        "9": 0.8,
-        "11": 0.6,
-        "17": 0.8
-      }
-    },
-    {
-      "name": "Fast Staccato Stab",
-      "values": {
-        "3": 3,
-        "8": 0.02,
-        "9": 0.15,
-        "11": 0.7,
-        "17": 0.78
-      }
-    },
-    {
-      "name": "Slow Cathedral Pad",
-      "values": {
-        "8": 1,
-        "9": 1,
-        "14": 0.8,
-        "15": 1,
-        "17": 0.7
-      }
-    },
-    {
-      "name": "Whispered Breath Texture",
-      "values": {
-        "3": 2,
-        "5": 0.1,
-        "10": 1,
-        "11": 0.15,
-        "17": 0.55
-      }
-    },
-    {
-      "name": "Powerful Belt Choir",
-      "values": {
-        "3": 4,
-        "5": 0.5,
-        "11": 1,
-        "17": 0.85
-      }
-    },
-    {
-      "name": "Scoop Slide Entry",
-      "values": {
-        "3": 3,
-        "8": 0.3,
-        "12": 0.8,
-        "17": 0.72
-      }
-    },
-    {
-      "name": "No Scoop Clean Entry",
-      "values": {
-        "8": 0.15,
-        "12": 0,
-        "17": 0.72
-      }
-    },
-    {
-      "name": "Wide Stereo Choir",
-      "values": {
-        "3": 4,
-        "13": 1,
-        "14": 0.6,
-        "17": 0.75
-      }
-    },
-    {
-      "name": "Narrow Mono Vox",
-      "values": {
-        "3": 1,
-        "13": 0.1,
-        "14": 0.2,
-        "17": 0.7
-      }
-    },
-    {
-      "name": "Small Intimate Ensemble",
-      "values": {
-        "3": 2,
-        "4": 0.3,
-        "14": 0.3,
-        "17": 0.68
-      }
-    },
-    {
-      "name": "Large Cathedral Choir",
-      "values": {
-        "3": 4,
-        "4": 0.9,
-        "14": 0.9,
-        "15": 0.85,
-        "17": 0.82
-      }
-    },
-    {
-      "name": "Formant Shift Giant",
-      "values": {
-        "2": 0,
-        "3": 4,
-        "11": 0.6,
-        "17": 0.78
-      }
-    },
-    {
-      "name": "Formant Shift Tiny",
-      "values": {
-        "2": 1,
-        "3": 3,
-        "11": 0.5,
-        "17": 0.72
-      }
-    },
-    {
-      "name": "Fast Vibrato Trill",
-      "values": {
-        "3": 3,
-        "5": 0.9,
-        "6": 0.9,
-        "17": 0.75
-      }
-    },
-    {
-      "name": "Human Loose Choir",
-      "values": {
-        "3": 4,
-        "4": 0.7,
-        "7": 1,
-        "17": 0.75
-      }
-    },
-    {
-      "name": "Tight Synced Choir",
-      "values": {
-        "3": 4,
-        "4": 0.4,
-        "7": 0,
-        "17": 0.75
-      }
-    },
-    {
-      "name": "Velocity Expressive Solo",
-      "values": {
-        "3": 1,
-        "4": 0.1,
-        "17": 0.7,
-        "18": 1
-      }
-    },
-    {
-      "name": "Deep Bend FX Vox",
-      "values": {
-        "0": 0,
-        "16": 1,
-        "17": 0.7
-      }
+      "name": "Early Refl",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0.5
     }
   ]
 }

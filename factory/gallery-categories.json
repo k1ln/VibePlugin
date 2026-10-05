@@ -71,7 +71,6 @@
   "colossus": "Strings",
   "aleatora": "Strings",
   "tessitura": "Strings",
-  "silverbox-606": "Drum Machines",
   "warehouse-909": "Drum Machines",
   "bridgewell-80": "Drum Machines",
   "silverbox-hats": "Drum Voices",
@@ -220,6 +219,7 @@
   "stdladder24": "Filters",
   "stdladder12": "Filters",
   "kheverest": "Analog Synths",
-  "kgrbdpa": "Analog Synths"
+  "kgrbdpa": "Analog Synths",
+  "doob": "Analog Synths"
  }
 }

@@ -3,8 +3,8 @@
     "name": "Voice Type",
     "index": 0,
     "min": 0,
-    "max": 3,
-    "default": 2,
+    "max": 4,
+    "default": 4,
     "step": 1
   },
   {
@@ -25,8 +25,8 @@
     "name": "Choir Size",
     "index": 3,
     "min": 1,
-    "max": 4,
-    "default": 3,
+    "max": 100,
+    "default": 24,
     "step": 1
   },
   {
@@ -104,14 +104,14 @@
     "index": 14,
     "min": 0,
     "max": 1,
-    "default": 0.45
+    "default": 0.4
   },
   {
     "name": "Hall Size",
     "index": 15,
     "min": 0,
     "max": 1,
-    "default": 0.6
+    "default": 0.62
   },
   {
     "name": "Bend Range",
@@ -133,5 +133,40 @@
     "min": 0,
     "max": 1,
     "default": 0.3
+  },
+  {
+    "name": "Diversity",
+    "index": 19,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Presence",
+    "index": 20,
+    "min": 0,
+    "max": 1,
+    "default": 0.45
+  },
+  {
+    "name": "Pre-Delay",
+    "index": 21,
+    "min": 0,
+    "max": 1,
+    "default": 0.25
+  },
+  {
+    "name": "Damping",
+    "index": 22,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
+  },
+  {
+    "name": "Early Refl",
+    "index": 23,
+    "min": 0,
+    "max": 1,
+    "default": 0.5
   }
 ]

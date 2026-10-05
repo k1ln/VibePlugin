@@ -1,7 +1,7 @@
 {
   "name": "Silverbox Toms",
   "isInstrument": true,
-  "explanation": "Modelled on the Roland TR-606 from its manual and service notes; the same model as inside Silverbox 606, on its own mixer channel. Two twin-T toms with a short burst of low-passed noise rumble.",
+  "explanation": "Modelled on the Roland TR-606 from its manual and service notes, as a standalone plugin. Two twin-T toms with a short burst of low-passed noise rumble.",
   "assembly": "factory/plugins/silverbox-toms/assembly.ts",
   "out": "factory/plugins/silverbox-toms/x.vstai",
   "guiFile": "factory/plugins/silverbox-toms/gui.html",
