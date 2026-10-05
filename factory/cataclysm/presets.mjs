@@ -7,6 +7,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { registerExtra } from "./presets-extra.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const LEVELS = existsSync(join(here, "presets.levels.json")) ? JSON.parse(readFileSync(join(here, "presets.levels.json"), "utf8")) : {};
@@ -83,9 +84,9 @@ add("Rolling Kick", "Kick", {
 
 // ───────────────────────── SNARES ────────────────────────────────────────────
 add("808 Snare", "Snare", {
-  T_LEV: -4, T_SHAPE: 1, T_PITCH: 190, T_KT: 1, T_PE1_AMT: 10, T_PE1_TIME: 18, T_DEC: 140,
-  F_LEV: -8, F_FREQ: 330, F_KT: 1, F_IDX: 0, F_DEC: 100, F_FOLLOW: 0,
-  N_LEV: -3, N_MODE: 1, N_CUT: 4800, N_RES: 0.05, N_DEC: 220, N_CRV: -0.2, C_LEV: -14, C_TYPE: 1, C_FREQ: 4000,
+  T_LEV: -6, T_SHAPE: 1, T_PITCH: 190, T_KT: 1, T_PE1_AMT: 10, T_PE1_TIME: 18, T_DEC: 140,
+  F_LEV: -10, F_FREQ: 330, F_KT: 1, F_IDX: 0, F_DEC: 100, F_FOLLOW: 0,
+  N_LEV: 2, N_MODE: 1, N_CUT: 4800, N_RES: 0.05, N_DEC: 220, N_CRV: -0.2, C_LEV: -14, C_TYPE: 1, C_FREQ: 4000,
   D1_TYPE: 1, D1_DRV: 3, EQ_HM_F: 5000, EQ_HM_G: 2, CP_THR: -16, CP_RATIO: 3, CP_MAKE: 2,
 });
 add("909 Snare", "Snare", {
@@ -170,6 +171,7 @@ add("Ride", "Cymbal", {
   CP_THR: -22, CP_RATIO: 3, CP_MAKE: 4,
 });
 add("China Trash", "Cymbal", {
+  VEL_AMP: 1, VEL_BRT: 0.9,
   X_LEV: 0, X_SET: 5, X_FREQ: 300, X_KT: 0, X_FOLD: 0.35, X_RING: 0.5, X_SHM: 0.4, X_BPF: 6500, X_BPQ: 1, X_HPF: 3000, X_DEC: 900,
   D1_TYPE: 9, D1_DRV: 12, D1_LOW: 800, CP_THR: -22, CP_RATIO: 5, CP_MAKE: 4,
 });
@@ -284,9 +286,15 @@ add("Tension Slam", "Aggressive", {
 // ---------------------------------------------------------------------
 //  Resolve: OFF + set, destination names → indices, loudness trim
 // ---------------------------------------------------------------------
+registerExtra(add);
 import { MOD_DESTS, MOD_SRC } from "./params.mjs";
+// Names must be unique.
+{ const seen = new Set(); for (const p of PRESETS) { if (seen.has(p.name)) throw new Error("duplicate preset name: " + p.name); seen.add(p.name); } }
 for (const p of PRESETS) {
   const s = { ...OFF, ...p.set };
+  // Velocity must keep shaping heavily clipped / crushed sounds: it drives the clipper, steps the bit depth and opens filters.
+  if ((s.D1_DRV >= 18 && s.D1_TYPE) || (s.D2_DRV >= 18 && s.D2_TYPE)) { if (s.MX8_SRC === undefined) Object.assign(s, { MX8_SRC: 1, MX8_DST: "D1_DRV", MX8_AMT: 0.14 }); s.VEL_BRT ??= 0.6; if (s.VEL_AMP === undefined) s.VEL_AMP = 0.85; }
+  if (s.CR_BITS < 12 && s.MX7_SRC === undefined) { Object.assign(s, { MX7_SRC: 1, MX7_DST: "CR_BITS", MX7_AMT: 0.3 }); if (s.VEL_AMP === undefined) s.VEL_AMP = 0.9; }
   for (const k of Object.keys(s)) if (/^MX\d_DST$/.test(k) && typeof s[k] === "string") {
     const i = MOD_DESTS.findIndex((d) => d.key === s[k]);
     if (i < 0) throw new Error(`preset ${p.name}: ${s[k]} is not a modulation target`);

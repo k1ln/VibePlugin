@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KHeverest</title>
+<style>:root{--u:1px;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0b0b0c;overflow:hidden;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#ddd;user-select:none;-webkit-user-select:none}
+#wrap{position:relative;width:100vw;height:100vh;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1018px;height:536px;transform-origin:0 0;background:#0d0d0e}
+.cheek{position:absolute;top:0;bottom:0;width:34px;background:
+ repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 1px,transparent 1px 5px),
+ repeating-linear-gradient(92deg,rgba(255,220,170,.06) 0 2px,transparent 2px 9px),
+ linear-gradient(180deg,#3a2314,#4d2f1b 40%,#3b2315);}
+.cheek.l{left:0;box-shadow:inset -3px 0 5px rgba(0,0,0,.6)}
+.cheek.r{right:0;box-shadow:inset 3px 0 5px rgba(0,0,0,.6)}
+#plate{position:absolute;left:34px;top:13px;width:950px;height:510px;background:linear-gradient(180deg,#19191b,#121214);box-shadow:0 0 0 1px #000,0 2px 14px rgba(0,0,0,.8)}
+/* header / footer */
+.logo{position:absolute;left:8px;top:7px;font-weight:800;letter-spacing:2.6px;font-size:15px;color:#f2f2f2;display:flex;align-items:center;gap:7px}
+.logo svg{width:20px;height:18px}
+.wm{position:absolute;right:10px;top:3px;font-weight:900;font-size:25px;letter-spacing:5px;color:#f4f4f4;font-stretch:expanded;transform:scaleX(1.14);transform-origin:right center}
+.foot{position:absolute;top:490px;font-size:8.5px;font-weight:800;letter-spacing:.7px;color:#eee}
+.foot.l{left:8px}.foot.r{right:10px}
+/* sections */
+.sec{position:absolute;border:1px solid #4a4b50;background:rgba(255,255,255,.012)}
+.sec>.st{position:absolute;left:4px;top:2px;font-size:7.5px;font-weight:800;letter-spacing:.3px;color:#f0f0f0;text-transform:uppercase}
+.sec>.ar{position:absolute;right:3px;top:1px;font-size:7px;color:#777}
+.lb{position:absolute;font-size:6.6px;color:#e6e6e8;text-align:center;white-space:nowrap;transform:translateX(-50%);font-weight:500;letter-spacing:.1px}
+.lb.l{transform:none}
+.br{position:absolute;height:5px;border:1px solid #8a8b90;border-top:0;border-radius:0 0 2px 2px;opacity:.8}
+/* knobs */
+.kw{position:absolute;touch-action:none;cursor:ns-resize}
+.kw svg{display:block;overflow:visible}
+.kw .dot{fill:#dcdcde}
+.kw .ptr{stroke:#fff;stroke-width:1.9;stroke-linecap:round}
+.kw:hover .ptr{stroke:#fff}
+.kw.act .rim{stroke:#4cc9ff}
+/* LEDs and buttons */
+.led{position:absolute;width:4.5px;height:3.4px;background:#3a1512;border-radius:1px}
+.led.on{background:#ff4c3b;box-shadow:0 0 4px #ff2f1c,0 0 1px #ffb0a8}
+.ll{position:absolute;font-size:6.4px;color:#e2e2e4;white-space:nowrap;line-height:7px}
+.btn{position:absolute;border-radius:2px;cursor:pointer;touch-action:none;background:linear-gradient(180deg,#4d4e53,#2b2c30);border:1px solid #0a0a0b;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(0,0,0,.7)}
+.btn.w{background:linear-gradient(180deg,#f3f3f3,#bdbdc0);box-shadow:inset 0 -1px 0 rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.7)}
+.btn:active,.btn.dn{filter:brightness(.82);transform:translateY(.6px)}
+.btn.glow{box-shadow:0 0 7px 1px rgba(255,76,59,.75),inset 0 0 6px rgba(255,76,59,.7);background:linear-gradient(180deg,#5a2a26,#2d1412)}
+.btn.sq{border-radius:3px}
+.btn.on{background:linear-gradient(180deg,#fff,#d8d8da);box-shadow:0 0 6px rgba(255,255,255,.35)}
+.btn .t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:6px;color:#222;font-weight:700;pointer-events:none}
+.btn:not(.w) .t{color:#ddd}
+/* faders */
+.fd{position:absolute;touch-action:none;cursor:ns-resize}
+.fd .slot{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#000;border-radius:2px;box-shadow:0 0 0 1px #2c2d31}
+.fd .tick{position:absolute;left:0;width:7px;height:1px;background:#8d8e93}
+.fd .cap{position:absolute;left:50%;width:15px;height:8px;margin-left:-7.5px;margin-top:-4px;background:linear-gradient(180deg,#5d5e63,#242529);border:1px solid #050506;border-radius:1.5px;box-shadow:0 1px 2px #000}
+.fd .cap:after{content:"";position:absolute;left:1px;right:1px;top:3px;height:1px;background:#f2f2f2}
+/* OLED */
+#oled{position:absolute;background:#020204;border:2px solid #202226;border-radius:2px;box-shadow:inset 0 0 12px rgba(120,170,255,.08)}
+#oled .scr{position:absolute;inset:3px 4px;font-family:Menlo,Consolas,"Courier New",monospace;font-size:10.6px;line-height:15px;color:#e9f3ff;text-shadow:0 0 3px rgba(150,190,255,.7);white-space:pre;letter-spacing:.2px;background-image:radial-gradient(rgba(0,0,0,.55) 38%,transparent 42%);background-size:2px 2px;background-blend-mode:multiply}
+#oled .ol{height:15px;overflow:hidden}
+#oled .ol.sel{background:rgba(190,215,255,.16)}
+#oled .fld{cursor:pointer}
+#oled .fld.sf{background:#e9f3ff;color:#020204;text-shadow:none}
+.enc{position:absolute;touch-action:none;cursor:ns-resize}
+.enc svg{display:block}
+/* keyboard drawer */
+#keys{position:fixed;left:0;right:0;bottom:0;height:116px;background:#0b0b0c;border-top:1px solid #3a3b3f;display:flex;align-items:stretch}
+#keys[hidden]{display:none}
+#keys .ctl{flex:0 0 230px;width:230px;display:flex;gap:8px;padding:8px;align-items:stretch;color:#cfcfd2;font-size:8px}
+#keys .whl{position:relative;flex:0 0 30px;margin-bottom:14px;width:30px;background:linear-gradient(90deg,#111,#2b2c30 50%,#111);border:1px solid #000;border-radius:4px;touch-action:none;cursor:ns-resize}
+#keys .whl i{position:absolute;left:0;right:0;height:10px;background:#d2d2d6;opacity:.9;border-radius:2px;margin-top:-5px}
+#keys .whl b{position:absolute;left:0;right:0;bottom:-11px;text-align:center;font-weight:600;font-size:7px;color:#aaa}
+#keys .sl{display:flex;flex-direction:column;justify-content:space-between;font-size:7.5px;gap:3px;flex:1}
+#keys .sl label{display:flex;align-items:center;gap:4px}
+#keys .sl input{flex:1;height:8px}
+#keys .kb{position:relative;flex:1;margin:6px 8px 6px 0}
+#keys .wk{position:absolute;top:0;bottom:0;background:linear-gradient(180deg,#f4f4f2,#cfcfcc);border:1px solid #333;border-radius:0 0 3px 3px;touch-action:none}
+#keys .bk{position:absolute;top:0;height:62%;background:linear-gradient(180deg,#333,#050505);border:1px solid #000;border-radius:0 0 2px 2px;z-index:2;touch-action:none}
+#keys .wk.hit{background:#8fd4ff}#keys .bk.hit{background:#2b7aa8}
+#kbBtn{position:absolute}
+/* matrix editor */
+#matrix{position:fixed;inset:22px;background:rgba(10,10,12,.97);border:1px solid #55565b;border-radius:4px;overflow:auto;padding:12px;font-size:11px;z-index:20}
+#matrix h3{margin:0 0 8px;font-size:12px;letter-spacing:1px}
+#matrix table{border-collapse:collapse;width:100%}
+#matrix td,#matrix th{padding:2px 5px;border-bottom:1px solid #222;text-align:left;font-weight:500}
+#matrix select{background:#17181a;color:#e6e6e8;border:1px solid #3a3b3f;font-size:10.5px;padding:1px}
+#matrix input[type=range]{width:150px}
+#matrix .x{position:absolute;right:12px;top:10px}
+#matrix button,#saveDlg button{background:#2b2c30;color:#eee;border:1px solid #4a4b50;border-radius:3px;padding:3px 9px;font-size:10px;cursor:pointer}
+#saveDlg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:30}
+#saveDlg[hidden]{display:none}
+#saveDlg>div{background:#18191b;border:1px solid #55565b;padding:14px;display:flex;gap:8px;align-items:center;font-size:11px}
+#saveDlg input{background:#050506;border:1px solid #3a3b3f;color:#fff;padding:4px 6px;font-size:11px}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <radialGradient id="kgBody" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#5a5b60"/><stop offset=".55" stop-color="#1d1e21"/><stop offset="1" stop-color="#08080a"/></radialGradient>
+  <radialGradient id="kgTop" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="#3c3d42"/><stop offset="1" stop-color="#101113"/></radialGradient>
+  <linearGradient id="kgEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8d8f96"/><stop offset=".5" stop-color="#2a2b2f"/><stop offset="1" stop-color="#000"/></linearGradient>
+</defs></svg>
+<div id="wrap"><div id="stage">
+  <div class="cheek l"></div><div class="cheek r"></div>
+  <div id="plate"></div>
+</div></div>
+<div id="keys" hidden></div>
+<div id="matrix" hidden></div>
+<div id="saveDlg" hidden><div><b>Save patch</b><input id="saveName" maxlength="20" placeholder="Patch name"><button id="saveOk">Save</button><button id="saveNo">Cancel</button></div></div>
+<script>
+var DATA={"params":[{"key":"VOL","name":"Master Volume","curve":"lin","min":0,"max":1,"def":0.75,"steps":0,"fmt":"pct","slot":0,"mult":1,"direct":true,"tip":"Master volume (front panel MASTER knob).","kind":""},{"key":"WHEEL_MOD","name":"Mod Wheel","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":1,"mult":1,"direct":true,"tip":"Mod wheel (also MIDI CC1). Matrix source ModWheel.","kind":""},{"key":"WHEEL_BEND","name":"Pitch Wheel","curve":"lin","min":-1,"max":1,"def":0,"steps":0,"fmt":"bip","slot":2,"mult":1,"direct":true,"tip":"Pitch wheel (also MIDI pitch bend). Range = each oscillator's BendRange. Matrix sources BndWhl+/-.","kind":""},{"key":"EXPR1","name":"Expression Pedal 1","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":3,"mult":1,"direct":true,"tip":"Pedal 1 / expression (also MIDI CC11). Matrix source ExprPED1.","kind":""},{"key":"EXPR2","name":"Expression Pedal 2","curve":"lin","min":0,"max":1,"def":0,"steps":0,"fmt":"pct","slot":4,"mult":1,"direct":true,"tip":"Pedal 2 / breath (also MIDI CC2). Matrix source BrthPED2.","kind":""},{"key":"AFTERT","name":"Aftertouch","curve":"lin","min":0,"max":1,"def":0,"steps":33,"fmt":"pct","slot":51,"mult":35,"direct":false,"tip":"Manual aftertouch (adds to MIDI channel/poly pressure). Matrix source AftTouch.","kind":""},{"key":"CVIN","name":"CV Mod In","curve":"lin","min":-1,"max":1,"def":0,"steps":33,"fmt":"bip","slot":51,"mult":1155,"direct":false,"tip":"Emulates the rear CV MOD input (adds to the instrument's audio input, low-passed). Matrix source CV +/-.","kind":""},{"key":"ANIM","name":"Animate","curve":"int","min":0,"max":7,"def":0,"steps":8,"fmt":"bits","slot":8,"mult":2097152,"direct":false,"tip":"bit0 Animate 1 · bit1 Animate 2 · bit2 Hold (latches the Animate buttons).","kind":""},{"key":"O1_RANGE","name":"Range","curve":"int","min":0,"max":3,"def":1,"steps":4,"fmt":["16'","8'","4'","2'"],"slot":17,"mult":2097152,"direct":false,"tip":"Organ-stop range. 8' = concert pitch (A3 = 440 Hz).","kind":""},{"key":"O1_COARSE","name":"Coarse","curve":"lin","min":-12,"max":12,"def":0,"steps":49,"fmt":"st","slot":32,"mult":274625,"direct":false,"tip":"Pitch ±1 octave (half-semitone steps; use Fine for the rest).","kind":""},{"key":"O1_FINE","name":"Fine","curve":"lin","min":-100,"max":100,"def":0,"steps":101,"fmt":"ct","slot":26,"mult":127,"direct":false,"tip":"Pitch ±100 cents.","kind":""},{"key":"O1_WAVE","name":"Wave","curve":"int","min":0,"max":4,"def":2,"steps":5,"fmt":["Sine","Triangle","Saw","Pulse","more"],"slot":6,"mult":3261249,"direct":false,"tip":"Sine / triangle / sawtooth / pulse, or 'more' = one of the wavetables.","kind":""},{"key":"O1_MORE","name":"WaveMore","curve":"int","min":0,"max":158,"def":0,"steps":159,"fmt":"wt","slot":5,"mult":51456,"direct":false,"tip":"Wavetable used when Wave = more (Shape Amount sweeps the five waveforms of the table).","kind":""},{"key":"O1_ENV2","name":"Mod Env 2 Depth","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":28,"mult":7921,"direct":false,"tip":"Pitch modulation by Mod Envelope 2.","kind":""},{"key":"O1_LFO2","name":"LFO 2 Depth","curve":"lin","min":-127,"max":127,"def":0,"steps":129,"fmt":"sgn","slot":6,"mult":25281,"direct":false,"tip":"Pitch modulation by LFO 2 (finer resolution at low values).","kind":""},{"key":"O1_SRC","name":"Shape Source","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["Manual","Mod Env 1","LFO 1"],"slot":46,"mult":2481997,"direct":false,"tip":"Which of the three additive shape sources the SHAPE AMOUNT knob edits (all three always act).","kind":""},{"key":"O1_SHAPE","name":"Shape: Manual","curve":"int","min":-63,"max":63,"def":0,"steps":127,"fmt":"sgn","slot":25,"mult":1,"direct":false,"tip":"Manual shape: PW on pulse, distortion on sine, symmetry on triangle, fold/pulse on saw, position in the table on 'more'.","kind":""},{"key":"O1_SHENV","name":"Shape: Mod Env 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":29,"mult":1,"direct":false,"tip":"Mod Env 1 → shape.","kind":""},{"key":"O1_SHLFO","name":"Shape: LFO 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":29,"mult":65,"direct":false,"tip":"LFO 1 → shape.","kind":""},{"key":"O1_VSYNC","name":"Vsync","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":8,"mult":1,"direct":false,"tip":"Virtual-oscillator hard sync. Multiples of 16 are musical harmonics.","kind":""},{"key":"O1_SAWD","name":"SawDense","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":35,"mult":65,"direct":false,"tip":"Two extra detuned virtual saws (sawtooth only).","kind":""},{"key":"O1_DDET","name":"DenseDet","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":35,"mult":4160,"direct":false,"tip":"Detune of the density saws.","kind":""},{"key":"O1_FIXED","name":"FixedNote","curve":"int","min":0,"max":88,"def":0,"steps":89,"fmt":"fixnote","slot":27,"mult":10201,"direct":false,"tip":"Off, or every key plays this single note (C#-2 … E5).","kind":""},{"key":"O1_BEND","name":"BendRange","curve":"int","min":-24,"max":24,"def":12,"steps":49,"fmt":"st","slot":33,"mult":274625,"direct":false,"tip":"Pitch-wheel range in semitones (negative reverses).","kind":""},{"key":"O2_RANGE","name":"Range","curve":"int","min":0,"max":3,"def":1,"steps":4,"fmt":["16'","8'","4'","2'"],"slot":18,"mult":2097152,"direct":false,"tip":"Organ-stop range. 8' = concert pitch (A3 = 440 Hz).","kind":""},{"key":"O2_COARSE","name":"Coarse","curve":"lin","min":-12,"max":12,"def":0,"steps":49,"fmt":"st","slot":34,"mult":274625,"direct":false,"tip":"Pitch ±1 octave (half-semitone steps; use Fine for the rest).","kind":""},{"key":"O2_FINE","name":"Fine","curve":"lin","min":-100,"max":100,"def":0,"steps":101,"fmt":"ct","slot":26,"mult":12827,"direct":false,"tip":"Pitch ±100 cents.","kind":""},{"key":"O2_WAVE","name":"Wave","curve":"int","min":0,"max":4,"def":2,"steps":5,"fmt":["Sine","Triangle","Saw","Pulse","more"],"slot":12,"mult":2097152,"direct":false,"tip":"Sine / triangle / sawtooth / pulse, or 'more' = one of the wavetables.","kind":""},{"key":"O2_MORE","name":"WaveMore","curve":"int","min":0,"max":158,"def":0,"steps":159,"fmt":"wt","slot":6,"mult":1,"direct":false,"tip":"Wavetable used when Wave = more (Shape Amount sweeps the five waveforms of the table).","kind":""},{"key":"O2_ENV2","name":"Mod Env 2 Depth","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":29,"mult":4225,"direct":false,"tip":"Pitch modulation by Mod Envelope 2.","kind":""},{"key":"O2_LFO2","name":"LFO 2 Depth","curve":"lin","min":-127,"max":127,"def":0,"steps":129,"fmt":"sgn","slot":7,"mult":1,"direct":false,"tip":"Pitch modulation by LFO 2 (finer resolution at low values).","kind":""},{"key":"O2_SRC","name":"Shape Source","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["Manual","Mod Env 1","LFO 1"],"slot":47,"mult":1874161,"direct":false,"tip":"Which of the three additive shape sources the SHAPE AMOUNT knob edits (all three always act).","kind":""},{"key":"O2_SHAPE","name":"Shape: Manual","curve":"int","min":-63,"max":63,"def":0,"steps":127,"fmt":"sgn","slot":25,"mult":127,"direct":false,"tip":"Manual shape: PW on pulse, distortion on sine, symmetry on triangle, fold/pulse on saw, position in the table on 'more'.","kind":""},{"key":"O2_SHENV","name":"Shape: Mod Env 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":30,"mult":1,"direct":false,"tip":"Mod Env 1 → shape.","kind":""},{"key":"O2_SHLFO","name":"Shape: LFO 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":30,"mult":65,"direct":false,"tip":"LFO 1 → shape.","kind":""},{"key":"O2_VSYNC","name":"Vsync","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":8,"mult":128,"direct":false,"tip":"Virtual-oscillator hard sync. Multiples of 16 are musical harmonics.","kind":""},{"key":"O2_SAWD","name":"SawDense","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":36,"mult":1,"direct":false,"tip":"Two extra detuned virtual saws (sawtooth only).","kind":""},{"key":"O2_DDET","name":"DenseDet","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":36,"mult":64,"direct":false,"tip":"Detune of the density saws.","kind":""},{"key":"O2_FIXED","name":"FixedNote","curve":"int","min":0,"max":88,"def":0,"steps":89,"fmt":"fixnote","slot":28,"mult":1,"direct":false,"tip":"Off, or every key plays this single note (C#-2 … E5).","kind":""},{"key":"O2_BEND","name":"BendRange","curve":"int","min":-24,"max":24,"def":12,"steps":49,"fmt":"st","slot":35,"mult":266240,"direct":false,"tip":"Pitch-wheel range in semitones (negative reverses).","kind":""},{"key":"O3_RANGE","name":"Range","curve":"int","min":0,"max":3,"def":1,"steps":4,"fmt":["16'","8'","4'","2'"],"slot":19,"mult":2097152,"direct":false,"tip":"Organ-stop range. 8' = concert pitch (A3 = 440 Hz).","kind":""},{"key":"O3_COARSE","name":"Coarse","curve":"lin","min":-12,"max":12,"def":0,"steps":49,"fmt":"st","slot":45,"mult":262144,"direct":false,"tip":"Pitch ±1 octave (half-semitone steps; use Fine for the rest).","kind":""},{"key":"O3_FINE","name":"Fine","curve":"lin","min":-100,"max":100,"def":0,"steps":101,"fmt":"ct","slot":27,"mult":1,"direct":false,"tip":"Pitch ±100 cents.","kind":""},{"key":"O3_WAVE","name":"Wave","curve":"int","min":0,"max":4,"def":2,"steps":5,"fmt":["Sine","Triangle","Saw","Pulse","more"],"slot":13,"mult":2097152,"direct":false,"tip":"Sine / triangle / sawtooth / pulse, or 'more' = one of the wavetables.","kind":""},{"key":"O3_MORE","name":"WaveMore","curve":"int","min":0,"max":158,"def":0,"steps":159,"fmt":"wt","slot":6,"mult":159,"direct":false,"tip":"Wavetable used when Wave = more (Shape Amount sweeps the five waveforms of the table).","kind":""},{"key":"O3_ENV2","name":"Mod Env 2 Depth","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":30,"mult":4225,"direct":false,"tip":"Pitch modulation by Mod Envelope 2.","kind":""},{"key":"O3_LFO2","name":"LFO 2 Depth","curve":"lin","min":-127,"max":127,"def":0,"steps":129,"fmt":"sgn","slot":7,"mult":129,"direct":false,"tip":"Pitch modulation by LFO 2 (finer resolution at low values).","kind":""},{"key":"O3_SRC","name":"Shape Source","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["Manual","Mod Env 1","LFO 1"],"slot":48,"mult":1874161,"direct":false,"tip":"Which of the three additive shape sources the SHAPE AMOUNT knob edits (all three always act).","kind":""},{"key":"O3_SHAPE","name":"Shape: Manual","curve":"int","min":-63,"max":63,"def":0,"steps":127,"fmt":"sgn","slot":25,"mult":16129,"direct":false,"tip":"Manual shape: PW on pulse, distortion on sine, symmetry on triangle, fold/pulse on saw, position in the table on 'more'.","kind":""},{"key":"O3_SHENV","name":"Shape: Mod Env 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":31,"mult":1,"direct":false,"tip":"Mod Env 1 → shape.","kind":""},{"key":"O3_SHLFO","name":"Shape: LFO 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":31,"mult":65,"direct":false,"tip":"LFO 1 → shape.","kind":""},{"key":"O3_VSYNC","name":"Vsync","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":8,"mult":16384,"direct":false,"tip":"Virtual-oscillator hard sync. Multiples of 16 are musical harmonics.","kind":""},{"key":"O3_SAWD","name":"SawDense","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":36,"mult":4096,"direct":false,"tip":"Two extra detuned virtual saws (sawtooth only).","kind":""},{"key":"O3_DDET","name":"DenseDet","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":36,"mult":262144,"direct":false,"tip":"Detune of the density saws.","kind":""},{"key":"O3_FIXED","name":"FixedNote","curve":"int","min":0,"max":88,"def":0,"steps":89,"fmt":"fixnote","slot":28,"mult":89,"direct":false,"tip":"Off, or every key plays this single note (C#-2 … E5).","kind":""},{"key":"O3_BEND","name":"BendRange","curve":"int","min":-24,"max":24,"def":12,"steps":49,"fmt":"st","slot":46,"mult":1,"direct":false,"tip":"Pitch-wheel range in semitones (negative reverses).","kind":""},{"key":"DIVERGE","name":"Diverge","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":37,"mult":1,"direct":false,"tip":"Tiny fixed per-voice tuning differences.","kind":""},{"key":"DRIFT","name":"Drift","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":37,"mult":64,"direct":false,"tip":"Very slow meandering detune of all 24 oscillators.","kind":""},{"key":"NOISELPF","name":"Noise LPF","curve":"lin","min":0,"max":127,"def":127,"steps":64,"fmt":"n127","slot":37,"mult":4096,"direct":false,"tip":"Low-pass filter on the noise generator.","kind":""},{"key":"KEYSYNC","name":"KeySync","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":5,"mult":8181504,"direct":false,"tip":"Oscillators restart their cycle at every key-on.","kind":"tog"},{"key":"TUNING","name":"Tuning Table","curve":"int","min":0,"max":16,"def":0,"steps":17,"fmt":"tuning","slot":27,"mult":907889,"direct":false,"tip":"0 = equal temperament; 1-16 factory alternative tunings.","kind":""},{"key":"MIX1","name":"Osc 1","curve":"lin","min":0,"max":255,"def":255,"steps":128,"fmt":"n255","slot":9,"mult":1,"direct":false,"tip":"Oscillator 1 level.","kind":""},{"key":"MIX2","name":"Osc 2","curve":"lin","min":0,"max":255,"def":0,"steps":128,"fmt":"n255","slot":9,"mult":128,"direct":false,"tip":"","kind":""},{"key":"MIX3","name":"Osc 3","curve":"lin","min":0,"max":255,"def":0,"steps":128,"fmt":"n255","slot":9,"mult":16384,"direct":false,"tip":"","kind":""},{"key":"MIXR","name":"Ring 1*2","curve":"lin","min":0,"max":255,"def":0,"steps":128,"fmt":"n255","slot":10,"mult":1,"direct":false,"tip":"Ring modulator (oscillators 1 × 2).","kind":""},{"key":"MIXN","name":"Noise","curve":"lin","min":0,"max":255,"def":0,"steps":128,"fmt":"n255","slot":10,"mult":128,"direct":false,"tip":"","kind":""},{"key":"VCAGAIN","name":"VCA Gain","curve":"int","min":0,"max":127,"def":127,"steps":128,"fmt":"n127","slot":10,"mult":16384,"direct":false,"tip":"Mixer output level, before overdrive / filter / amp envelope.","kind":""},{"key":"PATCHLVL","name":"Patch Level","curve":"lin","min":0,"max":128,"def":64,"steps":65,"fmt":"n127","slot":31,"mult":4225,"direct":false,"tip":"Per-patch level trim (0 = half, 127 = double).","kind":""},{"key":"F_SHAPE","name":"Shape","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["LP","BP","HP"],"slot":49,"mult":1874161,"direct":false,"tip":"","kind":""},{"key":"F_SLOPE","name":"Slope","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["12 dB","24 dB"],"slot":17,"mult":8388608,"direct":false,"tip":"","kind":""},{"key":"F_FREQ","name":"Frequency","curve":"lin","min":0,"max":255,"def":255,"steps":256,"fmt":"n255","slot":5,"mult":1,"direct":false,"tip":"Cut-off / centre frequency.","kind":""},{"key":"F_RES","name":"Resonance","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":11,"mult":1,"direct":false,"tip":"","kind":""},{"key":"F_ENVSEL","name":"Env Source","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["Amp Env","Mod Env 1"],"slot":18,"mult":8388608,"direct":false,"tip":"Which envelope the ENV DEPTH knob edits (both always act).","kind":""},{"key":"F_ENVAMP","name":"Env Depth: Amp Env","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":32,"mult":1,"direct":false,"tip":"Amp envelope → filter frequency (±8 octaves).","kind":""},{"key":"F_ENVMOD","name":"Env Depth: Mod Env 1","curve":"lin","min":-63,"max":63,"def":0,"steps":65,"fmt":"sgn","slot":32,"mult":65,"direct":false,"tip":"Mod envelope 1 → filter frequency (±8 octaves).","kind":""},{"key":"F_LFO1","name":"LFO 1 Depth","curve":"lin","min":-127,"max":127,"def":0,"steps":129,"fmt":"sgn","slot":7,"mult":16641,"direct":false,"tip":"LFO 1 → filter frequency (±8 octaves).","kind":""},{"key":"F_OSC3","name":"Osc 3 Filter Mod","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":37,"mult":262144,"direct":false,"tip":"Oscillator 3 audio frequency-modulates the filter.","kind":""},{"key":"F_OD","name":"Overdrive","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":11,"mult":128,"direct":false,"tip":"Analogue-style drive BEFORE the filter.","kind":""},{"key":"F_KEY","name":"Key Tracking","curve":"int","min":0,"max":127,"def":127,"steps":128,"fmt":"n127","slot":11,"mult":16384,"direct":false,"tip":"127 = filter follows pitch 1:1.","kind":""},{"key":"F_POST","name":"Filter Post Drive","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":38,"mult":1,"direct":false,"tip":"Distortion after the filter, before the amplifier.","kind":""},{"key":"F_DIV","name":"Filter Divergence","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":38,"mult":64,"direct":false,"tip":"Per-voice filter mistuning (poor-calibration emulation).","kind":""},{"key":"EA_A","name":"Amp Attack","curve":"int","min":0,"max":127,"def":2,"steps":128,"fmt":"n127","slot":12,"mult":1,"direct":false,"tip":"","kind":""},{"key":"EA_D","name":"Amp Decay","curve":"int","min":0,"max":127,"def":90,"steps":128,"fmt":"n127","slot":12,"mult":128,"direct":false,"tip":"","kind":""},{"key":"EA_S","name":"Amp Sustain","curve":"int","min":0,"max":127,"def":127,"steps":128,"fmt":"n127","slot":12,"mult":16384,"direct":false,"tip":"","kind":""},{"key":"EA_R","name":"Amp Release","curve":"int","min":0,"max":127,"def":40,"steps":128,"fmt":"n127","slot":13,"mult":1,"direct":false,"tip":"","kind":""},{"key":"EA_VEL","name":"Amp Velocity","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":32,"mult":4225,"direct":false,"tip":"Velocity sensitivity (negative = inverse).","kind":""},{"key":"EA_TRIG","name":"Amp MonoTrig","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["Legato","Re-Trig"],"slot":19,"mult":8388608,"direct":false,"tip":"Mono modes only: Re-Trig restarts the envelope on every note.","kind":""},{"key":"EA_HOLD","name":"Amp Hold","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"hold","slot":38,"mult":4096,"direct":false,"tip":"Hold stage between attack and decay (0-500 ms).","kind":""},{"key":"EA_REP","name":"Amp Repeats","curve":"int","min":0,"max":31,"def":0,"steps":32,"fmt":"rep","slot":28,"mult":514865,"direct":false,"tip":"Attack-hold-decay repeats before sustain. Off, 1-30, On (31 = loop until key-up).","kind":""},{"key":"EM1_A","name":"Mod 1 Attack","curve":"int","min":0,"max":127,"def":2,"steps":128,"fmt":"n127","slot":13,"mult":128,"direct":false,"tip":"","kind":""},{"key":"EM1_D","name":"Mod 1 Decay","curve":"int","min":0,"max":127,"def":75,"steps":128,"fmt":"n127","slot":13,"mult":16384,"direct":false,"tip":"","kind":""},{"key":"EM1_S","name":"Mod 1 Sustain","curve":"int","min":0,"max":127,"def":35,"steps":128,"fmt":"n127","slot":14,"mult":1,"direct":false,"tip":"","kind":""},{"key":"EM1_R","name":"Mod 1 Release","curve":"int","min":0,"max":127,"def":45,"steps":128,"fmt":"n127","slot":14,"mult":128,"direct":false,"tip":"","kind":""},{"key":"EM1_VEL","name":"Mod 1 Velocity","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":33,"mult":1,"direct":false,"tip":"Velocity sensitivity (negative = inverse).","kind":""},{"key":"EM1_TRIG","name":"Mod 1 MonoTrig","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["Legato","Re-Trig"],"slot":20,"mult":8388608,"direct":false,"tip":"Mono modes only: Re-Trig restarts the envelope on every note.","kind":""},{"key":"EM1_HOLD","name":"Mod 1 Hold","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"hold","slot":38,"mult":262144,"direct":false,"tip":"Hold stage between attack and decay (0-500 ms).","kind":""},{"key":"EM1_REP","name":"Mod 1 Repeats","curve":"int","min":0,"max":31,"def":0,"steps":32,"fmt":"rep","slot":52,"mult":1,"direct":false,"tip":"Attack-hold-decay repeats before sustain. Off, 1-30, On (31 = loop until key-up).","kind":""},{"key":"EM2_A","name":"Mod 2 Attack","curve":"int","min":0,"max":127,"def":2,"steps":128,"fmt":"n127","slot":14,"mult":16384,"direct":false,"tip":"","kind":""},{"key":"EM2_D","name":"Mod 2 Decay","curve":"int","min":0,"max":127,"def":75,"steps":128,"fmt":"n127","slot":15,"mult":1,"direct":false,"tip":"","kind":""},{"key":"EM2_S","name":"Mod 2 Sustain","curve":"int","min":0,"max":127,"def":35,"steps":128,"fmt":"n127","slot":15,"mult":128,"direct":false,"tip":"","kind":""},{"key":"EM2_R","name":"Mod 2 Release","curve":"int","min":0,"max":127,"def":45,"steps":128,"fmt":"n127","slot":15,"mult":16384,"direct":false,"tip":"","kind":""},{"key":"EM2_VEL","name":"Mod 2 Velocity","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":33,"mult":65,"direct":false,"tip":"Velocity sensitivity (negative = inverse).","kind":""},{"key":"EM2_TRIG","name":"Mod 2 MonoTrig","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["Legato","Re-Trig"],"slot":21,"mult":8388608,"direct":false,"tip":"Mono modes only: Re-Trig restarts the envelope on every note.","kind":""},{"key":"EM2_HOLD","name":"Mod 2 Hold","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"hold","slot":39,"mult":1,"direct":false,"tip":"Hold stage between attack and decay (0-500 ms).","kind":""},{"key":"EM2_REP","name":"Mod 2 Repeats","curve":"int","min":0,"max":31,"def":0,"steps":32,"fmt":"rep","slot":52,"mult":32,"direct":false,"tip":"Attack-hold-decay repeats before sustain. Off, 1-30, On (31 = loop until key-up).","kind":""},{"key":"ENV_SEL","name":"Mod Envelope Select","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["Mod 1","Mod 2"],"slot":22,"mult":8388608,"direct":false,"tip":"Which modulation envelope the sliders edit.","kind":""},{"key":"L1_TYPE","name":"LFO 1 Type","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["Triangle","Sawtooth","Square","S&H"],"slot":20,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"L1_RANGE","name":"LFO 1 Range","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["Low","High","Sync"],"slot":50,"mult":1678320,"direct":false,"tip":"Low 0-200 Hz · High 0-1.6 kHz · Sync = tempo divisions.","kind":""},{"key":"L1_RATE","name":"LFO 1 Rate","curve":"lin","min":0,"max":255,"def":127,"steps":128,"fmt":"n255","slot":16,"mult":1,"direct":false,"tip":"","kind":""},{"key":"L1_SYNC","name":"LFO 1 RateSync","curve":"int","min":0,"max":34,"def":16,"steps":35,"fmt":["64 beats","48 beats","42 beats","36 beats","32 beats","30 beats","28 beats","24 beats","21 + 1/3","20 beats","18 + 2/3","18 beats","16 beats","13 + 1/3","12 beats","10 + 2/3","8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"slot":50,"mult":47952,"direct":false,"tip":"Tempo division when Range = Sync.","kind":""},{"key":"L1_FADE","name":"LFO 1 Fade Time","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":39,"mult":64,"direct":false,"tip":"","kind":""},{"key":"L1_FMODE","name":"LFO 1 FadeMode","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["FadeIn","FadeOut","GateIn","GateOut"],"slot":21,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"L1_FSYNC","name":"LFO 1 FadeSync","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["off","on"],"slot":23,"mult":8388608,"direct":false,"tip":"Mono: restart the fade on every key (on) or only the first (off).","kind":"tog"},{"key":"L1_PHASE","name":"LFO 1 Phase","curve":"int","min":0,"max":60,"def":0,"steps":61,"fmt":"phase","slot":29,"mult":274625,"direct":false,"tip":"Free, or restart at a fixed phase on every key (6° steps).","kind":""},{"key":"L1_MONO","name":"LFO 1 MonoTrig","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["Legato","Re-Trig"],"slot":24,"mult":8388608,"direct":false,"tip":"","kind":""},{"key":"L1_SLEW","name":"LFO 1 Slew","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":39,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"L1_REP","name":"LFO 1 Repeats","curve":"int","min":0,"max":31,"def":0,"steps":32,"fmt":"rep","slot":52,"mult":1024,"direct":false,"tip":"Number of LFO cycles per key (Off = continuous).","kind":""},{"key":"L1_COMMON","name":"LFO 1 Common","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":25,"mult":8193532,"direct":false,"tip":"Polyphonic: all voices share one LFO phase.","kind":"tog"},{"key":"L2_TYPE","name":"LFO 2 Type","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["Triangle","Sawtooth","Square","S&H"],"slot":22,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"L2_RANGE","name":"LFO 2 Range","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["Low","High","Sync"],"slot":50,"mult":5034960,"direct":false,"tip":"Low 0-200 Hz · High 0-1.6 kHz · Sync = tempo divisions.","kind":""},{"key":"L2_RATE","name":"LFO 2 Rate","curve":"lin","min":0,"max":255,"def":128,"steps":128,"fmt":"n255","slot":16,"mult":128,"direct":false,"tip":"","kind":""},{"key":"L2_SYNC","name":"LFO 2 RateSync","curve":"int","min":0,"max":34,"def":16,"steps":35,"fmt":["64 beats","48 beats","42 beats","36 beats","32 beats","30 beats","28 beats","24 beats","21 + 1/3","20 beats","18 + 2/3","18 beats","16 beats","13 + 1/3","12 beats","10 + 2/3","8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"slot":51,"mult":1,"direct":false,"tip":"Tempo division when Range = Sync.","kind":""},{"key":"L2_FADE","name":"LFO 2 Fade Time","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":39,"mult":262144,"direct":false,"tip":"","kind":""},{"key":"L2_FMODE","name":"LFO 2 FadeMode","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["FadeIn","FadeOut","GateIn","GateOut"],"slot":23,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"L2_FSYNC","name":"LFO 2 FadeSync","curve":"int","min":0,"max":1,"def":1,"steps":2,"fmt":["off","on"],"slot":46,"mult":7445991,"direct":false,"tip":"Mono: restart the fade on every key (on) or only the first (off).","kind":"tog"},{"key":"L2_PHASE","name":"LFO 2 Phase","curve":"int","min":0,"max":60,"def":0,"steps":61,"fmt":"phase","slot":30,"mult":274625,"direct":false,"tip":"Free, or restart at a fixed phase on every key (6° steps).","kind":""},{"key":"L2_MONO","name":"LFO 2 MonoTrig","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["Legato","Re-Trig"],"slot":47,"mult":5622483,"direct":false,"tip":"","kind":""},{"key":"L2_SLEW","name":"LFO 2 Slew","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":40,"mult":1,"direct":false,"tip":"","kind":""},{"key":"L2_REP","name":"LFO 2 Repeats","curve":"int","min":0,"max":31,"def":0,"steps":32,"fmt":"rep","slot":52,"mult":32768,"direct":false,"tip":"Number of LFO cycles per key (Off = continuous).","kind":""},{"key":"L2_COMMON","name":"LFO 2 Common","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":48,"mult":5622483,"direct":false,"tip":"Polyphonic: all voices share one LFO phase.","kind":"tog"},{"key":"L3_WAVE","name":"LFO 3 Waveform","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["Triangle","Sawtooth","Square","S&H"],"slot":24,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"L3_RATE","name":"LFO 3 Rate","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":40,"mult":64,"direct":false,"tip":"Global (not per-voice) LFO — wide frequency range.","kind":""},{"key":"L3_SYNC","name":"LFO 3 RateSync","curve":"int","min":0,"max":35,"def":0,"steps":36,"fmt":["Off","64 beats","48 beats","42 beats","36 beats","32 beats","30 beats","28 beats","24 beats","21 + 1/3","20 beats","18 + 2/3","18 beats","16 beats","13 + 1/3","12 beats","10 + 2/3","8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"slot":50,"mult":37,"direct":false,"tip":"","kind":""},{"key":"L4_WAVE","name":"LFO 4 Waveform","curve":"int","min":0,"max":3,"def":0,"steps":4,"fmt":["Triangle","Sawtooth","Square","S&H"],"slot":25,"mult":2048383,"direct":false,"tip":"","kind":""},{"key":"L4_RATE","name":"LFO 4 Rate","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":40,"mult":4096,"direct":false,"tip":"Global (not per-voice) LFO — wide frequency range.","kind":""},{"key":"L4_SYNC","name":"LFO 4 RateSync","curve":"int","min":0,"max":35,"def":0,"steps":36,"fmt":["Off","64 beats","48 beats","42 beats","36 beats","32 beats","30 beats","28 beats","24 beats","21 + 1/3","20 beats","18 + 2/3","18 beats","16 beats","13 + 1/3","12 beats","10 + 2/3","8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"slot":50,"mult":1332,"direct":false,"tip":"","kind":""},{"key":"UNISON","name":"Unison","curve":"int","min":0,"max":4,"def":0,"steps":5,"fmt":["1","2","3","4","8"],"slot":14,"mult":2097152,"direct":false,"tip":"Voices stacked per note (reduces polyphony).","kind":""},{"key":"UNIDET","name":"UniDeTune","curve":"lin","min":0,"max":127,"def":25,"steps":64,"fmt":"n127","slot":40,"mult":262144,"direct":false,"tip":"Detune between unison voices.","kind":""},{"key":"UNISPR","name":"UniSpread","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":41,"mult":1,"direct":false,"tip":"Stereo spread of voices (odd left, even right).","kind":""},{"key":"PREGLIDE","name":"PreGlide","curve":"int","min":-12,"max":12,"def":0,"steps":25,"fmt":"preglide","slot":53,"mult":1,"direct":false,"tip":"Each note starts this many semitones away and glides in (needs Glide on).","kind":""},{"key":"MODE","name":"Mode","curve":"int","min":0,"max":4,"def":3,"steps":5,"fmt":["Mono","MonoLG","Mono2","Poly","Poly2"],"slot":15,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"GLIDE","name":"Glide Time","curve":"lin","min":0,"max":127,"def":60,"steps":64,"fmt":"n127","slot":41,"mult":64,"direct":false,"tip":"Portamento time.","kind":""},{"key":"GLIDE_ON","name":"Glide On","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":49,"mult":5622483,"direct":false,"tip":"","kind":"tog"},{"key":"KBDOCT","name":"Keyboard Octave","curve":"int","min":-3,"max":3,"def":0,"steps":7,"fmt":"oct","slot":7,"mult":2146689,"direct":false,"tip":"","kind":""},{"key":"FX_BYPASS","name":"FX Bypass","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":53,"mult":7604375,"direct":false,"tip":"Bypasses chorus / delay / reverb (not the analogue distortion).","kind":"tog"},{"key":"FX_ROUTE","name":"Routing","curve":"int","min":0,"max":6,"def":0,"steps":7,"fmt":["Parallel","D>R>C","D>C>R","R>D>C","R>C>D","C>D>R","C>R>D"],"slot":9,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"FX_WET","name":"WetLevel","curve":"lin","min":0,"max":127,"def":127,"steps":64,"fmt":"n127","slot":41,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"FX_DRY","name":"DryLevel","curve":"lin","min":0,"max":127,"def":127,"steps":64,"fmt":"n127","slot":41,"mult":262144,"direct":false,"tip":"","kind":""},{"key":"DIST","name":"Distortion Level","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":16,"mult":16384,"direct":false,"tip":"Analogue distortion on the sum of all voices (after the VCA, before the FX).","kind":""},{"key":"CH_LEVEL","name":"Level","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":17,"mult":1,"direct":false,"tip":"","kind":""},{"key":"CH_TYPE","name":"Type","curve":"int","min":0,"max":2,"def":1,"steps":3,"fmt":["1","2","3"],"slot":59,"mult":5316979,"direct":false,"tip":"1 = two-tap, 2 = four-tap, 3 = ensemble.","kind":""},{"key":"CH_RATE","name":"Rate","curve":"int","min":0,"max":127,"def":20,"steps":128,"fmt":"n127","slot":17,"mult":128,"direct":false,"tip":"","kind":""},{"key":"CH_DEPTH","name":"ChorDepth","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":42,"mult":1,"direct":false,"tip":"","kind":""},{"key":"CH_FB","name":"ChorFback","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":17,"mult":16384,"direct":false,"tip":"Feedback (negative = phase reversed → flanger).","kind":""},{"key":"CH_LP","name":"LoPass","curve":"lin","min":0,"max":127,"def":90,"steps":64,"fmt":"n127","slot":42,"mult":64,"direct":false,"tip":"","kind":""},{"key":"CH_HP","name":"HiPass","curve":"lin","min":0,"max":127,"def":2,"steps":64,"fmt":"n127","slot":42,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"DL_LEVEL","name":"Level","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":18,"mult":1,"direct":false,"tip":"","kind":""},{"key":"DL_TIME","name":"Time","curve":"int","min":0,"max":127,"def":64,"steps":128,"fmt":"n127","slot":18,"mult":128,"direct":false,"tip":"0 … ~1.4 s.","kind":""},{"key":"DL_FB","name":"Feedback","curve":"int","min":0,"max":127,"def":64,"steps":128,"fmt":"n127","slot":18,"mult":16384,"direct":false,"tip":"","kind":""},{"key":"DL_SYNC","name":"Sync","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":54,"mult":6436343,"direct":false,"tip":"Time follows tempo (host or ClockRate).","kind":"tog"},{"key":"DL_SYNCR","name":"DelaySync","curve":"int","min":0,"max":15,"def":8,"steps":16,"fmt":["4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"slot":52,"mult":1048576,"direct":false,"tip":"","kind":""},{"key":"DL_LP","name":"LP Damp","curve":"lin","min":0,"max":127,"def":85,"steps":64,"fmt":"n127","slot":42,"mult":262144,"direct":false,"tip":"","kind":""},{"key":"DL_HP","name":"HP Damp","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":43,"mult":1,"direct":false,"tip":"","kind":""},{"key":"DL_LR","name":"L/R Ratio","curve":"int","min":0,"max":10,"def":0,"steps":11,"fmt":["1/1","4/3","3/4","3/2","2/3","2/1","1/2","3/1","1/3","4/1","1/4"],"slot":61,"mult":36864,"direct":false,"tip":"Left/right time ratio (1/1 = centred echoes).","kind":""},{"key":"DL_SLEW","name":"SlewRate","curve":"lin","min":0,"max":127,"def":32,"steps":64,"fmt":"n127","slot":43,"mult":64,"direct":false,"tip":"How fast the delay time follows changes (low = more pitch-shift).","kind":""},{"key":"DL_WIDTH","name":"Width","curve":"lin","min":0,"max":127,"def":127,"steps":64,"fmt":"n127","slot":43,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"RV_LEVEL","name":"Level","curve":"int","min":0,"max":127,"def":0,"steps":128,"fmt":"n127","slot":19,"mult":1,"direct":false,"tip":"","kind":""},{"key":"RV_TYPE","name":"Type","curve":"int","min":0,"max":2,"def":1,"steps":3,"fmt":["1","2","3"],"slot":61,"mult":405504,"direct":false,"tip":"Sets the size to small / medium / large.","kind":""},{"key":"RV_TIME","name":"Time","curve":"int","min":0,"max":127,"def":90,"steps":128,"fmt":"n127","slot":19,"mult":128,"direct":false,"tip":"","kind":""},{"key":"RV_PRE","name":"PreDelay","curve":"int","min":1,"max":127,"def":40,"steps":127,"fmt":"n127","slot":26,"mult":1,"direct":false,"tip":"0 … ~0.5 s.","kind":""},{"key":"RV_LP","name":"LP Damp","curve":"lin","min":0,"max":127,"def":50,"steps":64,"fmt":"n127","slot":43,"mult":262144,"direct":false,"tip":"","kind":""},{"key":"RV_HP","name":"HP Damp","curve":"lin","min":0,"max":127,"def":1,"steps":64,"fmt":"n127","slot":44,"mult":1,"direct":false,"tip":"","kind":""},{"key":"RV_SIZE","name":"RevSize","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":44,"mult":64,"direct":false,"tip":"","kind":""},{"key":"RV_MOD","name":"ModDepth","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":44,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"RV_MODR","name":"ModRate","curve":"lin","min":0,"max":127,"def":4,"steps":64,"fmt":"n127","slot":44,"mult":262144,"direct":false,"tip":"","kind":""},{"key":"RV_LOP","name":"LoPass","curve":"lin","min":0,"max":127,"def":74,"steps":64,"fmt":"n127","slot":45,"mult":1,"direct":false,"tip":"","kind":""},{"key":"RV_HIP","name":"HiPass","curve":"lin","min":0,"max":127,"def":0,"steps":64,"fmt":"n127","slot":45,"mult":64,"direct":false,"tip":"","kind":""},{"key":"FM1_A","name":"Slot 1 Source A","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":60,"mult":1,"direct":false,"tip":"","kind":""},{"key":"FM1_B","name":"Slot 1 Source B","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":60,"mult":16,"direct":false,"tip":"","kind":""},{"key":"FM1_DEST","name":"Slot 1 Destination","curve":"int","min":0,"max":11,"def":0,"steps":12,"fmt":["Dist Lev","Chor Lev","ChorRate","Chor Dep","Chor FB","Del Lev","Del Time","Del FB","Rev Lev","Rev Time","Rev LPF","Rev HPF"],"slot":26,"mult":1295527,"direct":false,"tip":"","kind":""},{"key":"FM1_DEPTH","name":"Slot 1 Depth","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":33,"mult":4225,"direct":false,"tip":"","kind":""},{"key":"FM2_A","name":"Slot 2 Source A","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":60,"mult":256,"direct":false,"tip":"","kind":""},{"key":"FM2_B","name":"Slot 2 Source B","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":60,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"FM2_DEST","name":"Slot 2 Destination","curve":"int","min":0,"max":11,"def":0,"steps":12,"fmt":["Dist Lev","Chor Lev","ChorRate","Chor Dep","Chor FB","Del Lev","Del Time","Del FB","Rev Lev","Rev Time","Rev LPF","Rev HPF"],"slot":51,"mult":1257795,"direct":false,"tip":"","kind":""},{"key":"FM2_DEPTH","name":"Slot 2 Depth","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":34,"mult":1,"direct":false,"tip":"","kind":""},{"key":"FM3_A","name":"Slot 3 Source A","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":60,"mult":65536,"direct":false,"tip":"","kind":""},{"key":"FM3_B","name":"Slot 3 Source B","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":60,"mult":1048576,"direct":false,"tip":"","kind":""},{"key":"FM3_DEST","name":"Slot 3 Destination","curve":"int","min":0,"max":11,"def":0,"steps":12,"fmt":["Dist Lev","Chor Lev","ChorRate","Chor Dep","Chor FB","Del Lev","Del Time","Del FB","Rev Lev","Rev Time","Rev LPF","Rev HPF"],"slot":61,"mult":256,"direct":false,"tip":"","kind":""},{"key":"FM3_DEPTH","name":"Slot 3 Depth","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":34,"mult":65,"direct":false,"tip":"","kind":""},{"key":"FM4_A","name":"Slot 4 Source A","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":61,"mult":1,"direct":false,"tip":"","kind":""},{"key":"FM4_B","name":"Slot 4 Source B","curve":"int","min":0,"max":15,"def":0,"steps":16,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":61,"mult":16,"direct":false,"tip":"","kind":""},{"key":"FM4_DEST","name":"Slot 4 Destination","curve":"int","min":0,"max":11,"def":0,"steps":12,"fmt":["Dist Lev","Chor Lev","ChorRate","Chor Dep","Chor FB","Del Lev","Del Time","Del FB","Rev Lev","Rev Time","Rev LPF","Rev HPF"],"slot":61,"mult":3072,"direct":false,"tip":"","kind":""},{"key":"FM4_DEPTH","name":"Slot 4 Depth","curve":"lin","min":-64,"max":64,"def":0,"steps":65,"fmt":"sgn","slot":34,"mult":4225,"direct":false,"tip":"","kind":""},{"key":"ARP_ON","name":"Arp On","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":55,"mult":6436343,"direct":false,"tip":"","kind":"tog"},{"key":"ARP_LATCH","name":"Key Latch","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":56,"mult":6436343,"direct":false,"tip":"","kind":"tog"},{"key":"ARP_GATE","name":"Gate","curve":"lin","min":0,"max":127,"def":64,"steps":64,"fmt":"n127","slot":45,"mult":4096,"direct":false,"tip":"","kind":""},{"key":"ARP_BPM","name":"ClockRate","curve":"int","min":40,"max":240,"def":120,"steps":201,"fmt":"bpm","slot":5,"mult":256,"direct":false,"tip":"","kind":""},{"key":"ARP_SRC","name":"Clock Source","curve":"int","min":0,"max":4,"def":0,"steps":5,"fmt":["Auto","Internal","Ext-Auto","MIDI","USB"],"slot":16,"mult":2097152,"direct":false,"tip":"Auto/Ext-Auto/MIDI/USB follow the host tempo when it reports one; Internal always uses ClockRate.","kind":""},{"key":"ARP_TYPE","name":"Type","curve":"int","min":0,"max":6,"def":0,"steps":7,"fmt":["Up","Down","Up-Down 1","Up-Down 2","Played","Random","Chord"],"slot":10,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"ARP_RHYTHM","name":"Rhythm","curve":"int","min":1,"max":33,"def":1,"steps":33,"fmt":"int","slot":51,"mult":38115,"direct":false,"tip":"33 rhythm patterns.","kind":""},{"key":"ARP_OCT","name":"Octaves","curve":"int","min":1,"max":6,"def":1,"steps":6,"fmt":"int","slot":11,"mult":2097152,"direct":false,"tip":"","kind":""},{"key":"ARP_SWING","name":"Swing","curve":"int","min":20,"max":80,"def":50,"steps":61,"fmt":"int","slot":31,"mult":274625,"direct":false,"tip":"","kind":""},{"key":"ARP_SYNC","name":"SyncRate","curve":"int","min":0,"max":18,"def":15,"steps":19,"fmt":["8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"slot":59,"mult":279841,"direct":false,"tip":"","kind":""},{"key":"ARP_KSYNC","name":"KeySync","curve":"int","min":0,"max":1,"def":0,"steps":2,"fmt":["off","on"],"slot":57,"mult":6436343,"direct":false,"tip":"Latch mode: restart the pattern when new keys are pressed.","kind":"tog"},{"key":"VELSHAPE","name":"VelShape","curve":"lin","min":0,"max":128,"def":64,"steps":65,"fmt":"n127","slot":35,"mult":1,"direct":false,"tip":"Velocity curve (64 = linear).","kind":""},{"key":"TUNECENTS","name":"TuneCents","curve":"int","min":-50,"max":50,"def":0,"steps":101,"fmt":"ct","slot":27,"mult":101,"direct":false,"tip":"","kind":""},{"key":"TRANSPOSE","name":"Transpose","curve":"int","min":-12,"max":12,"def":0,"steps":25,"fmt":"st","slot":53,"mult":25,"direct":false,"tip":"Shifts incoming MIDI notes (not the oscillator tuning).","kind":""},{"key":"VOLRANGE","name":"VolRange","curve":"int","min":0,"max":2,"def":0,"steps":3,"fmt":["0 dB","-3 dB","-6 dB"],"slot":61,"mult":1216512,"direct":false,"tip":"","kind":""},{"key":"MM1_A","name":"Slot 1 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":53,"mult":625,"direct":false,"tip":"","kind":""},{"key":"MM1_B","name":"Slot 1 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":53,"mult":14375,"direct":false,"tip":"","kind":""},{"key":"MM1_DEST","name":"Slot 1 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":46,"mult":49,"direct":false,"tip":"","kind":""},{"key":"MM1_DEPTH","name":"Slot 1 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":19,"mult":16384,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM2_A","name":"Slot 2 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":53,"mult":330625,"direct":false,"tip":"","kind":""},{"key":"MM2_B","name":"Slot 2 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":54,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM2_DEST","name":"Slot 2 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":46,"mult":1813,"direct":false,"tip":"","kind":""},{"key":"MM2_DEPTH","name":"Slot 2 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":20,"mult":1,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM3_A","name":"Slot 3 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":54,"mult":23,"direct":false,"tip":"","kind":""},{"key":"MM3_B","name":"Slot 3 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":54,"mult":529,"direct":false,"tip":"","kind":""},{"key":"MM3_DEST","name":"Slot 3 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":46,"mult":67081,"direct":false,"tip":"","kind":""},{"key":"MM3_DEPTH","name":"Slot 3 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":20,"mult":128,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM4_A","name":"Slot 4 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":54,"mult":12167,"direct":false,"tip":"","kind":""},{"key":"MM4_B","name":"Slot 4 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":54,"mult":279841,"direct":false,"tip":"","kind":""},{"key":"MM4_DEST","name":"Slot 4 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":47,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM4_DEPTH","name":"Slot 4 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":20,"mult":16384,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM5_A","name":"Slot 5 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":55,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM5_B","name":"Slot 5 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":55,"mult":23,"direct":false,"tip":"","kind":""},{"key":"MM5_DEST","name":"Slot 5 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":47,"mult":37,"direct":false,"tip":"","kind":""},{"key":"MM5_DEPTH","name":"Slot 5 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":21,"mult":1,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM6_A","name":"Slot 6 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":55,"mult":529,"direct":false,"tip":"","kind":""},{"key":"MM6_B","name":"Slot 6 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":55,"mult":12167,"direct":false,"tip":"","kind":""},{"key":"MM6_DEST","name":"Slot 6 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":47,"mult":1369,"direct":false,"tip":"","kind":""},{"key":"MM6_DEPTH","name":"Slot 6 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":21,"mult":128,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM7_A","name":"Slot 7 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":55,"mult":279841,"direct":false,"tip":"","kind":""},{"key":"MM7_B","name":"Slot 7 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":56,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM7_DEST","name":"Slot 7 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":47,"mult":50653,"direct":false,"tip":"","kind":""},{"key":"MM7_DEPTH","name":"Slot 7 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":21,"mult":16384,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM8_A","name":"Slot 8 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":56,"mult":23,"direct":false,"tip":"","kind":""},{"key":"MM8_B","name":"Slot 8 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":56,"mult":529,"direct":false,"tip":"","kind":""},{"key":"MM8_DEST","name":"Slot 8 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":48,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM8_DEPTH","name":"Slot 8 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":22,"mult":1,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM9_A","name":"Slot 9 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":56,"mult":12167,"direct":false,"tip":"","kind":""},{"key":"MM9_B","name":"Slot 9 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":56,"mult":279841,"direct":false,"tip":"","kind":""},{"key":"MM9_DEST","name":"Slot 9 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":48,"mult":37,"direct":false,"tip":"","kind":""},{"key":"MM9_DEPTH","name":"Slot 9 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":22,"mult":128,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM10_A","name":"Slot 10 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":57,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM10_B","name":"Slot 10 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":57,"mult":23,"direct":false,"tip":"","kind":""},{"key":"MM10_DEST","name":"Slot 10 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":48,"mult":1369,"direct":false,"tip":"","kind":""},{"key":"MM10_DEPTH","name":"Slot 10 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":22,"mult":16384,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM11_A","name":"Slot 11 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":57,"mult":529,"direct":false,"tip":"","kind":""},{"key":"MM11_B","name":"Slot 11 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":57,"mult":12167,"direct":false,"tip":"","kind":""},{"key":"MM11_DEST","name":"Slot 11 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":48,"mult":50653,"direct":false,"tip":"","kind":""},{"key":"MM11_DEPTH","name":"Slot 11 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":23,"mult":1,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM12_A","name":"Slot 12 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":57,"mult":279841,"direct":false,"tip":"","kind":""},{"key":"MM12_B","name":"Slot 12 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":58,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM12_DEST","name":"Slot 12 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":49,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM12_DEPTH","name":"Slot 12 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":23,"mult":128,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM13_A","name":"Slot 13 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":58,"mult":23,"direct":false,"tip":"","kind":""},{"key":"MM13_B","name":"Slot 13 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":58,"mult":529,"direct":false,"tip":"","kind":""},{"key":"MM13_DEST","name":"Slot 13 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":49,"mult":37,"direct":false,"tip":"","kind":""},{"key":"MM13_DEPTH","name":"Slot 13 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":23,"mult":16384,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM14_A","name":"Slot 14 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":58,"mult":12167,"direct":false,"tip":"","kind":""},{"key":"MM14_B","name":"Slot 14 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":58,"mult":279841,"direct":false,"tip":"","kind":""},{"key":"MM14_DEST","name":"Slot 14 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":49,"mult":1369,"direct":false,"tip":"","kind":""},{"key":"MM14_DEPTH","name":"Slot 14 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":24,"mult":1,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM15_A","name":"Slot 15 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":59,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM15_B","name":"Slot 15 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":59,"mult":23,"direct":false,"tip":"","kind":""},{"key":"MM15_DEST","name":"Slot 15 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":49,"mult":50653,"direct":false,"tip":"","kind":""},{"key":"MM15_DEPTH","name":"Slot 15 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":24,"mult":128,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""},{"key":"MM16_A","name":"Slot 16 Source A","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":59,"mult":529,"direct":false,"tip":"","kind":""},{"key":"MM16_B","name":"Slot 16 Source B","curve":"int","min":0,"max":22,"def":0,"steps":23,"fmt":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"slot":59,"mult":12167,"direct":false,"tip":"","kind":""},{"key":"MM16_DEST","name":"Slot 16 Destination","curve":"int","min":0,"max":36,"def":0,"steps":37,"fmt":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"slot":50,"mult":1,"direct":false,"tip":"","kind":""},{"key":"MM16_DEPTH","name":"Slot 16 Depth","curve":"int","min":-64,"max":63,"def":0,"steps":128,"fmt":"sgn","slot":24,"mult":16384,"direct":false,"tip":"Both sources multiply; Direct = constant 1.","kind":""}],"slots":62,"slotMax":16777216,"wt":["BS sine","Random","Zing","Tubey","Octaves","Wobbler","Chords","Didgery","Harsh","Organ","E.Piano","VoxOooEe","VoxYahEe","Winds","SoftClav","String","BassOrgn","Acid","Buzzy","Carousel","Choral","Climbing","CoinFlip","Deep","Dub","Eee","Eris","Flame","Further","GlassSaw","Glassy","Granular","Grime","Drow","Heavy","Hedge","Hungry","Ladders","Lead","Modeling","Modem","Monster","Screech","SeaBase","Shmorgan","Spirals","Steel","Sunrise","Swell","Thicker","Thinner","Tides","Tokyo","Tops","V.Chord","Variance","Vocaloid","Vowelled","WeirdVox","Yeah","PWMc 01","PWMc 02","PWMc 03","PWMc 04","PWMc 05","PWMc 06","PWMc 07","PWMc 08","PWMc 09","PWMc 10","PWMc 11","PWMc 12","PWMc 13","PWMc 14","PWMc 15","PWMc 16","PWMc 17","PWMc 18","PWMc 19","PWMc 20","PWMs 01","PWMs 02","PWMs 03","PWMs 04","PWMs 05","PWMs 06","PWMs 07","PWMq 01","PWMq 02","PWMq 03","PWMq 04","PWMq 05","PWMq 06","PWMb 01","PWMb 02","PWMb 03","PWMb 04","PWMb 05","PWMb 06","PWMb 07","PWMb 08","Dst Asym","Dst Diode 1","Dst Diode 2","Dst Downsmp","Dst FltDrive","Dst Hard Clip 2","Dst Hard Clip","Dst Lin.Fold","Dst Rectify","Dst Sin.Fold","Dst SineShp","Dst SoftClip","Dst Stomp Box","Dst Tape","Dst Tube","Dst ZeroSqr","FM 01","FM 02","FM 03","FM 04","FM 05","FM 06","FM 07","FM 08","FM 09","FM 10","FM 11","FM 12","FM 13","FM 14","FM 15","FM 16","FM 17","Growl 01","Growl 02","Growl 03","Growl 04","Growl 05","Growl 06","Growl 07","Growl 08","Growl 09","Growl 10","Growl 11","Growl 12","Growl 13","Growl 14","Growl 15","Growl 16","Growl 17","Growl 18","Hyper 01","Hyper 02","Hyper 03","Hyper 04","Hyper 05","Hyper 06","Hyper 07"],"wtCats":["Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Factory","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Analog","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","Distorted","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","FM","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Growl","Hyper","Hyper","Hyper","Hyper","Hyper","Hyper","Hyper"],"modSrc":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Lfo1+","Lfo1+/-","Lfo2+","Lfo2+/-","AmpEnv","ModEnv1","ModEnv2","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"fxSrc":["Direct","ModWheel","AftTouch","ExprPED1","BrthPED2","Velocity","Keyboard","Animate1","Animate2","CV +/-","Lfo3+","Lfo3+/-","Lfo4+","Lfo4+/-","BndWhl+","BndWhl-"],"modDest":["0123Ptch","Osc1Ptch","Osc2Ptch","Osc3Ptch","Osc1VSnc","Osc2VSnc","Osc3VSnc","Osc1Shpe","Osc2Shpe","Osc3Shpe","Osc1 Lev","Osc2 Lev","Osc3 Lev","NoiseLev","Ring Lev","VcaLevel","Filt Drv","FiltDist","FiltFreq","Filt Res","Lfo1Rate","Lfo2Rate","AmpEnv A","AmpEnv D","AmpEnv R","ModEnv1A","ModEnv1D","ModEnv1R","ModEnv2A","ModEnv2D","ModEnv2R","FM O1>O2","FM O2>O3","FM O3>O1","FM Ns>O1","O3>FiltF","Ns>FiltF"],"fxDest":["Dist Lev","Chor Lev","ChorRate","Chor Dep","Chor FB","Del Lev","Del Time","Del FB","Rev Lev","Rev Time","Rev LPF","Rev HPF"],"lfoSync":["64 beats","48 beats","42 beats","36 beats","32 beats","30 beats","28 beats","24 beats","21 + 1/3","20 beats","18 + 2/3","18 beats","16 beats","13 + 1/3","12 beats","10 + 2/3","8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"arpSync":["8 beats","6 beats","5 + 1/3","4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"dlySync":["4 beats","3 beats","2 + 2/3","2nd","4th D","1 + 1/3","4th","8th D","4th T","8th","16th D","8th T","16th","16th T","32nd","32nd T"],"tunings":["Equal (12-TET)","Just 5-limit","Pythagorean","1/4-comma meantone","Werckmeister III","Kirnberger III","Vallotti","Young","Arabic Rast","Arabic Bayati","Indian Shruti","19-tone (approx)","Harmonic 7-limit","Gamelan Pelog","Gamelan Slendro","Quarter-tone pairs","Neidhardt"],"presets":[{"name":"Init Patch","cat":"Init","diff":{}},{"name":"Sub Foundation","cat":"Bass","diff":{"MODE":0,"GLIDE_ON":1,"GLIDE":40,"MIX2":150,"F_FREQ":118,"F_RES":20,"F_ENVMOD":28,"F_KEY":100,"O1_WAVE":0,"O1_RANGE":0,"O2_RANGE":0,"O2_FINE":4,"EA_A":0,"EA_D":70,"EA_S":110,"EA_R":30,"EM1_A":0,"EM1_D":55,"EM1_S":30,"EM1_R":40,"PATCHLVL":54,"VCAGAIN":86}},{"name":"Reese Machine","cat":"Bass","diff":{"UNISON":1,"UNIDET":40,"MIX2":255,"MIX3":160,"F_FREQ":125,"F_RES":25,"F_ENVMOD":20,"CH_LEVEL":55,"O1_RANGE":0,"O2_RANGE":0,"O2_FINE":14,"O3_RANGE":0,"O3_FINE":-11,"EA_A":0,"EA_S":120,"EA_R":35,"EM1_A":0,"EM1_D":70,"EM1_S":40,"EM1_R":50,"PATCHLVL":54,"VCAGAIN":40}},{"name":"Wobble Deck","cat":"Bass","diff":{"MODE":0,"MIX2":180,"F_FREQ":130,"F_RES":62,"F_LFO1":70,"F_KEY":90,"F_OD":30,"O1_RANGE":0,"O2_WAVE":3,"O2_RANGE":0,"O2_SHAPE":10,"O2_FINE":6,"L1_RANGE":2,"L1_SYNC":28,"EA_A":0,"EA_D":70,"EA_R":30,"PATCHLVL":38,"VCAGAIN":49}},{"name":"Acid Climber","cat":"Bass","diff":{"MODE":0,"GLIDE_ON":1,"GLIDE":38,"F_FREQ":92,"F_RES":100,"F_ENVMOD":48,"F_KEY":80,"F_OD":45,"DIST":20,"DL_LEVEL":40,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":55,"O1_RANGE":0,"EA_A":0,"EA_D":55,"EA_S":0,"EA_R":25,"EM1_A":0,"EM1_D":50,"EM1_S":0,"EM1_R":30,"PATCHLVL":128}},{"name":"FM Pulse Bass","cat":"Bass","diff":{"MODE":0,"MIX1":0,"MIX2":255,"F_FREQ":170,"F_RES":15,"F_KEY":100,"MM1_B":12,"MM1_DEST":31,"MM1_DEPTH":38,"O1_WAVE":0,"O1_RANGE":0,"O2_WAVE":0,"O2_RANGE":0,"EA_A":0,"EA_D":60,"EA_S":40,"EA_R":25,"EM1_A":0,"EM1_D":50,"EM1_S":0,"EM1_R":30,"PATCHLVL":110}},{"name":"Hollow Square","cat":"Bass","diff":{"MODE":0,"MIX2":100,"F_FREQ":150,"F_RES":30,"F_KEY":95,"O1_WAVE":3,"O1_RANGE":0,"O1_SRC":2,"O1_SHLFO":28,"O2_WAVE":1,"L1_RATE":70,"EA_A":0,"EA_D":80,"EA_S":100,"EA_R":30,"PATCHLVL":54,"VCAGAIN":79}},{"name":"Growl Table","cat":"Bass","diff":{"MODE":0,"F_FREQ":140,"F_RES":28,"F_KEY":90,"O1_WAVE":4,"O1_MORE":137,"O1_RANGE":0,"O1_SRC":1,"O1_SHENV":40,"EA_A":0,"EA_D":85,"EA_S":100,"EA_R":30,"EM1_A":0,"EM1_D":70,"EM1_S":20,"EM1_R":40,"PATCHLVL":128}},{"name":"Fold Bass","cat":"Bass","diff":{"MODE":0,"F_FREQ":160,"F_RES":20,"F_KEY":80,"DIST":30,"O1_WAVE":4,"O1_MORE":110,"O1_RANGE":0,"O1_SRC":1,"O1_SHENV":-40,"EA_A":0,"EA_D":70,"EA_S":90,"EA_R":28,"EM1_A":0,"EM1_D":55,"EM1_S":10,"EM1_R":35,"PATCHLVL":44}},{"name":"Rubber Bass","cat":"Bass","diff":{"MODE":0,"GLIDE_ON":1,"GLIDE":30,"MIX2":200,"F_FREQ":105,"F_RES":55,"F_ENVMOD":40,"F_KEY":90,"F_OD":25,"O1_RANGE":0,"O2_FINE":-8,"EA_A":0,"EA_D":50,"EA_S":20,"EA_R":25,"EM1_A":0,"EM1_D":40,"EM1_S":0,"EM1_R":30,"PATCHLVL":128}},{"name":"Octave Pump","cat":"Bass","diff":{"MODE":0,"MIX2":255,"F_FREQ":135,"F_RES":40,"F_KEY":80,"MM1_A":17,"MM1_DEST":2,"MM1_DEPTH":8,"L3_RATE":90,"O1_WAVE":3,"O1_RANGE":0,"EA_A":0,"EA_S":120,"EA_R":30,"PATCHLVL":54,"VCAGAIN":61}},{"name":"Sync Scream","cat":"Lead","diff":{"MODE":0,"GLIDE_ON":1,"GLIDE":28,"F_FREQ":200,"F_RES":20,"F_KEY":100,"DL_LEVEL":35,"DL_TIME":60,"DL_FB":50,"MM1_A":12,"MM1_DEST":4,"MM1_DEPTH":12,"MM2_A":1,"MM2_DEST":4,"MM2_DEPTH":22,"O1_VSYNC":14,"EA_D":80,"EA_S":110,"EA_R":35,"EM1_A":10,"EM1_D":90,"EM1_S":40,"EM1_R":40,"PATCHLVL":128}},{"name":"Super Saw Lead","cat":"Lead","diff":{"UNISON":1,"UNIDET":35,"UNISPR":80,"MIX2":200,"F_FREQ":205,"F_RES":15,"F_KEY":110,"CH_LEVEL":50,"DL_LEVEL":36,"DL_TIME":66,"DL_FB":55,"RV_LEVEL":28,"O1_SAWD":100,"O1_DDET":80,"O2_SAWD":100,"O2_DDET":70,"O2_FINE":9,"EA_A":3,"EA_D":80,"EA_S":115,"PATCHLVL":46}},{"name":"Ring Bell Lead","cat":"Lead","diff":{"MODE":0,"MIX1":0,"MIXR":255,"F_FREQ":210,"F_RES":20,"F_KEY":100,"MM1_B":12,"MM1_DEST":31,"MM1_DEPTH":14,"RV_LEVEL":40,"RV_TIME":78,"O1_WAVE":0,"O2_WAVE":0,"O2_COARSE":7,"O2_FINE":12,"EA_A":0,"EA_D":85,"EA_S":30,"EA_R":60,"EM1_A":0,"EM1_D":60,"EM1_S":0,"EM1_R":50}},{"name":"Vox Lead","cat":"Lead","diff":{"MODE":0,"GLIDE_ON":1,"GLIDE":35,"F_FREQ":210,"F_KEY":100,"RV_LEVEL":32,"MM1_A":18,"MM1_DEPTH":1,"L3_RATE":70,"O1_WAVE":4,"O1_MORE":11,"O1_SRC":2,"O1_SHLFO":50,"L1_RATE":60,"L1_FADE":40,"EA_A":8,"EA_D":70,"EA_S":115,"PATCHLVL":106}},{"name":"Mono Fury","cat":"Lead","diff":{"MODE":1,"GLIDE_ON":1,"GLIDE":36,"MIX2":255,"MIX3":255,"F_FREQ":170,"F_RES":40,"F_ENVMOD":20,"F_KEY":100,"F_OD":40,"DL_LEVEL":36,"DL_TIME":62,"DL_FB":55,"O2_FINE":8,"O3_WAVE":3,"O3_RANGE":0,"O3_FINE":-6,"EA_D":70,"EA_S":115,"EA_R":35,"EM1_A":0,"EM1_D":70,"EM1_S":55,"EM1_R":40,"VCAGAIN":42}},{"name":"Glass Tine Lead","cat":"Lead","diff":{"MODE":0,"F_FREQ":230,"F_KEY":100,"RV_LEVEL":36,"DL_LEVEL":30,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":55,"O1_WAVE":4,"O1_MORE":10,"O1_SRC":1,"O1_SHENV":40,"EA_A":0,"EA_D":75,"EA_S":60,"EA_R":55,"EM1_A":0,"EM1_D":70,"EM1_S":0,"EM1_R":50,"PATCHLVL":104}},{"name":"Pulse Wave Hero","cat":"Lead","diff":{"UNISON":1,"MIX2":200,"F_FREQ":190,"F_RES":20,"F_KEY":100,"CH_LEVEL":40,"DL_LEVEL":28,"O1_WAVE":3,"O1_SRC":2,"O1_SHLFO":40,"O2_WAVE":3,"O2_FINE":10,"O2_SRC":2,"O2_SHLFO":-36,"L1_RATE":70,"EA_D":80,"EA_S":115,"PATCHLVL":54,"VCAGAIN":39}},{"name":"Crystal Sync","cat":"Lead","diff":{"MIX2":150,"F_FREQ":220,"F_KEY":100,"RV_LEVEL":36,"MM1_A":9,"MM1_DEST":4,"MM1_DEPTH":20,"MM2_A":1,"MM2_DEST":18,"MM2_DEPTH":8,"O1_VSYNC":20,"O2_WAVE":1,"O2_RANGE":2,"O2_FINE":7,"L2_RATE":85,"EA_A":3,"EA_D":80,"EA_S":100,"EA_R":50,"PATCHLVL":86}},{"name":"Whistle Sine","cat":"Lead","diff":{"MODE":0,"GLIDE_ON":1,"GLIDE":45,"MIX2":60,"RV_LEVEL":40,"DL_LEVEL":34,"DL_TIME":70,"DL_FB":60,"MM1_A":1,"MM1_DEST":7,"MM1_DEPTH":30,"O1_WAVE":0,"O1_RANGE":2,"O1_LFO2":8,"O2_WAVE":0,"O2_RANGE":2,"O2_FINE":4,"L2_RATE":105,"L2_FADE":60,"L2_FMODE":2,"EA_A":8,"EA_D":70,"EA_S":115,"EA_R":50,"PATCHLVL":54,"VCAGAIN":93}},{"name":"Slow Horizon","cat":"Pad","diff":{"UNISON":1,"UNIDET":30,"UNISPR":60,"MIX1":200,"MIX2":200,"F_FREQ":140,"F_RES":14,"F_ENVMOD":25,"F_KEY":80,"CH_LEVEL":60,"RV_LEVEL":55,"RV_TIME":95,"DRIFT":50,"DIVERGE":30,"O2_FINE":8,"EA_A":75,"EA_S":110,"EA_R":85,"EM1_A":80,"EM1_D":90,"EM1_S":70,"EM1_R":80,"PATCHLVL":60,"VCAGAIN":32}},{"name":"Glass Cathedral","cat":"Pad","diff":{"MIX2":130,"F_FREQ":215,"F_RES":10,"F_KEY":100,"RV_LEVEL":75,"RV_TIME":108,"RV_SIZE":127,"CH_LEVEL":40,"DRIFT":40,"O1_WAVE":4,"O1_MORE":29,"O1_SRC":2,"O1_SHLFO":40,"O2_WAVE":4,"O2_MORE":30,"O2_RANGE":2,"O2_FINE":5,"L1_RATE":40,"EA_A":80,"EA_S":115,"EA_R":95,"PATCHLVL":56,"VCAGAIN":84}},{"name":"Warm Strings","cat":"Pad","diff":{"UNISON":2,"UNIDET":28,"UNISPR":70,"MIX2":220,"F_FREQ":170,"F_RES":8,"F_KEY":90,"F_ENVMOD":15,"CH_LEVEL":85,"CH_TYPE":2,"RV_LEVEL":40,"DRIFT":40,"O2_FINE":7,"EA_A":60,"EA_S":115,"EA_R":75,"EM1_A":55,"EM1_D":80,"EM1_S":85,"EM1_R":70,"PATCHLVL":42,"VCAGAIN":30}},{"name":"Choral Dawn","cat":"Pad","diff":{"UNISON":1,"UNIDET":20,"F_FREQ":235,"F_KEY":100,"CH_LEVEL":60,"RV_LEVEL":55,"RV_TIME":98,"O1_WAVE":4,"O1_MORE":20,"O1_SRC":2,"O1_SHLFO":60,"L1_RATE":30,"EA_A":70,"EA_S":115,"EA_R":90,"PATCHLVL":54,"VCAGAIN":45}},{"name":"Analog Drift","cat":"Pad","diff":{"MIX2":255,"MIX3":255,"F_FREQ":130,"F_RES":20,"F_ENVMOD":20,"F_KEY":90,"DRIFT":127,"DIVERGE":60,"F_DIV":60,"CH_LEVEL":45,"RV_LEVEL":45,"O2_FINE":5,"O3_WAVE":3,"O3_SHAPE":20,"O3_RANGE":0,"O3_FINE":-5,"EA_A":70,"EA_S":110,"EA_R":80,"EM1_A":70,"EM1_D":90,"EM1_S":70,"EM1_R":80,"PATCHLVL":54,"VCAGAIN":31}},{"name":"Wide Detune Pad","cat":"Pad","diff":{"UNISON":3,"UNIDET":50,"UNISPR":127,"F_FREQ":150,"F_RES":10,"F_ENVMOD":20,"F_KEY":90,"CH_LEVEL":50,"RV_LEVEL":50,"EA_A":70,"EA_S":115,"EA_R":85,"EM1_A":65,"EM1_D":90,"EM1_S":75,"EM1_R":80,"PATCHLVL":54,"VCAGAIN":45}},{"name":"Evolving Table","cat":"Pad","diff":{"UNISON":1,"UNIDET":18,"MIX2":150,"F_FREQ":190,"F_RES":15,"F_KEY":95,"CH_LEVEL":45,"RV_LEVEL":55,"RV_TIME":100,"O1_WAVE":4,"O1_MORE":71,"O1_SRC":2,"O1_SHLFO":63,"O2_WAVE":4,"O2_MORE":154,"O2_SRC":2,"O2_SHLFO":-55,"O2_FINE":6,"L1_RATE":35,"EA_A":78,"EA_S":115,"EA_R":90,"PATCHLVL":54,"VCAGAIN":50}},{"name":"Ice Breath","cat":"Pad","diff":{"MIX1":0,"MIXN":255,"F_SHAPE":1,"F_FREQ":170,"F_RES":95,"F_KEY":100,"F_LFO1":25,"RV_LEVEL":60,"RV_TIME":100,"DL_LEVEL":25,"NOISELPF":100,"L1_RATE":70,"L1_TYPE":3,"EA_A":85,"EA_S":115,"EA_R":95,"PATCHLVL":128}},{"name":"Organ Hall","cat":"Pad","diff":{"MIX2":200,"MIX3":160,"F_FREQ":220,"F_KEY":100,"CH_LEVEL":70,"CH_TYPE":3,"RV_LEVEL":55,"RV_TIME":85,"O1_WAVE":4,"O1_MORE":9,"O2_WAVE":0,"O2_RANGE":2,"O3_WAVE":0,"O3_RANGE":0,"EA_A":10,"EA_R":50,"PATCHLVL":52,"VCAGAIN":30}},{"name":"Breathing Pad","cat":"Pad","diff":{"UNISON":1,"MIX2":200,"F_FREQ":125,"F_RES":25,"F_KEY":90,"F_LFO1":28,"RV_LEVEL":50,"CH_LEVEL":50,"O2_WAVE":3,"O2_FINE":7,"L1_RATE":50,"EA_A":80,"EA_S":120,"EA_R":90,"PATCHLVL":50,"VCAGAIN":24}},{"name":"Animate Me","cat":"Pad","diff":{"UNISON":1,"UNIDET":22,"MIX2":200,"F_FREQ":100,"F_RES":30,"F_KEY":90,"CH_LEVEL":50,"RV_LEVEL":40,"MM1_A":14,"MM1_DEST":18,"MM1_DEPTH":38,"MM2_A":15,"MM2_DEST":2,"MM2_DEPTH":4,"FM1_A":8,"FM1_DEST":5,"FM1_DEPTH":50,"DL_TIME":70,"DL_FB":70,"O2_FINE":8,"EA_A":55,"EA_S":115,"EA_R":80,"PATCHLVL":54,"VCAGAIN":40}},{"name":"Tine Piano","cat":"Keys","diff":{"F_FREQ":230,"F_KEY":110,"CH_LEVEL":50,"RV_LEVEL":35,"EA_VEL":40,"O1_WAVE":4,"O1_MORE":10,"O1_SRC":1,"O1_SHENV":38,"EA_A":0,"EA_D":85,"EA_S":0,"EA_R":55,"EM1_A":0,"EM1_D":70,"EM1_S":0,"EM1_R":50,"PATCHLVL":74}},{"name":"Funk Clav","cat":"Keys","diff":{"F_FREQ":170,"F_RES":20,"F_ENVMOD":30,"F_KEY":110,"EA_VEL":30,"O1_WAVE":4,"O1_MORE":14,"EA_A":0,"EA_D":60,"EA_S":0,"EA_R":35,"EM1_A":0,"EM1_D":50,"EM1_S":0,"EM1_R":40,"PATCHLVL":128}},{"name":"Digital Bell","cat":"Keys","diff":{"F_FREQ":240,"F_KEY":100,"RV_LEVEL":55,"RV_TIME":95,"MM1_B":12,"MM1_DEST":31,"MM1_DEPTH":20,"O1_WAVE":0,"O1_COARSE":12,"O2_WAVE":4,"O2_MORE":52,"EA_A":0,"EA_D":95,"EA_S":0,"EA_R":70,"EM1_A":0,"EM1_D":80,"EM1_S":0,"EM1_R":60,"PATCHLVL":54,"VCAGAIN":78}},{"name":"Drawbar Organ","cat":"Keys","diff":{"MIX2":190,"MIX3":150,"F_FREQ":235,"F_KEY":100,"CH_LEVEL":40,"DIST":25,"RV_LEVEL":25,"O1_WAVE":0,"O2_WAVE":0,"O2_RANGE":2,"O3_WAVE":4,"O3_MORE":9,"O3_RANGE":0,"EA_A":5,"EA_R":25,"PATCHLVL":38,"VCAGAIN":19}},{"name":"Marimba Ring","cat":"Keys","diff":{"MIX1":0,"MIXR":255,"F_FREQ":200,"F_KEY":100,"RV_LEVEL":40,"O1_WAVE":0,"O2_WAVE":0,"O2_COARSE":12,"O2_FINE":5,"EA_A":0,"EA_D":70,"EA_S":0,"PATCHLVL":72}},{"name":"Soft Pluck Keys","cat":"Keys","diff":{"MIX2":160,"F_FREQ":125,"F_RES":15,"F_ENVMOD":38,"F_KEY":110,"CH_LEVEL":40,"RV_LEVEL":40,"EA_VEL":40,"O2_WAVE":1,"O2_RANGE":2,"O2_FINE":6,"EA_A":0,"EA_D":75,"EA_S":0,"EA_R":45,"EM1_A":0,"EM1_D":62,"EM1_S":0,"PATCHLVL":84}},{"name":"Wurly Bite","cat":"Keys","diff":{"F_FREQ":215,"F_KEY":100,"DIST":40,"CH_LEVEL":45,"EA_VEL":40,"MM1_A":5,"MM1_DEST":7,"MM1_DEPTH":24,"O1_WAVE":4,"O1_MORE":10,"O1_SRC":1,"O1_SHENV":-20,"O1_SHAPE":20,"EA_A":0,"EA_D":80,"EA_S":20,"EA_R":50,"EM1_A":0,"EM1_D":55,"EM1_S":0,"EM1_R":40,"PATCHLVL":32,"VCAGAIN":85}},{"name":"Glass Harp","cat":"Keys","diff":{"MIX2":150,"F_FREQ":235,"F_KEY":100,"RV_LEVEL":70,"RV_TIME":105,"CH_LEVEL":30,"O1_WAVE":4,"O1_MORE":30,"O2_WAVE":0,"O2_RANGE":2,"O2_FINE":5,"EA_A":15,"EA_D":100,"EA_S":40,"EA_R":80,"PATCHLVL":54,"VCAGAIN":81}},{"name":"Arp Pulse 16th","cat":"Arp","diff":{"ARP_ON":1,"ARP_GATE":56,"ARP_OCT":2,"MIX2":180,"F_FREQ":140,"F_RES":40,"F_ENVMOD":34,"F_KEY":100,"DL_LEVEL":40,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":55,"RV_LEVEL":25,"O1_WAVE":3,"O1_SHAPE":10,"O2_FINE":6,"EA_A":0,"EA_D":60,"EA_S":40,"EA_R":30,"EM1_A":0,"EM1_D":55,"EM1_S":0,"EM1_R":30,"PATCHLVL":38}},{"name":"Dub Chord Stabs","cat":"Arp","diff":{"ARP_ON":1,"ARP_TYPE":6,"ARP_SYNC":12,"ARP_GATE":45,"ARP_RHYTHM":4,"MIX2":200,"F_FREQ":120,"F_RES":25,"F_ENVMOD":36,"F_KEY":100,"DL_LEVEL":70,"DL_SYNC":1,"DL_SYNCR":4,"DL_FB":80,"RV_LEVEL":40,"O2_WAVE":3,"O2_FINE":7,"EA_A":0,"EA_D":60,"EA_S":20,"EA_R":30,"EM1_A":0,"EM1_D":55,"EM1_S":0,"EM1_R":30,"PATCHLVL":54,"VCAGAIN":86}},{"name":"Arp Cascade","cat":"Arp","diff":{"ARP_ON":1,"ARP_TYPE":3,"ARP_OCT":3,"ARP_GATE":50,"F_FREQ":170,"F_RES":25,"F_KEY":110,"CH_LEVEL":45,"RV_LEVEL":45,"DL_LEVEL":38,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":60,"O1_WAVE":4,"O1_MORE":30,"O1_SRC":1,"O1_SHENV":30,"EA_A":0,"EA_D":65,"EA_S":0,"EA_R":55,"EM1_A":0,"EM1_D":55,"EM1_S":0,"EM1_R":50,"PATCHLVL":128}},{"name":"Octave Bounce","cat":"Arp","diff":{"ARP_ON":1,"ARP_OCT":3,"ARP_GATE":50,"ARP_RHYTHM":7,"MIX2":120,"F_FREQ":120,"F_RES":55,"F_ENVMOD":38,"F_KEY":100,"F_OD":20,"O2_WAVE":3,"O2_RANGE":0,"EA_A":0,"EA_D":55,"EA_S":10,"EA_R":25,"EM1_A":0,"EM1_D":50,"EM1_S":0,"EM1_R":25,"PATCHLVL":128}},{"name":"Random Glass","cat":"Arp","diff":{"ARP_ON":1,"ARP_TYPE":5,"ARP_OCT":2,"ARP_GATE":60,"F_FREQ":225,"F_KEY":100,"RV_LEVEL":60,"RV_TIME":100,"DL_LEVEL":50,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":70,"O1_WAVE":4,"O1_MORE":10,"EA_A":0,"EA_D":70,"EA_S":0,"EA_R":60,"PATCHLVL":96}},{"name":"Trance Gate","cat":"Arp","diff":{"ARP_ON":1,"ARP_TYPE":6,"ARP_RHYTHM":12,"ARP_GATE":70,"UNISON":1,"UNIDET":30,"MIX2":255,"F_FREQ":175,"F_RES":20,"F_KEY":100,"CH_LEVEL":40,"RV_LEVEL":30,"O2_FINE":8,"EA_A":0,"EA_D":80,"EA_S":100,"EA_R":25,"PATCHLVL":52,"VCAGAIN":37}},{"name":"Swing Pluck","cat":"Arp","diff":{"ARP_ON":1,"ARP_TYPE":2,"ARP_SWING":63,"ARP_GATE":50,"ARP_OCT":2,"F_FREQ":130,"F_RES":30,"F_ENVMOD":38,"F_KEY":110,"DL_LEVEL":40,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":50,"O1_WAVE":3,"O1_SHAPE":15,"O2_FINE":5,"EA_A":0,"EA_D":55,"EA_S":0,"EA_R":30,"EM1_A":0,"EM1_D":50,"EM1_S":0,"EM1_R":30,"PATCHLVL":82}},{"name":"Held Cloud","cat":"Arp","diff":{"ARP_ON":1,"ARP_LATCH":1,"ARP_TYPE":4,"ARP_OCT":2,"ARP_SYNC":14,"ARP_GATE":80,"MIX2":180,"F_FREQ":170,"F_RES":20,"F_KEY":100,"RV_LEVEL":55,"RV_TIME":95,"CH_LEVEL":50,"DL_LEVEL":40,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":60,"O1_WAVE":4,"O1_MORE":57,"O2_WAVE":1,"O2_RANGE":2,"O2_FINE":6,"EA_A":0,"EA_D":70,"EA_S":60,"EA_R":70,"PATCHLVL":76}},{"name":"Rhythm Machine","cat":"Arp","diff":{"ARP_ON":1,"ARP_RHYTHM":18,"ARP_GATE":40,"MIX2":180,"F_FREQ":105,"F_RES":55,"F_ENVMOD":45,"F_KEY":100,"F_OD":30,"O1_RANGE":0,"O2_FINE":6,"EA_A":0,"EA_D":50,"EA_S":0,"EA_R":25,"EM1_A":0,"EM1_D":45,"EM1_S":0,"EM1_R":25,"PATCHLVL":128}},{"name":"Down Stairs","cat":"Arp","diff":{"ARP_ON":1,"ARP_TYPE":1,"ARP_OCT":3,"ARP_SYNC":12,"ARP_GATE":70,"ARP_RHYTHM":3,"MIX2":150,"F_FREQ":180,"F_RES":20,"F_KEY":105,"RV_LEVEL":40,"CH_LEVEL":40,"O1_WAVE":4,"O1_MORE":38,"O2_FINE":7,"EA_A":0,"EA_D":70,"EA_S":50,"PATCHLVL":100}},{"name":"Poly Brass","cat":"Brass","diff":{"UNISON":1,"UNIDET":15,"MIX2":255,"F_FREQ":110,"F_RES":15,"F_ENVMOD":38,"F_KEY":100,"CH_LEVEL":35,"RV_LEVEL":25,"EA_VEL":25,"O2_FINE":6,"EA_A":18,"EA_D":80,"EA_S":110,"EA_R":35,"EM1_A":22,"EM1_S":70,"EM1_R":40,"PATCHLVL":48,"VCAGAIN":33}},{"name":"Brass Stab","cat":"Brass","diff":{"MIX2":255,"F_FREQ":100,"F_RES":20,"F_ENVMOD":45,"F_KEY":100,"RV_LEVEL":35,"EA_VEL":35,"O2_FINE":9,"EA_A":6,"EA_D":62,"EA_S":20,"EA_R":35,"EM1_A":10,"EM1_D":55,"EM1_S":5,"EM1_R":35,"PATCHLVL":52}},{"name":"Analog Strings","cat":"Strings","diff":{"UNISON":1,"UNIDET":20,"MIX2":255,"F_FREQ":180,"F_KEY":90,"CH_LEVEL":90,"CH_TYPE":3,"RV_LEVEL":45,"DRIFT":35,"O2_FINE":8,"EA_A":55,"EA_S":120,"EA_R":70,"PATCHLVL":36,"VCAGAIN":31}},{"name":"Octave Strings","cat":"Strings","diff":{"MIX2":200,"MIX3":160,"F_FREQ":190,"F_KEY":95,"CH_LEVEL":80,"CH_TYPE":2,"RV_LEVEL":45,"O1_WAVE":4,"O1_MORE":15,"O2_RANGE":2,"O2_FINE":6,"O3_RANGE":0,"O3_FINE":-6,"EA_A":50,"EA_S":118,"EA_R":70,"PATCHLVL":54,"VCAGAIN":46}},{"name":"Cello Section","cat":"Strings","diff":{"UNISON":1,"UNIDET":15,"MIX2":150,"F_FREQ":160,"F_RES":10,"F_KEY":80,"CH_LEVEL":55,"RV_LEVEL":45,"O1_WAVE":4,"O1_MORE":15,"O1_RANGE":0,"O2_RANGE":0,"O2_FINE":5,"EA_A":40,"EA_S":115,"EA_R":60,"L1_RATE":95,"L1_FADE":70,"O1_LFO2":6,"O2_LFO2":6,"L2_RATE":105,"L2_FADE":70,"PATCHLVL":54,"VCAGAIN":44}},{"name":"Sine Kick","cat":"Percussive","diff":{"MODE":0,"F_FREQ":200,"F_KEY":0,"DIST":18,"O1_WAVE":0,"O1_RANGE":0,"O1_ENV2":45,"EA_A":0,"EA_D":52,"EA_S":0,"EA_R":15,"EM2_A":0,"EM2_D":28,"EM2_S":0,"EM2_R":20,"PATCHLVL":128}},{"name":"Tom Drop","cat":"Percussive","diff":{"F_FREQ":170,"F_KEY":60,"RV_LEVEL":25,"O1_WAVE":1,"O1_ENV2":30,"EA_A":0,"EA_D":62,"EA_S":0,"EA_R":30,"EM2_A":0,"EM2_D":40,"EM2_S":0,"EM2_R":30,"PATCHLVL":128}},{"name":"Zap Laser","cat":"Percussive","diff":{"MIX2":150,"F_FREQ":220,"F_KEY":100,"DL_LEVEL":30,"O1_ENV2":63,"O2_WAVE":3,"O2_ENV2":55,"O2_FINE":10,"EA_A":0,"EA_D":58,"EA_S":0,"EA_R":25,"EM2_A":0,"EM2_D":40,"EM2_S":0,"EM2_R":20,"PATCHLVL":128}},{"name":"Noise Hat","cat":"Percussive","diff":{"MIX1":0,"MIXN":255,"F_SHAPE":2,"F_FREQ":200,"F_KEY":0,"EA_A":0,"EA_D":38,"EA_S":0,"EA_R":18,"PATCHLVL":128}},{"name":"Rim Click","cat":"Percussive","diff":{"MIXN":120,"F_FREQ":205,"F_RES":30,"F_KEY":80,"F_OD":40,"O1_WAVE":3,"O1_RANGE":2,"EA_A":0,"EA_D":40,"EA_S":0,"EA_R":20,"PATCHLVL":128}},{"name":"Metal Hit","cat":"Percussive","diff":{"MIX1":0,"MIXR":255,"F_FREQ":235,"F_KEY":80,"RV_LEVEL":40,"RV_TIME":80,"O1_COARSE":5,"O2_WAVE":3,"O2_COARSE":-3,"O2_FINE":25,"EA_A":0,"EA_D":62,"EA_S":0,"PATCHLVL":128}},{"name":"Pluck Mallet","cat":"Percussive","diff":{"MIX2":130,"F_FREQ":125,"F_RES":25,"F_ENVMOD":40,"F_KEY":110,"RV_LEVEL":35,"EA_VEL":40,"O1_WAVE":1,"O2_WAVE":0,"O2_RANGE":2,"O2_FINE":5,"EA_A":0,"EA_D":55,"EA_S":0,"EA_R":30,"EM1_A":0,"EM1_D":50,"EM1_S":0,"EM1_R":30,"PATCHLVL":128}},{"name":"Sea Drone","cat":"FX","diff":{"MIX2":150,"F_FREQ":120,"F_RES":30,"F_LFO1":30,"F_KEY":60,"RV_LEVEL":75,"RV_TIME":115,"RV_SIZE":127,"O1_WAVE":4,"O1_MORE":43,"O1_RANGE":0,"O2_RANGE":0,"O2_FINE":5,"L1_RATE":30,"EA_A":100,"EA_R":100,"PATCHLVL":54,"VCAGAIN":41}},{"name":"Alien Transmission","cat":"FX","diff":{"MODE":0,"MIX2":150,"F_FREQ":170,"F_RES":55,"F_KEY":70,"RV_LEVEL":50,"DL_LEVEL":45,"DL_TIME":80,"DL_FB":75,"MM1_A":18,"MM1_DEST":31,"MM1_DEPTH":30,"MM2_A":20,"MM2_DEST":18,"MM2_DEPTH":20,"L3_RATE":98,"L3_WAVE":3,"L4_RATE":70,"L4_WAVE":3,"O1_WAVE":0,"O2_WAVE":0,"O2_COARSE":7,"EA_A":5,"EA_S":120,"EA_R":70,"PATCHLVL":54,"VCAGAIN":82}},{"name":"S&H Cloud","cat":"FX","diff":{"MIX2":200,"F_FREQ":140,"F_RES":45,"F_LFO1":60,"RV_LEVEL":55,"DL_LEVEL":40,"DL_SYNC":1,"DL_SYNCR":7,"DL_FB":65,"O1_LFO2":20,"O2_WAVE":3,"O2_FINE":8,"O2_LFO2":20,"L1_TYPE":3,"L1_RANGE":2,"L1_SYNC":31,"L2_TYPE":3,"L2_RANGE":2,"L2_SYNC":28,"EA_A":20,"EA_S":115,"EA_R":80,"PATCHLVL":54,"VCAGAIN":41}},{"name":"Noise Sweep","cat":"FX","diff":{"MIX1":0,"MIXN":255,"F_SHAPE":1,"F_FREQ":80,"F_RES":80,"F_ENVMOD":63,"F_KEY":0,"RV_LEVEL":60,"RV_TIME":100,"EA_A":100,"EA_S":100,"EA_R":90,"EM1_A":110,"EM1_D":80,"EM1_S":40,"EM1_R":90,"PATCHLVL":124}},{"name":"Impact Hit","cat":"FX","diff":{"MIX2":255,"MIXN":100,"F_FREQ":140,"F_RES":20,"F_ENVMOD":30,"DIST":35,"RV_LEVEL":80,"RV_TIME":110,"RV_SIZE":127,"O1_RANGE":0,"O1_ENV2":30,"O2_WAVE":3,"O2_RANGE":0,"O2_ENV2":25,"EA_A":0,"EA_D":100,"EA_S":0,"EA_R":90,"EM1_A":0,"EM1_D":90,"EM1_S":0,"EM1_R":80,"EM2_A":0,"EM2_D":60,"EM2_S":0,"EM2_R":50,"PATCHLVL":32,"VCAGAIN":25}},{"name":"Spiral Staircase","cat":"FX","diff":{"F_FREQ":220,"F_KEY":100,"RV_LEVEL":55,"DL_LEVEL":40,"DL_TIME":70,"DL_FB":70,"O1_WAVE":4,"O1_MORE":45,"O1_SRC":2,"O1_SHLFO":63,"L1_RATE":80,"EA_A":20,"EA_S":110,"EA_R":70,"PATCHLVL":122}},{"name":"Modem Dream","cat":"FX","diff":{"F_FREQ":200,"F_KEY":100,"RV_LEVEL":45,"DL_LEVEL":35,"O1_WAVE":4,"O1_MORE":40,"O1_SRC":1,"O1_SHENV":50,"EA_A":10,"EA_S":100,"EA_R":70,"EM1_A":60,"EM1_D":90,"EM1_S":30,"EM1_R":70,"PATCHLVL":128}},{"name":"Rising Tide","cat":"FX","diff":{"UNISON":1,"UNIDET":30,"MIX2":200,"F_FREQ":100,"F_RES":40,"F_ENVMOD":50,"F_KEY":110,"RV_LEVEL":55,"RV_TIME":105,"O2_FINE":10,"EA_A":100,"EA_S":120,"EA_R":90,"EM1_A":115,"EM1_D":90,"EM1_S":60,"EM1_R":90,"PATCHLVL":56,"VCAGAIN":37}},{"name":"Growl Stack","cat":"Bass","diff":{"MODE":0,"F_FREQ":160,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":134,"O1_RANGE":0,"O1_SRC":1,"O1_SHENV":45,"EA_A":0,"EA_D":85,"EA_S":100,"EA_R":30,"EM1_A":0,"EM1_D":80,"EM1_S":20,"PATCHLVL":96}},{"name":"Throat Singer","cat":"Bass","diff":{"MODE":0,"F_FREQ":160,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":142,"O1_RANGE":0,"O1_SRC":1,"O1_SHAPE":10,"O1_SHENV":45,"EA_A":0,"EA_D":85,"EA_S":100,"EA_R":30,"EM1_A":0,"EM1_D":80,"EM1_S":20,"PATCHLVL":108}},{"name":"FM Chime Keys","cat":"Keys","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":121,"O1_SRC":2,"EA_D":80,"EA_S":105,"EA_R":45,"PATCHLVL":54,"VCAGAIN":96}},{"name":"Bell Tower","cat":"Keys","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":128,"O1_SRC":2,"EA_D":80,"EA_S":105,"EA_R":45,"PATCHLVL":60}},{"name":"Hyper Pad","cat":"Pad","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":55,"RV_LEVEL":55,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":152,"O1_SRC":2,"O1_SHLFO":55,"L1_RATE":38,"UNISON":1,"UNIDET":22,"EA_A":70,"EA_S":115,"EA_R":90,"PATCHLVL":54,"VCAGAIN":59}},{"name":"Hyperdrive Lead","cat":"Lead","diff":{"MODE":0,"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_LEVEL":32,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":156,"O1_SRC":1,"O1_SHENV":45,"EA_D":80,"EA_S":105,"EA_R":45,"EM1_A":0,"EM1_D":80,"EM1_S":20,"PATCHLVL":70}},{"name":"PWM Strings","cat":"Pad","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":55,"RV_LEVEL":55,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":64,"O1_SRC":2,"O1_SHLFO":55,"L1_RATE":38,"UNISON":1,"UNIDET":22,"EA_A":70,"EA_S":115,"EA_R":90,"PATCHLVL":54,"VCAGAIN":81}},{"name":"Saw Sweep","cat":"Pad","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":55,"RV_LEVEL":55,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":82,"O1_SRC":2,"O1_SHLFO":55,"L1_RATE":38,"UNISON":1,"UNIDET":22,"EA_A":70,"EA_S":115,"EA_R":90,"PATCHLVL":54,"VCAGAIN":81}},{"name":"Square Drift","cat":"Pad","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":55,"RV_LEVEL":55,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":88,"O1_SRC":2,"O1_SHLFO":55,"L1_RATE":38,"UNISON":1,"UNIDET":22,"EA_A":70,"EA_S":115,"EA_R":90,"PATCHLVL":54,"VCAGAIN":45}},{"name":"Sub Table","cat":"Bass","diff":{"MODE":0,"F_FREQ":160,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":96,"O1_RANGE":0,"O1_SRC":1,"O1_SHENV":45,"EA_A":0,"EA_D":85,"EA_S":100,"EA_R":30,"EM1_A":0,"EM1_D":80,"EM1_S":20,"PATCHLVL":100}},{"name":"Tube Lead","cat":"Lead","diff":{"MODE":0,"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_LEVEL":32,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":115,"O1_SRC":1,"O1_SHENV":45,"EA_D":80,"EA_S":105,"EA_R":45,"EM1_A":0,"EM1_D":80,"EM1_S":20,"PATCHLVL":46}},{"name":"Tape Keys","cat":"Keys","diff":{"F_FREQ":230,"F_KEY":90,"F_RES":15,"CH_LEVEL":25,"RV_LEVEL":28,"DL_TIME":66,"DL_FB":55,"O1_WAVE":4,"O1_MORE":114,"O1_SRC":2,"EA_D":80,"EA_S":105,"EA_R":45,"PATCHLVL":54,"VCAGAIN":55}}]};
+(function () {
+"use strict";
+// =====================================================================
+//  KHEVEREST panel — a faithful re-creation of the Peak's front panel.
+//  Every control is a "logical parameter"; build.mjs packs them several-to-a-host-slot
+//  (mixed radix). This script owns the packing: R[key] = raw integer, V[key] = actual value,
+//  slot = Σ R·mult. The OLED menu system mirrors the hardware's nine menus.
+// =====================================================================
+var P = DATA.params, BY = {}, FIELDS = {}, UPD = {}, SV = "http://www.w3.org/2000/svg";
+var R = {}, V = {}, dragSlot = -1, SCALE = 1;
+P.forEach(function (p) { BY[p.key] = p; (FIELDS[p.slot] = FIELDS[p.slot] || []).push(p); UPD[p.key] = []; });
+var NSLOT = DATA.slots;
+
+function el(tag, cls, parent, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e; }
+function sv(tag, attrs, parent) { var e = document.createElementNS(SV, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
+function host(f) { var a = [].slice.call(arguments, 1); if (window.vstai && typeof window.vstai[f] === "function") window.vstai[f].apply(window.vstai, a); }
+function put(e, x, y, w, h) { e.style.left = x + "px"; e.style.top = y + "px"; if (w != null) e.style.width = w + "px"; if (h != null) e.style.height = h + "px"; return e; }
+
+// ---------------------------------------------------------------- packing
+function rawToActual(p, r) {
+  if (p.curve === "int") return p.min + r;
+  var n = p.steps > 1 ? r / (p.steps - 1) : 0;
+  return p.min + n * (p.max - p.min);
+}
+function actualToRaw(p, v) {
+  if (p.curve === "int") return clamp(Math.round(v - p.min), 0, p.steps - 1);
+  var n = (v - p.min) / (p.max - p.min);
+  return clamp(Math.round(n * (p.steps - 1)), 0, p.steps - 1);
+}
+function slotValue(s) {
+  var f = FIELDS[s], t = 0;
+  for (var i = 0; i < f.length; i++) { if (f[i].direct) return V[f[i].key]; t += R[f[i].key] * f[i].mult; }
+  return t;
+}
+function push(s) { host("setParam", s, slotValue(s)); }
+function norm(p) { return p.direct ? (V[p.key] - p.min) / (p.max - p.min) : (p.steps > 1 ? R[p.key] / (p.steps - 1) : 0); }
+var dirty = false, ready = false;
+function touch(p) { var u = UPD[p.key]; for (var i = 0; i < u.length; i++) u[i](); }
+function markDirty() { if (!dirty) { dirty = true; oledRender(); } }
+function setRaw(p, r) { r = clamp(Math.round(r), 0, p.steps - 1); R[p.key] = r; V[p.key] = rawToActual(p, r); }
+function setNorm(p, n) {
+  n = clamp(n, 0, 1);
+  if (p.direct) V[p.key] = p.min + n * (p.max - p.min); else setRaw(p, n * (p.steps - 1));
+  touch(p); push(p.slot); markDirty();
+}
+function set(key, actual, quiet) {
+  var p = BY[key]; if (!p) return;
+  if (p.direct) V[key] = clamp(actual, p.min, p.max); else setRaw(p, actualToRaw(p, actual));
+  touch(p); if (!quiet) { push(p.slot); markDirty(); }
+}
+function step(p, dir, mult) {
+  if (p.direct) { setNorm(p, norm(p) + dir * 0.02 * (mult || 1)); return; }
+  setRaw(p, R[p.key] + dir * (mult || 1)); touch(p); push(p.slot); markDirty();
+}
+function decodeSlot(s, value) {
+  var f = FIELDS[s]; if (!f) return;
+  var k = Math.round(value);
+  for (var i = 0; i < f.length; i++) {
+    var p = f[i];
+    if (p.direct) V[p.key] = clamp(+value, p.min, p.max);
+    else { var raw = Math.floor(k / p.mult) % p.steps; R[p.key] = raw; V[p.key] = rawToActual(p, raw); }
+    touch(p);
+  }
+}
+P.forEach(function (p) { if (p.direct) V[p.key] = p.def; else { R[p.key] = actualToRaw(p, p.def); V[p.key] = rawToActual(p, R[p.key]); } });
+function snapshot() { var o = {}; P.forEach(function (p) { o[p.key] = V[p.key]; }); return o; }
+function applySnap(o) { P.forEach(function (p) { var v = o[p.key]; if (v === undefined) v = p.def; if (p.direct) V[p.key] = clamp(v, p.min, p.max); else setRaw(p, actualToRaw(p, v)); }); P.forEach(touch); for (var s = 0; s < NSLOT; s++) push(s); }
+function bindKeys(keys, fn) { keys.forEach(function (k) { UPD[k].push(fn); }); }
+
+// ---------------------------------------------------------------- formatting
+var NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function fmtVal(p) {
+  var v = V[p.key], f = p.fmt;
+  if (Array.isArray(f)) return f[Math.round(v - p.min)] || String(v);
+  switch (f) {
+    case "n127": case "n255": case "int": return String(Math.round(v));
+    case "sgn": return (v > 0.5 ? "+" : "") + Math.round(v);
+    case "st": return (v > 0.04 ? "+" : "") + (Math.abs(v - Math.round(v)) < 0.01 ? String(Math.round(v)) : v.toFixed(1));
+    case "ct": return (v > 0.5 ? "+" : "") + Math.round(v);
+    case "pct": return Math.round(v * 100) + "%";
+    case "bip": return (v > 0.005 ? "+" : "") + v.toFixed(2);
+    case "bits": return ((v & 1) ? "A1 " : "") + ((v & 2) ? "A2 " : "") + ((v & 4) ? "H" : "") || "-";
+    case "rep": return v === 0 ? "Off" : (v >= 31 ? "On" : String(v));
+    case "phase": return v === 0 ? "Free" : ((v - 1) * 6) + "deg";
+    case "preglide": return v === 0 ? "Off" : ((v > 0 ? "+" : "") + v);
+    case "oct": return (v > 0 ? "+" : "") + v;
+    case "bpm": return v + "BPM";
+    case "hold": return Math.round(v / 127 * 500) + "ms";
+    case "wt": return DATA.wt[Math.round(v)] || "?";
+    case "fixnote": return v === 0 ? "Off" : NOTES[v % 12] + (Math.floor(v / 12) - 2);
+    case "tuning": return v + " " + DATA.tunings[v];
+    default: return String(Math.round(v * 100) / 100);
+  }
+}
+function pname(p) { return p.name; }
+
+// ---------------------------------------------------------------- the faceplate
+var plate = document.getElementById("plate");
+var stage = document.getElementById("stage");
+function sect(x, y, w, h, title, arrow) {
+  var s = el("div", "sec", plate); put(s, x, y, w, h);
+  if (title) el("span", "st", s, title);
+  if (arrow) el("span", "ar", s, "▶");
+  s.__t = title || "";
+  return s;
+}
+function label(sec, x, y, txt, cls) { var l = el("div", "lb" + (cls ? " " + cls : ""), sec, txt); l.style.left = x + "px"; l.style.top = y + "px"; return l; }
+function bracket(sec, x0, x1, y) { var b = el("div", "br", sec); put(b, x0, y, x1 - x0, 5); return b; }
+
+// ---- OLED temp readout (hardware: touching a rotary shows the value in an alternative display)
+var tempTimer = 0, temp = null;
+function flash(sec, p, text) {
+  temp = [sec ? sec.__t.toUpperCase() : "", pname(p), text != null ? text : fmtVal(p)];
+  oledRender();
+  clearTimeout(tempTimer); tempTimer = setTimeout(function () { temp = null; oledRender(); }, 1300);
+}
+
+// ---- knobs
+function mkB(b) { return typeof b === "string" ? { keys: [b], cur: function () { return BY[b]; } } : b; }
+function knob(sec, cx, cy, size, text, binding, o) {
+  o = o || {}; var B = mkB(binding);
+  var d = 44 * size / 25, w = el("div", "kw", sec); put(w, cx - d / 2, cy - d / 2, d, d);
+  var s = sv("svg", { viewBox: "0 0 44 44", width: d, height: d }, w);
+  for (var i = 0; i < 11; i++) {
+    var a = (-135 + 27 * i) * Math.PI / 180, mid = i === 5 && !o.noMid;
+    sv("circle", { cx: 22 + 18.5 * Math.sin(a), cy: 22 - 18.5 * Math.cos(a), r: mid ? 1.5 : 1.0, "class": "dot" }, s);
+  }
+  sv("circle", { cx: 22, cy: 22, r: 13.6, fill: "url(#kgEdge)" }, s);
+  sv("circle", { cx: 22, cy: 22, r: 12.8, fill: "url(#kgBody)", "class": "rim", stroke: "transparent", "stroke-width": 0.8 }, s);
+  sv("circle", { cx: 22, cy: 22, r: 9.3, fill: "url(#kgTop)" }, s);
+  var ptr = sv("line", { x1: 22, y1: 22, x2: 22, y2: 12, "class": "ptr" }, s);
+  if (text) label(sec, cx, cy + d / 2 - 2, text);
+  function upd() {
+    var p = B.cur(), n = norm(p), t = (-135 + 270 * n) * Math.PI / 180;
+    ptr.setAttribute("x1", 22 + 4 * Math.sin(t)); ptr.setAttribute("y1", 22 - 4 * Math.cos(t));
+    ptr.setAttribute("x2", 22 + 11.2 * Math.sin(t)); ptr.setAttribute("y2", 22 - 11.2 * Math.cos(t));
+  }
+  bindKeys(B.keys, upd); upd();
+  var y0 = 0, n0 = 0, drag = false, pc = null;
+  w.title = (BY[B.keys[0]].tip ? BY[B.keys[0]].tip + "\n" : "") + "double-click resets · shift = fine · wheel";
+  w.addEventListener("pointerdown", function (e) { drag = true; pc = B.cur(); dragSlot = pc.slot; y0 = e.clientY; n0 = norm(pc); w.classList.add("act"); try { w.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+  w.addEventListener("pointermove", function (e) { if (!drag) return; var span = pc.direct || pc.steps > 70 ? 150 : Math.max(60, pc.steps * 6); var dy = (y0 - e.clientY) / SCALE; setNorm(pc, n0 + dy / (e.shiftKey ? span * 4 : span)); flash(sec, pc); e.preventDefault(); });
+  function end() { drag = false; dragSlot = -1; w.classList.remove("act"); }
+  w.addEventListener("pointerup", end); w.addEventListener("pointercancel", end);
+  w.addEventListener("dblclick", function () { var p = B.cur(); set(p.key, p.def); flash(sec, p); });
+  w.addEventListener("wheel", function (e) { var p = B.cur(); step(p, e.deltaY < 0 ? 1 : -1, e.shiftKey ? 1 : Math.max(1, Math.round(p.steps / 48))); flash(sec, p); e.preventDefault(); }, { passive: false });
+  return w;
+}
+
+// ---- LED lists + buttons
+var WAVEICON = {
+  sine: "M0 4 C2 -1 4 -1 6 4 S10 9 12 4", tri: "M0 4 L3 1 L9 7 L12 4", saw: "M0 7 L11 1 L11 7", rsaw: "M1 1 L1 7 L12 1", sq: "M0 6 L0 2 L6 2 L6 6 L12 6", pul: "M0 6 L0 2 L4 2 L4 6 L12 6"
+};
+function icon(kind) { var s = sv("svg", { viewBox: "0 0 12 8", width: 11, height: 7 }); sv("path", { d: WAVEICON[kind], fill: "none", stroke: "#e8e8ea", "stroke-width": 1.1, "stroke-linejoin": "round" }, s); return s; }
+// items: strings or {icon:"sine"}; returns array of led elements
+function ledList(sec, x, y, items, dy, cols, colW) {
+  var leds = []; cols = cols || 1; colW = colW || 30; dy = dy || 8;
+  var per = Math.ceil(items.length / cols);
+  items.forEach(function (it, i) {
+    var cx = x + Math.floor(i / per) * colW, cy = y + (i % per) * dy;
+    var l = el("div", "led", sec); put(l, cx, cy + 1.8); leds.push(l);
+    var t = el("div", "ll", sec); put(t, cx + 7, cy);
+    if (it && it.icon) t.appendChild(icon(it.icon)); else t.textContent = it;
+  });
+  return leds;
+}
+function button(sec, cx, cy, w, h, text, cls) { var b = el("div", "btn" + (cls ? " " + cls : ""), sec); put(b, cx - w / 2, cy - h / 2, w, h); if (text) el("div", "t", b, text); return b; }
+// cycle button bound to a selector param with an LED list
+function cycleCtl(sec, key, ledX, ledY, items, btnX, btnY, text, o) {
+  o = o || {};
+  var leds = ledList(sec, ledX, ledY, items, o.dy || 8, o.cols, o.colW);
+  var b = button(sec, btnX, btnY, o.bw || 26, o.bh || 10, null, o.cls);
+  if (text) label(sec, btnX, btnY + (o.bh || 10) / 2 + 1, text);
+  var p = BY[key];
+  function upd() { var cur = Math.round(V[key] - p.min); leds.forEach(function (l, i) { l.className = "led" + (i === cur ? " on" : ""); }); }
+  bindKeys([key], upd); upd();
+  b.addEventListener("pointerdown", function (e) { e.preventDefault(); var n = (Math.round(V[key] - p.min) + 1) % p.steps; set(key, p.min + n); if (o.after) o.after(n); flash(sec, p); });
+  return b;
+}
+function toggleBtn(sec, key, cx, cy, w, h, text, cls, inv) {
+  var b = button(sec, cx, cy, w, h, null, cls || "w"); var p = BY[key];
+  function upd() { var on = (V[key] > 0.5) !== !!inv; b.classList.toggle("on", on); }
+  bindKeys([key], upd); upd();
+  b.addEventListener("pointerdown", function (e) { e.preventDefault(); set(key, V[key] > 0.5 ? 0 : 1); flash(sec, p); });
+  if (text) label(sec, cx, cy + h / 2 + 1, text);
+  return b;
+}
+
+// ---- faders
+function fader(sec, x, y, h, binding, text) {
+  var B = mkB(binding);
+  var f = el("div", "fd", sec); put(f, x - 9, y, 18, h);
+  el("div", "slot", f);
+  for (var i = 0; i <= 8; i++) { var t = el("div", "tick", f); t.style.top = (i * (h - 1) / 8) + "px"; if (i % 4 === 0) t.style.width = "9px"; }
+  var cap = el("div", "cap", f);
+  function upd() { var p = B.cur(), n = norm(p); cap.style.top = ((1 - n) * (h - 8) + 4) + "px"; }
+  bindKeys(B.keys, upd); upd();
+  var drag = false, pc = null;
+  function mv(e) { var r = f.getBoundingClientRect(); var n = 1 - ((e.clientY - r.top) / SCALE - 4) / (h - 8); setNorm(pc, n); flash(sec, pc); }
+  f.addEventListener("pointerdown", function (e) { drag = true; pc = B.cur(); dragSlot = pc.slot; try { f.setPointerCapture(e.pointerId); } catch (x) {} mv(e); e.preventDefault(); });
+  f.addEventListener("pointermove", function (e) { if (drag) mv(e); });
+  function end() { drag = false; dragSlot = -1; }
+  f.addEventListener("pointerup", end); f.addEventListener("pointercancel", end);
+  f.addEventListener("dblclick", function () { var p = B.cur(); set(p.key, p.def); });
+  f.addEventListener("wheel", function (e) { var p = B.cur(); step(p, e.deltaY < 0 ? 1 : -1, 2); flash(sec, p); e.preventDefault(); }, { passive: false });
+  if (text) label(sec, x, y + h + 3, text);
+  return f;
+}
+
+// =====================================================================
+//  layout — coordinates are the hardware photo's, relative to the faceplate
+// =====================================================================
+// header / footer
+var hd = el("div", "logo", plate);
+hd.innerHTML = '<svg viewBox="0 0 20 18"><path d="M1 17 L7.5 5 L11 11 L14 7 L19 17 Z" fill="none" stroke="#f2f2f2" stroke-width="1.7" stroke-linejoin="round"/><path d="M6.4 7 L7.5 5 L8.6 7 L7.5 6.5Z" fill="#f2f2f2"/></svg><span>KHEVEREST</span>';
+el("div", "wm", plate, "KHEVEREST");
+el("div", "foot l", plate, "THREE OSCILLATORS PER VOICE");
+el("div", "foot r", plate, "EIGHT-VOICE POLYPHONIC SYNTHESISER");
+
+// MASTER / ANIMATE
+var sMaster = sect(0, 35, 60, 80, "Master");
+knob(sMaster, 30, 40, 26, "Volume", "VOL");
+var sAnim = sect(0, 117, 60, 110, "Animate");
+var animBtn = [];
+function animUpd() { var a = V.ANIM | 0; animBtn[0].classList.toggle("on", !!(a & 1)); animBtn[1].classList.toggle("on", !!(a & 2)); holdBtn.classList.toggle("on", !!(a & 4)); }
+animBtn[0] = button(sAnim, 30, 33, 28, 28, "1", "w sq"); animBtn[1] = button(sAnim, 30, 66, 28, 28, "2", "w sq");
+var holdBtn = button(sAnim, 30, 95, 30, 9, "Hold", "");
+bindKeys(["ANIM"], animUpd);
+[0, 1].forEach(function (i) {
+  var bit = 1 << i, b = animBtn[i];
+  b.addEventListener("pointerdown", function (e) { e.preventDefault(); var a = V.ANIM | 0; if (a & 4) { set("ANIM", (a & bit) ? (a & ~bit) : (a | bit)); } else { set("ANIM", a | bit); } try { b.setPointerCapture(e.pointerId); } catch (x) {} });
+  function up() { var a = V.ANIM | 0; if (!(a & 4)) set("ANIM", a & ~bit); }
+  b.addEventListener("pointerup", up); b.addEventListener("pointercancel", up);
+});
+holdBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); var a = V.ANIM | 0; if (a & 4) set("ANIM", 0); else set("ANIM", a | 4); });
+animUpd();
+
+// PATCH
+var sPatch = sect(63, 35, 77, 192, "Patch");
+var bInit = button(sPatch, 21, 28, 31, 11, null, "w"); label(sPatch, 21, 35, "Initialise");
+var bComp = button(sPatch, 56, 28, 31, 11, null, "w"); label(sPatch, 56, 35, "Compare");
+var bAud = button(sPatch, 21, 55, 31, 11, null, "w"); label(sPatch, 21, 62, "Audition");
+var bSave = button(sPatch, 56, 55, 31, 11, null, "w"); label(sPatch, 56, 62, "Save");
+var patchEnc = encoder(sPatch, 38, 116, 38);
+var bPm = button(sPatch, 21, 172, 26, 10, null, ""); var bPp = button(sPatch, 56, 172, 26, 10, null, "");
+label(sPatch, 21, 178, "−"); label(sPatch, 56, 178, "+"); label(sPatch, 38, 181, "Patch");
+
+function encoder(sec, cx, cy, size) {
+  var d = size + 8, e = el("div", "enc", sec); put(e, cx - d / 2, cy - d / 2, d, d);
+  var s = sv("svg", { viewBox: "0 0 50 50", width: d, height: d }, e);
+  sv("circle", { cx: 25, cy: 25, r: 23, fill: "url(#kgEdge)" }, s);
+  sv("circle", { cx: 25, cy: 25, r: 21.6, fill: "url(#kgBody)", stroke: "#55565b", "stroke-width": 0.6 }, s);
+  var g = sv("g", {}, s);
+  for (var i = 0; i < 24; i++) { var a = i * 15 * Math.PI / 180; sv("line", { x1: 25 + 15 * Math.sin(a), y1: 25 - 15 * Math.cos(a), x2: 25 + 20.4 * Math.sin(a), y2: 25 - 20.4 * Math.cos(a), stroke: "rgba(255,255,255,.07)", "stroke-width": 1 }, g); }
+  sv("circle", { cx: 25, cy: 25, r: 13.5, fill: "url(#kgTop)" }, s);
+  sv("circle", { cx: 25, cy: 25, r: 2.2, fill: "#1b1c1f" }, s);
+  var ang = 0; e.__rot = function (dir) { ang += dir * 14; g.setAttribute("transform", "rotate(" + ang + " 25 25)"); };
+  return e;
+}
+
+// MENU
+var sMenu = sect(142, 35, 286, 192, "Menu");
+var menuBtns = {};
+var MENU_LAYOUT = [["patch", "Patch", 0], ["osc", "Osc", 1], ["env", "Env", 1], ["lfo", "LFO", 1], ["arp", "Arp/Clock", 1], ["mod", "Mod", 2], ["voice", "Voice", 2], ["fx", "FX", 2], ["set", "Settings", 2]];
+(function () {
+  var xs = { osc: 70, env: 111, lfo: 152, arp: 193, mod: 70, voice: 111, fx: 152, set: 193 };
+  MENU_LAYOUT.forEach(function (m) {
+    var b;
+    if (m[0] === "patch") { b = button(sMenu, 23, 40, 22, 17, null, "glow"); label(sMenu, 23, 49, "Patch"); }
+    else { var y = m[2] === 1 ? 21 : 51; b = button(sMenu, xs[m[0]], y, 32, 11, null, "w"); label(sMenu, xs[m[0]], y + 6, m[1]); }
+    menuBtns[m[0]] = b;
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); openMenu(m[0]); });
+  });
+})();
+var voiceLeds = [];
+(function () {
+  for (var i = 0; i < 8; i++) { var l = el("div", "led", sMenu); put(l, 238 + (i % 4) * 11, 20 + Math.floor(i / 4) * 11); voiceLeds.push(l); var n = el("div", "ll", sMenu, String(i + 1)); put(n, 238 + (i % 4) * 11 + 0.5, 8.5 + Math.floor(i / 4) * 11 + 12); n.style.fontSize = "6px"; n.style.color = "#bbb"; }
+  label(sMenu, 256, 47, "Active Voices");
+})();
+var rowBtns = [];
+for (var rbI = 0; rbI < 3; rbI++) (function (i) { var b = button(sMenu, 24, 98 + i * 23, 34, 14, null, ""); rowBtns.push(b); b.addEventListener("pointerdown", function (e) { e.preventDefault(); oled.row = i; if (oled.menu === "mod" || oled.menu === "fxm") { if (i === 0) oled.field = 1 - oled.field; } oledRender(); }); })(rbI);
+var oledEl = el("div", "", sMenu); oledEl.id = "oled"; put(oledEl, 46, 78, 190, 78);
+var scr = el("div", "scr", oledEl);
+var oledLines = [0, 1, 2, 3].map(function () { return el("div", "ol", scr); });
+var bPg = [button(sMenu, 108, 170, 30, 10, null, "w"), button(sMenu, 143, 170, 30, 10, null, "w")];
+label(sMenu, 125.5, 176, "◀ Page/Select ▶");
+var valEnc = encoder(sMenu, 261, 114, 32);
+var bVm = button(sMenu, 244, 170, 24, 10, null, ""), bVp = button(sMenu, 278, 170, 24, 10, null, "");
+label(sMenu, 244, 176, "−"); label(sMenu, 278, 176, "+"); label(sMenu, 261, 179, "Value");
+
+// ARP / GLIDE
+var sArp = sect(430, 35, 52, 192, "Arp");
+knob(sArp, 26, 44, 25, "Gate", "ARP_GATE");
+toggleBtn(sArp, "ARP_LATCH", 26, 118, 30, 11, "Key Latch", "w");
+toggleBtn(sArp, "ARP_ON", 26, 168, 30, 11, "On", "w");
+var sGlide = sect(485, 120, 60, 107, "Glide");
+knob(sGlide, 30, 44, 25, "Time", "GLIDE");
+toggleBtn(sGlide, "GLIDE_ON", 30, 86, 30, 11, "On", "w");
+
+// LFOs
+function lfoSect(x, n) {
+  var s = sect(x, 35, n === 1 ? 225 : 235, 82, "LFO " + n), q = "L" + n + "_";
+  cycleCtl(s, q + "TYPE", 10, 12, [{ icon: "tri" }, { icon: "rsaw" }, { icon: "sq" }, "S+H"], 22, 61, "Type", { bw: 28 });
+  knob(s, 88, 36, 24, "Fade Time", q + "FADE");
+  cycleCtl(s, q + "RANGE", n === 1 ? 133 : 143, 18, ["Low", "High", "Sync"], n === 1 ? 143 : 153, 59, "Range", { bw: 26 });
+  knob(s, n === 1 ? 198 : 208, 36, 24, "Rate", { keys: [q + "RANGE", q + "RATE", q + "SYNC"], cur: function () { return BY[V[q + "RANGE"] === 2 ? q + "SYNC" : q + "RATE"]; } });
+  bracket(s, n === 1 ? 138 : 148, n === 1 ? 198 : 208, 69);
+  return s;
+}
+lfoSect(485, 1); lfoSect(715, 2);
+
+// ENVELOPES
+var sAmp = sect(548, 120, 162, 107, "Amp Envelope");
+["A", "D", "S", "R"].forEach(function (k, i) { fader(sAmp, 24 + i * 36, 14, 62, "EA_" + k, ["Attack", "Decay", "Sustain", "Release"][i]); });
+var sMod = sect(715, 120, 235, 107, "Mod Envelopes");
+(function () {
+  var leds = ledList(sMod, 12, 28, ["1", "2"], 8);
+  var b = button(sMod, 24, 66, 28, 10, null, ""); label(sMod, 24, 72, "Select");
+  function upd() { var c = V.ENV_SEL | 0; leds.forEach(function (l, i) { l.className = "led" + (i === c ? " on" : ""); }); }
+  bindKeys(["ENV_SEL"], upd); upd();
+  b.addEventListener("pointerdown", function (e) { e.preventDefault(); set("ENV_SEL", 1 - (V.ENV_SEL | 0)); });
+  ["A", "D", "S", "R"].forEach(function (k, i) {
+    fader(sMod, 76 + i * 42, 14, 62, { keys: ["ENV_SEL", "EM1_" + k, "EM2_" + k], cur: function () { return BY[(V.ENV_SEL | 0) ? "EM2_" + k : "EM1_" + k]; } }, ["Attack", "Decay", "Sustain", "Release"][i]);
+  });
+})();
+
+// OSCILLATORS
+function oscRow(n, y) {
+  var o = "O" + n + "_", s = sect(0, y, 428, 77, "Oscillator " + n, true);
+  cycleCtl(s, o + "RANGE", 8, 20, ["16'", "8'", "4'", "2'"], 22, 56, "Range", { dy: 8, cols: 2, colW: 18, bw: 28 });
+  knob(s, 70, 36, 25, "Coarse", o + "COARSE");
+  knob(s, 120, 36, 25, "Fine", o + "FINE");
+  cycleCtl(s, o + "WAVE", 148, 16, [{ icon: "sine" }, { icon: "tri" }, { icon: "saw" }, { icon: "pul" }, "more"], 170, 56, "Wave", { dy: 8, cols: 2, colW: 24, bw: 28 });
+  knob(s, 218, 36, 25, "Mod Env 2 Depth", o + "ENV2");
+  knob(s, 270, 36, 25, "LFO 2 Depth", o + "LFO2");
+  bracket(s, 236, 286, 62); label(s, 261, 68, "Pitch");
+  knob(s, 330, 36, 25, "Shape Amount", { keys: [o + "SRC", o + "SHAPE", o + "SHENV", o + "SHLFO"], cur: function () { return BY[[o + "SHAPE", o + "SHENV", o + "SHLFO"][clamp(V[o + "SRC"] | 0, 0, 2)]]; } });
+  cycleCtl(s, o + "SRC", 366, 22, ["Manual", "Mod Env 1", "LFO 1"], 391, 56, null, { dy: 8, bw: 26 });
+  bracket(s, 338, 396, 62); label(s, 367, 68, "Source");
+  return s;
+}
+oscRow(1, 230); oscRow(2, 313); oscRow(3, 396);
+
+// MIXER
+var sMix = sect(430, 230, 112, 243, "Mixer", true);
+[["MIX1", "Osc 1", 30, 40], ["VCAGAIN", "VCA Gain", 82, 40], ["MIX2", "Osc 2", 30, 120], ["MIXR", "Ring 1*2", 82, 120], ["MIX3", "Osc 3", 30, 200], ["MIXN", "Noise", 82, 200]].forEach(function (m) { knob(sMix, m[2], m[3], 25, m[1], m[0]); });
+
+// FILTER
+var sFil = sect(545, 230, 168, 243, "Filter", true);
+knob(sFil, 28, 40, 25, "LFO 1 Depth", "F_LFO1"); knob(sFil, 84, 40, 25, "Osc 3 Filter Mod", "F_OSC3"); knob(sFil, 140, 40, 25, "Key Tracking", "F_KEY");
+knob(sFil, 28, 108, 25, "Env Depth", { keys: ["F_ENVSEL", "F_ENVAMP", "F_ENVMOD"], cur: function () { return BY[(V.F_ENVSEL | 0) === 0 ? "F_ENVAMP" : "F_ENVMOD"]; } });
+knob(sFil, 84, 108, 25, "Resonance", "F_RES"); knob(sFil, 140, 108, 25, "Overdrive", "F_OD");
+cycleCtl(sFil, "F_ENVSEL", 10, 140, ["Amp Env", "Mod Env 1"], 28, 168, "Source", { dy: 8, bw: 26 });
+cycleCtl(sFil, "F_SLOPE", 10, 192, ["12 dB", "24 dB"], 28, 217, "Slope", { dy: 8, bw: 26 });
+knob(sFil, 84, 186, 40, "Frequency", "F_FREQ");
+cycleCtl(sFil, "F_SHAPE", 126, 176, ["LP", "BP", "HP"], 144, 217, "Shape", { dy: 8, bw: 26 });
+
+// DISTORTION / CHORUS / DELAY / EFFECTS / REVERB
+var sDist = sect(715, 230, 57, 80, "Distortion"); knob(sDist, 28, 44, 25, "Level", "DIST");
+var sCho = sect(775, 230, 175, 80, "Chorus");
+knob(sCho, 36, 44, 25, "Rate", "CH_RATE");
+cycleCtl(sCho, "CH_TYPE", 86, 24, ["1", "2", "3"], 98, 62, "Type", { dy: 8, bw: 26 });
+knob(sCho, 142, 44, 25, "Level", "CH_LEVEL");
+var sDel = sect(715, 313, 235, 77, "Delay");
+knob(sDel, 38, 42, 25, "Feedback", "DL_FB");
+knob(sDel, 106, 42, 25, "Time", { keys: ["DL_SYNC", "DL_TIME", "DL_SYNCR"], cur: function () { return BY[V.DL_SYNC > 0.5 ? "DL_SYNCR" : "DL_TIME"]; } });
+toggleBtn(sDel, "DL_SYNC", 158, 28, 28, 10, "Sync", "w"); bracket(sDel, 92, 170, 63);
+knob(sDel, 206, 42, 25, "Level", "DL_LEVEL");
+var sFx = sect(715, 396, 57, 77, "Effects"); toggleBtn(sFx, "FX_BYPASS", 28, 40, 30, 11, "Bypass", "w", true);
+var sRev = sect(775, 396, 175, 77, "Reverb");
+knob(sRev, 36, 42, 25, "Time", "RV_TIME");
+cycleCtl(sRev, "RV_TYPE", 86, 22, ["1", "2", "3"], 98, 58, "Type", { dy: 8, bw: 26, after: function (n) { set("RV_SIZE", [0, 64, 127][n]); } });
+knob(sRev, 142, 42, 25, "Level", "RV_LEVEL");
+
+// =====================================================================
+//  OLED + menus (manual pp.11, 17-36)
+// =====================================================================
+var oled = { menu: "patch", row: 0, field: 0 }, pg = { patch: 0, osc: 0, env: 0, lfo: 0, arp: 0, mod: 0, voice: 0, fx: 0, set: 0 };
+function pgs(t, rows) { return { t: t, rows: rows }; }
+var PAGES = {
+  osc: [
+    pgs("OSC COMN 1", [["DIVERGE", "Diverge"], ["DRIFT", "Drift"], ["NOISELPF", "Noise"]]),
+    pgs("OSC COMN 2", [["KEYSYNC", "KeySync"], ["TUNING", "TuningTable"]]),
+    pgs("OSCILLATOR 1", [["O1_MORE", "WaveMore"], ["O1_FIXED", "FixedNote"], ["O1_BEND", "BendRange"]]), pgs("OSCILLATOR 1", [["O1_VSYNC", "Vsync"], ["O1_SAWD", "SawDense"], ["O1_DDET", "DenseDet"]]),
+    pgs("OSCILLATOR 2", [["O2_MORE", "WaveMore"], ["O2_FIXED", "FixedNote"], ["O2_BEND", "BendRange"]]), pgs("OSCILLATOR 2", [["O2_VSYNC", "Vsync"], ["O2_SAWD", "SawDense"], ["O2_DDET", "DenseDet"]]),
+    pgs("OSCILLATOR 3", [["O3_MORE", "WaveMore"], ["O3_FIXED", "FixedNote"], ["O3_BEND", "BendRange"]]), pgs("OSCILLATOR 3", [["O3_VSYNC", "Vsync"], ["O3_SAWD", "SawDense"], ["O3_DDET", "DenseDet"]]),
+  ],
+  env: [
+    pgs("AMP ENVELOPE", [["EA_VEL", "Velocity"], ["EA_TRIG", "MonoTrig"]]), pgs("AMP ENVELOPE", [["EA_HOLD", "HoldTime"], ["EA_REP", "Repeats"]]),
+    pgs("MOD ENVELOPE 1", [["EM1_VEL", "Velocity"], ["EM1_TRIG", "MonoTrig"]]), pgs("MOD ENVELOPE 1", [["EM1_HOLD", "HoldTime"], ["EM1_REP", "Repeats"]]),
+    pgs("MOD ENVELOPE 2", [["EM2_VEL", "Velocity"], ["EM2_TRIG", "MonoTrig"]]), pgs("MOD ENVELOPE 2", [["EM2_HOLD", "HoldTime"], ["EM2_REP", "Repeats"]]),
+  ],
+  lfo: [
+    pgs("LFO 1", [["L1_PHASE", "Phase"], ["L1_MONO", "MonoTrig"], ["L1_SLEW", "Slew"]]), pgs("LFO 1", [["L1_FMODE", "FadeMode"], ["L1_FSYNC", "FadeSync"]]), pgs("LFO 1", [["L1_REP", "Repeats"], ["L1_COMMON", "Common"]]),
+    pgs("LFO 2", [["L2_PHASE", "Phase"], ["L2_MONO", "MonoTrig"], ["L2_SLEW", "Slew"]]), pgs("LFO 2", [["L2_FMODE", "FadeMode"], ["L2_FSYNC", "FadeSync"]]), pgs("LFO 2", [["L2_REP", "Repeats"], ["L2_COMMON", "Common"]]),
+    pgs("LFO 3", [["L3_WAVE", "L3Waveform"], ["L3_RATE", "L3Rate"], ["L3_SYNC", "L3RateSync"]]), pgs("LFO 4", [["L4_WAVE", "L4Waveform"], ["L4_RATE", "L4Rate"], ["L4_SYNC", "L4RateSync"]]),
+  ],
+  arp: [
+    pgs("CLOCK", [["ARP_BPM", "ClockRate"], ["ARP_SRC", "Source"], ["@status", "status"]]), pgs("ARP", [["ARP_TYPE", "Type"], ["ARP_RHYTHM", "Rhythm"], ["ARP_OCT", "Octaves"]]), pgs("ARP", [["ARP_SWING", "Swing"], ["ARP_SYNC", "SyncRate"], ["ARP_KSYNC", "KeySync"]]),
+  ],
+  voice: [
+    pgs("VOICE", [["UNISON", "Unison"], ["UNIDET", "UniDeTune"], ["UNISPR", "UniSpread"]]), pgs("VOICE", [["PREGLIDE", "PreGlide"], ["MODE", "Mode"], ["PATCHLVL", "PatchLevel"]]), pgs("VOICE", [["F_POST", "FltPostDrv"], ["F_DIV", "FltDiverge"], ["KBDOCT", "KbdOctave"]]),
+  ],
+  fx: [
+    pgs("FX GLOBAL", [["FX_WET", "WetLevel"], ["FX_DRY", "DryLevel"], ["FX_ROUTE", "Routing"]]),
+    pgs("CHORUS", [["CH_DEPTH", "ChorDepth"], ["CH_FB", "ChorFback"]]), pgs("CHORUS", [["CH_LP", "LoPass"], ["CH_HP", "HiPass"]]),
+    pgs("DELAY", [["DL_SYNCR", "DelaySync"], ["DL_LP", "LP Damp"], ["DL_HP", "HP Damp"]]), pgs("DELAY", [["DL_LR", "L/R Ratio"], ["DL_SLEW", "SlewRate"], ["DL_WIDTH", "Width"]]),
+    pgs("REVERB", [["RV_PRE", "PreDelay"], ["RV_LP", "LP Damp"], ["RV_HP", "HP Damp"]]), pgs("REVERB", [["RV_SIZE", "RevSize"], ["RV_MOD", "ModDepth"], ["RV_MODR", "ModRate"]]), pgs("REVERB", [["RV_LOP", "LoPass"], ["RV_HIP", "HiPass"]]),
+    { t: "FX MOD", fxm: 1 }, { t: "FX MOD", fxm: 2 }, { t: "FX MOD", fxm: 3 }, { t: "FX MOD", fxm: 4 },
+  ],
+  set: [
+    pgs("SYSTEM", [["@bright", "Brightness"], ["@version", "Version"]]), pgs("SYNTH", [["VELSHAPE", "VelShape"], ["TUNECENTS", "TuneCents"], ["TRANSPOSE", "Transpose"]]), pgs("MISC SETTINGS", [["VOLRANGE", "VolRange"], ["@ini", "Initialise"]]),
+  ],
+};
+PAGES.mod = []; for (var mi = 1; mi <= 16; mi++) PAGES.mod.push({ t: "[Slot " + mi + "]", mod: mi });
+var ARPSTAT = "INT";
+var settings = { bright: 64, ini: 0 };
+try { var _s = JSON.parse(localStorage.getItem("kh.settings") || "{}"); if (typeof _s.ini === "number") settings.ini = _s.ini; } catch (x) {}
+
+function trunc(s, n) { s = String(s); return s.length > n ? s.slice(0, n) : s; }
+function line2(a, b, w) { a = String(a); b = String(b); var sp = w - a.length - b.length; if (sp < 1) { b = b.slice(0, Math.max(1, w - a.length - 1)); sp = w - a.length - b.length; } return a + new Array(sp + 1).join(" ") + b; }
+function rowValue(spec) {
+  var k = spec[0];
+  if (k === "@status") return ARPSTAT + " " + (BY.ARP_BPM ? V.ARP_BPM.toFixed(2) : "") + "bpm";
+  if (k === "@bright") return String(settings.bright);
+  if (k === "@version") return "0221";
+  if (k === "@ini") return settings.ini ? "Live" : "IniPatch";
+  return fmtVal(BY[k]);
+}
+function curPages() { return PAGES[oled.menu]; }
+function pageRows(page) { return page.rows || []; }
+
+// ---- patches
+var PL = DATA.presets.slice();          // factory + user list
+var userPatches = [];
+try { userPatches = JSON.parse(localStorage.getItem("kh.user") || "[]"); } catch (x) {}
+var cats = ["All"]; DATA.presets.forEach(function (p) { if (cats.indexOf(p.cat) < 0) cats.push(p.cat); }); if (userPatches.length) cats.push("User");
+var cur = { idx: 0, cat: 0, name: "Init Patch" };
+function allPatches() { var a = DATA.presets.map(function (p, i) { return { p: p, id: i }; }); userPatches.forEach(function (u, i) { a.push({ p: { name: u.name, cat: "User", user: u }, id: DATA.presets.length + i }); }); return a; }
+function filtered() { var c = cats[cur.cat], a = allPatches(); return c === "All" ? a : a.filter(function (x) { return x.p.cat === c; }); }
+var loadedSnap = snapshot();
+function loadPatchObj(p) {
+  var base = {}; if (p.user) base = p.user.snap; else for (var k in p.diff) base[k] = p.diff[k];
+  applySnap(base);
+  loadedSnap = snapshot(); cur.name = p.name; dirty = false; oledRender();
+}
+function loadIndex(id) { var a = allPatches(); id = ((id % a.length) + a.length) % a.length; cur.idx = id; loadPatchObj(a[id].p); }
+function stepPatch(dir) {
+  var f = filtered(); if (!f.length) return;
+  var pos = -1; for (var i = 0; i < f.length; i++) if (f[i].id === cur.idx) { pos = i; break; }
+  pos = pos < 0 ? (dir > 0 ? 0 : f.length - 1) : (pos + dir + f.length) % f.length;
+  cur.idx = f[pos].id; loadPatchObj(f[pos].p);
+}
+function initPatch() { if (settings.ini === 1) { cur.name = "Init Patch"; loadedSnap = snapshot(); dirty = false; oledRender(); } else { applySnap({}); loadedSnap = snapshot(); cur.name = "Init Patch"; cur.idx = 0; dirty = false; oledRender(); } }
+
+// ---- OLED rendering
+function oledRender() {
+  var L = oledLines, i;
+  for (i = 0; i < 4; i++) { L[i].textContent = ""; L[i].className = "ol"; }
+  if (temp) {
+    L[0].textContent = trunc(temp[0], 20); L[1].textContent = trunc(temp[1], 20); L[2].textContent = " " + trunc(temp[2], 19);
+    return;
+  }
+  for (var m in menuBtns) menuBtns[m].classList.toggle("glow", m === oled.menu);
+  if (oled.menu === "patch") {
+    var f = filtered(), pos = 0; for (i = 0; i < f.length; i++) if (f[i].id === cur.idx) pos = i;
+    L[0].textContent = line2(trunc(cur.name, 15), "1/1", 20);
+    var num = String(cur.idx).padStart(3, "0");
+    var bank = "ABCD"[Math.min(3, Math.floor(cur.idx / 128) + (cur.idx >= DATA.presets.length ? 1 : 0))];
+    L[1].textContent = line2("Patch", num + (dirty ? " *" : "  "), 19) + "▶";
+    L[2].textContent = line2("Bank", bank, 19);
+    L[3].textContent = line2("Category", trunc(cats[cur.cat], 9), 19);
+    L[1 + oled.row].classList.add("sel");
+    return;
+  }
+  var pages = curPages(), pgi = pg[oled.menu] = clamp(pg[oled.menu], 0, pages.length - 1), page = pages[pgi];
+  L[0].textContent = line2(page.t, (pgi + 1) + "/" + pages.length, 20);
+  if (page.mod || page.fxm) {
+    var n = page.mod || page.fxm, fx = !!page.fxm, pre = fx ? "FM" + n + "_" : "MM" + n + "_";
+    var sA = fmtVal(BY[pre + "A"]), sB = fmtVal(BY[pre + "B"]);
+    L[1].innerHTML = "";
+    var t = document.createElement("span"); t.textContent = ":sA "; L[1].appendChild(t);
+    var fa = el("span", "fld" + (oled.field === 0 ? " sf" : ""), L[1], trunc(sA, 8)); var sp = document.createElement("span"); sp.textContent = new Array(Math.max(1, 8 - Math.min(8, sA.length)) + 2).join(" ") + ":sB "; L[1].appendChild(sp);
+    var fb = el("span", "fld" + (oled.field === 1 ? " sf" : ""), L[1], trunc(sB, 8));
+    fa.onclick = function () { oled.row = 0; oled.field = 0; oledRender(); }; fb.onclick = function () { oled.row = 0; oled.field = 1; oledRender(); };
+    L[2].textContent = line2(fx ? "Fx Destin" : "Destin", fmtVal(BY[pre + "DEST"]), 20);
+    L[3].textContent = line2("Depth", fmtVal(BY[pre + "DEPTH"]), 20);
+    L[1 + oled.row].classList.add("sel");
+    return;
+  }
+  var rows = pageRows(page);
+  for (i = 0; i < 3; i++) {
+    if (i < rows.length) L[1 + i].textContent = line2(rows[i][1], trunc(rowValue(rows[i]), 10), 19) + (i === 0 && pgi < pages.length - 1 ? "▶" : "");
+  }
+  if (oled.row >= rows.length) oled.row = Math.max(0, rows.length - 1);
+  if (rows.length) L[1 + oled.row].classList.add("sel");
+}
+function openMenu(m) { oled.menu = m; oled.row = 0; oled.field = 0; temp = null; oledRender(); }
+function adjustRow(dir, mult) {
+  mult = mult || 1;
+  if (oled.menu === "patch") {
+    if (oled.row === 0) stepPatch(dir);
+    else if (oled.row === 2) { cur.cat = (cur.cat + dir + cats.length) % cats.length; oledRender(); }
+    return;
+  }
+  var page = curPages()[pg[oled.menu]];
+  if (page.mod || page.fxm) {
+    var n = page.mod || page.fxm, pre = page.fxm ? "FM" + n + "_" : "MM" + n + "_";
+    var key = oled.row === 0 ? pre + (oled.field ? "B" : "A") : oled.row === 1 ? pre + "DEST" : pre + "DEPTH";
+    step(BY[key], dir, oled.row === 2 ? mult : 1); oledRender(); return;
+  }
+  var rows = pageRows(page), spec = rows[oled.row]; if (!spec) return;
+  var k = spec[0];
+  if (k === "@bright") { settings.bright = clamp(settings.bright + dir * 8 * mult, 0, 127); oledEl.style.opacity = 0.35 + settings.bright / 127 * 0.65; }
+  else if (k === "@ini") { settings.ini = 1 - settings.ini; try { localStorage.setItem("kh.settings", JSON.stringify(settings)); } catch (x) {} }
+  else if (k[0] === "@") return;
+  else step(BY[k], dir, mult);
+  oledRender();
+}
+function pageMove(d) {
+  if (oled.menu === "patch") { oled.row = clamp(oled.row + d, 0, 2); oledRender(); return; }
+  var n = curPages().length; pg[oled.menu] = clamp(pg[oled.menu] + d, 0, n - 1); oled.row = 0; oled.field = 0; oledRender();
+}
+// row selection on the screen itself
+[1, 2, 3].forEach(function (i) { oledLines[i].addEventListener("pointerdown", function (e) { if (e.target.classList && e.target.classList.contains("fld")) return; oled.row = i - 1; oledRender(); }); });
+oledEl.addEventListener("wheel", function (e) { adjustRow(e.deltaY < 0 ? 1 : -1, e.shiftKey ? 5 : 1); e.preventDefault(); }, { passive: false });
+function repeater(b, fn) {
+  var t = 0, iv = 0;
+  b.addEventListener("pointerdown", function (e) { e.preventDefault(); fn(); t = setTimeout(function () { iv = setInterval(fn, 90); }, 420); try { b.setPointerCapture(e.pointerId); } catch (x) {} });
+  function up() { clearTimeout(t); clearInterval(iv); }
+  b.addEventListener("pointerup", up); b.addEventListener("pointercancel", up);
+}
+repeater(bVp, function () { adjustRow(1, 1); valEnc.__rot(1); });
+repeater(bVm, function () { adjustRow(-1, 1); valEnc.__rot(-1); });
+repeater(bPg[0], function () { pageMove(-1); }); repeater(bPg[1], function () { pageMove(1); });
+repeater(bPp, function () { stepPatch(1); patchEnc.__rot(1); }); repeater(bPm, function () { stepPatch(-1); patchEnc.__rot(-1); });
+function encDrag(e, fn, rot) {
+  var y0 = 0, acc = 0, drag = false;
+  e.addEventListener("pointerdown", function (ev) { drag = true; y0 = ev.clientY; acc = 0; try { e.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault(); });
+  e.addEventListener("pointermove", function (ev) { if (!drag) return; acc += (y0 - ev.clientY) / SCALE; y0 = ev.clientY; while (acc >= 5) { fn(1, ev.shiftKey ? 5 : 1); e.__rot(1); acc -= 5; } while (acc <= -5) { fn(-1, ev.shiftKey ? 5 : 1); e.__rot(-1); acc += 5; } });
+  function end() { drag = false; } e.addEventListener("pointerup", end); e.addEventListener("pointercancel", end);
+  e.addEventListener("wheel", function (ev) { fn(ev.deltaY < 0 ? 1 : -1, ev.shiftKey ? 5 : 1); e.__rot(ev.deltaY < 0 ? 1 : -1); ev.preventDefault(); }, { passive: false });
+}
+encDrag(valEnc, function (d, m) { adjustRow(d, m); });
+encDrag(patchEnc, function (d) { stepPatch(d); });
+
+// PATCH buttons
+bInit.addEventListener("pointerdown", function (e) { e.preventDefault(); initPatch(); });
+var cmpEdited = null;
+bComp.addEventListener("pointerdown", function (e) { e.preventDefault(); cmpEdited = snapshot(); applySnap(loadedSnap); bComp.classList.add("on"); try { bComp.setPointerCapture(e.pointerId); } catch (x) {} });
+function cmpUp() { if (cmpEdited) { applySnap(cmpEdited); cmpEdited = null; } bComp.classList.remove("on"); }
+bComp.addEventListener("pointerup", cmpUp); bComp.addEventListener("pointercancel", cmpUp);
+bAud.addEventListener("pointerdown", function (e) { e.preventDefault(); host("noteOn", 60, 0.8); bAud.classList.add("on"); try { bAud.setPointerCapture(e.pointerId); } catch (x) {} });
+function audUp() { host("noteOff", 60); bAud.classList.remove("on"); }
+bAud.addEventListener("pointerup", audUp); bAud.addEventListener("pointercancel", audUp);
+var saveDlg = document.getElementById("saveDlg"), saveName = document.getElementById("saveName");
+bSave.addEventListener("pointerdown", function (e) { e.preventDefault(); saveName.value = cur.name === "Init Patch" ? "My Patch" : cur.name; saveDlg.hidden = false; setTimeout(function () { saveName.focus(); saveName.select(); }, 0); });
+document.getElementById("saveNo").onclick = function () { saveDlg.hidden = true; };
+document.getElementById("saveOk").onclick = function () {
+  var nm = (saveName.value || "My Patch").trim().slice(0, 20), snap = snapshot();
+  userPatches.push({ name: nm, snap: snap }); try { localStorage.setItem("kh.user", JSON.stringify(userPatches)); } catch (x) {}
+  if (cats.indexOf("User") < 0) cats.push("User");
+  cur.idx = DATA.presets.length + userPatches.length - 1; cur.name = nm; loadedSnap = snap; dirty = false; saveDlg.hidden = true; oledRender();
+};
+
+// voices / meters
+if (window.vstai && window.vstai.onDisplay) window.vstai.onDisplay(function (d) { for (var i = 0; i < 8; i++) voiceLeds[i].className = "led" + ((d[i] || 0) > 0.02 ? " on" : ""); });
+
+// =====================================================================
+//  keyboard drawer: wheels, pedals, 5-octave keys + computer keyboard
+// =====================================================================
+var keysEl = document.getElementById("keys");
+var kbBtn = button(plate, 0, 0, 44, 13, "KEYS", ""); kbBtn.id = "kbBtn"; kbBtn.style.left = "330px"; kbBtn.style.top = "11px"; kbBtn.style.right = "auto";
+var kbBuilt = false;
+function wheel(parent, key, spring, text) {
+  var w = el("div", "whl", parent), ind = el("i", "", w); el("b", "", w, text);
+  var p = BY[key], drag = false;
+  function upd() { var n = norm(p); ind.style.top = ((1 - n) * 92 + 4) + "%"; }
+  bindKeys([key], upd); upd();
+  function mv(e) { var r = w.getBoundingClientRect(); setNorm(p, 1 - clamp((e.clientY - r.top) / r.height, 0, 1)); }
+  w.addEventListener("pointerdown", function (e) { drag = true; try { w.setPointerCapture(e.pointerId); } catch (x) {} mv(e); e.preventDefault(); });
+  w.addEventListener("pointermove", function (e) { if (drag) mv(e); });
+  function end() { drag = false; if (spring) set(key, 0); }
+  w.addEventListener("pointerup", end); w.addEventListener("pointercancel", end);
+}
+function buildKeys() {
+  kbBuilt = true;
+  var c = el("div", "ctl", keysEl);
+  wheel(c, "WHEEL_BEND", true, "PITCH"); wheel(c, "WHEEL_MOD", false, "MOD");
+  var sl = el("div", "sl", c);
+  [["EXPR1", "Pedal 1", 0, 1], ["EXPR2", "Pedal 2", 0, 1], ["AFTERT", "Aftertouch", 0, 1], ["CVIN", "CV In", -1, 1]].forEach(function (d) {
+    var l = el("label", "", sl, d[1]), r = el("input", "", l); r.type = "range"; r.min = d[2]; r.max = d[3]; r.step = 0.01; r.value = V[d[0]];
+    r.addEventListener("input", function () { set(d[0], +r.value); });
+    bindKeys([d[0]], function () { r.value = V[d[0]]; });
+  });
+  var kb = el("div", "kb", keysEl), held = {};
+  var first = 36, nw = 36, white = [0, 2, 4, 5, 7, 9, 11], wi = 0;
+  function on(note, node, e) { if (held[note]) return; held[note] = 1; host("noteOn", note, 0.78); node.classList.add("hit"); }
+  function off(note, node) { if (!held[note]) return; delete held[note]; host("noteOff", note); node.classList.remove("hit"); }
+  function key(note, node) {
+    node.addEventListener("pointerdown", function (e) { e.preventDefault(); on(note, node); try { node.setPointerCapture(e.pointerId); } catch (x) {} });
+    node.addEventListener("pointerup", function () { off(note, node); }); node.addEventListener("pointercancel", function () { off(note, node); });
+    node.__note = note; KEYNODES[note] = node;
+  }
+  for (var o = 0; o < 6; o++) for (var k = 0; k < 7; k++) {
+    var note = first + o * 12 + white[k]; if (wi >= nw) break;
+    var w = el("div", "wk", kb); w.style.left = (wi * 100 / nw) + "%"; w.style.width = (100 / nw) + "%"; key(note, w);
+    if ([0, 1, 3, 4, 5].indexOf(k) >= 0) { var b = el("div", "bk", kb); b.style.left = ((wi + 1) * 100 / nw - 0.95) + "%"; b.style.width = "1.9%"; key(note + 1, b); }
+    wi++;
+  }
+}
+var KEYNODES = {};
+function toggleKeys() { if (!kbBuilt) buildKeys(); keysEl.hidden = !keysEl.hidden; layout(); }
+kbBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); toggleKeys(); });
+// computer keyboard
+var CK = { a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12, o: 13, l: 14, p: 15, ";": 16 }, ckOct = 60, ckDown = {};
+window.addEventListener("keydown", function (e) {
+  if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
+  var k = e.key.toLowerCase();
+  if (k === "z") { ckOct = Math.max(24, ckOct - 12); return; } if (k === "x") { ckOct = Math.min(96, ckOct + 12); return; }
+  if (CK[k] === undefined || e.repeat || ckDown[k]) return;
+  var n = ckOct + CK[k]; ckDown[k] = n; host("noteOn", n, 0.78); if (KEYNODES[n]) KEYNODES[n].classList.add("hit");
+});
+window.addEventListener("keyup", function (e) { var k = e.key.toLowerCase(); if (ckDown[k] !== undefined) { var n = ckDown[k]; delete ckDown[k]; host("noteOff", n); if (KEYNODES[n]) KEYNODES[n].classList.remove("hit"); } });
+
+// =====================================================================
+//  matrix editor (plug-in convenience: all 16 + 4 slots in one table)
+// =====================================================================
+var mxEl = document.getElementById("matrix"), mxBuilt = false;
+var mxBtn = button(plate, 0, 0, 52, 13, "MATRIX", ""); mxBtn.style.left = "386px"; mxBtn.style.top = "11px";
+function mkSelect(parent, key) {
+  var p = BY[key], s = el("select", "", parent);
+  p.fmt.forEach(function (nm, i) { var o = el("option", "", s, nm); o.value = i; });
+  s.addEventListener("change", function () { set(key, p.min + (+s.value)); });
+  bindKeys([key], function () { s.value = Math.round(V[key] - p.min); }); s.value = Math.round(V[key] - p.min);
+  return s;
+}
+function mkDepth(parent, key) {
+  var p = BY[key], r = el("input", "", parent), t = el("span", "", parent, " "); r.type = "range"; r.min = 0; r.max = p.steps - 1; r.step = 1; r.value = R[key];
+  r.addEventListener("input", function () { setRaw(p, +r.value); touch(p); push(p.slot); markDirty(); });
+  function upd() { r.value = R[key]; t.textContent = " " + fmtVal(p); }
+  bindKeys([key], upd); upd();
+}
+function buildMatrix() {
+  mxBuilt = true;
+  var x = el("button", "x", mxEl, "Close"); x.onclick = function () { mxEl.hidden = true; };
+  el("h3", "", mxEl, "MODULATION MATRIX — 16 slots · A × B → destination");
+  var t = el("table", "", mxEl), h = el("tr", "", t); ["#", "Source A", "Source B", "Destination", "Depth"].forEach(function (c) { el("th", "", h, c); });
+  for (var n = 1; n <= 16; n++) { var tr = el("tr", "", t); el("td", "", tr, String(n)); mkSelect(el("td", "", tr), "MM" + n + "_A"); mkSelect(el("td", "", tr), "MM" + n + "_B"); mkSelect(el("td", "", tr), "MM" + n + "_DEST"); mkDepth(el("td", "", tr), "MM" + n + "_DEPTH"); }
+  el("h3", "", mxEl, "FX MODULATION MATRIX — 4 slots").style.marginTop = "14px";
+  var t2 = el("table", "", mxEl), h2 = el("tr", "", t2); ["#", "Source A", "Source B", "Destination", "Depth"].forEach(function (c) { el("th", "", h2, c); });
+  for (var m = 1; m <= 4; m++) { var tr2 = el("tr", "", t2); el("td", "", tr2, String(m)); mkSelect(el("td", "", tr2), "FM" + m + "_A"); mkSelect(el("td", "", tr2), "FM" + m + "_B"); mkSelect(el("td", "", tr2), "FM" + m + "_DEST"); mkDepth(el("td", "", tr2), "FM" + m + "_DEPTH"); }
+}
+mxBtn.addEventListener("pointerdown", function (e) { e.preventDefault(); if (!mxBuilt) buildMatrix(); mxEl.hidden = !mxEl.hidden; });
+
+// =====================================================================
+//  scaling
+// =====================================================================
+function layout() {
+  var kh = keysEl.hidden ? 0 : 116;
+  var s = Math.min(window.innerWidth / 1018, (window.innerHeight - kh) / 536);
+  SCALE = s > 0 ? s : 1;
+  stage.style.transform = "scale(" + SCALE + ")";
+  stage.style.left = Math.max(0, (window.innerWidth - 1018 * SCALE) / 2) + "px";
+  stage.style.top = Math.max(0, ((window.innerHeight - kh) - 536 * SCALE) / 2) + "px";
+}
+window.addEventListener("resize", layout); layout();
+
+// host → panel: automation / session restore (and replay of the restored sound at boot)
+if (window.vstai && window.vstai.onParam) window.vstai.onParam(function (i, v) { if (i === dragSlot) return; if (FIELDS[i]) { decodeSlot(i, +v); oledRender(); } });
+oledRender();
+ready = true;
+// test hooks
+window.__kh = { V: V, R: R, NSLOT: NSLOT, slotValue: slotValue, applyPatch: function (o) { applySnap(o || {}); }, loadIndex: loadIndex, openMenu: openMenu, snapshot: snapshot, DATA: DATA };
+})();
+
+</script>
+</body></html>

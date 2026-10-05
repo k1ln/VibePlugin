@@ -807,6 +807,13 @@ class Voice {
       if (this.onM) tot += this.mEnvF;
       if (this.cActive) tot += 1.0;
       if (this.nGate == 1 && this.nBurstI < this.nBurstN - 1) tot += 1.0;
+      // a long fade-in (swells, reverse hits) is silent at first but not finished
+      let att: f32 = 0.0;
+      if (this.onT) att = maxf(att, this.p[P_T_ATT]);
+      if (this.onF) att = maxf(att, this.p[P_F_ATT]);
+      if (this.onN) att = maxf(att, this.p[P_N_ATT]);
+      if (this.onX) att = maxf(att, this.p[P_X_ATT]);
+      if (f32(this.age) * invSR < att * <f32>0.0015) tot += 1.0;
       if (tot < 0.00003 || this.relG < 0.00003) this.active = false;
     }
   }

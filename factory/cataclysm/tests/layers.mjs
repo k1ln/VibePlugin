@@ -114,6 +114,9 @@ for (let t = 1; t <= 9; t++) { const r = run({ ...TONE, T_SHAPE: 0, T_DEC: 300, 
 { const r = run({ ...FXB, TS_ATK: 24, TS_SUS: -24 }); ok("transient shaper runs", r.met.nan === 0 && r.met.rms > 0.001); }
 { const r = run({ ...FXB, RM_MIX: 1, RM_FREQ: 440 }); ok("ring mod", r.met.nan === 0 && r.met.rms > 0.001); }
 
+// ---- long attack (swells / reverse hits): the voice must stay alive through the silent fade-in ----
+{ const r = run({ ...TONE, T_ATT: 900, T_DEC: 2500, T_CRV: 1 }, { sec: 3 }); const e = envDb(r.m, SR, 50); const pk = e.indexOf(Math.max(...e)) * 50; ok("1.5 s attack range: swell peaks near the attack time", pk > 600 && pk < 1400 && r.met.rms > 0.05, `peak at ${pk} ms`); }
+
 // ---- sample-rate independence of pitch ----
 for (const sr of [44100, 96000]) { const r = run({ ...TONE }, { sr, sec: 0.6 }); const p = pitchAt(r.m, sr, 0.1, 0.4, 30, 3000); ok(`pitch @${sr} Hz`, near(p, 100, 1.5), p.toFixed(2)); }
 

@@ -72,7 +72,7 @@ const direct = (key, name, min, max, def, fmt, o = {}) => add({ key, name, curve
 
 // A layer's amplitude envelope: attack, decay (T60), curve, tail level + time
 function ampEnv(p, decDef, o = {}) {
-  exp(`${p}_ATT`, "Attack", 0.01, 200, 0.01, 61, "ms", { tip: "Fade-in. 0.01 ms = instant." });
+  exp(`${p}_ATT`, "Attack", 0.01, 1500, 0.01, 81, "ms", { tip: "Fade-in (up to 1.5 s for swells and reverse hits). 0.01 ms = instant. Keep Decay longer than Attack." });
   exp(`${p}_DEC`, "Decay", 2, 12000, decDef, 161, "ms", { mod: true, tip: "Time to fall 60 dB." });
   lin(`${p}_CRV`, "Curve", -1, 1, 0, 21, "bip", { tip: "<0 snaps down then lingers; >0 holds then drops (gate-like)." });
   lvl(`${p}_TAIL`, "Tail", -60, { max: 0, steps: 31, mod: false, tip: "Second, slower decay layered under the main one (the 'boom')." });
@@ -148,7 +148,7 @@ exp("F_IDXT", "Index Decay", 0.5, 4000, 90, 161, "ms", { mod: true });
 lin("F_IDXC", "Index Curve", -1, 1, 0, 21, "bip");
 lin("F_FB", "Feedback", 0, 2, 0, 65, "val", { mod: true });
 sec("fm", "AMP ENVELOPE");
-exp("F_ATT", "Attack", 0.01, 200, 0.01, 61, "ms");
+exp("F_ATT", "Attack", 0.01, 1500, 0.01, 81, "ms");
 exp("F_DEC", "Decay", 2, 12000, 250, 161, "ms", { mod: true });
 lin("F_CRV", "Curve", -1, 1, 0, 21, "bip");
 

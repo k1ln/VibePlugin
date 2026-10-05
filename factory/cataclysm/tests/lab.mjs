@@ -138,7 +138,8 @@ export function fft(re, im) {
 export function spectrum(m, sr, t0, t1, n = 8192) {
   const a = Math.round(t0 * sr);
   const re = new Float64Array(n), im = new Float64Array(n);
-  for (let i = 0; i < n && a + i < m.length && a + i < Math.round(t1 * sr); i++) re[i] = m[a + i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / n));
+  const len = Math.max(8, Math.min(n, Math.min(m.length, Math.round(t1 * sr)) - a));   // Hann over the real segment
+  for (let i = 0; i < len; i++) re[i] = m[a + i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / len));
   fft(re, im);
   const mag = new Float64Array(n / 2);
   for (let i = 0; i < n / 2; i++) mag[i] = Math.hypot(re[i], im[i]);

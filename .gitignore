@@ -35,3 +35,6 @@ package-lock.json
 .DS_Store
 .vscode/
 .idea/
+
+# third-party wavetable pack used by factory/kheverest (BVKER Custom Wavetables) - 128 MB, keep local
+/BVKER-Custom-Wavetables.zip

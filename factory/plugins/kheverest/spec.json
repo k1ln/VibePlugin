@@ -1,442 +1,449 @@
 {
-  "name": "Cataclysm",
+  "name": "KHeverest",
   "isInstrument": true,
-  "explanation": "Cataclysm — a master drum synthesizer built to make everything from a clean 808 to a hardcore wall of distortion. Six independent sound sources fire on every hit: TONE (a morphing oscillator with two-stage pitch envelope, hard sync, wavefolder, feedback, sub and membrane tension), FM (two operators with feedback, ring and AM modes), MODAL (a 12-mode resonator that morphs String → Membrane → Plate → Bar → Bell → Junk, with strike position, damping tilt, tension and an excitable body), NOISE (7 colours, a morphing LP/BP/HP filter up to Q 200, clap bursts, snare-wire rattle), METAL (a six-oscillator inharmonic cluster: 808 / classic / harmonic / fifths / cluster / chaos, ring and fold, shimmer) and CLICK (6 beater types). Layers can feed each other: noise FMs the tone, metal ring-modulates it, the tone sweeps the noise filter, and any layer can excite the modal body. A ratchet engine rolls and flams a hit up to 32 times (free or tempo-synced, with pitch and level slopes), an 8-slot modulation matrix routes 16 sources (velocity, key, random, two LFOs, two envelopes, wheel, pressure, bend, four macros) to 63 targets, and the output runs through a transient shaper, two distortions (10 types, 72 dB of drive, optional 2×/4× oversampling, sub-bypass), a bit crusher, a master filter, a self-oscillating comb resonator, ring mod, 6-band EQ, a parallel compressor, echo, gated reverb, a width stage and a limiter that can never exceed its ceiling. 257 controls are packed into the host's 64 parameter slots, so use the four Macro knobs (real DAW parameters) and the matrix to automate. 262 factory presets (every one gated on level, tail, spectrum, velocity response and uniqueness): kicks, snares, claps, hats, cymbals, toms, percussion, FX and aggressive macro patches.",
-  "assembly": "factory/plugins/cataclysm/assembly.ts",
-  "out": "factory/plugins/cataclysm/x.vstai",
-  "guiFile": "factory/plugins/cataclysm/gui.html",
-  "publishedAt": 1791137495464,
+  "explanation": "KHeverest — an eight-voice, three-oscillator hybrid polysynth modelled feature-for-feature on the Novation Peak (User Guide v1.2, read cover to cover; every control, menu page, matrix source/destination and MIDI-appendix parameter is implemented). Per voice: three oscillators with sine / triangle / sawtooth / pulse and a bank of 60 morphing wavetables (five waveforms each, swept by Shape Amount), shape modulation from Mod Env 1 and LFO 1, hard-sync 'virtual oscillator' (Vsync), saw density + density detune, fixed-note mode, per-oscillator bend range, oscillator-to-oscillator FM, ring modulator, noise with its own filter, Diverge / Drift voice character and 17 tuning tables. A resonant multimode filter (LP / BP / HP, 12 or 24 dB) with pre-filter overdrive, post-filter drive, key tracking, Amp-Env / Mod-Env-1 / LFO-1 / Osc-3 modulation and per-voice divergence; three AHDSR envelopes with hold, velocity and repeats (looping envelopes); two per-voice LFOs with phase, slew, four fade modes, repeats and common-sync plus two global LFOs, tempo sync everywhere. A 16-slot, two-source (multiplied) modulation matrix with 23 sources and 37 destinations, and a 4-slot FX matrix. Voice modes Mono / MonoLG / Mono2 / Poly / Poly2, unison up to 8 voices with detune and stereo spread, glide and pre-glide, analogue-style distortion, chorus (3 types), stereo delay (tempo sync, L/R ratio, slew), FDN reverb, 7 FX routings, and an arpeggiator with 7 modes, 1-6 octaves, swing, latch and 33 rhythm patterns. Animate buttons, pitch/mod wheels, expression pedals and CV input. 272 controls are packed into the host's 64 parameter slots; master volume, wheels and the two expression inputs are real DAW parameters, everything else automates through the matrix sources. Wavetable contents are original (only the names follow the manual).",
+  "assembly": "factory/plugins/kheverest/assembly.ts",
+  "out": "factory/plugins/kheverest/x.vstai",
+  "guiFile": "factory/plugins/kheverest/gui.html",
+  "publishedAt": 1791216944876,
   "theme": {
-    "accent": "#ff4a3d",
-    "accent2": "#ffb347"
+    "accent": "#4cc9ff",
+    "accent2": "#ffffff"
   },
   "params": [
     {
-      "name": "Macro 1",
+      "name": "Master Volume",
       "index": 0,
       "min": 0,
       "max": 1,
-      "default": 0
+      "default": 0.75
     },
     {
-      "name": "Macro 2",
+      "name": "Mod Wheel",
       "index": 1,
       "min": 0,
       "max": 1,
       "default": 0
     },
     {
-      "name": "Macro 3",
+      "name": "Pitch Wheel",
       "index": 2,
-      "min": 0,
+      "min": -1,
       "max": 1,
       "default": 0
     },
     {
-      "name": "Macro 4",
+      "name": "Expression Pedal 1",
       "index": 3,
       "min": 0,
       "max": 1,
       "default": 0
     },
     {
-      "name": "Pack 04",
+      "name": "Expression Pedal 2",
       "index": 4,
       "min": 0,
-      "max": 16777216,
-      "default": 214084
+      "max": 1,
+      "default": 0
     },
     {
       "name": "Pack 05",
       "index": 5,
       "min": 0,
       "max": 16777216,
-      "default": 63792
+      "default": 20735
     },
     {
       "name": "Pack 06",
       "index": 6,
       "min": 0,
       "max": 16777216,
-      "default": 8067096
+      "default": 8140482
     },
     {
       "name": "Pack 07",
       "index": 7,
       "min": 0,
       "max": 16777216,
-      "default": 4786567
+      "default": 7513411
     },
     {
       "name": "Pack 08",
       "index": 8,
       "min": 0,
       "max": 16777216,
-      "default": 5651510
+      "default": 0
     },
     {
       "name": "Pack 09",
       "index": 9,
       "min": 0,
       "max": 16777216,
-      "default": 2166664
+      "default": 127
     },
     {
       "name": "Pack 10",
       "index": 10,
       "min": 0,
       "max": 16777216,
-      "default": 6253292
+      "default": 2080768
     },
     {
       "name": "Pack 11",
       "index": 11,
       "min": 0,
       "max": 16777216,
-      "default": 1241467
+      "default": 2080768
     },
     {
       "name": "Pack 12",
       "index": 12,
       "min": 0,
       "max": 16777216,
-      "default": 3053630
+      "default": 6286594
     },
     {
       "name": "Pack 13",
       "index": 13,
       "min": 0,
       "max": 16777216,
-      "default": 1190351
+      "default": 5423400
     },
     {
       "name": "Pack 14",
       "index": 14,
       "min": 0,
       "max": 16777216,
-      "default": 9338073
+      "default": 38563
     },
     {
       "name": "Pack 15",
       "index": 15,
       "min": 0,
       "max": 16777216,
-      "default": 1052823
+      "default": 7033291
     },
     {
       "name": "Pack 16",
       "index": 16,
       "min": 0,
       "max": 16777216,
-      "default": 3645987
+      "default": 8255
     },
     {
       "name": "Pack 17",
       "index": 17,
       "min": 0,
       "max": 16777216,
-      "default": 3290
+      "default": 11536896
     },
     {
       "name": "Pack 18",
       "index": 18,
       "min": 0,
       "max": 16777216,
-      "default": 213212
+      "default": 11542528
     },
     {
       "name": "Pack 19",
       "index": 19,
       "min": 0,
       "max": 16777216,
-      "default": 328087
+      "default": 3157248
     },
     {
       "name": "Pack 20",
       "index": 20,
       "min": 0,
       "max": 16777216,
-      "default": 299295
+      "default": 9445440
     },
     {
       "name": "Pack 21",
       "index": 21,
       "min": 0,
       "max": 16777216,
-      "default": 262440
+      "default": 9445440
     },
     {
       "name": "Pack 22",
       "index": 22,
       "min": 0,
       "max": 16777216,
-      "default": 1328602
+      "default": 1056832
     },
     {
       "name": "Pack 23",
       "index": 23,
       "min": 0,
       "max": 16777216,
-      "default": 10731004
+      "default": 9445440
     },
     {
       "name": "Pack 24",
       "index": 24,
       "min": 0,
       "max": 16777216,
-      "default": 7986893
+      "default": 1056832
     },
     {
       "name": "Pack 25",
       "index": 25,
       "min": 0,
       "max": 16777216,
-      "default": 7845752
+      "default": 1024191
     },
     {
       "name": "Pack 26",
       "index": 26,
       "min": 0,
       "max": 16777216,
-      "default": 44
+      "default": 647739
     },
     {
       "name": "Pack 27",
       "index": 27,
       "min": 0,
       "max": 16777216,
-      "default": 15414060
+      "default": 5100
     },
     {
       "name": "Pack 28",
       "index": 28,
       "min": 0,
       "max": 16777216,
-      "default": 15439210
+      "default": 253472
     },
     {
       "name": "Pack 29",
       "index": 29,
       "min": 0,
       "max": 16777216,
-      "default": 13305900
+      "default": 137312
     },
     {
       "name": "Pack 30",
       "index": 30,
       "min": 0,
       "max": 16777216,
-      "default": 6224272
+      "default": 137312
     },
     {
       "name": "Pack 31",
       "index": 31,
       "min": 0,
       "max": 16777216,
-      "default": 7908236
+      "default": 8376062
     },
     {
       "name": "Pack 32",
       "index": 32,
       "min": 0,
       "max": 16777216,
-      "default": 7844770
+      "default": 6728312
     },
     {
       "name": "Pack 33",
       "index": 33,
       "min": 0,
       "max": 16777216,
-      "default": 7785596
+      "default": 10023812
     },
     {
       "name": "Pack 34",
       "index": 34,
       "min": 0,
       "max": 16777216,
-      "default": 60
+      "default": 6728312
     },
     {
       "name": "Pack 35",
       "index": 35,
       "min": 0,
       "max": 16777216,
-      "default": 6592235
+      "default": 9717792
     },
     {
       "name": "Pack 36",
       "index": 36,
       "min": 0,
       "max": 16777216,
-      "default": 16589462
+      "default": 8390656
     },
     {
       "name": "Pack 37",
       "index": 37,
       "min": 0,
       "max": 16777216,
-      "default": 12838718
+      "default": 258048
     },
     {
       "name": "Pack 38",
       "index": 38,
       "min": 0,
       "max": 16777216,
-      "default": 205968
+      "default": 0
     },
     {
       "name": "Pack 39",
       "index": 39,
       "min": 0,
       "max": 16777216,
-      "default": 210193
+      "default": 0
     },
     {
       "name": "Pack 40",
       "index": 40,
       "min": 0,
       "max": 16777216,
-      "default": 2627
+      "default": 3278848
     },
     {
       "name": "Pack 41",
       "index": 41,
       "min": 0,
       "max": 16777216,
-      "default": 0
+      "default": 16775040
     },
     {
       "name": "Pack 42",
       "index": 42,
       "min": 0,
       "max": 16777216,
-      "default": 2621440
+      "default": 11017056
     },
     {
       "name": "Pack 43",
       "index": 43,
       "min": 0,
       "max": 16777216,
-      "default": 57624
+      "default": 6812672
     },
     {
       "name": "Pack 44",
       "index": 44,
       "min": 0,
       "max": 16777216,
-      "default": 1921608
+      "default": 657408
     },
     {
       "name": "Pack 45",
       "index": 45,
       "min": 0,
       "max": 16777216,
-      "default": 1931712
+      "default": 6422565
     },
     {
       "name": "Pack 46",
       "index": 46,
       "min": 0,
       "max": 16777216,
-      "default": 2223128
+      "default": 7446027
     },
     {
       "name": "Pack 47",
       "index": 47,
       "min": 0,
       "max": 16777216,
-      "default": 840
+      "default": 0
     },
     {
       "name": "Pack 48",
       "index": 48,
       "min": 0,
       "max": 16777216,
-      "default": 7063562
+      "default": 0
     },
     {
       "name": "Pack 49",
       "index": 49,
       "min": 0,
       "max": 16777216,
-      "default": 7034144
+      "default": 0
     },
     {
       "name": "Pack 50",
       "index": 50,
       "min": 0,
       "max": 16777216,
-      "default": 6550
+      "default": 767232
     },
     {
       "name": "Pack 51",
       "index": 51,
       "min": 0,
       "max": 16777216,
-      "default": 811585
+      "default": 18496
     },
     {
       "name": "Pack 52",
       "index": 52,
       "min": 0,
       "max": 16777216,
-      "default": 528
+      "default": 8388608
     },
     {
       "name": "Pack 53",
       "index": 53,
       "min": 0,
       "max": 16777216,
-      "default": 35904
+      "default": 312
     },
     {
       "name": "Pack 54",
       "index": 54,
       "min": 0,
       "max": 16777216,
-      "default": 32
+      "default": 0
     },
     {
       "name": "Pack 55",
       "index": 55,
       "min": 0,
       "max": 16777216,
-      "default": 17456
+      "default": 0
     },
     {
       "name": "Pack 56",
       "index": 56,
       "min": 0,
       "max": 16777216,
-      "default": 209533
+      "default": 0
     },
     {
       "name": "Pack 57",
       "index": 57,
       "min": 0,
       "max": 16777216,
-      "default": 2431000
+      "default": 0
     },
     {
       "name": "Pack 58",
       "index": 58,
       "min": 0,
       "max": 16777216,
-      "default": 97240
+      "default": 0
     },
     {
       "name": "Pack 59",
       "index": 59,
       "min": 0,
       "max": 16777216,
-      "default": 0
+      "default": 9514594
     },
     {
       "name": "Pack 60",
       "index": 60,
       "min": 0,
       "max": 16777216,
-      "default": 9234
+      "default": 0
+    },
+    {
+      "name": "Pack 61",
+      "index": 61,
+      "min": 0,
+      "max": 16777216,
+      "default": 405504
     }
   ]
 }

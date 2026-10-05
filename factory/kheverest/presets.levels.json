@@ -1,0 +1,281 @@
+{
+ "Sub Foundation": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 86
+ },
+ "Reese Machine": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 40
+ },
+ "Wobble Deck": {
+  "PATCHLVL": 38,
+  "VCAGAIN": 49
+ },
+ "Acid Climber": {
+  "PATCHLVL": 128
+ },
+ "FM Pulse Bass": {
+  "PATCHLVL": 110
+ },
+ "Hollow Square": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 79
+ },
+ "Growl Table": {
+  "PATCHLVL": 128
+ },
+ "Fold Bass": {
+  "PATCHLVL": 44
+ },
+ "Rubber Bass": {
+  "PATCHLVL": 128
+ },
+ "Octave Pump": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 61
+ },
+ "Sync Scream": {
+  "PATCHLVL": 128
+ },
+ "Super Saw Lead": {
+  "PATCHLVL": 46
+ },
+ "Ring Bell Lead": {
+  "PATCHLVL": 64
+ },
+ "Vox Lead": {
+  "PATCHLVL": 106
+ },
+ "Mono Fury": {
+  "PATCHLVL": 64,
+  "VCAGAIN": 42
+ },
+ "Glass Tine Lead": {
+  "PATCHLVL": 104
+ },
+ "Pulse Wave Hero": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 39
+ },
+ "Crystal Sync": {
+  "PATCHLVL": 86
+ },
+ "Whistle Sine": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 93
+ },
+ "Slow Horizon": {
+  "PATCHLVL": 60,
+  "VCAGAIN": 32
+ },
+ "Glass Cathedral": {
+  "PATCHLVL": 56,
+  "VCAGAIN": 84
+ },
+ "Warm Strings": {
+  "PATCHLVL": 42,
+  "VCAGAIN": 30
+ },
+ "Choral Dawn": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 45
+ },
+ "Analog Drift": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 31
+ },
+ "Wide Detune Pad": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 45
+ },
+ "Evolving Table": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 50
+ },
+ "Ice Breath": {
+  "PATCHLVL": 128
+ },
+ "Organ Hall": {
+  "PATCHLVL": 52,
+  "VCAGAIN": 30
+ },
+ "Breathing Pad": {
+  "PATCHLVL": 50,
+  "VCAGAIN": 24
+ },
+ "Animate Me": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 40
+ },
+ "Tine Piano": {
+  "PATCHLVL": 74
+ },
+ "Funk Clav": {
+  "PATCHLVL": 128
+ },
+ "Digital Bell": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 78
+ },
+ "Drawbar Organ": {
+  "PATCHLVL": 38,
+  "VCAGAIN": 19
+ },
+ "Marimba Ring": {
+  "PATCHLVL": 72
+ },
+ "Soft Pluck Keys": {
+  "PATCHLVL": 84
+ },
+ "Wurly Bite": {
+  "PATCHLVL": 32,
+  "VCAGAIN": 85
+ },
+ "Glass Harp": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 81
+ },
+ "Arp Pulse 16th": {
+  "PATCHLVL": 38
+ },
+ "Dub Chord Stabs": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 86
+ },
+ "Arp Cascade": {
+  "PATCHLVL": 128
+ },
+ "Octave Bounce": {
+  "PATCHLVL": 128
+ },
+ "Random Glass": {
+  "PATCHLVL": 96
+ },
+ "Trance Gate": {
+  "PATCHLVL": 52,
+  "VCAGAIN": 37
+ },
+ "Swing Pluck": {
+  "PATCHLVL": 82
+ },
+ "Held Cloud": {
+  "PATCHLVL": 76
+ },
+ "Rhythm Machine": {
+  "PATCHLVL": 128
+ },
+ "Down Stairs": {
+  "PATCHLVL": 100
+ },
+ "Poly Brass": {
+  "PATCHLVL": 48,
+  "VCAGAIN": 33
+ },
+ "Brass Stab": {
+  "PATCHLVL": 52
+ },
+ "Analog Strings": {
+  "PATCHLVL": 36,
+  "VCAGAIN": 31
+ },
+ "Octave Strings": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 46
+ },
+ "Cello Section": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 44
+ },
+ "Sine Kick": {
+  "PATCHLVL": 128
+ },
+ "Tom Drop": {
+  "PATCHLVL": 128
+ },
+ "Zap Laser": {
+  "PATCHLVL": 128
+ },
+ "Noise Hat": {
+  "PATCHLVL": 128
+ },
+ "Rim Click": {
+  "PATCHLVL": 128
+ },
+ "Metal Hit": {
+  "PATCHLVL": 128
+ },
+ "Pluck Mallet": {
+  "PATCHLVL": 128
+ },
+ "Sea Drone": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 41
+ },
+ "Alien Transmission": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 82
+ },
+ "S&H Cloud": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 41
+ },
+ "Noise Sweep": {
+  "PATCHLVL": 124
+ },
+ "Impact Hit": {
+  "PATCHLVL": 32,
+  "VCAGAIN": 25
+ },
+ "Spiral Staircase": {
+  "PATCHLVL": 122
+ },
+ "Modem Dream": {
+  "PATCHLVL": 128
+ },
+ "Rising Tide": {
+  "PATCHLVL": 56,
+  "VCAGAIN": 37
+ },
+ "Growl Stack": {
+  "PATCHLVL": 96
+ },
+ "Throat Singer": {
+  "PATCHLVL": 108
+ },
+ "FM Chime Keys": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 96
+ },
+ "Bell Tower": {
+  "PATCHLVL": 60
+ },
+ "Hyper Pad": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 59
+ },
+ "Hyperdrive Lead": {
+  "PATCHLVL": 70
+ },
+ "PWM Strings": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 81
+ },
+ "Saw Sweep": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 81
+ },
+ "Square Drift": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 45
+ },
+ "Sub Table": {
+  "PATCHLVL": 100
+ },
+ "Tube Lead": {
+  "PATCHLVL": 46
+ },
+ "Tape Keys": {
+  "PATCHLVL": 54,
+  "VCAGAIN": 55
+ }
+}

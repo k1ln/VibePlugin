@@ -60,3 +60,17 @@ slots; `build.mjs` generates the DSP tables; the GUI embeds the same layout.
 Consequences: only the **macros** (slots 0–3) are meaningful to the DAW. Automate everything else
 through the matrix (Macro → any of 63 targets). If the host ever raises `kMaxParams`, only the
 packer needs to change.
+
+## Presets (262)
+
+`presets.mjs` (first bank, 52) + `presets-extra.mjs` (second bank, 210). The second bank is written as
+descriptor → parameter builders (`K` kick, `S` snare, `C` clap, `H` hat/cymbal, `T` membrane, `P` pitched
+percussion) so each preset is a deliberate variation of a worked recipe. Levels are normalised by
+`tests/tune-levels.mjs` (peak ≈ −3 dBFS, loudest 400 ms ≤ −13 dBFS RMS) into `presets.levels.json`;
+rerun it after any DSP change. `tests/quality.mjs <wasm> --all` is the gate: level, DC, NaN, tail,
+per-category spectral fingerprint (kick sub-dominance, hat HF share, clap midband …), stereo balance,
+velocity response (level or timbre), notes 28/48/60, 8-hit retrigger stability, and a minimum
+spectral/decay distance to the nearest other preset. Heavily distorted presets automatically get
+velocity → clipper drive so soft hits stay clean.
+
+Long fade-ins: `*_ATT` goes to 1.5 s (swells, reverse hits) — keep `Decay` longer than the attack.
