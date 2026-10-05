@@ -12,7 +12,7 @@
 //  VCF (p.34 CUTOFF FREQ / RESONANCE): the signature 18 dB/oct (3-pole)
 //    diode-ladder-style resonant low-pass. CUTOFF shaves the upper
 //    harmonics; RESONANCE emphasises the cutoff band and, near maximum,
-//    pushes the filter toward self-oscillation.
+//    pushes the filter toward self-oscillation. 
 //  ENV MOD (p.34): depth of the envelope sweep into the filter cutoff —
 //    "the tone movement of a note", stronger clockwise.
 //  DECAY (p.34): the single decay-only envelope's time. Both the volume
