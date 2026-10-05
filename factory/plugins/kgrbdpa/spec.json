@@ -1,0 +1,253 @@
+{
+  "name": "KGrbdPa",
+  "isInstrument": true,
+  "explanation": "KGrbdPa — a feature-for-feature model of the Moog Grandmother semi-modular analog synthesizer, built from a cover-to-cover read of the Grandmother User's Manual (signal-flow page, every module, the patch-point index, the Global Settings, the MIDI chart and the 14 factory patch sheets). Two band-limited VCOs (triangle / saw / square / narrow pulse, 32'-2', hard sync, linear FM, PWM), white noise, a 3-channel mixer that overdrives, the 4-pole 24 dB Moog ladder filter with self-oscillation and 1:2 / 1:1 keyboard tracking, a 1-pole high-pass filter, a bipolar attenuator, a 4-point mult, the ADSR with +/- outputs, the modulation oscillator with Sample & Hold, the VCA with ENV / KB RLS / DRONE modes, and a two-spring reverb tank. The whole 41-point patch bay is live: drag cables between any output and any input (inputs replace their normalled connection exactly like the hardware). Left-hand controller with pitch/mod wheels, glide (LCR / LCT / exponential, legato, gated), keyboard octave and transpose; arpeggiator (ORDR / FWD-BKWD / RNDM, 1-3 octaves, HOLD) and a 3 x 256-step sequencer with REC, REST, TIE, ACCENT and live overwrite; internal / tap / host-tempo clock with the 24 note divisions, CLOCK IN / ON-OFF IN / RESET IN / CLOCK OUT. 78 controls: the knobs and wheels are real DAW parameters, switches and the patch bay are packed into the remaining host slots. The 14 manual patch sheets are included.",
+  "assembly": "factory/plugins/kgrbdpa/assembly.ts",
+  "out": "factory/plugins/kgrbdpa/x.vstai",
+  "guiFile": "factory/plugins/kgrbdpa/gui.html",
+  "publishedAt": 1791229435378,
+  "theme": {
+    "accent": "#ff7a1a",
+    "accent2": "#f4ead2"
+  },
+  "params": [
+    {
+      "name": "Pitch Wheel",
+      "index": 0,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Mod Wheel",
+      "index": 1,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Glide",
+      "index": 2,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Arp/Seq Rate",
+      "index": 3,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Mod Rate",
+      "index": 4,
+      "min": 0,
+      "max": 1,
+      "default": 0.4
+    },
+    {
+      "name": "Mod Rate Fine",
+      "index": 5,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pitch Amt",
+      "index": 6,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Cutoff Amt",
+      "index": 7,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Pulse Width Amt",
+      "index": 8,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Osc 2 Frequency",
+      "index": 9,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Oscillator 1",
+      "index": 10,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Oscillator 2",
+      "index": 11,
+      "min": 0,
+      "max": 1,
+      "default": 0.6
+    },
+    {
+      "name": "Noise",
+      "index": 12,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "High Pass",
+      "index": 13,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Attenuator",
+      "index": 14,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Cutoff",
+      "index": 15,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Resonance",
+      "index": 16,
+      "min": 0,
+      "max": 1,
+      "default": 0.15
+    },
+    {
+      "name": "Envelope Amt",
+      "index": 17,
+      "min": -1,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Attack",
+      "index": 18,
+      "min": 0,
+      "max": 1,
+      "default": 0.1
+    },
+    {
+      "name": "Decay",
+      "index": 19,
+      "min": 0,
+      "max": 1,
+      "default": 0.45
+    },
+    {
+      "name": "Sustain",
+      "index": 20,
+      "min": 0,
+      "max": 1,
+      "default": 0.55
+    },
+    {
+      "name": "Release",
+      "index": 21,
+      "min": 0,
+      "max": 1,
+      "default": 0.3
+    },
+    {
+      "name": "Volume",
+      "index": 22,
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    },
+    {
+      "name": "Reverb Mix",
+      "index": 23,
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Fine Tune",
+      "index": 24,
+      "min": -1,
+      "max": 1,
+      "default": 0
+    },
+    {
+      "name": "Instrument In",
+      "index": 25,
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "name": "Analog Drift",
+      "index": 26,
+      "min": 0,
+      "max": 1,
+      "default": 0.25
+    },
+    {
+      "name": "Pack 27",
+      "index": 27,
+      "min": 0,
+      "max": 16777216,
+      "default": 9149922
+    },
+    {
+      "name": "Pack 28",
+      "index": 28,
+      "min": 0,
+      "max": 16777216,
+      "default": 4952198
+    },
+    {
+      "name": "Pack 29",
+      "index": 29,
+      "min": 0,
+      "max": 16777216,
+      "default": 0
+    },
+    {
+      "name": "Pack 30",
+      "index": 30,
+      "min": 0,
+      "max": 16777216,
+      "default": 4952198
+    },
+    {
+      "name": "Pack 31",
+      "index": 31,
+      "min": 0,
+      "max": 16777216,
+      "default": 2476099
+    },
+    {
+      "name": "Pack 32",
+      "index": 32,
+      "min": 0,
+      "max": 16777216,
+      "default": 1447249
+    },
+    {
+      "name": "Pack 33",
+      "index": 33,
+      "min": 0,
+      "max": 16777216,
+      "default": 249481
+    }
+  ]
+}
