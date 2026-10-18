@@ -78,7 +78,7 @@ VstaiAudioProcessor::VstaiAudioProcessor()
     else
     {
         document.provider = "cloud";
-        document.model    = "claude-opus-4-8";
+        document.model    = "claude-opus-5-5";
     }
     compiler = std::make_shared<AssemblyScriptCompiler>();
     // API key + model come from the compiled-in Config.h (or env); the

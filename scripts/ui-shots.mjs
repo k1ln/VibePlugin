@@ -120,12 +120,12 @@ function stubJs(fx) {
   const state = {
     provider: "anthropic", model: "claude-opus-5-5", effort: "medium", thinking: true,
     models: [
-      { provider: "anthropic", id: "claude-fable-5",  label: "Fable 5 (most capable, 2× price)", group: "Anthropic (your key)" },
+      { provider: "anthropic", id: "claude-fable-5-1",  label: "Fable 5.1 (most capable, 2× price)", group: "Anthropic (your key)" },
       { provider: "anthropic", id: "claude-opus-5-5",   label: "Opus 5.5 (best value)",  group: "Anthropic (your key)" },
       { provider: "anthropic", id: "claude-sonnet-5-5", label: "Sonnet 5.5 (cheaper)",   group: "Anthropic (your key)" },
-      { provider: "cloud", id: "claude-haiku-4-5", label: "Cloud · Haiku 4.5",        group: "VibePlugin Cloud (credits)" },
-      { provider: "cloud", id: "claude-sonnet-5",  label: "Cloud · Sonnet 5",         group: "VibePlugin Cloud (credits)" },
-      { provider: "cloud", id: "claude-opus-4-8",  label: "Cloud · Opus 4.8 (best)",  group: "VibePlugin Cloud (credits)" },
+      { provider: "cloud", id: "claude-haiku-5-5", label: "Cloud · Haiku 5.5",        group: "VibePlugin Cloud (credits)" },
+      { provider: "cloud", id: "claude-sonnet-5-5", label: "Cloud · Sonnet 5.5",         group: "VibePlugin Cloud (credits)" },
+      { provider: "cloud", id: "claude-opus-5-5",  label: "Cloud · Opus 5.5 (best)",  group: "VibePlugin Cloud (credits)" },
     ],
     isInstrument: false, hasPlugin: true, name: fx.name,
     assembly: fx.assembly, html: fx.html,
@@ -134,9 +134,9 @@ function stubJs(fx) {
   };
 
   const history = [
-    { id: "3", prompt: "add a wow & flutter control", model: "Opus 5",  timestamp: Date.now() - 1000 * 60 * 4,  active: true  },
-    { id: "2", prompt: "make the saturation warmer and add a tone knob", model: "Opus 5", timestamp: Date.now() - 1000 * 60 * 12, active: false },
-    { id: "1", prompt: "a warm tape saturator with drive and tone", model: "Opus 5", timestamp: Date.now() - 1000 * 60 * 20, active: false },
+    { id: "3", prompt: "add a wow & flutter control", model: "Opus 5.5",  timestamp: Date.now() - 1000 * 60 * 4,  active: true  },
+    { id: "2", prompt: "make the saturation warmer and add a tone knob", model: "Opus 5.5", timestamp: Date.now() - 1000 * 60 * 12, active: false },
+    { id: "1", prompt: "a warm tape saturator with drive and tone", model: "Opus 5.5", timestamp: Date.now() - 1000 * 60 * 20, active: false },
   ];
 
   return `

@@ -194,15 +194,15 @@ The dropdown shows the models for whichever generation source is selected.
 
 | Anthropic (your key) | |
 |---|---|
-| Fable 5 | most capable · 2× price |
-| Opus 5 | best value · the default |
-| Sonnet 5 | cheaper and faster |
+| Fable 5.1 | most capable · 2× price |
+| Opus 5.5 | best value · the default |
+| Sonnet 5.5 | cheaper and faster |
 
 | VibePlugin Cloud (credits) | |
 |---|---|
-| Cloud · Haiku 4.5 | cheapest, good for small edits |
-| Cloud · Sonnet 5 | the balanced choice |
-| Cloud · Opus 4.8 | best results on complex plugins |
+| Cloud · Haiku 5.5 | cheapest, good for small edits |
+| Cloud · Sonnet 5.5 | the balanced choice |
+| Cloud · Opus 5.5 | best results on complex plugins |
 
 There’s also a **Thinking** control: Low / Medium / High / Max. More thinking
 gives better results on complicated plugins and costs more; **Medium** is a
@@ -271,8 +271,8 @@ interface can go well past the top.
 | 1 credit | $0.01 |
 | **A complete plugin** | about **$0.40 – $1.50** (40–150 credits), and more for an elaborate one |
 | A small edit (“make the tone darker”) | considerably less |
-| Haiku 4.5, the cheapest | the bottom of that range |
-| Opus 4.8, the strongest | the top of it, and past it on complex plugins |
+| Haiku 5.5, the cheapest | the bottom of that range |
+| Opus 5.5, the strongest | the top of it, and past it on complex plugins |
 
 Packs are bought through our payments provider (Polar) — that’s the “pay website”
 you saw. After every generation the plugin tells you what it charged and what
@@ -655,8 +655,8 @@ The generated DSP runs under **wasmtime**. The only network use is generating a
 | Path | Models | Auth | How |
 |---|---|---|---|
 | **Manual** (free) | a free claude.ai account | **none** | copy the prompt → paste into Claude (Opus recommended) → paste the reply back |
-| **Anthropic — your key** | Fable 5 / Opus 5 / Sonnet 5 | `sk-ant-…` in Settings | direct HTTPS from the plugin |
-| **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 5 / Opus 4.8 | sign in via **Account** | proxied through the hosted server — no API key needed |
+| **Anthropic — your key** | Fable 5.1 / Opus 5.5 / Sonnet 5.5 / Haiku 5.5 | `sk-ant-…` in Settings | direct HTTPS from the plugin |
+| **VibePlugin Cloud — credits** | Cloud · Haiku 5.5 / Sonnet 5.5 / Opus 5.5 | sign in via **Account** | proxied through the hosted server — no API key needed |
 
 The credits backend is **not** in this tree — it’s a separate private repo
 (`VibePlugin-server`). Nothing here depends on it: the plugin is fully usable with

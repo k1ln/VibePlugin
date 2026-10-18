@@ -338,13 +338,16 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     // module plus a complete HTML GUI — and adaptive thinking at higher effort
     // spends a chunk of the budget before any text, so a low cap truncates the
     // JSON with stop_reason: max_tokens. Use each model's real output ceiling
-    // (Fable 5 / Opus 4.x → 128K, Sonnet/Haiku 4.x → 64K). Streaming (below)
+    // (Fable / Opus / Sonnet 5.x / Haiku 5.5 → 128K, older Sonnet/Haiku → 64K). Streaming (below)
     // avoids the HTTP timeouts these large values would otherwise risk.
     const bool isFable   = model.startsWithIgnoreCase ("claude-fable");
-    // Opus 5 and Fable 5 can decline a benign request (stop_reason: refusal); both
-    // support the server-side fallback that re-serves it inside the same call.
-    const bool wantsFallback = isFable || model.startsWithIgnoreCase ("claude-opus-5");
-    const int  modelCeiling = (isFable || model.startsWithIgnoreCase ("claude-opus") || model.startsWithIgnoreCase ("claude-sonnet-5")) ? 128000 : 64000;
+    // Fable, Opus 5.x and Sonnet 5.5 can decline a benign request (stop_reason:
+    // refusal); all support the server-side fallback that re-serves it inside the
+    // same call. Haiku 5.5 has no server-side fallback.
+    const bool wantsFallback = isFable || model.startsWithIgnoreCase ("claude-opus-5")
+                                       || model.startsWithIgnoreCase ("claude-sonnet-5-5");
+    const int  modelCeiling = (isFable || model.startsWithIgnoreCase ("claude-opus") || model.startsWithIgnoreCase ("claude-sonnet-5")
+                               || model.startsWithIgnoreCase ("claude-haiku-5")) ? 128000 : 64000;
     const int  maxTokens    = maxOutputTokens > 0 ? juce::jmin (maxOutputTokens, modelCeiling)
                                                   : modelCeiling;
 
@@ -355,17 +358,13 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     body->setProperty ("thinking", juce::var (thinkingCfg));
     body->setProperty ("output_config", juce::var (outputConfig));
 
-    // Fable 5 / Opus 5 safety classifiers can occasionally decline benign requests
-    // (stop_reason: refusal). Opt into the server-side fallback so a decline is
-    // transparently re-served by Opus 4.8 inside the same call instead of
-    // failing the build. (Needs the beta header added below.)
+    // Fable / Opus 5.x / Sonnet 5.5 safety classifiers can occasionally decline
+    // benign requests (stop_reason: refusal). Opt into the server-side fallback
+    // ("default" routes by refusal category) so a decline is transparently
+    // re-served inside the same call instead of failing the build. (Needs the
+    // beta header added below.)
     if (wantsFallback)
-    {
-        auto* fb = new juce::DynamicObject();
-        fb->setProperty ("model", "claude-opus-4-8");
-        juce::Array<juce::var> fallbacks; fallbacks.add (juce::var (fb));
-        body->setProperty ("fallbacks", juce::var (fallbacks));
-    }
+        body->setProperty ("fallbacks", "default");
 
     // The system prompt is large (~5.6K tokens) and byte-identical on every call,
     // so cache it. TTL is 1h, NOT the 5-minute default: a generate that compiles
@@ -455,7 +454,7 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
     const juce::String headers =
           juce::String ("content-type: application/json\r\n")
         + "anthropic-version: 2023-06-01\r\n"
-        + (wantsFallback ? "anthropic-beta: server-side-fallback-2026-06-01\r\n" : "")
+        + (wantsFallback ? "anthropic-beta: server-side-fallback-2026-07-01\r\n" : "")
         + "x-api-key: " + apiKey;
 
     // Consume the SSE stream, assembling the JSON from `text_delta` events. The

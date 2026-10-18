@@ -64,8 +64,8 @@ The **Model** dropdown picks who writes the plugin.
 | Option | Models | Key / account | How |
 |---|---|---|---|
 | **Manual** (free) | a free claude.ai account | **none** | copy the prompt → paste into Claude (Opus recommended) → paste the reply back |
-| **Anthropic — your key** | Fable 5, Opus 5, Sonnet 5 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
-| **VibePlugin Cloud — credits** | Cloud · Haiku 4.5 / Sonnet 5 / Opus 4.8 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
+| **Anthropic — your key** | Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5 | your Anthropic API key | `api.anthropic.com/v1/messages` (structured outputs + thinking) |
+| **VibePlugin Cloud — credits** | Cloud · Haiku 5.5 / Sonnet 5.5 / Opus 5.5 | sign in via **Account** (pay-as-you-go credits) | proxied through the hosted server — no API key needed |
 
 **Manual ("bring your own chatbot")** is the free, no-API-key, no-account path.
 **Copy to chatbot** copies a self-contained prompt; paste the full reply back and
@@ -342,6 +342,6 @@ The credits backend is **not** in this tree — it's a separate private repo
   the host through `window.vstai`.
 - The REST calls are non-streaming with a 10-minute timeout; switch `LlmClient`
   to streaming for very large generations. Very large GUIs are best generated
-  with the strongest model (Opus 4.8).
+  with the strongest model (Opus 5.5).
 - Treat generated code as untrusted: DSP runs in the WASM sandbox, the GUI in an
   embedded WebView. Don't paste secrets into prompts.

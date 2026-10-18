@@ -46,19 +46,18 @@ namespace
     var modelCatalog (const juce::StringArray& ollama)
     {
         juce::Array<var> a;
-        a.add (modelEntry ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"), "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-fable-5-1",  vstai::u8 ("Fable 5.1 (most capable, 2\xC3\x97 price)"), "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-opus-5-5",   "Opus 5.5 (best value)",  "Anthropic (your key)"));
         a.add (modelEntry ("anthropic", "claude-sonnet-5-5", "Sonnet 5.5 (cheaper)",   "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-opus-5",     "Opus 5",                 "Anthropic (your key)"));
-        a.add (modelEntry ("anthropic", "claude-sonnet-5",   "Sonnet 5",               "Anthropic (your key)"));
+        a.add (modelEntry ("anthropic", "claude-haiku-5-5",  "Haiku 5.5 (cheapest)",   "Anthropic (your key)"));
         // GLM / Z.ai and local Ollama models are temporarily hidden from the dropdown
         // (Anthropic-only for now). The backend still supports them — re-add to restore.
         // a.add (modelEntry ("glm", "glm-5.2", "GLM-5.2", "GLM / Z.ai (your key)"));
         // a.add (modelEntry ("glm", "glm-4.6", "GLM-4.6", "GLM / Z.ai (your key)"));
         // a.add (modelEntry ("cloud", "glm-5.2",           "Cloud · GLM-5.2 (cheapest)", "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-haiku-4-5",  vstai::u8 ("Cloud · Haiku 4.5"),          "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-sonnet-5",   vstai::u8 ("Cloud · Sonnet 5"),           "VibePlugin Cloud (credits)"));
-        a.add (modelEntry ("cloud", "claude-opus-4-8",   vstai::u8 ("Cloud · Opus 4.8 (best)"),    "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-haiku-5-5",  vstai::u8 ("Cloud · Haiku 5.5"),          "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-sonnet-5-5", vstai::u8 ("Cloud · Sonnet 5.5"),         "VibePlugin Cloud (credits)"));
+        a.add (modelEntry ("cloud", "claude-opus-5-5",   vstai::u8 ("Cloud · Opus 5.5 (best)"),    "VibePlugin Cloud (credits)"));
         // for (const auto& m : ollama)
         // {
         //     auto* o = new juce::DynamicObject();

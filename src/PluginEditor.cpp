@@ -785,11 +785,10 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     };
 
     modelBox.addSectionHeading ("Anthropic (your key)");
-    add ("anthropic", "claude-fable-5",    vstai::u8 ("Fable 5 (most capable, 2\xC3\x97 price)"));
+    add ("anthropic", "claude-fable-5-1",  vstai::u8 ("Fable 5.1 (most capable, 2\xC3\x97 price)"));
     add ("anthropic", "claude-opus-5-5",   "Opus 5.5 (best value)");
     add ("anthropic", "claude-sonnet-5-5", "Sonnet 5.5 (cheaper)");
-    add ("anthropic", "claude-opus-5",     "Opus 5");
-    add ("anthropic", "claude-sonnet-5",   "Sonnet 5");
+    add ("anthropic", "claude-haiku-5-5",  "Haiku 5.5 (cheapest)");
 
     // GLM / Zhipu (Z.ai) — OpenAI-compatible. The exact model id must match what
     // your plan exposes; glm-4.6 is the known-good fallback if glm-5.2 isn't live yet.
@@ -801,9 +800,9 @@ void VstaiAudioProcessorEditor::rebuildModelBox()
     // runs on our keys and is metered against your balance.
     modelBox.addSectionHeading ("VibePlugin Cloud (credits)");
     add ("cloud", "glm-5.2",           vstai::u8 ("Cloud · GLM-5.2 (cheapest)"));
-    add ("cloud", "claude-haiku-4-5",  vstai::u8 ("Cloud · Haiku 4.5"));
-    add ("cloud", "claude-sonnet-5",   vstai::u8 ("Cloud · Sonnet 5"));
-    add ("cloud", "claude-opus-4-8",   vstai::u8 ("Cloud · Opus 4.8 (best)"));
+    add ("cloud", "claude-haiku-5-5",  vstai::u8 ("Cloud · Haiku 5.5"));
+    add ("cloud", "claude-sonnet-5-5", vstai::u8 ("Cloud · Sonnet 5.5"));
+    add ("cloud", "claude-opus-5-5",   vstai::u8 ("Cloud · Opus 5.5 (best)"));
 
     if (! ollamaModels.isEmpty())
     {
