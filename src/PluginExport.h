@@ -129,6 +129,34 @@ namespace vstai::pluginexport
        #endif
     }
 
+    // Windows/Linux hosts load <Name>.vst3/Contents/<arch>/<Name>.vst3 (.so on Linux)
+    // — the inner binary MUST be named after the bundle, or the DAW finds nothing to
+    // load. The copy still carries the source name ("VibePlugin FX.vst3"), so rename
+    // it in every arch folder. (macOS reads the binary name from Info.plist instead.)
+    inline bool renameInnerBinaries (const juce::File& bundle, juce::String& errOut)
+    {
+       #if JUCE_MAC
+        juce::ignoreUnused (bundle, errOut);
+        return true;
+       #else
+        const auto stem = bundle.getFileNameWithoutExtension();
+        for (auto& d : bundle.getChildFile ("Contents").findChildFiles (juce::File::findDirectories, false))
+            for (auto& f : d.findChildFiles (juce::File::findFiles, false))
+            {
+                const auto ext = f.getFileExtension();
+                if (! (ext.equalsIgnoreCase (".vst3") || ext.equalsIgnoreCase (".so"))) continue;
+                auto target = d.getChildFile (stem + ext);
+                if (f == target) continue;
+                if (! f.moveFileTo (target))
+                {
+                    errOut = "could not rename " + f.getFullPathName() + " to " + target.getFileName();
+                    return false;
+                }
+            }
+        return true;
+       #endif
+    }
+
     // Cosmetic: surface the product name in the copy's Info.plist. Best effort —
     // the plugin-list name is fixed by the compiled binary regardless.
     inline void setBundleDisplayName (const juce::File& bundle, const juce::String& name)
@@ -159,8 +187,8 @@ namespace vstai::pluginexport
     inline void stripUnusedForLocked (const juce::File& bundle)
     {
         auto res = bundle.getChildFile ("Contents").getChildFile ("Resources");
-        res.getChildFile ("vstai-node").deleteFile();
-        res.getChildFile ("asc-bundle.mjs").deleteFile();
+        for (auto* n : { "vstai-node", "vstai-node.exe", "vstai-asc", "vstai-asc.exe", "asc-bundle.mjs" })
+            res.getChildFile (n).deleteFile();
         res.getChildFile ("ui").deleteRecursively();
     }
 
@@ -404,6 +432,36 @@ namespace vstai::pluginexport
         return hits;
     }
 
+    // x86-64 (MSVC/clang) builds the id with two 32-bit stores — e.g.
+    //   C7 41 08 <"Vsai">   mov dword ptr [rcx+8], manuf
+    //   C7 41 0C <"Vsfx">   mov dword ptr [rcx+0Ch], code
+    // so "<manuf><code>" never appears contiguously. Find a manuf immediate followed by
+    // another mov-imm32 (opcode C7 + modrm + 0/1/4 disp bytes) carrying `oldCode`, and
+    // rewrite that second immediate. Returns the number of pairs patched.
+    inline int patchX64IdImmediates (juce::MemoryBlock& mb, const juce::String& manuf,
+                                     const juce::String& oldCode, const juce::String& newCode)
+    {
+        if (manuf.getNumBytesAsUTF8() != 4 || oldCode.getNumBytesAsUTF8() != 4 || newCode.getNumBytesAsUTF8() != 4)
+            return 0;
+        auto* d = static_cast<uint8_t*> (mb.getData());
+        const size_t n = mb.getSize();
+        const auto* m = reinterpret_cast<const uint8_t*> (manuf.toRawUTF8());
+        const auto* o = reinterpret_cast<const uint8_t*> (oldCode.toRawUTF8());
+        const auto* t = reinterpret_cast<const uint8_t*> (newCode.toRawUTF8());
+        int hits = 0;
+        for (size_t i = 3; i + 16 < n; ++i)
+        {
+            if (std::memcmp (d + i, m, 4) != 0 || d[i - 3] != 0xC7 || d[i + 4] != 0xC7) continue;
+            for (size_t gap : { (size_t) 2, (size_t) 1, (size_t) 5 })   // modrm + disp8 / none / disp32
+            {
+                const size_t at = i + 4 + 1 + gap;
+                if (at + 4 <= n && std::memcmp (d + at, o, 4) == 0)
+                { std::memcpy (d + at, t, 4); ++hits; break; }
+            }
+        }
+        return hits;
+    }
+
     // True if the file is a thin arm64 Mach-O (magic + cputype), i.e. one whose id
     // lives in instructions and MUST be patched there or the copy can't be created.
     inline bool isArm64MachO (const juce::MemoryBlock& mb)
@@ -484,7 +542,8 @@ namespace vstai::pluginexport
         const int cidHits = replaceBytes (mb, manuf + oldCode, manuf + newCode);
         juce::ignoreUnused (replaceCString (mb, oldName, newName));   // list name (best effort)
 
-        const int insnHits = patchArm64IdImmediates (mb, manuf + oldCode, manuf + newCode);
+        const int insnHits = patchArm64IdImmediates (mb, manuf + oldCode, manuf + newCode)
+                           + patchX64IdImmediates (mb, manuf, oldCode, newCode);
         if (isArm64MachO (mb) && insnHits == 0)
         { warnOut = "arm64 identity instructions not found (build changed?)"; return false; }
         if (cidHits == 0 && insnHits == 0) { warnOut = "identity markers not found (build changed?)"; return false; }
@@ -533,6 +592,11 @@ namespace vstai::pluginexport
         note (vstai::u8 ("Copying the plugin…"));
         if (! copyBundle (srcBundle, destBundle, messageOut))
             return false;
+        if (! renameInnerBinaries (destBundle, messageOut))
+        {
+            destBundle.deleteRecursively();
+            return false;
+        }
 
         // Bake the locked creation into the copy's Resources. Strip the authoring-
         // only data: a whitelabel product runs purely from the compiled WASM + GUI +
@@ -576,7 +640,9 @@ namespace vstai::pluginexport
         // Sign last so the seal covers the baked doc, the slimmed Resources, and the
         // patched binary + moduleinfo. Hardened runtime => notarizable.
         const bool willNotarize = notaryProfile.isNotEmpty();
+       #if JUCE_MAC
         note (vstai::u8 ("Signing (Developer ID, hardened runtime)…"));
+       #endif
         bool adHoc = false;
         if (! signForExport (destBundle, willNotarize, messageOut, adHoc))
         {
@@ -594,6 +660,11 @@ namespace vstai::pluginexport
             : (vstai::u8 ("VibePlugin's shared id — ") + idWarn);
 
         juce::String trust;
+       #if ! JUCE_MAC
+        juce::ignoreUnused (notarized);
+        trust = "Copy the .vst3 into your VST3 folder (C:\\Program Files\\Common Files\\VST3 on Windows) "
+                "and rescan in your DAW.";
+       #else
         if (adHoc)
             trust = "Sealed ad-hoc (no usable Developer ID signing identity): it loads on this Mac only. "
                     "Check Keychain Access for the identity, then export again.";
@@ -604,6 +675,7 @@ namespace vstai::pluginexport
                     "profile in Settings to auto-notarize, or recipients clear quarantine once.";
         else
             trust = "Signed, but notarization did not complete: " + notaryOut;
+       #endif
 
         messageOut = vstai::u8 ("Exported \xE2\x80\x9C") + baked.name + vstai::u8 ("\xE2\x80\x9D with ") + idPart
                    + ", locked to just the GUI. " + trust;

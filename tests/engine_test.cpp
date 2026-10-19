@@ -283,6 +283,29 @@ namespace
         }
     }
 
+    // Export on Windows/Linux: the inner binary must be renamed to match the bundle,
+    // or hosts find nothing to load. Fake bundle layout, no real binary needed.
+    void runExportLayoutTests()
+    {
+       #if ! JUCE_MAC
+        std::cout << "[export] inner binary renamed to the bundle name\n";
+        auto root = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("vstai-export-layout");
+        root.deleteRecursively();
+        auto bundle = root.getChildFile ("My Product.vst3");
+        auto arch = bundle.getChildFile ("Contents").getChildFile ("x86_64-win");
+        arch.createDirectory();
+        arch.getChildFile ("VibePlugin FX.vst3").replaceWithText ("x");
+        bundle.getChildFile ("Contents").getChildFile ("Resources").createDirectory();
+        juce::String err;
+        check (vstai::pluginexport::renameInnerBinaries (bundle, err), "rename succeeds");
+        check (arch.getChildFile ("My Product.vst3").existsAsFile()
+               && ! arch.getChildFile ("VibePlugin FX.vst3").exists(), "binary carries the bundle's name");
+        check (vstai::pluginexport::findMainBinary (bundle).getFileName() == "My Product.vst3",
+               "findMainBinary sees the renamed binary");
+        root.deleteRecursively();
+       #endif
+    }
+
     // MidiRouter: MIDI → events, sustain pedal, panic. Pure logic, no wasm.
     void runRouterTests()
     {
@@ -440,6 +463,7 @@ int main (int argc, char** argv)
 
     runProtocolTests();
     runRouterTests();
+    runExportLayoutTests();
 
     if (argc >= 3)
         runReferenceTests (argv[1], argv[2]);

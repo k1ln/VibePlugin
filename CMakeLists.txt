@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(VibePlugin VERSION 0.4.15 LANGUAGES C CXX)
+project(VibePlugin VERSION 0.4.16 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -241,7 +241,10 @@ if(VSTAI_BUILD_TESTS)
         src/VstaiDocument.cpp)
     target_include_directories(vstai_tests PRIVATE
         ${WASMTIME_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
-    target_compile_definitions(vstai_tests PRIVATE JUCE_STANDALONE_APPLICATION=1)
+    target_compile_definitions(vstai_tests PRIVATE JUCE_STANDALONE_APPLICATION=1
+        $<$<PLATFORM_ID:Windows>:WASM_API_EXTERN=>
+        $<$<PLATFORM_ID:Windows>:WASI_API_EXTERN=>)
+    target_compile_options(vstai_tests PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
     target_link_libraries(vstai_tests PRIVATE
         ${WASMTIME_LIB}
         juce::juce_audio_basics
@@ -252,6 +255,8 @@ if(VSTAI_BUILD_TESTS)
         target_link_libraries(vstai_tests PRIVATE "-framework Security" "-framework CoreFoundation")
     elseif(UNIX)
         target_link_libraries(vstai_tests PRIVATE pthread dl m)
+    elseif(WIN32)
+        target_link_libraries(vstai_tests PRIVATE ws2_32 advapi32 userenv ntdll shell32 ole32 bcrypt)
     endif()
 endif()
 
