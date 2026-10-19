@@ -17,6 +17,7 @@
 #include "MidiRouter.h"
 #include "VstaiDocument.h"
 #include "BridgeProtocol.h"
+#include "PluginExport.h"
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <iostream>
@@ -411,8 +412,28 @@ namespace
     }
 }
 
+// Headless run of the real "Export plugin…" pipeline (copy, bake, re-identify,
+// sign, verify) outside any DAW:
+//   vstai_tests --export <src.vst3> <dest.vst3> <doc.vstai> <name> <FX|Synth>
+static int runExport (char** a)
+{
+    VstaiDocument doc; juce::String err;
+    if (! VstaiDocument::loadFromFile (juce::File (a[4]), doc, err)) { std::cout << "load failed: " << err << "\n"; return 2; }
+    const bool synth = juce::String (a[6]) == "Synth";
+    juce::String msg;
+    const bool ok = vstai::pluginexport::exportPlugin (
+        juce::File (a[2]), juce::File (a[3]), doc, a[5],
+        synth ? "VibePlugin Synth" : "VibePlugin FX", synth ? "Vssy" : "Vsfx", {},
+        [] (const juce::String& s) { std::cout << "  .. " << s << "\n"; }, msg);
+    std::cout << (ok ? "OK: " : "FAILED: ") << msg << "\n";
+    return ok ? 0 : 1;
+}
+
 int main (int argc, char** argv)
 {
+    if (argc == 7 && juce::String (argv[1]) == "--export")
+        return runExport (argv);
+
     // .vstai mode: one argument ending in .vstai
     if (argc == 2 && juce::String (argv[1]).endsWithIgnoreCase (".vstai"))
         return runVstaiSweep (argv[1]);

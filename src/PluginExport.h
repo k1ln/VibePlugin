@@ -19,6 +19,8 @@
 #pragma once
 
 #include <juce_core/juce_core.h>
+#include <cstdint>
+#include <cstring>
 #include <functional>
 #include "VstaiDocument.h"
 #include "Utf8.h"
@@ -169,13 +171,16 @@ namespace vstai::pluginexport
     {
         auto f = juce::File::getSpecialLocation (juce::File::tempDirectory)
                      .getChildFile ("vstai-export-jit.entitlements");
-        f.replaceWithText (
+        // Write raw bytes: replaceWithText() turns "\n" into "\r\n" on write, which
+        // codesign's entitlement parser rejects ("AMFIUnserializeXML: syntax error").
+        const juce::String xml (
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
             "<plist version=\"1.0\"><dict>\n"
             "  <key>com.apple.security.cs.allow-jit</key><true/>\n"
             "  <key>com.apple.security.cs.allow-unsigned-executable-memory</key><true/>\n"
             "</dict></plist>\n");
+        f.replaceWithData (xml.toRawUTF8(), xml.getNumBytesAsUTF8());
         return f;
     }
 
@@ -185,20 +190,34 @@ namespace vstai::pluginexport
     // (vstai-node was stripped, so the bundle's main binary is the only Mach-O. The
     //  JIT entitlements don't bind to a bundle Mach-O and don't need to: a loaded
     //  plugin JITs under the *host's* entitlements, which real DAWs already carry.)
-    inline bool signForExport (const juce::File& bundle, bool secureTimestamp, juce::String& errOut)
+    inline bool signForExport (const juce::File& bundle, bool secureTimestamp, juce::String& errOut,
+                               bool& usedAdHocOut)
     {
        #if JUCE_MAC
         const auto id  = pickSigningIdentity();
         const auto ent = writeJitEntitlements();
         juce::String out;
-        const juce::StringArray args { "codesign", "--force", "--options", "runtime",
-                                       "--entitlements", ent.getFullPathName(),
-                                       (secureTimestamp ? "--timestamp" : "--timestamp=none"),
-                                       "-s", id, bundle.getFullPathName() };
-        if (! runProcess (args, out))
+        auto sign = [&] (const juce::String& identity, bool timestamp)
         {
-            errOut = "codesign failed: " + out;
-            return false;
+            const juce::StringArray args { "codesign", "--force", "--options", "runtime",
+                                           "--entitlements", ent.getFullPathName(),
+                                           (timestamp ? "--timestamp" : "--timestamp=none"),
+                                           "-s", identity, bundle.getFullPathName() };
+            return runProcess (args, out);
+        };
+        usedAdHocOut = (id == "-");
+        if (! sign (id, secureTimestamp))
+        {
+            // A broken/locked identity (keychain prompt denied, expired cert, offline
+            // timestamp server) must not leave an unsigned export that DAWs kill on
+            // load, so fall back to an ad-hoc seal, which needs no keychain or network.
+            const auto firstErr = out;
+            if (id == "-" || ! sign ("-", false))
+            {
+                errOut = "codesign failed: " + (id == "-" ? out : firstErr);
+                return false;
+            }
+            usedAdHocOut = true;
         }
         if (! runProcess ({ "codesign", "--verify", "--strict", bundle.getFullPathName() }, out))
         {
@@ -207,7 +226,7 @@ namespace vstai::pluginexport
         }
         return true;
        #else
-        juce::ignoreUnused (bundle, secureTimestamp);
+        juce::ignoreUnused (bundle, secureTimestamp, usedAdHocOut);
         errOut.clear();
         return true;
        #endif
@@ -342,6 +361,60 @@ namespace vstai::pluginexport
         return hits;
     }
 
+    // arm64 builds don't keep the plugin id as data: the compiler materialises the
+    // 8 bytes "<manuf><code>" with MOVZ + 3x MOVK (16 bits each, lsl 0/16/32/48), so
+    // the byte search above never touches the id the factory actually reports. Find
+    // each such 4-instruction run for `from` and rewrite the immediates to `to`.
+    // Returns the number of runs patched (0 on non-arm64 binaries).
+    inline int patchArm64IdImmediates (juce::MemoryBlock& mb, const juce::String& from, const juce::String& to)
+    {
+        if (from.getNumBytesAsUTF8() != 8 || to.getNumBytesAsUTF8() != 8) return 0;
+        auto chunks = [] (const juce::String& s, uint32_t (&c)[4])
+        {
+            const auto* b = reinterpret_cast<const uint8_t*> (s.toRawUTF8());
+            for (int k = 0; k < 4; ++k) c[k] = (uint32_t) b[2 * k] | ((uint32_t) b[2 * k + 1] << 8);
+        };
+        uint32_t f[4], t[4];
+        chunks (from, f); chunks (to, t);
+
+        auto* w = static_cast<uint8_t*> (mb.getData());
+        const size_t n = mb.getSize();
+        auto rd32 = [&] (size_t i) { uint32_t v; std::memcpy (&v, w + i, 4); return v; };
+        // MOVZ Xd,#imm16,lsl(16*hw) = 0xD2800000 | hw<<21 | imm<<5 | Rd ; MOVK = 0xF2800000 | ...
+        auto enc = [] (uint32_t base, int hw, uint32_t imm, uint32_t rd)
+        { return base | ((uint32_t) hw << 21) | (imm << 5) | rd; };
+
+        int hits = 0;
+        for (size_t i = 0; i + 16 <= n; i += 4)
+        {
+            const uint32_t w0 = rd32 (i);
+            if ((w0 & 0xFFE00000u) != 0xD2800000u) continue;           // MOVZ Xd, lsl 0
+            const uint32_t rd = w0 & 31u;
+            bool match = true;
+            for (int k = 0; k < 4 && match; ++k)
+                match = rd32 (i + 4 * (size_t) k) == enc (k == 0 ? 0xD2800000u : 0xF2800000u, k, f[k], rd);
+            if (! match) continue;
+            for (int k = 0; k < 4; ++k)
+            {
+                const uint32_t v = enc (k == 0 ? 0xD2800000u : 0xF2800000u, k, t[k], rd);
+                std::memcpy (w + i + 4 * (size_t) k, &v, 4);
+            }
+            ++hits; i += 12;
+        }
+        return hits;
+    }
+
+    // True if the file is a thin arm64 Mach-O (magic + cputype), i.e. one whose id
+    // lives in instructions and MUST be patched there or the copy can't be created.
+    inline bool isArm64MachO (const juce::MemoryBlock& mb)
+    {
+        if (mb.getSize() < 8) return false;
+        uint32_t magic, cpu;
+        std::memcpy (&magic, mb.getData(), 4);
+        std::memcpy (&cpu, static_cast<const char*> (mb.getData()) + 4, 4);
+        return magic == 0xFEEDFACFu && cpu == 0x0100000Cu;
+    }
+
     // Replace a NUL-terminated C string `oldStr` (only where it is actually
     // NUL-terminated, so a longer string that merely starts with it — e.g. a path —
     // is left alone) with `newStr`, NUL-padding the rest to keep the length identical.
@@ -411,7 +484,10 @@ namespace vstai::pluginexport
         const int cidHits = replaceBytes (mb, manuf + oldCode, manuf + newCode);
         juce::ignoreUnused (replaceCString (mb, oldName, newName));   // list name (best effort)
 
-        if (cidHits == 0)               { warnOut = "identity markers not found (build changed?)"; return false; }
+        const int insnHits = patchArm64IdImmediates (mb, manuf + oldCode, manuf + newCode);
+        if (isArm64MachO (mb) && insnHits == 0)
+        { warnOut = "arm64 identity instructions not found (build changed?)"; return false; }
+        if (cidHits == 0 && insnHits == 0) { warnOut = "identity markers not found (build changed?)"; return false; }
         if (! writeInPlace (bin, mb))   { warnOut = "could not write the re-identified binary";    return false; }
         bin.setExecutePermission (true);
 
@@ -501,18 +577,27 @@ namespace vstai::pluginexport
         // patched binary + moduleinfo. Hardened runtime => notarizable.
         const bool willNotarize = notaryProfile.isNotEmpty();
         note (vstai::u8 ("Signing (Developer ID, hardened runtime)…"));
-        if (! signForExport (destBundle, willNotarize, messageOut))
+        bool adHoc = false;
+        if (! signForExport (destBundle, willNotarize, messageOut, adHoc))
+        {
+            // Never leave a half-built, unsigned bundle behind: a DAW would find it,
+            // try to load it, and have the OS kill it (invalid code signature).
+            destBundle.deleteRecursively();
             return false;
+        }
 
         juce::String notaryOut;
-        const bool notarized = willNotarize && notarize (destBundle, notaryProfile, progress, notaryOut);
+        const bool notarized = ! adHoc && willNotarize && notarize (destBundle, notaryProfile, progress, notaryOut);
 
         const juce::String idPart = uniqueId
             ? ("its own identity (id " + newCode + ")")
             : (vstai::u8 ("VibePlugin's shared id — ") + idWarn);
 
         juce::String trust;
-        if (notarized)
+        if (adHoc)
+            trust = "Sealed ad-hoc (no usable Developer ID signing identity): it loads on this Mac only. "
+                    "Check Keychain Access for the identity, then export again.";
+        else if (notarized)
             trust = vstai::u8 ("Notarized — it loads cleanly on any Mac.");
         else if (notaryProfile.isEmpty())
             trust = "Signed with your Developer ID (hardened runtime). Not notarized: set a notary "
