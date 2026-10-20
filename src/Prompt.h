@@ -129,23 +129,6 @@ DSP RULES
 - process() must be allocation-free and must never block or loop unbounded.
 - Never read/write past MAX_FRAMES per channel or past MAX_CHANNELS.
 - Keep state (filters, phases, envelopes) in module-level globals set in init().
-- FLOAT TYPES — stay in f32 everywhere (this is the #1 compile failure: "AS200:
-  Conversion from type 'f64' to 'f32' requires an explicit cast"). The ABI,
-  inBuf/outBuf and params are all f32, so every DSP value must be f32 too. Traps:
-  `let x = 0.0;` INFERS f64, and bare `Math.*` RETURNS f64 — storing or passing
-  either where an f32 is expected is an AS200 error. Therefore:
-    * Annotate every DSP variable as f32; never rely on literal inference:
-      `let panPos: f32 = 0.0; let ang: f32 = 0; let oL: f32 = 0;`.
-    * Type helper params AND returns as f32:
-      `function softClip(x: f32): f32 { ... }`, `function clampf(x: f32, lo: f32, hi: f32): f32 { ... }`.
-    * Use `Mathf.*` (Mathf.sin/cos/exp/...), not `Math.*`, and ensure the ARGUMENT
-      is f32 too: `gPanL[slot] = Mathf.cos(ang);` only compiles if `ang` is f32.
-    * f64 is CONTAGIOUS: if ANY sub-expression is f64 — a `Math.*` call, a helper
-      that returns f64, a division/multiply that pulled in an f64 literal — the
-      WHOLE expression becomes f64. So cast the FINAL value back to f32 on every
-      return and every assignment, even when the inputs were f32:
-      `return f32(env * gain);`, `const y: f32 = f32(a * Math.tanh(b));`,
-      `outBuf[f] = f32(oL);`. When unsure, wrap the result in `f32(...)`.
 - AssemblyScript has Mathf (f32 math: Mathf.sin, Mathf.exp, ...) if you want it,
   but simple phase-ramp oscillators (saw/square/tri) need no transcendentals and
   the host already passes frequency in Hz.
@@ -327,19 +310,6 @@ THE GUI  (single self-contained HTML document)
 - For an instrument, include a playable on-screen keyboard that calls
   window.vstai.noteOn/noteOff so the user can play it without external MIDI.
 - Initialise controls to defaults and call setParam once on load.
-- RESTORE THE SAVED SOUND ON SCREEN. When the user reopens a saved project the
-  host hands back the values they saved, which are NOT your defaults. A control
-  that only ever draws itself from its built-in default will show the wrong
-  position - a knob pointing at 12 o'clock while the engine plays the saved
-  value, a toggle drawn lit while it is really off. So:
-    * Every control MUST register window.vstai.onParam((index, value) => …) and
-      repaint itself from `value` when `index` is its own. This is the same path
-      DAW automation uses, so you get automation-follow for free.
-    * Keep NO shadow copy of a control's state that onParam doesn't also update.
-      A hardcoded `var running = true;` or a class="btn on" baked into the HTML
-      is a bug: drive the lit/unlit class from the param value.
-  The host replays the current values into every onParam callback right after you
-  register it, so a control that follows this rule boots showing the real sound.
 
 ------------------------------------------------------------
 MAKE IT BEAUTIFUL  (treat this as seriously as the DSP)
@@ -475,6 +445,93 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
     //  manual/chatbot path (no caching there) and so callers that don't care
     //  about the split are unaffected.
     // ---------------------------------------------------------------------
+    // AssemblyScript's numeric typing is the #1 reason a build fails to compile. Like
+    // the GUI contract it rides in the user preamble, because VibePlugin Cloud uses
+    // its own server-side system prompt and never saw rules that only lived here.
+    inline const char* kAsTypeRules = R"AST(=== ASSEMBLYSCRIPT NUMERIC TYPES (read BEFORE writing any DSP) ===
+AssemblyScript is NOT TypeScript: it has no single "number" type and it does NOT
+convert between numeric types implicitly. Almost every failed build is this one
+mistake, so write the code defensively from the first line instead of waiting for
+the compiler to complain:
+- FLOAT TYPES — stay in f32 everywhere (this is the #1 compile failure: "AS200:
+  Conversion from type 'f64' to 'f32' requires an explicit cast"). The ABI,
+  inBuf/outBuf and params are all f32, so every DSP value must be f32 too. Traps:
+  `let x = 0.0;` INFERS f64, and bare `Math.*` RETURNS f64 — storing or passing
+  either where an f32 is expected is an AS200 error. Therefore:
+    * Annotate every DSP variable as f32; never rely on literal inference:
+      `let panPos: f32 = 0.0; let ang: f32 = 0; let oL: f32 = 0;`.
+    * Type helper params AND returns as f32:
+      `function softClip(x: f32): f32 { ... }`, `function clampf(x: f32, lo: f32, hi: f32): f32 { ... }`.
+    * Use `Mathf.*` (Mathf.sin/cos/exp/...), not `Math.*`, and ensure the ARGUMENT
+      is f32 too: `gPanL[slot] = Mathf.cos(ang);` only compiles if `ang` is f32.
+    * f64 is CONTAGIOUS: if ANY sub-expression is f64 — a `Math.*` call, a helper
+      that returns f64, a division/multiply that pulled in an f64 literal — the
+      WHOLE expression becomes f64. So cast the FINAL value back to f32 on every
+      return and every assignment, even when the inputs were f32:
+      `return f32(env * gain);`, `const y: f32 = f32(a * Math.tanh(b));`,
+      `outBuf[f] = f32(oL);`. When unsure, wrap the result in `f32(...)`.
+- INTEGERS TOO (error TS2322 "Type 'f32' is not assignable to type 'i32'"): an
+  array index, loop counter or buffer position must be an i32/usize. Convert
+  explicitly: `const i: i32 = i32(pos);`, `buf[i32(Mathf.floor(pos))]`. Never
+  index with an f32, and never assign an i32 to an f32 without `f32(...)`.
+- Declare every helper function BEFORE it is used and give it full types
+  (error "Cannot find name"): a call to a function that does not exist, or has a
+  different name, fails the build.
+- BEFORE YOU ANSWER, re-read your AssemblyScript once, line by line, looking only
+  for: a `let x = 0.0` with no `: f32`; any bare `Math.`; a division or
+  multiplication by an untyped literal that is stored or returned; a function that
+  returns without `f32(...)`; an f32 used as an index. Fix each one. The build is
+  compiled for real, and every miss costs the user a failed attempt.
+=== END ASSEMBLYSCRIPT NUMERIC TYPES ===
+)AST";
+
+    // The GUI <-> host contract. It rides in the user preamble (not the system
+    // prompt) on purpose: VibePlugin Cloud injects its OWN system prompt server-side,
+    // so a rule that only lived there never reached cloud builds. The preamble is
+    // built here, so it reaches every path: cloud, direct API and the chatbot paste.
+    inline const char* kGuiHostContract = R"GUI(=== GUI <-> HOST CONTRACT (mandatory) ===
+- RESTORE THE SAVED SOUND ON SCREEN. When the user reopens a saved project the
+  host hands back the values they saved, which are NOT your defaults. A control
+  that only ever draws itself from its built-in default will show the wrong
+  position - a knob pointing at 12 o'clock while the engine plays the saved
+  value, a toggle drawn lit while it is really off. So:
+    * Every control MUST register window.vstai.onParam((index, value) => …) and
+      repaint itself from `value` when `index` is its own. This is the same path
+      DAW automation uses, so you get automation-follow for free.
+    * Keep NO shadow copy of a control's state that onParam doesn't also update.
+      A hardcoded `var running = true;` or a class="btn on" baked into the HTML
+      is a bug: drive the lit/unlit class from the param value.
+  The host replays the current values into every onParam callback right after you
+  register it, so a control that follows this rule boots showing the real sound.
+  Also put data-param="<index>" on each control's root element (the knob, fader,
+  toggle...). The host uses it so a right-click on that control opens the DAW's own
+  menu (Create automation clip...). If your GUI draws its own right-click menu, add
+  an item "Create automation clip..." that calls window.vstai.hostMenu(index).
+  THIS IS NOT OPTIONAL. A GUI without onParam is broken: when the DAW automates a
+  knob (or a saved project is reopened) the sound changes but every control stays
+  frozen on its default. Build each control around ONE function that draws it from
+  its value, and make the user-drag path and the onParam path both call it:
+      function makeKnob(ctrl) {
+        let value = ctrl.def;
+        function draw() { /* repaint from `value` ONLY - never call setParam here */ }
+        function set(v) {                      // user input
+          value = clamp(v, ctrl.min, ctrl.max);
+          draw();
+          window.vstai.setParam(ctrl.index, value);
+        }
+        window.vstai.onParam((i, v) => {       // host / automation / restore
+          if (i === ctrl.index) { value = clamp(+v, ctrl.min, ctrl.max); draw(); }
+        });
+        draw();
+        /* pointer handlers call set(...) */
+      }
+  Values arrive in the SAME units you pass to setParam (your min..max), so no
+  conversion is needed. Register the listener while building each control, not
+  later. Before you answer, check: does EVERY control in the html have an onParam
+  listener? If any does not, fix it - do not return the GUI.
+=== END GUI CONTRACT ===
+)GUI";
+
     inline juce::String buildUserPreamble (bool isSynth,
                                            const juce::String& standardUi = {},
                                            const juce::String& designName = {},
@@ -499,6 +556,8 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
             : juce::String ("TARGET: AUDIO EFFECT. Read the input buffer and write the processed "
                             "output buffer."));
         s.add ("");
+        s.add (vstai::u8 (kAsTypeRules));
+        s.add (vstai::u8 (kGuiHostContract));
 
         if (designPrinciples.isNotEmpty())
         {
@@ -593,11 +652,46 @@ plus `params` ([{name,index,min,max,default}]) when they change and `explanation
         s.add ("corrected JSON (assembly + html + params + explanation). Keep the HTML and");
         s.add ("parameter indices the same unless the fix requires changing them.");
         s.add ("");
+        if (diagnostics.contains ("AS200") || diagnostics.contains ("TS2322"))
+        {
+            s.add ("This is the numeric-type mistake (f64/f32/i32 mixed without a cast). Fix EVERY");
+            s.add ("occurrence in the file, not just the lines listed: annotate every variable (`let x: f32`),");
+            s.add ("replace each bare `Math.` with `Mathf.`, and wrap every assigned/returned/passed");
+            s.add ("expression in `f32(...)` (or `i32(...)` for indices). Otherwise the next compile");
+            s.add ("reports the next one.");
+            s.add ("");
+        }
         s.add ("=== COMPILER OUTPUT ===");
         s.add (diagnostics);
         s.add ("");
         s.add ("=== THE AssemblyScript THAT FAILED ===");
         s.add (assembly);
+        return s.joinIntoString ("\n");
+    }
+
+    // A GUI follows the host only if it registers window.vstai.onParam: that is the
+    // single path automation and a restored project use to move a control. Without
+    // it the knobs stay at their built-in defaults while the engine plays the real
+    // value. (A string test, not a proof - persist-check.mjs is the real gate.)
+    inline bool guiFollowsHost (const juce::String& html)
+    {
+        return html.contains ("onParam");
+    }
+
+    inline juce::String buildGuiFollowMessage()
+    {
+        juce::StringArray s;
+        s.add ("The GUI you returned never calls window.vstai.onParam, so its controls will");
+        s.add ("not move when the DAW automates a parameter or a saved project is reopened -");
+        s.add ("they keep drawing their built-in defaults while the engine plays the real value.");
+        s.add ("");
+        s.add ("Fix ONLY the html: make EVERY control register");
+        s.add ("window.vstai.onParam((index, value) => ...) and repaint itself from `value`");
+        s.add ("when `index` is its own, WITHOUT calling setParam back (no echo). Split any");
+        s.add ("paint() that also pushes into a visuals-only draw(). Keep the layout, look,");
+        s.add ("assembly and parameter indices exactly as they are.");
+        s.add ("");
+        s.add ("Return the full corrected JSON (assembly + html + params + explanation).");
         return s.joinIntoString ("\n");
     }
 

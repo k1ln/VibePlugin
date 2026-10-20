@@ -132,8 +132,13 @@ bool VstaiAudioProcessor::exportToBundle (const juce::File& destBundle,
     const juce::String oldName = kIsSynth ? "VibePlugin Synth" : "VibePlugin FX";
     const juce::String oldCode = kIsSynth ? "Vssy" : "Vsfx";
     const juce::String profile = vstai::appsettings::notaryProfile();
-    return vstai::pluginexport::exportPlugin (src, destBundle, document, productName,
-                                              oldName, oldCode, profile, progress, messageOut);
+    const bool ok = vstai::pluginexport::exportPlugin (src, destBundle, document, productName,
+                                                       oldName, oldCode, profile, progress, messageOut);
+    if (ok && ! document.params.empty() && ! vstai::guiFollowsHost (document.html))
+        messageOut += vstai::u8 ("\n\nWarning: this plugin's GUI never calls window.vstai.onParam, so its "
+                                 "knobs won't follow DAW automation or a reopened project (the sound will). "
+                                 "Ask the AI to \"make every control follow onParam\", then export again.");
+    return ok;
 }
 
 VstaiAudioProcessor::~VstaiAudioProcessor()
@@ -311,6 +316,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
     // (potentially minutes-long) network + compile work.
     const juce::String curAssembly = document.assembly;
     const juce::String curHtml     = document.html;
+    const bool         docHasParams = ! document.params.empty();
     const int          maxFix      = maxFixAttempts;
     const bool         isSynth     = kIsSynth;
     const juce::String genModel    = document.model;
@@ -394,7 +400,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             });
     };
 
-    std::thread ([prompt, curAssembly, curHtml, maxFix, isSynth, genModel, genEffort, genThinking, genStandardUi,
+    std::thread ([prompt, curAssembly, curHtml, docHasParams, maxFix, isSynth, genModel, genEffort, genThinking, genStandardUi,
                   genDesignName, genDesignPrinciples,
                   provider, genKey, ollamaUrl, glmUrl, cloudUrl, genToken, comp, finishOnUi, reportProgress, streamThinking]
     {
@@ -560,6 +566,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
 
         std::vector<uint8_t> wasm;
         juce::String diag;
+        bool guiChecked = false;
         for (int attempt = 1; ; ++attempt)
         {
             const juce::String asmSrc = artifact.getProperty ("assembly", {}).toString();
@@ -578,6 +585,41 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
 
             if (comp->compile (asmSrc, wasm, diag))
             {
+                // A GUI that never registers onParam can't follow DAW automation or a
+                // restored project (exports inherit the problem). Ask once for just that
+                // fix; if the model can't deliver, ship what we have rather than fail.
+                auto* art = artifact.getDynamicObject();
+                const bool hasParams = docHasParams
+                    || (art != nullptr && art->getProperty ("params").getArray() != nullptr
+                                       && ! art->getProperty ("params").getArray()->isEmpty());
+                if (! guiChecked && hasParams && ! vstai::guiFollowsHost (fullHtml))
+                {
+                    guiChecked = true;
+                    VSTAI_LOG ("GUI never calls onParam - asking the model to wire it");
+                    reportProgress ("Making the GUI follow automation...");
+                    streamThinking ("[build] the GUI doesn't register onParam (knobs wouldn't follow "
+                                    "automation) - asking the model to fix it...\n");
+                    const juce::var    backup = artifact.clone();
+                    const juce::String bAsm = fullAsm, bHtml = fullHtml;
+                    addMsg ("assistant", juce::JSON::toString (artifact, true));
+                    addMsg ("user", vstai::buildGuiFollowMessage());
+                    if (llm.callMessages (messages, artifact, error) && resolvePatch()
+                        && vstai::guiFollowsHost (fullHtml))
+                    {
+                        // A reply may omit what it didn't change - carry those over.
+                        auto* nao = artifact.getDynamicObject();
+                        auto* bao = backup.getDynamicObject();
+                        if (nao != nullptr && bao != nullptr)
+                            for (const char* k : { "params", "presets", "name", "explanation" })
+                                if (! nao->hasProperty (k)) nao->setProperty (k, bao->getProperty (k));
+                        --attempt;      // not a failed compile: recompile without using a retry
+                        continue;
+                    }
+                    VSTAI_LOG ("GUI repair failed - keeping the GUI as generated");
+                    streamThinking ("[build] couldn't wire onParam - keeping the GUI as generated\n");
+                    artifact = backup; fullAsm = bAsm; fullHtml = bHtml;
+                }
+
                 VSTAI_LOG ("compiled OK -> " + juce::String ((int) wasm.size()) + " bytes of wasm");
                 streamThinking ("[build] compiled OK -> " + juce::String ((int) wasm.size())
                                 + " bytes of wasm\n");

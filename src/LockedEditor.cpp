@@ -91,6 +91,11 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
         });
 #endif
 
+    processor.onParamContextMenu = [safe] (int index)
+    {
+        if (safe != nullptr) vstai::shim::showHostParamMenu (*safe, safe->processor, index);
+    };
+
     setResizable (true, true);
     setSize (900, 600);
     web->goToURL (juce::WebBrowserComponent::getResourceProviderRoot());
@@ -105,6 +110,7 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
 LockedEditor::~LockedEditor()
 {
     stopTimer();
+    processor.onParamContextMenu = nullptr;
 #if JUCE_MAC
     keyUpMonitor.reset();   // stop forwarding before `web` goes away
 #endif

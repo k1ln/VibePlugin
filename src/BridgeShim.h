@@ -165,6 +165,45 @@ namespace vstai::shim
     if (endTxt.indexOf('ERR:') === 0) throw new Error(endTxt.substring(4));
     return { frames: frames, channels: channels, sampleRate: rate };
   }
+  // ---- host context menu (right-click -> "Create automation clip") ----------
+  // The DAW owns the per-parameter menu (automation clip, link to controller...). To
+  // open it we must know WHICH parameter a right-click landed on. A control can say so
+  // with data-param="<index>"; for GUIs that don't, we learn it: the element under a
+  // pointer that is moving a param (setParam while the button is down) is tagged.
+  var downEl = null;
+  function pointerEnd(){ downEl = null; }
+  window.addEventListener('pointerdown', function(e){ downEl = (e.button === 0) ? e.target : null; }, true);
+  window.addEventListener('pointerup', pointerEnd, true);
+  window.addEventListener('pointercancel', pointerEnd, true);
+  function learnParam(i){
+    var el = downEl, n = 0;
+    if (!el || el.nodeType !== 1 || el.tagName === 'CANVAS') return;
+    for (; el && el.nodeType === 1 && n < 4; el = el.parentElement, n++){
+      if (el === document.body || el === document.documentElement) break;
+      var r = el.getBoundingClientRect();
+      if (r.width > 220 || r.height > 220) break;       // a panel, not a single control
+      if (!el.hasAttribute('data-param') && !el.hasAttribute('data-vstai-param'))
+        el.setAttribute('data-vstai-param', String(i));
+    }
+  }
+  function paramAt(el){
+    for (; el && el.nodeType === 1; el = el.parentElement){
+      var a = el.getAttribute('data-param');
+      if (a == null) a = el.getAttribute('data-vstai-param');
+      if (a != null && a !== '' && !isNaN(+a)) return +a | 0;
+    }
+    return -1;
+  }
+  function hostMenu(i){ i = i | 0; if (i >= 0) send('/__vstai/ctxmenu/' + i); }
+  // Bubble phase: a GUI that draws its own right-click menu has already called
+  // preventDefault, and keeps it (it can offer hostMenu(i) as an item instead).
+  window.addEventListener('contextmenu', function(e){
+    if (e.defaultPrevented) return;
+    var i = paramAt(e.target);
+    if (i < 0) return;
+    e.preventDefault();
+    hostMenu(i);
+  });
   window.vstai = {
     setParam: function(i, v){
       v = +v;
@@ -172,9 +211,11 @@ namespace vstai::shim
       // value for this param -> keep the restored value. Once the user interacts
       // (booting=false) every write is honored verbatim.
       if (booting && (i in restored) && Math.abs(v - restored[i]) > 1e-6) v = restored[i];
-      vals[i] = v; send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v));
+      vals[i] = v; learnParam(i|0); send('/__vstai/param/' + (i|0) + '/' + encodeURIComponent(v));
     },
     getParam: function(i){ return (i in vals) ? vals[i] : 0; },
+    // Open the DAW's own menu for a parameter (Create automation clip, ...).
+    hostMenu: hostMenu,
     onReady: function(cb){ try { cb(); } catch(e){} },
     // Register cb(index, value) to be called when a param changes from OUTSIDE the
     // GUI (host automation, another controller). Controls use this to follow along.
@@ -302,6 +343,19 @@ namespace vstai::shim
         return inject + html;
     }
 
+    // Show the DAW's native per-parameter menu (Create automation clip, ...) at the
+    // mouse. Runs on the message thread. VST3 hosts that implement IComponentHandler3
+    // provide it; if this host does not, there is simply nothing to show.
+    inline void showHostParamMenu (juce::AudioProcessorEditor& editor,
+                                   VstaiAudioProcessor& processor, int index)
+    {
+        auto* param = processor.getHostParameterFor (index);
+        auto* ctx   = editor.getHostContext();
+        if (param == nullptr || ctx == nullptr) return;
+        if (auto menu = ctx->getContextMenuForParameter (param))
+            menu->showNativeMenu (editor.getMouseXYRelative());
+    }
+
     // Resolve a GUI->host fetch call (/__vstai/param|note|sample/*) into the matching
     // processor action. Returns a plain-text Resource when `url` is a bridge call,
     // else std::nullopt (so the caller keeps matching other routes).
@@ -317,6 +371,12 @@ namespace vstai::shim
         {
             const auto m = vstai::bridge::parseParam (url);
             if (m.valid) processor.setParamFromGui (m.index, m.value);
+            return Resource { toBytes (juce::String ("ok")), "text/plain;charset=UTF-8" };
+        }
+        if (url.startsWith ("/__vstai/ctxmenu/"))
+        {
+            const int index = url.fromLastOccurrenceOf ("/", false, false).getIntValue();
+            processor.requestParamContextMenu (index);
             return Resource { toBytes (juce::String ("ok")), "text/plain;charset=UTF-8" };
         }
         if (url.startsWith ("/__vstai/note/"))

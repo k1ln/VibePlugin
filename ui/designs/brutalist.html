@@ -475,6 +475,7 @@ function makeKnob(host){
       {label:"MIN",fn:()=>set(endless?0:min)},
       {label:"MAX",fn:()=>set(endless?1:max)},
       "-",
+      {label:"CREATE AUTOMATION CLIP",fn:()=>window.vstai&&window.vstai.hostMenu&&window.vstai.hostMenu(i)},
       {label:"MIDI LEARN",fn:()=>window.vstai&&window.vstai.midiLearn&&window.vstai.midiLearn(i)},
       {label:"ASSIGN MOD",fn:()=>{}},
     ]);

@@ -612,16 +612,30 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         })
         .withNativeFunction ("getDesigns", [] (const VarArray&, Completion complete)
         {
+            // The design in effect: a school only counts as selected while "Use Settings
+            // design" is on. Off means the AI designs the GUI itself - shown as its own
+            // first card so that choice is visible and selectable like any other.
+            const bool applied = vstai::appsettings::applyDesignStyle();
             const auto sel = vstai::appsettings::selectedDesignId();
             juce::Array<var> rows;
-            auto add = [&rows, &sel] (const vstai::designs::DesignMeta& m)
+            {
+                auto* o = new juce::DynamicObject();
+                o->setProperty ("id",       "__ai");
+                o->setProperty ("name",     "AI's choice");
+                o->setProperty ("blurb",    "No template. The model designs the GUI from scratch to suit the plugin.");
+                o->setProperty ("builtin",  true);
+                o->setProperty ("selected", ! applied);
+                o->setProperty ("theme",    juce::var());
+                rows.add (var (o));
+            }
+            auto add = [&rows, &sel, applied] (const vstai::designs::DesignMeta& m)
             {
                 auto* o = new juce::DynamicObject();
                 o->setProperty ("id",       m.id);
                 o->setProperty ("name",     m.name);
                 o->setProperty ("blurb",    m.blurb);
                 o->setProperty ("builtin",  m.builtin);
-                o->setProperty ("selected", m.id == sel);
+                o->setProperty ("selected", applied && m.id == sel);
                 o->setProperty ("theme",    m.theme);
                 rows.add (var (o));
             };
@@ -635,7 +649,18 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
         .withNativeFunction ("setDesign", [safe] (const VarArray& a, Completion complete)
         {
             const auto id = argStr (a, 0);
-            if (id.isNotEmpty()) vstai::appsettings::setSelectedDesignId (id);
+            if (id == "__ai")
+            {
+                // "AI's choice": no kit, no design language - the model designs freely.
+                vstai::appsettings::setApplyDesignStyle (false);
+                complete (result (true, "Design: the AI designs the GUI freely (no template sent)."));
+                return;
+            }
+            if (id.isNotEmpty())
+            {
+                vstai::appsettings::setSelectedDesignId (id);
+                vstai::appsettings::setApplyDesignStyle (true);   // picking a school means use it
+            }
             // No plugin yet? The preview shows the standard kit — reseed it so the
             // newly-selected design is visible immediately.
             if (safe != nullptr && ! safe->processor.getDocument().hasPlugin())
@@ -845,6 +870,12 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
 
     resetParamReflection();
 
+    // Right-click on a GUI control -> the DAW's own menu (Create automation clip...).
+    processor.onParamContextMenu = [safe] (int index)
+    {
+        if (safe != nullptr) vstai::shim::showHostParamMenu (*safe, safe->processor, index);
+    };
+
     // Stream document / build / reasoning changes into the SPA.
     processor.onDocumentChanged = [safe]
     {
@@ -887,6 +918,7 @@ WebEditor::~WebEditor()
     processor.onDocumentChanged   = nullptr;
     processor.onThinkingDelta     = nullptr;
     processor.onBuildStateChanged = nullptr;
+    processor.onParamContextMenu  = nullptr;
 
     // Close any still-open native dialog before `web` and this editor are gone.
     // Deleting a modal AlertWindow fires its callback asynchronously with a 0

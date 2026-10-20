@@ -381,6 +381,7 @@ async function doFix(){
 on("generateBtn","click", doGenerate);
 on("styleChk","change", async () => {
   state = await N.setApplyDesignStyle($("styleChk").checked);
+  renderDesigns();   // keep the "AI's choice" card in step with the checkbox
   setStatus($("styleChk").checked
     ? "Design: generations use the Settings design school."
     : "Design: no template sent — the AI designs the GUI freely.");
@@ -665,7 +666,10 @@ async function renderDesigns(){
   const grid = $("designGrid");
   grid.innerHTML = "";
   for (const d of (rows || [])){
-    if (d.selected) selectedDesign = d.id;
+    const ai = d.id === "__ai";
+    if (d.selected && !ai) selectedDesign = d.id;
+    if (ai && d.selected) $("styleChk").checked = false;
+    else if (!ai && d.selected) $("styleChk").checked = true;
     const card = document.createElement("button");
     card.className = "design-card" + (d.selected ? " on" : "");
     card.type = "button";
@@ -686,8 +690,8 @@ async function renderDesigns(){
     }
     card.addEventListener("click", async () => {
       const r = await N.setDesign(d.id);
-      selectedDesign = d.id;
-      applyTheme(d.theme);   // re-skin the shell immediately (live, no reload)
+      if (!ai){ selectedDesign = d.id; applyTheme(d.theme); }   // re-skin the shell immediately (live, no reload)
+      $("styleChk").checked = !ai;
       await renderDesigns(); reloadPreview();
       $("designStatus").textContent = r ? r.message : "";
     });

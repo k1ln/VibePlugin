@@ -561,6 +561,7 @@ function makeKnob(host){
       {label:"Set to minimum",fn:()=>set(endless?0:min)},
       {label:"Set to maximum",fn:()=>set(endless?1:max)},
       "-",
+      {label:"Create automation clip…",fn:()=>window.vstai&&window.vstai.hostMenu&&window.vstai.hostMenu(i)},
       {label:"MIDI learn",fn:()=>window.vstai&&window.vstai.midiLearn&&window.vstai.midiLearn(i)},
       {label:"Assign modulation",fn:()=>{}},
     ]);

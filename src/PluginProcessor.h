@@ -204,6 +204,22 @@ public:
     // Build progress is processor-owned, so a reopened editor can resync: the AI
     // build keeps running on the processor even while no editor is attached.
     std::function<void()> onBuildStateChanged;        // fired on the message thread
+
+    // GUI right-clicked a control: the editor shows the DAW's menu for that param.
+    // Set/cleared by the editor; invoked on the message thread.
+    std::function<void (int)> onParamContextMenu;
+    void requestParamContextMenu (int index)
+    {
+        juce::MessageManager::callAsync ([this, alive = alive, index]
+        {
+            if (alive->load() && onParamContextMenu) onParamContextMenu (index);
+        });
+    }
+    juce::AudioProcessorParameter* getHostParameterFor (int index) const
+    {
+        return (index >= 0 && index < (int) hostParams.size() && hostActive[index])
+                   ? static_cast<juce::AudioProcessorParameter*> (hostParams[(size_t) index]) : nullptr;
+    }
     bool         isBuilding()   const { return building.load(); }
     juce::String getBuildStage() const { return buildStage; }
 
