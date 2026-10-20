@@ -333,8 +333,6 @@ bool VstaiDocument::restoreRevision (int id)
             assembly        = r.assembly;
             html            = r.html;
             lastExplanation = r.explanation;
-            provider        = r.provider;
-            model           = r.model;
             wasm            = r.wasm;
             params          = r.params;
             isInstrument    = r.isInstrument;

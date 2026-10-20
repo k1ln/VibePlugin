@@ -168,6 +168,7 @@ public:
 
     // Reset to the blank starter plugin (keeps the model/effort choice).
     void newPlugin();
+    void keepGenerationSettings (VstaiDocument& incoming) const;
 
     // Generation settings, driven by the editor dropdowns and persisted.
     void         setGenerationProvider (const juce::String& p) { document.provider = p; }

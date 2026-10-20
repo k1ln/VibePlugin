@@ -256,7 +256,18 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 if (name.isEmpty()) { complete (result (false, "Give it a name first.")); return; }
 
                 safe->processor.setDocumentName (name);
-                const juce::String payload = safe->processor.getDocument().toJsonString();
+                // Ship only the current plugin: the undo history (every revision carries its own
+                // wasm + html) easily blows past the proxy's ~6 MB request limit, and would
+                // publish earlier prompts and drafts too.
+                auto docVar = safe->processor.getDocument().toVar();
+                if (auto* o = docVar.getDynamicObject())
+                {
+                    o->removeProperty ("revisions");
+                    o->setProperty ("activeRevision", 0);
+                }
+                const juce::String payload = juce::JSON::toString (docVar, false);
+                if (payload.getNumBytesAsUTF8() > 5500000)
+                { complete (result (false, vstai::u8 ("Too large to publish (over 5.5 MB) — the proxy's request limit is 6 MB."))); return; }
                 juce::Component::SafePointer<WebEditor> s2 (safe);
                 std::thread ([s2, base, payload, name, complete]() mutable
                 {
@@ -267,16 +278,20 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                     int status = 0; juce::String resp;
                     auto opts = juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inPostData)
                                     .withExtraHeaders ("Content-Type: application/json")
-                                    .withConnectionTimeoutMs (15000)
+                                    .withConnectionTimeoutMs (90000)   // the proxy makes several GitHub calls
                                     .withStatusCode (&status);
                     if (auto in = juce::URL (endpoint).withPOSTData (payload).createInputStream (opts))
                         resp = in->readEntireStreamAsString();
 
                     const bool ok = (status >= 200 && status < 300);
-                    juce::String link;
-                    if (auto* o = juce::JSON::parse (resp).getDynamicObject()) link = o->getProperty ("url").toString();
+                    juce::String link, serverError;
+                    if (auto* o = juce::JSON::parse (resp).getDynamicObject())
+                    {
+                        link = o->getProperty ("url").toString();
+                        serverError = o->getProperty ("error").toString();
+                    }
 
-                    juce::MessageManager::callAsync ([s2, complete, ok, name, status, link, base]() mutable
+                    juce::MessageManager::callAsync ([s2, complete, ok, name, status, link, serverError, base]() mutable
                     {
                         if (s2 == nullptr) return;
                         // On success, open the PR so the submitter can track review/publish status.
@@ -284,8 +299,10 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                         complete (result (ok,
                             ok ? (vstai::u8 ("Submitted “") + name + vstai::u8 ("” — it will be tested & reviewed before publishing.")
                                   + (link.isNotEmpty() ? " Tracking the PR in your browser." : juce::String()))
-                               : ("Publish failed (HTTP " + juce::String (status)
-                                  + "). Is the publish proxy reachable at " + base + "?")));
+                               : (status == 0
+                                    ? ("Publish failed: no response from " + base + " (offline, or timed out).")
+                                    : ("Publish failed (HTTP " + juce::String (status) + ")"
+                                       + (serverError.isNotEmpty() ? ": " + serverError : juce::String())))));
                     });
                 }).detach();
             }), true);

@@ -78,7 +78,7 @@ VstaiAudioProcessor::VstaiAudioProcessor()
     else
     {
         document.provider = "cloud";
-        document.model    = "claude-opus-5-5";
+        document.model    = "claude-sonnet-5-5";
     }
     compiler = std::make_shared<AssemblyScriptCompiler>();
     // API key + model come from the compiled-in Config.h (or env); the
@@ -959,6 +959,18 @@ juce::String VstaiAudioProcessor::getDisplayHtml() const
                   : (vstai::u8 (banner) + kit);
 }
 
+// Carry the user's generation choice (provider/model/effort/thinking) over to a
+// document that replaces the current one. A loaded .vstai or gallery plugin
+// stores none of these, so without this it would reset the dropdown to the
+// struct defaults and the next Generate would silently use another model.
+void VstaiAudioProcessor::keepGenerationSettings (VstaiDocument& incoming) const
+{
+    incoming.provider = document.provider;
+    incoming.model    = document.model;
+    incoming.effort   = document.effort;
+    incoming.thinking = document.thinking;
+}
+
 void VstaiAudioProcessor::newPlugin()
 {
     const auto provider = document.provider;   // keep the generation-settings choice
@@ -985,6 +997,7 @@ bool VstaiAudioProcessor::loadDocument (const juce::File& file, juce::String& er
     VstaiDocument loaded;
     if (! VstaiDocument::loadFromFile (file, loaded, errorOut))
         return false;
+    keepGenerationSettings (loaded);   // the dropdown choice outlives the loaded file
     document = std::move (loaded);
     // Older files (or those saved before the prompt browser) have no timeline —
     // seed one entry so there's a baseline to branch from.
@@ -1000,6 +1013,7 @@ bool VstaiAudioProcessor::loadDocumentFromJson (const juce::String& json, juce::
     if (json.trim().isEmpty()) { errorOut = "Empty document."; return false; }
     auto loaded = VstaiDocument::fromJsonString (json);
     if (! loaded.hasPlugin()) { errorOut = "Not a valid .vstai plugin (no DSP/GUI)."; return false; }
+    keepGenerationSettings (loaded);
     document = std::move (loaded);
     if (document.revisions.empty() && document.hasPlugin())
         document.pushRevision ("Loaded from gallery");
@@ -1018,7 +1032,13 @@ void VstaiAudioProcessor::setStateInformation (const void* data, int sizeInBytes
 {
     auto json = juce::String::fromUTF8 (static_cast<const char*> (data), sizeInBytes);
     if (json.trim().isEmpty()) return;
-    document = VstaiDocument::fromJsonString (json);
+    auto restored = VstaiDocument::fromJsonString (json);
+    // Saved state written before the model dropdown was persisted carries no
+    // model: keep the current choice instead of the struct default (Opus).
+    const auto parsed = juce::JSON::parse (json);
+    if (! (parsed.hasProperty ("model") && parsed.hasProperty ("provider")))
+        keepGenerationSettings (restored);
+    document = std::move (restored);
     loadDocumentIntoEngine();
     notifyChanged();
 }
