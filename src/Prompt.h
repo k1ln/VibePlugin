@@ -11,6 +11,7 @@
 #include <juce_core/juce_core.h>
 #include <vector>
 #include "Utf8.h"
+#include "UiLibs.h"
 
 namespace vstai
 {
@@ -351,6 +352,19 @@ Within the no-external-resources rule:
   sections on an aligned grid, generous and consistent padding, clear rhythm.
   Responsive - stay good-looking from a small plug-in window up to a large one
   (flex/grid, clamp(), relative units).
+  TABS WHEN IT DOES NOT FIT. Never cram or shrink a big plugin onto one page and
+  never leave it as one long scrolling page. If it has more than about 24 controls,
+  or its sections would not fit a ~1100x700 window at a readable size, split it
+  into 2-5 tabs grouped by function (e.g. 01 ENGINE / 02 MODULATION / 03 EFFECTS &
+  PERFORMANCE), as a numbered tab bar under the header with an accent underline on
+  the active tab. Keep each page fully visible without scrolling, and keep the
+  header (title, preset / sound selector, output meter, master) and - for
+  instruments - the playable keyboard visible on every tab. Small plugins (a
+  handful of controls) stay on one page with no tabs.
+  SHOW THE SOUND. Where it fits the plugin, give each oscillator a live waveform
+  preview, the filter a live response curve, each envelope a draggable ADSR graph
+  next to its knobs, mixers vertical faders with level readouts, and the header an
+  output level meter - displays beat bare knobs for a professional look.
 
 - POLISH. Rounded corners, soft shadows for separation, a faint gradient or
   texture on the background instead of a flat fill, readable contrast
@@ -559,13 +573,35 @@ the compiler to complain:
         s.add (vstai::u8 (kAsTypeRules));
         s.add (vstai::u8 (kGuiHostContract));
 
-        if (designPrinciples.isNotEmpty())
+        // Settings composes "<design principles><marker><UI-library notes>" into the one
+        // string the build entry points carry; split it back apart here.
+        juce::String designText = designPrinciples, uiLibNotes;
+        {
+            const juce::String marker (vstai::uilibs::promptMarker());
+            const int at = designPrinciples.indexOf (marker);
+            if (at >= 0)
+            {
+                designText = designPrinciples.substring (0, at);
+                uiLibNotes = designPrinciples.substring (at + marker.length()).trim();
+            }
+        }
+
+        if (designText.isNotEmpty())
         {
             s.add ("=== DESIGN LANGUAGE" + (designName.isNotEmpty() ? (": " + designName) : juce::String()) + " ===");
-            s.add ("The GUI MUST follow this visual design language. The component kit below");
-            s.add ("is rendered in this language; keep the same look, palette, and treatment");
-            s.add ("when you build the plugin's GUI.");
-            s.add (designPrinciples);
+            s.add ("PRECEDENCE: the user's own style ALWAYS wins over this design language. If the");
+            s.add ("request describes a look (colours, style, theme, layout, era, a named product or");
+            s.add ("brand) or attaches a reference image, build THAT look and ignore this design");
+            s.add ("language's palette, typography and treatment entirely; use the kit below only for");
+            s.add ("its working components and wiring. Only when the request says nothing about the");
+            s.add ("look does this design language apply, as the default:");
+            s.add ("");
+            s.add ("The component kit below is rendered in this language; keep the same look,");
+            s.add ("palette, and treatment when you build the plugin's GUI.");
+            s.add ("The kit lays every section out on ONE page for reference only. If the plugin's");
+            s.add ("controls do not fit the window at a readable size, split them into tabs");
+            s.add ("(numbered tab bar, header and keyboard on every tab) - never cram or scroll.");
+            s.add (designText);
             s.add ("=== END DESIGN LANGUAGE ===");
             s.add ("");
         }
@@ -581,13 +617,24 @@ the compiler to complain:
             s.add ("=== END STANDARD UI KIT ===");
             s.add ("");
         }
+
+        // After the kit on purpose: where the kit hand-draws knobs/sliders/switches, the
+        // selected UI library takes over (its look still follows the design above).
+        if (uiLibNotes.isNotEmpty())
+        {
+            s.add (uiLibNotes);
+            s.add ("");
+        }
         return s.joinIntoString ("\n");
     }
 
     inline juce::String buildUserTask (const juce::String& prompt,
                                        const juce::String& currentAssembly,
-                                       const juce::String& currentHtml)
+                                       const juce::String& currentHtmlIn)
     {
+        // Inlined UI libraries go back to their one-line marker: the model neither needs
+        // nor should receive 100-330 KB of third-party code on every change request.
+        const juce::String currentHtml = vstai::uilibs::collapse (currentHtmlIn);
         juce::StringArray s;
         if (currentAssembly.isNotEmpty())
         {

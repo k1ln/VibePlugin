@@ -8,6 +8,7 @@
 #include "LlmClient.h"
 #include "AssemblyScriptCompiler.h"
 #include "Prompt.h"
+#include "UiLibs.h"
 #include "DevLog.h"
 #include "Settings.h"
 #include "AppSettings.h"
@@ -315,7 +316,8 @@ void VstaiAudioProcessor::notifyChanged()
         juce::MessageManager::callAsync ([cb = onDocumentChanged] { cb(); });
 }
 
-void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgress progress, BuildDone done)
+void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgress progress, BuildDone done,
+                                        const juce::StringArray& images)
 {
     VSTAI_LOG ("build requested: " + prompt.substring (0, 200));
 
@@ -359,6 +361,11 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
     const juce::String glmUrl    = vstai::appsettings::glmBaseUrl();
     const juce::String cloudUrl  = vstai::appsettings::cloudBaseUrl();
     const juce::String genToken  = vstai::appsettings::cloudToken();   // cloud session token
+    // Reference screenshots only reach models that can see them.
+    const bool         genVision = provider == LlmClient::Provider::anthropic
+                                || (provider == LlmClient::Provider::cloud && genModel.startsWith ("claude"));
+    const juce::StringArray genImages = genVision ? images : juce::StringArray();
+    const bool         imagesDropped = ! genVision && images.size() > 0;
     auto thinkingCb = onThinkingDelta;   // snapshot the UI sink on the message thread
 
     // Push a stage label to the UI from the worker thread, guarded like the
@@ -412,7 +419,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
             });
     };
 
-    std::thread ([prompt, curAssembly, curHtml, docHasParams, maxFix, isSynth, genModel, genEffort, genThinking, genStandardUi,
+    std::thread ([prompt, curAssembly, curHtml, docHasParams, maxFix, isSynth, genModel, genEffort, genThinking, genStandardUi, genImages, imagesDropped,
                   genDesignName, genDesignPrinciples,
                   provider, genKey, ollamaUrl, glmUrl, cloudUrl, genToken, comp, finishOnUi, reportProgress, streamThinking]
     {
@@ -482,7 +489,13 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
         // Providers without prompt caching get them joined back together.
         const auto preamble = vstai::buildUserPreamble (isSynth, genStandardUi,
                                                         genDesignName, genDesignPrinciples);
-        const auto task     = vstai::buildUserTask (prompt, curAssembly, curHtml);
+        const juce::String taskPrompt = genImages.isEmpty() ? prompt
+            : prompt + "\n\n[A reference screenshot of the desired GUI is attached. It OVERRIDES any design "
+                       "language or house style given earlier: do not apply that palette, typography or "
+                       "treatment. Reproduce the screenshot's layout, tabs/pages, colours, typography, "
+                       "controls and displays as closely as you can, and wire every control to the "
+                       "plugin's parameters. Use the component kit only for working controls.]";
+        const auto task     = vstai::buildUserTask (taskPrompt, curAssembly, curHtml);
 
         if (provider == LlmClient::Provider::anthropic)
         {
@@ -493,6 +506,15 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
         {
             addMsg ("user", preamble + task);
         }
+        if (genImages.size() > 0)
+        {
+            // The LLM client turns these into image blocks (see LlmClient.cpp).
+            juce::Array<juce::var> imgs;
+            for (const auto& im : genImages) imgs.add (im);
+            messages.getReference (0).getDynamicObject()->setProperty ("images", juce::var (imgs));
+        }
+        if (imagesDropped)
+            VSTAI_LOG ("reference image ignored: " + genModel + " cannot see images");
 
         VSTAI_LOG ("calling " + LlmClient::providerToString (provider) + " (" + genModel + ")...");
         reportProgress ("Generating with AI...");
@@ -773,7 +795,7 @@ void VstaiAudioProcessor::requestBuildFromArtifact (const juce::String& prompt, 
 void VstaiAudioProcessor::applyEditedSource (const juce::String& assembly, const juce::String& html)
 {
     document.assembly = assembly;
-    document.html     = html;
+    document.html     = vstai::uilibs::expand (html);
 }
 
 void VstaiAudioProcessor::restoreRevision (int id)
@@ -825,7 +847,7 @@ void VstaiAudioProcessor::requestRecompile (const juce::String& assembly, const 
                 if (ok)
                 {
                     document.assembly = asmSrc;
-                    document.html     = htmlSrc;
+                    document.html     = vstai::uilibs::expand (htmlSrc);
                     document.wasm     = wasm;
                     document.isInstrument = kIsSynth;
                     document.pushRevision ("Manual edit & compile");   // snapshot for the prompt browser
@@ -952,11 +974,14 @@ void VstaiAudioProcessor::pushHostParamsToEngine()
 
 juce::String VstaiAudioProcessor::getDisplayHtml() const
 {
-    if (document.html.isNotEmpty()) return document.html;
+    if (document.html.isNotEmpty()) return vstai::uilibs::expand (document.html);   // no-op unless a marker is left
     // No plugin yet: show the (editable) standard component kit live, so the user
     // can see and play the house style. Falls back to kDefaultHtml only if empty.
+    // A UI-library example (Settings) takes its place while the user is trying one out.
     auto std = vstai::appsettings::standardUi();
-    juce::String kit = std.isNotEmpty() ? std : vstai::u8 (kDefaultHtml);
+    juce::String kit = previewOverrideHtml.isNotEmpty() ? vstai::uilibs::expand (previewOverrideHtml)
+                     : std.isNotEmpty()                  ? std
+                                                         : vstai::u8 (kDefaultHtml);
 
     // This kit is just the house style — there's no DSP behind it, so make clear it
     // isn't a working instrument (display only; the generation house-style seed and a
@@ -990,6 +1015,7 @@ void VstaiAudioProcessor::newPlugin()
     const auto effort   = document.effort;
     const auto thinking = document.thinking;
     document = VstaiDocument{};
+    previewOverrideHtml.clear();
     document.provider    = provider;
     document.model       = model;
     document.effort      = effort;

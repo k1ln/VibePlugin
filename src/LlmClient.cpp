@@ -137,6 +137,32 @@ LlmClient::LlmClient()
     schema = juce::JSON::parse (vstai::u8 (vstai::kOutputSchemaJson));
 }
 
+namespace
+{
+    // A user message may carry "images": base64 strings (JPEG, or PNG when the data
+    // starts with the PNG signature). Turn them into Anthropic image content blocks.
+    juce::Array<juce::var> imageBlocksFor (const juce::DynamicObject* msg)
+    {
+        juce::Array<juce::var> out;
+        if (msg == nullptr) return out;
+        if (const auto* arr = msg->getProperty ("images").getArray())
+            for (const auto& v : *arr)
+            {
+                const auto data = v.toString();
+                if (data.isEmpty()) continue;
+                auto* src = new juce::DynamicObject();
+                src->setProperty ("type", "base64");
+                src->setProperty ("media_type", data.startsWith ("iVBOR") ? "image/png" : "image/jpeg");
+                src->setProperty ("data", data);
+                auto* b = new juce::DynamicObject();
+                b->setProperty ("type", "image");
+                b->setProperty ("source", juce::var (src));
+                out.add (juce::var (b));
+            }
+        return out;
+    }
+}
+
 bool LlmClient::callMessages (const juce::Array<juce::var>& messages,
                               juce::var& artifactOut,
                               juce::String& errorOut)
@@ -182,13 +208,30 @@ bool LlmClient::callCloud (const juce::Array<juce::var>& messages,
 {
     auto buildPayload = [&] (bool stream) -> juce::String
     {
+        // Messages carrying reference images become [image blocks…, text block].
+        juce::Array<juce::var> outMsgs;
+        for (const auto& m : messages)
+        {
+            auto* src = m.getDynamicObject();
+            auto blocks = imageBlocksFor (src);
+            if (src == nullptr || blocks.isEmpty()) { outMsgs.add (m); continue; }
+            auto* t = new juce::DynamicObject();
+            t->setProperty ("type", "text");
+            t->setProperty ("text", src->getProperty ("content").toString());
+            blocks.add (juce::var (t));
+            auto* nm = new juce::DynamicObject();
+            nm->setProperty ("role",    src->getProperty ("role"));
+            nm->setProperty ("content", juce::var (blocks));
+            outMsgs.add (juce::var (nm));
+        }
+
         auto* body = new juce::DynamicObject();
         body->setProperty ("model",    model);
         body->setProperty ("effort",   effort);
         body->setProperty ("is_synth", synth);
         body->setProperty ("thinking", thinking);   // honoured for GLM models server-side
         body->setProperty ("stream",   stream);
-        body->setProperty ("messages", juce::var (juce::Array<juce::var> (messages)));
+        body->setProperty ("messages", juce::var (outMsgs));
         return juce::JSON::toString (juce::var (body), true);
     };
 
@@ -434,6 +477,8 @@ bool LlmClient::callAnthropic (const juce::Array<juce::var>& messages,
             juce::Array<juce::var> blocks;
             if (isFirst && cachedPreamble.isNotEmpty())
                 blocks.add (textBlock (cachedPreamble, "1h"));
+            for (const auto& img : imageBlocksFor (src))
+                blocks.add (img);
             blocks.add (textBlock (src->getProperty ("content").toString(),
                                    isLast ? "" : nullptr));
 

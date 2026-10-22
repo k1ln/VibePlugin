@@ -13,6 +13,19 @@ Published `.vstai` files already embed the compiled WASM (`wasmBase64`), the GUI
 HTML, and the params — so the player just fetches the file, decodes the WASM, and
 runs it. No in-browser compilation needed.
 
+## Linking straight to a synth
+
+Every plugin has a stable id (its filename in `data/`, e.g. `acid-bass`, `doob`).
+
+| Link | Opens |
+|---|---|
+| `gallery/#<id>` | the gallery with that synth loaded and highlighted in the list (also `?id=<id>` / `?synth=<id>`) |
+| `gallery/play.html?id=<id>` | the player on its own page, full window |
+
+The address bar follows what you pick, so you can copy it as-is, and the **Copy link** /
+**Open player** buttons in the header do the same. Audio starts on the first click or key
+press (browsers don't allow it before). An unknown id falls back to the default pick.
+
 ## Layout
 
 ```

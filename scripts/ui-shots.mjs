@@ -101,7 +101,7 @@ async function fixture() {
     designs.push({
       id: m.id, name: m.name, blurb: m.blurb, theme: m.theme,
       builtin: true,                       // all ten ship with the plugin
-      selected: m.id === "modern-flagship",
+      selected: m.id === "pro-tool",
     });
   }
 
@@ -130,7 +130,7 @@ function stubJs(fx) {
     isInstrument: false, hasPlugin: true, name: fx.name,
     assembly: fx.assembly, html: fx.html,
     signedIn: false, generationSource: "anthropic", applyDesignStyle: true,
-    building: false, stage: "", designId: "modern-flagship", designTheme: {},
+    building: false, stage: "", designId: "pro-tool", designTheme: {},
   };
 
   const history = [
@@ -174,6 +174,12 @@ window.__JUCE__ = {
           case "getAccount":        return reply({ signedIn: false });
           case "getSettings":       return reply({ anthropicKey: "", publishUrl: "", notaryProfile: "", genSource: "anthropic", applyDesignStyle: true });
           case "getDesigns":        return reply(${JSON.stringify(fx.designs)});
+          case "getUiLibs":         return reply([
+            { id: "", name: "Built-in controls", license: "", blurb: "No library. The model draws its own SVG / canvas knobs and sliders.", selected: true, hasExample: false },
+            { id: "webaudio-controls", name: "webaudio-controls", license: "Apache-2.0", blurb: "Custom-element knobs, sliders, switches and a keyboard.", selected: false, hasExample: true },
+            { id: "jquery-knob", name: "jQuery Knob", license: "MIT", blurb: "Canvas dials with a typed-value field.", selected: false, hasExample: true },
+            { id: "nexusui", name: "NexusUI", license: "MIT", blurb: "Canvas widgets: Dial, Slider, Toggle, Piano ...", selected: false, hasExample: true },
+          ]);
           case "buildManualPrompt": return reply(${JSON.stringify(
             "You are writing a VST3 audio plugin for VibePlugin.\n\n" +
             "Reply with THREE fenced blocks and nothing else:\n\n" +

@@ -1,0 +1,1043 @@
+<!--VSTAI-DESIGN
+{"theme":{"bg":"#0e1319","surface":"#141a22","surface2":"#1b232d","surface3":"#232d39","line":"rgba(255,255,255,.05)","line2":"rgba(255,255,255,.09)","line3":"rgba(255,255,255,.18)","ink":"#dfe5ec","ink2":"#98a3b1","muted":"#64707f","accent":"#6fd8bd","accentPress":"#58c4a9","accentInk":"#06231c","accent2":"#a98bff","ok":"#6fd8bd","danger":"#ff6b6b","radius":"6px","radiusLg":"10px"},"id":"pro-tool","name":"Pro Tool","blurb":"Generic pro-audio template: numbered tab pages, per-section colours (teal / violet / amber), ring knobs, live displays, sound library and output meters.","principles":"Modern pro-audio plugin UI, dark, for ANY plugin type (synth, effect, dynamics, EQ, sampler). Palette: app bg #0e1319, panels #141a22 with a 1px hairline, recessed displays #0b1016, text #dfe5ec, secondary #98a3b1, muted #64707f. THREE section accents used consistently: TEAL #6fd8bd, VIOLET #a98bff, AMBER #e9c46a. Each panel sets its own --accent (classes ta / tb / tc); knob value arcs, display curves, toggles and number badges take that colour. HEADER: logo mark + large letter-spaced plugin title with a one-line tagline; centred SOUND LIBRARY / preset selector (prev, dropdown, next, SAVE); right side OUTPUT L/R meters and a MASTER knob. Below it a numbered TAB BAR (01 / 02 / 03 ...) with an accent underline on the active tab. ALWAYS split the controls over tabs instead of scrolling or shrinking: if the plugin has more than ~24 controls or the sections do not fit the window at once, create 2-5 tabs grouped by function and keep every page fully visible without scrolling; small plugins stay on one page without tabs. PANELS: muted two-digit number + UPPERCASE letter-spaced title + optional ON pill at the right. KNOBS: dark disc, thin muted track, 3px accent value arc, short white pointer, value readout under it, small UPPERCASE label below; in a row every knob has the same size and the same readout/label baseline (never mix steppers and knobs in one row). Set sensible default positions so the pointers look composed. Show the sound where it fits: a live waveform preview for sources, a live response curve for filters/EQs, a draggable ADSR graph beside envelope knobs, scope / spectrum / gain-reduction displays for effects, vertical faders for level groups, output meters in the header. For instruments dock a thin playable keyboard footer visible on every tab; effects omit it. Typography: system sans, tabular numerals. DON'T: flat grey boxes, one endless scrolling page, unlabelled controls, neon bloom, a layout copied from the example's section names - rename sections and controls to fit the plugin."}
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>VibePlugin — Pro Tool</title>
+<style>
+
+  /* ======================================================================
+     MODERN FLAGSHIP — Xfer Serum / Vital polished soft-synth look.
+     Flat recessed surfaces, one lavender accent, TEAL reserved for
+     modulation, warm amber for negative modulation depth. Restrained
+     glow only on value arcs / mod rings / visualizer curves.
+     ====================================================================== */
+  :root{
+    --bg:#0e1319; --panel:#141a22; --panel-2:#1b232d; --disc:#18202a; --well:#0b1016;
+    --line:rgba(255,255,255,.05); --line-2:rgba(255,255,255,.09); --line-3:rgba(255,255,255,.18);
+    --edge:rgba(255,255,255,.04); --stroke:#2a3340;
+    --ink:#dfe5ec; --ink-2:#98a3b1; --muted:#64707f;
+    --accent:#6fd8bd; --accent-soft:rgba(111,216,189,.16);
+    --mod:#6fd8bd; --mod-soft:rgba(111,216,189,.16); --neg:#ffb454; --warn:#ff6b6b; --ok:#6fd8bd;
+    --radius:6px; --radius-w:8px;
+  }
+  /* per-section accents: any panel / row can take one */
+  .ta{--accent:#6fd8bd;--accent-soft:rgba(111,216,189,.16)}
+  .tb{--accent:#a98bff;--accent-soft:rgba(169,139,255,.16)}
+  .tc{--accent:#e9c46a;--accent-soft:rgba(233,196,106,.16)}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:11px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; -webkit-user-select:none;user-select:none;
+  }
+  /* ---- structural chrome ------------------------------------------------- */
+  .app{display:flex;flex-direction:column;min-height:100%}
+  .topbar{display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;
+          background:var(--panel);border-bottom:1px solid var(--line)}
+  .topbar .logo{display:flex;align-items:center;gap:7px}
+  .topbar .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);
+       box-shadow:0 0 6px rgba(170,136,255,.5)}
+  .topbar .brand{font-size:11px;font-weight:700;letter-spacing:2.2px;text-transform:uppercase;color:var(--ink)}
+  .topbar .brand small{color:var(--ink-2);font-weight:500;letter-spacing:1.4px}
+  .topbar .sp{flex:1}
+  /* preset chip in the bar */
+  .pbrow{display:flex;align-items:center;gap:5px}
+  .pbrow input{background:var(--well);border:1px solid var(--line-2);border-radius:var(--radius-w);
+       color:var(--ink);font:inherit;font-size:11px;padding:5px 11px;width:184px}
+  .pbrow input::placeholder{color:var(--muted)}
+  .pbrow input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  /* tabs as a pill rail */
+  .tabs{display:flex;gap:3px;height:34px;padding:5px 14px;background:var(--bg)}
+  .tab{appearance:none;border:1px solid transparent;background:transparent;color:var(--ink-2);
+       font:inherit;font-size:9.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;
+       padding:0 16px;cursor:pointer;border-radius:var(--radius-w);transition:color .12s,background .12s}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:#fff;background:var(--panel);border-color:var(--line-2)}
+  .tab.on::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+       background:var(--accent);margin-right:7px;vertical-align:middle;box-shadow:0 0 5px rgba(170,136,255,.6)}
+  .page{display:none;padding:6px 14px 18px}
+  .page.on{display:block}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
+  /* ---- panel / section (collapsible) ------------------------------------- */
+  .panel{background:var(--panel);border:1px solid var(--line);border-top-color:var(--edge);
+         border-radius:var(--radius);min-width:0;display:flex;flex-direction:column}
+  .panel>.head{display:flex;align-items:center;gap:8px;height:26px;padding:0 12px;
+       font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);
+       border-bottom:1px solid var(--line)}
+  .panel>.head .caret{cursor:pointer;color:var(--ink-2);width:11px;text-align:center;
+       transition:transform .14s;font-size:9px}
+  .panel.collapsed>.head .caret{transform:rotate(-90deg)}
+  .panel.collapsed>.body{display:none}
+  .panel>.head .badge{margin-left:auto;font-size:8px;letter-spacing:1px;color:var(--mod);
+       border:1px solid var(--line-2);border-radius:var(--radius-w);padding:1px 7px}
+  .panel>.body{padding:14px 14px 16px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;flex:1}
+  /* ---- control cell (label under control) -------------------------------- */
+  .cell{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+  .cell .lbl{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+  .cell .sub{font-size:8px;letter-spacing:.6px;text-transform:uppercase;color:var(--mod)}
+  /* readout chip / editable numeric field */
+  .num{font-size:10px;color:var(--ink);font-variant-numeric:tabular-nums;background:var(--well);
+       border:1px solid var(--line-2);border-radius:var(--radius-w);padding:2px 9px;min-width:50px;
+       text-align:center;cursor:text}
+  .num:focus{outline:none;border-color:var(--accent);color:#fff;box-shadow:0 0 0 2px var(--accent-soft)}
+  /* ---- knob — flat recessed disc, white indicator, accent value arc ------ */
+  .knob{cursor:ns-resize;touch-action:none;display:block}
+  .knob .disc{fill:var(--disc);stroke:var(--stroke);stroke-width:1}
+  .knob .track{fill:none;stroke:var(--well);stroke-width:3;stroke-linecap:round}
+  .knob .arc{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round}
+  .knob .modring{fill:none;stroke:var(--mod);stroke-width:2;stroke-linecap:round;opacity:.95}
+  .knob .modring.neg{stroke:var(--neg)}
+  .knob .ind{stroke:#f4f5f6;stroke-width:1.4;stroke-linecap:round}
+  .knob.endless .arc{stroke:var(--mod)}
+  /* ---- fader (vertical + horizontal) ------------------------------------- */
+  .fader{position:relative;background:var(--well);border:1px solid var(--line-2);
+         border-radius:var(--radius-w);cursor:pointer;touch-action:none;overflow:hidden}
+  .fader.v{width:20px;height:112px}
+  .fader.h{width:148px;height:20px}
+  .fader .fill{position:absolute;background:var(--accent);opacity:.9}
+  .fader.v .fill{left:0;right:0;bottom:0}
+  .fader.h .fill{left:0;top:0;bottom:0}
+  .fader .cap{position:absolute;background:#f4f5f6}
+  .fader.v .cap{left:2px;right:2px;height:2px}
+  .fader.h .cap{top:2px;bottom:2px;width:2px}
+  /* ---- buttons / toggles ------------------------------------------------- */
+  .btn{appearance:none;border:1px solid var(--line-2);border-top-color:var(--edge);
+       background:var(--panel-2);color:var(--ink-2);font:inherit;font-size:9.5px;font-weight:600;
+       letter-spacing:1px;text-transform:uppercase;padding:6px 13px;border-radius:var(--radius-w);cursor:pointer;min-width:58px}
+  .btn:hover{border-color:var(--line-3);color:var(--ink)}
+  .btn:active{background:var(--panel)}
+  .btn.on{background:var(--accent);border-color:var(--accent);color:#1a1326;
+       box-shadow:0 0 6px rgba(170,136,255,.35)}
+  .btn.mini{min-width:0;padding:6px 9px}
+  /* segmented selector / radio group */
+  .seg{display:inline-flex;background:var(--well);border:1px solid var(--line-2);
+       border-radius:var(--radius-w);overflow:hidden;padding:2px}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);
+       font:inherit;font-size:9.5px;font-weight:600;letter-spacing:.6px;padding:4px 11px;cursor:pointer;
+       border-radius:6px;transition:color .1s,background .1s}
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{background:var(--accent);color:#1a1326}
+  /* dropdown / combo */
+  .sel{appearance:none;background:var(--panel-2);color:var(--ink);font:inherit;font-size:10px;
+       border:1px solid var(--line-2);border-radius:var(--radius-w);padding:5px 26px 5px 11px;cursor:pointer;
+       background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(-45deg,transparent 50%,var(--ink-2) 50%);
+       background-position:calc(100% - 14px) 53%,calc(100% - 10px) 53%;background-size:4px 4px;background-repeat:no-repeat}
+  .sel:hover{border-color:var(--line-3)}
+  .sel:focus{outline:none;border-color:var(--accent)}
+  /* stepper */
+  .step{display:inline-flex;align-items:stretch;background:var(--well);border:1px solid var(--line-2);
+        border-radius:var(--radius-w);overflow:hidden;padding:2px}
+  .step button{appearance:none;border:0;background:var(--panel-2);color:var(--ink-2);font:inherit;
+       width:22px;cursor:pointer;font-size:13px;line-height:1;border-radius:6px}
+  .step button:hover{color:#fff;background:var(--accent)}
+  .step .v{min-width:46px;text-align:center;align-self:center;font-variant-numeric:tabular-nums;
+       padding:3px 0;color:var(--ink)}
+  /* LED / activity */
+  .led{width:8px;height:8px;border-radius:50%;background:var(--well);border:1px solid var(--line-2)}
+  .led.on{background:var(--ok);border-color:var(--ok);box-shadow:0 0 5px var(--mod-soft)}
+  .led.warn.on{background:var(--warn);border-color:var(--warn);box-shadow:0 0 5px rgba(255,107,107,.4)}
+  /* ---- canvas displays --------------------------------------------------- */
+  .disp{position:relative;background:var(--well);border:1px solid var(--line-2);border-radius:var(--radius-w);overflow:hidden}
+  .disp canvas{display:block;width:100%;height:100%}
+  .disp .tag{position:absolute;top:7px;left:10px;font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted)}
+  .disp .rd{position:absolute;top:7px;right:10px;font-size:9px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  /* ---- XY pad ------------------------------------------------------------ */
+  .xy{position:relative;background:
+        linear-gradient(var(--line),transparent 1px) 0 0/100% 25%,
+        linear-gradient(90deg,var(--line),transparent 1px) 0 0/25% 100%,
+        var(--well);
+      border:1px solid var(--line-2);border-radius:var(--radius-w);cursor:crosshair;touch-action:none}
+  .xy .pt{position:absolute;width:12px;height:12px;margin:-6px;border-radius:50%;background:var(--accent);
+       border:2px solid var(--well);box-shadow:0 0 6px rgba(170,136,255,.45)}
+  .xy .ch{position:absolute;background:var(--line-2);pointer-events:none}
+  /* ---- meter ------------------------------------------------------------- */
+  .meter{display:flex;gap:4px;height:112px;padding:4px;background:var(--well);
+         border:1px solid var(--line-2);border-radius:var(--radius-w)}
+  .meter .ch{width:10px;align-self:stretch;background:#0f1316;border-radius:3px;position:relative;overflow:hidden}
+  .meter .ch .fl{position:absolute;left:0;right:0;bottom:0;background:var(--ok)}
+  .meter .ch .pk{position:absolute;left:0;right:0;height:2px;background:#f4f5f6}
+  /* ---- piano ------------------------------------------------------------- */
+  .piano{position:relative;height:84px;display:flex;border:1px solid var(--line-2);
+         border-radius:var(--radius-w);overflow:hidden;background:#0a0c0e}
+  .wk{flex:1;background:linear-gradient(#f4f5f6,#dadce0);border-right:1px solid #1d2125;cursor:pointer}
+  .wk:active,.wk.down{background:linear-gradient(var(--accent),#8b6bd9)}
+  .bk{position:absolute;top:0;width:5%;height:60%;background:linear-gradient(#2a2f35,#15181b);z-index:2;cursor:pointer;
+      border:1px solid #000;border-top:0;border-radius:0 0 4px 4px}
+  .bk:active,.bk.down{background:linear-gradient(var(--accent),#7a5cc4)}
+  /* ---- mod matrix -------------------------------------------------------- */
+  table.mtx{border-collapse:separate;border-spacing:3px;font-size:9px}
+  table.mtx th{color:var(--muted);font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+       padding:3px 7px;text-align:center}
+  table.mtx th.src{text-align:right;color:var(--ink-2)}
+  table.mtx td{background:var(--well);border:1px solid var(--line);border-radius:5px;
+       width:38px;height:26px;padding:0;position:relative;cursor:ns-resize;overflow:hidden}
+  table.mtx td .fl{position:absolute;left:0;right:0;bottom:0;background:var(--mod);opacity:.95}
+  table.mtx td.neg .fl{background:var(--neg)}
+  table.mtx td:hover{border-color:var(--line-3)}
+  /* ---- step sequencer ---------------------------------------------------- */
+  .seq{display:flex;gap:3px;align-items:flex-end;height:96px;padding:6px;background:var(--well);
+       border:1px solid var(--line-2);border-radius:var(--radius-w)}
+  .seq .st{flex:1;background:#0f1316;border-radius:4px;position:relative;cursor:ns-resize;min-width:11px;align-self:stretch;overflow:hidden}
+  .seq .st .fl{position:absolute;left:0;right:0;bottom:0;background:var(--accent);opacity:.9}
+  .seq .st.cur{box-shadow:inset 0 0 0 1.5px var(--mod)}
+  .seq .st.cur .fl{background:var(--mod);box-shadow:0 0 8px var(--mod-soft)}
+  .seq .st.off .fl{background:var(--line-2)}
+  /* ---- preset browser dropdown ------------------------------------------- */
+  .plist{margin-top:6px;max-height:260px;overflow:auto;border:1px solid var(--line-2);
+       border-radius:var(--radius);background:var(--panel);box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  .plist .it{display:flex;align-items:center;gap:8px;padding:6px 11px;cursor:pointer;border-bottom:1px solid var(--line)}
+  .plist .it:hover{background:var(--panel-2)}
+  .plist .it.on{background:var(--accent-soft);color:#fff}
+  .plist .it .fav{color:var(--muted);width:13px;text-align:center}
+  .plist .it .fav.y{color:var(--accent)}
+  .plist .it .cat{margin-left:auto;font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  /* ---- tooltip + context menu -------------------------------------------- */
+  .tip{position:fixed;z-index:50;background:#15181b;color:var(--ink);border:1px solid var(--line-2);
+       border-radius:6px;padding:4px 9px;font-size:10px;font-variant-numeric:tabular-nums;pointer-events:none;
+       white-space:nowrap;opacity:0;transition:opacity .08s;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+  .tip.show{opacity:1}
+  .menu{position:fixed;z-index:60;background:var(--panel);border:1px solid var(--line-2);
+        border-radius:var(--radius);padding:4px;min-width:158px;box-shadow:0 12px 30px rgba(0,0,0,.55)}
+  .menu .mi{padding:6px 11px;font-size:10px;color:var(--ink-2);cursor:pointer;border-radius:6px}
+  .menu .mi:hover{background:var(--panel-2);color:var(--ink)}
+  .menu .mi.mod:hover{color:var(--mod)}
+  .menu .sep{height:1px;background:var(--line);margin:4px 2px}
+  
+  /* ===================== PRO TOOL layout ===================== */
+  html,body{height:100%;overflow:hidden}
+  .app{height:100vh;min-height:0}
+  .topbar{height:auto;min-height:64px;padding:10px 18px;gap:22px;flex-wrap:wrap;
+          background:linear-gradient(180deg,#151c25,#10161d);border-bottom:1px solid var(--line-2)}
+  .topbar .logo{display:flex;align-items:center;gap:12px}
+  .topbar .mark rect{fill:var(--accent);opacity:.9}
+  .topbar .mark rect:nth-child(2){fill:#a98bff}.topbar .mark rect:nth-child(3){fill:#e9c46a}
+  .topbar .brand{font-size:24px;font-weight:600;letter-spacing:7px;color:#f2f5f9;line-height:1}
+  .topbar .tag{font-size:8.5px;letter-spacing:2.6px;text-transform:uppercase;color:var(--muted);margin-top:5px}
+  .library .lbl,.out .lbl,.master .lbl{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .library{display:flex;flex-direction:column}
+  .library .sel{min-width:230px;height:30px;font-size:12px}
+  .library .btn{height:30px}
+  .out{display:flex;flex-direction:column}
+  .out .meter.hz{flex-direction:column;height:auto;width:170px;padding:4px;gap:3px}
+  .out .meter.hz .ch{width:auto;height:6px}
+  .out .meter.hz .ch .fl{top:0;bottom:0;left:0;right:auto;height:auto}
+  .out .meter.hz .ch .pk{top:0;bottom:0;width:2px;height:auto}
+  .master{display:flex;flex-direction:column;align-items:center}
+  .master .cell{flex-direction:row;gap:8px}
+  .master .cell .num{order:2}
+  /* numbered tab bar with accent underline */
+  .tabs{height:auto;padding:0 18px;gap:26px;border-bottom:1px solid var(--line-2);background:var(--bg)}
+  .tab{padding:13px 2px;border-radius:0;border:0;border-bottom:2px solid transparent;font-size:10.5px;letter-spacing:2.2px;background:transparent!important;color:var(--ink-2)}
+  .tab .no{color:var(--muted);margin-right:9px;font-size:9px;letter-spacing:1px}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:#fff;border-bottom-color:var(--accent)}
+  .tab.on::before{display:none}
+  .tab.on .no{color:var(--accent)}
+  .pages{flex:1;min-height:0;overflow:auto}
+  .page{padding:14px 18px 10px}
+  .row{gap:12px;margin-bottom:12px}
+  .grow{flex:1 1 280px}.grow2{flex:1.7 1 420px}
+  /* panels */
+  .panel{background:linear-gradient(180deg,#161d26,#131920);border-color:var(--line-2);border-radius:var(--radius)}
+  .panel>.head{height:34px;padding:0 14px;gap:10px;font-size:10.5px;letter-spacing:2.2px;border-bottom:1px solid var(--line)}
+  .panel>.head .no{color:var(--muted);font-size:9.5px;letter-spacing:1px}
+  .panel>.head .ttl{color:#eef2f6;font-weight:700}
+  .panel>.head .badge{color:var(--muted)}
+  .panel>.body{padding:12px 14px 14px;gap:14px}
+  .panel>.body.col{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:12px}
+  .panel>.foot{display:flex;gap:12px;padding:0 14px 14px;border-top:1px solid var(--line);padding-top:12px}
+  .cell .lbl{font-size:8.5px;letter-spacing:1.4px;color:var(--ink-2)}
+  .krow{display:flex;gap:6px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+  .krow.end{border-top:1px solid var(--line);padding-top:10px;align-items:center}
+  .oscrow{display:flex;gap:10px;align-items:stretch}
+  .oscrow .sel{flex:0 0 118px;align-self:flex-start;height:30px}
+  .oscrow .disp{flex:1;height:52px}
+  .syncc{margin-left:auto;align-items:flex-end}
+  /* on/off pill */
+  .pill{appearance:none;margin-left:auto;border:1px solid var(--line-2);background:var(--well);color:var(--muted);
+        font:inherit;font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 11px;
+        border-radius:6px;cursor:pointer}
+  .pill.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+  .pill.on::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:7px;vertical-align:middle}
+  .syncc .pill{margin:0}
+  /* ring knob: dark disc, slim track, bold accent arc */
+  .knob .track{stroke:#222b36;stroke-width:3.4}
+  .knob .arc{stroke-width:3.6}
+  .knob .disc{fill:#10161d;stroke:#2a3340}
+  .knob .ind{stroke:#eef2f6;stroke-width:1.8}
+  .num{background:transparent;border:0;padding:0;min-width:0;font-size:10.5px;color:#e6ebf1}
+  /* faders / mixer */
+  .fad{justify-content:space-between;gap:10px;flex-wrap:nowrap}
+  .fader{background:#0b1016;border-color:var(--line-2);border-radius:4px}
+  .fader.v{width:8px;height:92px;overflow:visible}
+  .fader .fill{opacity:.85;border-radius:4px}
+  .fader.v .cap{left:-7px;right:-7px;height:11px;border-radius:3px;background:linear-gradient(#e8edf2,#aeb7c2);margin-bottom:-5px;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+  .mixer{flex:0 0 268px}
+  .mixer .cell{min-width:34px}
+  /* envelopes */
+  .erow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .erow:last-child{border-bottom:0}
+  .elbl{flex:0 0 46px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent)}
+  .erow .disp{flex:1 1 150px;height:70px;min-width:120px}
+  .eknobs{display:flex;gap:4px;flex:0 0 auto}
+  .eknobs .cell{gap:2px}
+  .eknobs .cell .num{font-size:9.5px}
+  .filter .disp{height:84px}
+  /* dock */
+  .dock{padding:8px 18px 12px;background:linear-gradient(180deg,#10161d,#0c1117);border-top:1px solid var(--line-2)}
+  .piano{height:56px}
+  .wk:active,.wk.down{background:linear-gradient(var(--accent),#4fb59b)}
+  .bk:active,.bk.down{background:linear-gradient(var(--accent),#3f917c)}
+  .seg button.on,.btn.on{background:var(--accent);color:#0b1511}
+  .sel{background-color:#10161d}
+
+  .pill.sync-pill{margin-left:auto;margin-right:0;color:var(--muted)}
+  .pill.sync-pill.on{color:var(--accent)}
+  .head .sync-pill + .on-pill{margin-left:8px}
+  .head .on-pill{margin-left:auto}
+  .head .sync-pill ~ .on-pill{margin-left:8px}
+  .fad{padding-bottom:6px}
+  .panel>.body.col{gap:8px}
+  .krow{justify-content:space-around}
+  .filter .krow{justify-content:space-around}
+  .mixer .foot{padding-top:8px}
+  .krow{flex-wrap:nowrap;gap:2px}
+  .krow .step .v{min-width:24px}
+  .krow .step button{width:19px}
+  .krow .cell{flex:0 0 auto}
+  .mixer .foot{margin-top:auto}
+  .krow.wide{width:100%;justify-content:space-around}
+  .krow .cell .num{white-space:nowrap}
+  .panel>.body.col .seg{align-self:flex-start}
+  .krow{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:start;justify-items:center;gap:2px}
+  .krow.wide{grid-auto-columns:1fr}
+  .levels{flex:0 0 250px}
+  .levels .fad{justify-content:space-around}
+  .topbar{min-height:78px;padding:12px 18px;align-items:center}
+  .master{padding-bottom:2px}
+  .master .lbl{margin-bottom:2px}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============================ HEADER ============================== -->
+  <div class="topbar">
+    <div class="logo"><svg class="mark" viewBox="0 0 28 28" width="28" height="28"><rect x="2" y="9" width="5" height="17" rx="1.5"/><rect x="11" y="3" width="5" height="23" rx="1.5"/><rect x="20" y="13" width="5" height="13" rx="1.5"/></svg>
+      <div class="titles"><div class="brand">PLUGIN NAME</div><div class="tag">Plugin type · one-line description</div></div></div>
+    <div class="library">
+      <div class="lbl">Sound library</div>
+      <div class="pbrow"><button class="btn mini preset-prev" data-tip="Previous sound">‹</button>
+        <select id="soundSel" class="sel"></select>
+        <button class="btn mini preset-next" data-tip="Next sound">›</button>
+        <button class="btn" id="saveBtn">Save</button></div>
+    </div>
+    <span class="sp"></span>
+    <div class="out"><div class="lbl">Output</div>
+      <div class="meter-host hz" data-stereo="1"></div></div>
+    <div class="master"><div class="lbl">Master</div><div class="cell"><div class="knob-host" data-index="56" data-min="0" data-max="1" data-def="0.7" data-mul="100" data-suffix="%" data-size="44"></div><div class="num num-host"></div><div class="lbl"></div></div></div>
+  </div>
+
+  <!-- ============================== TABS ============================== -->
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-page="main"><span class="no">01</span>Main</button>
+    <button class="tab" data-page="mod"><span class="no">02</span>Modulation</button>
+    <button class="tab" data-page="fx"><span class="no">03</span>Output &amp; FX</button>
+  </div>
+
+  <div class="pages">
+  <!-- =============================== 01 MAIN ========================== -->
+  <div class="page on" id="page-main">
+    <div class="row">
+      <div class="panel ta grow"><div class="head"><span class="no">01</span><span class="ttl">Source A</span><button class="pill toggle-host" data-def="1" data-index="0">On</button></div>
+        <div class="body col">
+          <div class="oscrow"><select class="sel sel-host" data-index="1" data-options="Saw,Sine,Square,Triangle"></select>
+            <div class="disp osc-host" data-wave="1" data-shapes="saw,sine,square,tri" data-def="0"></div></div>
+          <div class="krow"><div class="cell"><div class="knob-host" data-index="2" data-min="-12" data-max="12" data-def="0" data-suffix=" st"></div><div class="num num-host"></div><div class="lbl">Coarse</div></div><div class="cell"><div class="knob-host" data-index="3" data-min="-100" data-max="100" data-def="0" data-suffix=" ct"></div><div class="num num-host"></div><div class="lbl">Fine</div></div><div class="cell"><div class="knob-host" data-index="4" data-min="0" data-max="1" data-def="0.7" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Level</div></div><div class="cell"><div class="knob-host" data-index="5" data-min="-1" data-max="1" data-def="0" data-mul="100"></div><div class="num num-host"></div><div class="lbl">Pan</div></div><div class="cell"><div class="knob-host" data-index="6" data-min="0" data-max="1" data-def="0.5" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Width</div></div></div>
+        </div></div>
+      <div class="panel tb grow"><div class="head"><span class="no">02</span><span class="ttl">Source B</span><button class="pill toggle-host" data-def="1" data-index="7">On</button></div>
+        <div class="body col">
+          <div class="oscrow"><select class="sel sel-host" data-index="8" data-options="Triangle,Sine,Saw,Square"></select>
+            <div class="disp osc-host" data-wave="8" data-shapes="tri,sine,saw,square" data-def="0"></div></div>
+          <div class="krow"><div class="cell"><div class="knob-host" data-index="9" data-min="-12" data-max="12" data-def="0" data-suffix=" st"></div><div class="num num-host"></div><div class="lbl">Coarse</div></div><div class="cell"><div class="knob-host" data-index="10" data-min="-100" data-max="100" data-def="0" data-suffix=" ct"></div><div class="num num-host"></div><div class="lbl">Fine</div></div><div class="cell"><div class="knob-host" data-index="11" data-min="0" data-max="1" data-def="0.7" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Level</div></div><div class="cell"><div class="knob-host" data-index="12" data-min="-1" data-max="1" data-def="0" data-mul="100"></div><div class="num num-host"></div><div class="lbl">Pan</div></div><div class="cell"><div class="knob-host" data-index="13" data-min="0" data-max="1" data-def="0.5" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Width</div></div></div>
+        </div></div>
+      <div class="panel tc levels"><div class="head"><span class="no">03</span><span class="ttl">Levels</span><span class="badge">FADERS</span></div>
+        <div class="body fad"><div class="cell"><div class="fader-host" data-orient="v" data-index="28" data-min="0" data-max="1" data-def="0.8"></div><div class="num num-host"></div><div class="lbl">Ch 1</div></div><div class="cell"><div class="fader-host" data-orient="v" data-index="29" data-min="0" data-max="1" data-def="0.6"></div><div class="num num-host"></div><div class="lbl">Ch 2</div></div><div class="cell"><div class="fader-host" data-orient="v" data-index="30" data-min="0" data-max="1" data-def="0.4"></div><div class="num num-host"></div><div class="lbl">Ch 3</div></div><div class="cell"><div class="fader-host" data-orient="v" data-index="31" data-min="0" data-max="1" data-def="0.2"></div><div class="num num-host"></div><div class="lbl">Ch 4</div></div></div></div>
+    </div>
+    <div class="row">
+      <div class="panel tb filter grow"><div class="head"><span class="no">04</span><span class="ttl">Filter</span>
+          <select class="sel sel-host" data-index="14" data-options="Low-pass,High-pass,Band-pass,Notch" style="margin-left:auto"></select></div>
+        <div class="body col">
+          <div class="disp curve-host" data-cutoff="15" data-reso="16" data-type="14" style="width:100%;height:84px"><span class="tag">Response</span><span class="rd"></span></div>
+          <div class="krow"><div class="cell"><div class="knob-host" data-index="15" data-min="20" data-max="20000" data-def="2600" data-log="1" data-suffix=" Hz"></div><div class="num num-host"></div><div class="lbl">Cutoff</div></div><div class="cell"><div class="knob-host" data-index="16" data-min="0" data-max="1" data-def="0.25" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Resonance</div></div><div class="cell"><div class="knob-host" data-index="17" data-min="0" data-max="1" data-def="0.2" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Drive</div></div><div class="cell"><div class="knob-host" data-index="18" data-min="-1" data-max="1" data-def="0.4" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Amount</div></div><div class="cell"><div class="knob-host" data-index="19" data-min="0" data-max="1" data-def="0.5" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Track</div></div></div>
+        </div></div>
+      <div class="panel tc envs grow2"><div class="head"><span class="no">05</span><span class="ttl">Envelopes</span><span class="badge">DRAG TO SHAPE</span></div>
+        <div class="body col">
+        <div class="erow ta"><div class="elbl">Env 1</div>
+          <div class="disp adsr-host" data-a="20" data-d="21" data-s="22" data-r="23"></div>
+          <div class="eknobs"><div class="cell"><div class="knob-host" data-index="20" data-min="0" data-max="1" data-def="0.05" data-mul="2000" data-suffix=" ms" data-size="34"></div><div class="num num-host"></div><div class="lbl">A</div></div><div class="cell"><div class="knob-host" data-index="21" data-min="0" data-max="1" data-def="0.25" data-mul="2000" data-suffix=" ms" data-size="34"></div><div class="num num-host"></div><div class="lbl">D</div></div><div class="cell"><div class="knob-host" data-index="22" data-min="0" data-max="1" data-def="0.7" data-mul="100" data-suffix="%" data-size="34"></div><div class="num num-host"></div><div class="lbl">S</div></div><div class="cell"><div class="knob-host" data-index="23" data-min="0" data-max="1" data-def="0.2" data-mul="2000" data-suffix=" ms" data-size="34"></div><div class="num num-host"></div><div class="lbl">R</div></div></div></div>
+        <div class="erow tb"><div class="elbl">Env 2</div>
+          <div class="disp adsr-host" data-a="24" data-d="25" data-s="26" data-r="27"></div>
+          <div class="eknobs"><div class="cell"><div class="knob-host" data-index="24" data-min="0" data-max="1" data-def="0.05" data-mul="2000" data-suffix=" ms" data-size="34"></div><div class="num num-host"></div><div class="lbl">A</div></div><div class="cell"><div class="knob-host" data-index="25" data-min="0" data-max="1" data-def="0.25" data-mul="2000" data-suffix=" ms" data-size="34"></div><div class="num num-host"></div><div class="lbl">D</div></div><div class="cell"><div class="knob-host" data-index="26" data-min="0" data-max="1" data-def="0.7" data-mul="100" data-suffix="%" data-size="34"></div><div class="num num-host"></div><div class="lbl">S</div></div><div class="cell"><div class="knob-host" data-index="27" data-min="0" data-max="1" data-def="0.2" data-mul="2000" data-suffix=" ms" data-size="34"></div><div class="num num-host"></div><div class="lbl">R</div></div></div></div></div></div>
+    </div>
+  </div>
+
+  <!-- ========================== 02 MODULATION ========================= -->
+  <div class="page" id="page-mod">
+    <div class="row">
+      <div class="panel tb grow"><div class="head"><span class="no">01</span><span class="ttl">LFO 1</span><span class="badge">MOD</span></div>
+        <div class="body col">
+          <div class="disp lfo-host" data-shape="32" style="width:100%;height:76px"><span class="tag">LFO</span></div>
+          <div class="cell"><div class="seg-host" data-index="32" data-options="Sin,Tri,Saw,Sqr,S&amp;H"></div></div>
+          <div class="krow"><div class="cell"><div class="knob-host" data-index="33" data-min="0.01" data-max="20" data-def="2" data-log="1" data-suffix=" Hz"></div><div class="num num-host"></div><div class="lbl">Rate</div></div><div class="cell"><div class="knob-host" data-index="34" data-min="0" data-max="1" data-def="0.5" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Depth</div></div><div class="cell"><div class="knob-host" data-index="35" data-min="0" data-max="360" data-def="90" data-suffix="°"></div><div class="num num-host"></div><div class="lbl">Phase</div></div></div>
+        </div></div>
+      <div class="panel tc grow"><div class="head"><span class="no">02</span><span class="ttl">LFO 2</span><span class="badge">MOD</span></div>
+        <div class="body col">
+          <div class="disp lfo-host" data-shape="36" style="width:100%;height:76px"><span class="tag">LFO</span></div>
+          <div class="cell"><div class="seg-host" data-index="36" data-options="Sin,Tri,Saw,Sqr,S&amp;H"></div></div>
+          <div class="krow"><div class="cell"><div class="knob-host" data-index="37" data-min="0.01" data-max="20" data-def="2" data-log="1" data-suffix=" Hz"></div><div class="num num-host"></div><div class="lbl">Rate</div></div><div class="cell"><div class="knob-host" data-index="38" data-min="0" data-max="1" data-def="0.5" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Depth</div></div><div class="cell"><div class="knob-host" data-index="39" data-min="0" data-max="360" data-def="90" data-suffix="°"></div><div class="num num-host"></div><div class="lbl">Phase</div></div></div>
+        </div></div>
+      <div class="panel ta grow"><div class="head"><span class="no">03</span><span class="ttl">Performance</span></div>
+        <div class="body"><div class="cell"><div class="xy-host" data-x="15" data-y="16" style="width:150px;height:118px"></div><div class="lbl">X / Y pad</div></div>
+          <div class="cell"><div class="knob-host" data-index="49" data-min="0" data-max="1" data-def="0.1" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Glide</div></div></div></div>
+    </div>
+    <div class="row">
+      <div class="panel ta grow"><div class="head"><span class="no">04</span><span class="ttl">Modulation matrix</span><span class="badge">DRAG DEPTH</span></div>
+        <div class="body"><div class="mtx-host" data-base="40" data-sources="LFO 1,LFO 2,Env 1" data-dests="Cutoff,Level,Pan"></div></div></div>
+    </div>
+  </div>
+
+  <!-- ============================ 03 OUTPUT & FX ====================== -->
+  <div class="page" id="page-fx">
+    <div class="row">
+      <div class="panel tb grow"><div class="head"><span class="no">01</span><span class="ttl">Drive</span></div>
+        <div class="body"><div class="krow wide"><div class="cell"><div class="knob-host" data-index="50" data-min="0" data-max="1" data-def="0.3" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Drive</div></div><div class="cell"><div class="knob-host" data-index="51" data-min="0" data-max="1" data-def="0.6" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Tone</div></div><div class="cell"><div class="knob-host" data-index="52" data-min="0" data-max="1" data-def="0.5" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Mix</div></div></div></div></div>
+      <div class="panel tc grow"><div class="head"><span class="no">02</span><span class="ttl">Delay</span></div>
+        <div class="body"><div class="krow wide"><div class="cell"><div class="knob-host" data-index="53" data-min="10" data-max="1500" data-def="350" data-suffix=" ms"></div><div class="num num-host"></div><div class="lbl">Time</div></div><div class="cell"><div class="knob-host" data-index="54" data-min="0" data-max="1" data-def="0.35" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Feedback</div></div><div class="cell"><div class="knob-host" data-index="55" data-min="0" data-max="1" data-def="0.25" data-mul="100" data-suffix="%"></div><div class="num num-host"></div><div class="lbl">Mix</div></div></div></div></div></div>
+    <div class="row">
+      <div class="panel ta grow"><div class="head"><span class="no">03</span><span class="ttl">Oscilloscope</span></div>
+        <div class="body"><div class="disp scope-host" style="width:100%;height:130px"></div></div></div>
+      <div class="panel tc grow"><div class="head"><span class="no">04</span><span class="ttl">Spectrum</span></div>
+        <div class="body"><div class="disp spectrum-host" style="width:100%;height:130px"></div></div></div>
+    </div>
+  </div>
+  </div><!-- /pages -->
+
+  <!-- keyboard dock: instruments only, visible on every tab (effects omit it) -->
+  <div class="dock"><div class="piano" id="kbd"></div></div>
+</div>
+
+<script>
+"use strict";
+/* ===================================================================== *
+ *  ENGINE BRIDGE — never touch window.vstai before it exists.            *
+ * ===================================================================== */
+function whenReady(cb){
+  function go(){ (window.vstai.onReady ? window.vstai.onReady(cb) : cb()); }
+  if (window.vstai) return go();
+  const t=setInterval(()=>{ if(window.vstai){ clearInterval(t); go(); } },25);
+}
+const setParam=(i,v)=>{ if(window.vstai) window.vstai.setParam(i,v); };
+const onParam =(cb)=>{ if(window.vstai&&window.vstai.onParam) window.vstai.onParam(cb); };
+const noteOn  =(n,v)=>{ if(window.vstai&&window.vstai.noteOn ) window.vstai.noteOn(n,v); };
+const noteOff =(n)  =>{ if(window.vstai&&window.vstai.noteOff) window.vstai.noteOff(n); };
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=v=>Math.abs(v)>=1000?Math.round(v).toLocaleString("en-US"):Math.abs(v)>=100?Math.round(v):Math.abs(v)>=10?v.toFixed(1):v.toFixed(2);
+const ns="http://www.w3.org/2000/svg";
+const svgEl=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e.setAttribute(k,a[k]); return e; };
+
+/* ===================================================================== *
+ *  SHARED: tooltip + right-click context menu.                          *
+ * ===================================================================== */
+const tip=document.createElement("div"); tip.className="tip"; document.body.append(tip);
+function showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
+function hideTip(){ tip.classList.remove("show"); }
+function bindTip(el,text){
+  el.addEventListener("pointerenter",e=>showTip(typeof text==="function"?text():text,e.clientX,e.clientY));
+  el.addEventListener("pointermove",e=>{ if(tip.classList.contains("show")) showTip(typeof text==="function"?text():text,e.clientX,e.clientY); });
+  el.addEventListener("pointerleave",hideTip);
+}
+document.querySelectorAll("[data-tip]").forEach(el=>bindTip(el,el.dataset.tip));
+
+let openMenu=null;
+function closeMenu(){ if(openMenu){ openMenu.remove(); openMenu=null; } }
+addEventListener("pointerdown",e=>{ if(openMenu&&!openMenu.contains(e.target)) closeMenu(); },true);
+function contextMenu(x,y,items){
+  closeMenu(); hideTip();
+  const m=document.createElement("div"); m.className="menu";
+  items.forEach(it=>{
+    if(it==="-"){ const s=document.createElement("div"); s.className="sep"; m.append(s); return; }
+    const d=document.createElement("div"); d.className="mi"+(it.mod?" mod":""); d.textContent=it.label;
+    d.onclick=()=>{ closeMenu(); it.fn&&it.fn(); }; m.append(d);
+  });
+  m.style.left=x+"px"; m.style.top=y+"px"; document.body.append(m); openMenu=m;
+  const r=m.getBoundingClientRect();
+  if(r.right>innerWidth)  m.style.left=(innerWidth-r.width-4)+"px";
+  if(r.bottom>innerHeight)m.style.top=(innerHeight-r.height-4)+"px";
+}
+
+/* ===================================================================== *
+ *  KNOB — bounded + endless. Flat recessed disc, single white indicator *
+ *  line, accent value arc; a concentric TEAL modulation ring appears    *
+ *  only when modulated (warm amber for negative depth).                 *
+ * ===================================================================== */
+function makeKnob(host){
+  const i=+host.dataset.index, def=+host.dataset.def||0,
+        endless=host.dataset.endless==="1",
+        min=endless?0:+host.dataset.min, max=endless?1:+host.dataset.max,
+        log=host.dataset.log==="1", suffix=host.dataset.suffix||"",
+        mul=host.dataset.mul?+host.dataset.mul:1,
+        modDepth=host.dataset.mod!=null?+host.dataset.mod:null;   // demo modulation amount
+  const num=host.parentElement.querySelector(".num-host");
+  const sz=host.dataset.size?+host.dataset.size:48;
+  host.style.width=host.style.height=sz+"px";
+  const svg=svgEl("svg",{class:"knob"+(endless?" endless":""),viewBox:"0 0 100 100",width:sz,height:sz});
+  if(endless) svg.style.cursor="ns-resize";
+  const a0=135,a1=405,R=39,Rmod=46;
+  const polar=(deg,r)=>[50+r*Math.cos(deg*Math.PI/180),50+r*Math.sin(deg*Math.PI/180)];
+  const arcPath=(from,to,r)=>{ const[sx,sy]=polar(from,r),[ex,ey]=polar(to,r);
+    return `M ${sx} ${sy} A ${r} ${r} 0 ${to-from>180?1:0} 1 ${ex} ${ey}`; };
+  // recessed disc + value track + (optional) modulation ring sit OUTSIDE the arc
+  svg.append(svgEl("circle",{class:"disc",cx:50,cy:50,r:30}));
+  svg.append(svgEl("path",{class:"track",d:arcPath(a0,a1,R)}));
+  const modRing=svgEl("path",{class:"modring"}); if(modDepth!=null){ if(modDepth<0) modRing.classList.add("neg"); svg.append(modRing); }
+  const arc=svgEl("path",{class:"arc"}); const ind=svgEl("line",{class:"ind"});
+  svg.append(arc,ind); host.append(svg);
+  // restrained glow on the active arc & mod ring only
+  arc.style.filter="drop-shadow(0 0 3px var(--accent-soft))";
+  if(modDepth!=null) modRing.style.filter="drop-shadow(0 0 3px "+(modDepth<0?"rgba(255,180,84,.28)":"var(--mod-soft)")+")";
+
+  const toNorm=v=>log?Math.log(v/min)/Math.log(max/min):(v-min)/(max-min);
+  const fromNorm=n=>log?min*Math.pow(max/min,n):min+n*(max-min);
+  let value=def;
+  const readout=()=>endless?"∞":(fmt(value*mul)+suffix);
+  function render(){
+    const n=clamp(endless?(value%1+1)%1:toNorm(value),0,1), ang=a0+n*(a1-a0);
+    arc.setAttribute("d",arcPath(a0,ang,R));
+    const[ix,iy]=polar(ang,11),[ox,oy]=polar(ang,29);
+    ind.setAttribute("x1",ix);ind.setAttribute("y1",iy);ind.setAttribute("x2",ox);ind.setAttribute("y2",oy);
+    if(modDepth!=null){ const m=clamp(n+modDepth,0,1), mang=a0+m*(a1-a0);
+      modRing.setAttribute("d",arcPath(Math.min(ang,mang),Math.max(ang,mang),Rmod)); }
+    if(num) num.textContent=readout();
+  }
+  function set(v){ value=endless?v:clamp(v,min,max); render(); setParam(i,endless?((value%1+1)%1):value); }
+  let drag=null;
+  svg.addEventListener("pointerdown",e=>{
+    if(e.button!==0) return;
+    drag={y:e.clientY,n:endless?value:clamp(toNorm(value),0,1),fine:e.shiftKey};
+    svg.setPointerCapture(e.pointerId); showTip(readout(),e.clientX,e.clientY);
+  });
+  svg.addEventListener("pointermove",e=>{ if(!drag) return;
+    const speed=(e.shiftKey?900:200), dn=(drag.y-e.clientY)/speed;
+    if(endless) set(drag.n+dn); else set(fromNorm(clamp(drag.n+dn,0,1)));
+    showTip(readout(),e.clientX,e.clientY);
+  });
+  const end=()=>{ if(drag){ drag=null; hideTip(); } };
+  svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
+  svg.addEventListener("wheel",e=>{ e.preventDefault();
+    if(endless) set(value-Math.sign(e.deltaY)*0.02);
+    else set(fromNorm(clamp(toNorm(value)-Math.sign(e.deltaY)*(e.shiftKey?0.005:0.025),0,1)));
+  },{passive:false});
+  svg.addEventListener("dblclick",()=>set(def));
+  bindTip(svg,readout);
+  svg.addEventListener("contextmenu",e=>{ e.preventDefault();
+    contextMenu(e.clientX,e.clientY,[
+      {label:"Reset to default",fn:()=>set(def)},
+      {label:"Set to minimum",fn:()=>set(endless?0:min)},
+      {label:"Set to maximum",fn:()=>set(endless?1:max)},
+      "-",
+      {label:"Create automation clip…",fn:()=>window.vstai&&window.vstai.hostMenu&&window.vstai.hostMenu(i)},
+      {label:"MIDI learn",fn:()=>window.vstai&&window.vstai.midiLearn&&window.vstai.midiLearn(i)},
+      {label:"Assign modulation",mod:true,fn:()=>{}},
+    ]);
+  });
+  if(num){ num._apply=v=>set(endless?v:v/mul); }
+  onParam((p,v)=>{ if(p===i){ value=endless?+v:clamp(+v,min,max); render(); } });
+  set(def);
+}
+
+/* ===================================================================== *
+ *  FADER — vertical or horizontal (data-orient="v"|"h").                 *
+ * ===================================================================== */
+function makeFader(host){
+  const i=+host.dataset.index,min=+host.dataset.min,max=+host.dataset.max,def=+host.dataset.def,
+        horiz=host.dataset.orient==="h", suffix=host.dataset.suffix||"";
+  const num=host.parentElement.querySelector(".num-host");
+  host.classList.add("fader",horiz?"h":"v");
+  const fill=document.createElement("div"); fill.className="fill";
+  const cap=document.createElement("div"); cap.className="cap"; host.append(fill,cap);
+  let value=def;
+  function render(){ const n=clamp((value-min)/(max-min),0,1);
+    if(horiz){ fill.style.width=(n*100)+"%"; cap.style.left="calc("+(n*100)+"% - 1px)"; }
+    else     { fill.style.height=(n*100)+"%"; cap.style.bottom="calc("+(n*100)+"% - 1px)"; }
+    if(num) num.textContent=fmt(value)+suffix; }
+  function set(v){ value=clamp(v,min,max); render(); setParam(i,value); }
+  let drag=false;
+  const fromPt=e=>{ const r=host.getBoundingClientRect();
+    return horiz?min+(max-min)*clamp((e.clientX-r.left)/r.width,0,1)
+                :min+(max-min)*clamp(1-(e.clientY-r.top)/r.height,0,1); };
+  host.addEventListener("pointerdown",e=>{ if(e.button!==0)return; drag=true; host.setPointerCapture(e.pointerId); set(fromPt(e)); });
+  host.addEventListener("pointermove",e=>{ if(drag) set(fromPt(e)); });
+  host.addEventListener("pointerup",()=>drag=false);
+  host.addEventListener("dblclick",()=>set(def));
+  bindTip(host,()=>fmt(value)+suffix);
+  host.addEventListener("contextmenu",e=>{ e.preventDefault();
+    contextMenu(e.clientX,e.clientY,[{label:"Reset to default",fn:()=>set(def)},{label:"MIDI learn",fn:()=>{}}]); });
+  if(num) num._apply=set;
+  onParam((p,v)=>{ if(p===i){ value=clamp(+v,min,max); render(); } });
+  set(def);
+}
+
+/* ===================================================================== *
+ *  TOGGLE (latch 0/1) and MOMENTARY (1 while held).                      *
+ * ===================================================================== */
+function makeToggle(b){ const i=+b.dataset.index; let on=b.dataset.def==="1";
+  const upd=()=>{ b.classList.toggle("on",on); setParam(i,on?1:0); };
+  b.addEventListener("click",()=>{ on=!on; upd(); }); upd();
+  onParam((p,v)=>{ if(p===i){ on=+v>=0.5; b.classList.toggle("on",on); } });
+}
+function makeMomentary(b){ const i=+b.dataset.index;
+  const dn=()=>{ b.classList.add("on"); setParam(i,1); };
+  const up=()=>{ b.classList.remove("on"); setParam(i,0); };
+  let pressed=false;
+  const press=()=>{ pressed=true; dn(); };
+  const release=()=>{ if(!pressed) return; pressed=false; up(); };
+  b.addEventListener("pointerdown",press);
+  b.addEventListener("pointerup",release); b.addEventListener("pointerleave",release);
+  // WKWebView can drop the element's pointerup, so also catch the release on window
+  // (mouseup still fires) and on blur — otherwise a momentary button sticks "on".
+  addEventListener("pointerup",release,true); addEventListener("mouseup",release,true);
+  addEventListener("pointercancel",release,true); addEventListener("blur",release);
+}
+
+/* ===================================================================== *
+ *  SEGMENTED SELECTOR / RADIO — small fixed option sets.                 *
+ * ===================================================================== */
+function makeSegmented(host){
+  const i=+host.dataset.index, opts=host.dataset.options.split(",");
+  host.classList.add("seg");
+  let sel=0;
+  opts.forEach((o,k)=>{ const b=document.createElement("button"); b.textContent=o;
+    b.onclick=()=>{ sel=k; upd(); }; host.append(b); });
+  function upd(){ [...host.children].forEach((b,k)=>b.classList.toggle("on",k===sel));
+    setParam(i, opts.length>1?sel/(opts.length-1):0); }
+  upd();
+  onParam((p,v)=>{ if(p===i){ sel=Math.round(+v*(opts.length-1)); upd(); } });
+}
+
+/* ===================================================================== *
+ *  DROPDOWN / COMBO — longer lists.                                      *
+ * ===================================================================== */
+function makeSelect(host){
+  const i=+host.dataset.index, opts=host.dataset.options.split(",");
+  opts.forEach((o,k)=>{ const op=document.createElement("option"); op.value=k; op.textContent=o; host.append(op); });
+  host.onchange=()=>setParam(i, opts.length>1?(+host.value)/(opts.length-1):0);
+  setParam(i,0);
+  onParam((p,v)=>{ if(p===i) host.value=Math.round(+v*(opts.length-1)); });
+}
+
+/* ===================================================================== *
+ *  STEPPER — integer steps.                                              *
+ * ===================================================================== */
+function makeStepper(host){
+  const i=+host.dataset.index,min=+host.dataset.min,max=+host.dataset.max,
+        def=+host.dataset.def,step=+host.dataset.step||1,suffix=host.dataset.suffix||"";
+  host.classList.add("step");
+  const dec=document.createElement("button"); dec.textContent="−";
+  const val=document.createElement("div"); val.className="v";
+  const inc=document.createElement("button"); inc.textContent="+";
+  host.append(dec,val,inc);
+  let value=def;
+  const span=max-min;
+  function set(v){ value=clamp(Math.round(v/step)*step,min,max); val.textContent=(value>0?"+":"")+value+suffix;
+    setParam(i, span?(value-min)/span:0); }
+  dec.onclick=()=>set(value-step); inc.onclick=()=>set(value+step);
+  onParam((p,v)=>{ if(p===i){ value=Math.round(min+ +v*span); val.textContent=(value>0?"+":"")+value+suffix; } });
+  set(def);
+}
+
+/* ===================================================================== *
+ *  EDITABLE NUMERIC FIELD — type an exact value into a .num readout.     *
+ * ===================================================================== */
+function makeNumEditable(num){
+  num.contentEditable="true"; num.spellcheck=false;
+  num.addEventListener("focus",()=>getSelection().selectAllChildren(num));
+  num.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); num.blur(); } });
+  num.addEventListener("blur",()=>{
+    const v=parseFloat(num.textContent.replace(/[^0-9.\-]/g,""));
+    if(!isNaN(v)&&num._apply) num._apply(v);
+  });
+}
+
+/* ===================================================================== *
+ *  XY PAD — two params, crosshair, draggable point.                      *
+ * ===================================================================== */
+function makeXY(host){
+  const ix=+host.dataset.x, iy=+host.dataset.y;
+  host.classList.add("xy");
+  const vline=document.createElement("div"); vline.className="ch"; vline.style.cssText+="top:0;bottom:0;width:1px";
+  const hline=document.createElement("div"); hline.className="ch"; hline.style.cssText+="left:0;right:0;height:1px";
+  const pt=document.createElement("div"); pt.className="pt"; host.append(vline,hline,pt);
+  let cx=0.5,cy=0.5,drag=false;
+  function render(){ pt.style.left=(cx*100)+"%"; pt.style.top=(cy*100)+"%";
+    vline.style.left=(cx*100)+"%"; hline.style.top=(cy*100)+"%"; }
+  function set(e){ const r=host.getBoundingClientRect();
+    cx=clamp((e.clientX-r.left)/r.width,0,1); cy=clamp((e.clientY-r.top)/r.height,0,1);
+    render(); setParam(ix,cx); setParam(iy,1-cy); }
+  host.addEventListener("pointerdown",e=>{ if(e.button!==0)return; drag=true; host.setPointerCapture(e.pointerId); set(e); });
+  host.addEventListener("pointermove",e=>{ if(drag) set(e); });
+  host.addEventListener("pointerup",()=>drag=false);
+  onParam((p,v)=>{ if(p===ix){ cx=clamp(+v,0,1); render(); } else if(p===iy){ cy=clamp(1-(+v),0,1); render(); } });
+  render();
+}
+
+/* ===================================================================== *
+ *  HI-DPI CANVAS HELPERS.                                                *
+ * ===================================================================== */
+function dispCanvas(host){
+  let c=host.querySelector("canvas");
+  if(!c){ c=document.createElement("canvas"); host.append(c); }
+  const fit=()=>{ const dpr=devicePixelRatio||1, w=host.clientWidth, h=host.clientHeight;
+    c.width=Math.round(w*dpr); c.height=Math.round(h*dpr);
+    const ctx=c.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); c._w=w; c._h=h; };
+  fit(); new ResizeObserver(fit).observe(host);
+  return c.getContext("2d");
+}
+const accOf=c=>c._ac||(c._ac=(getComputedStyle(c.parentElement).getPropertyValue("--accent").trim()||"#6fd8bd"));
+const vcol=(n,f)=>(getComputedStyle(document.body).getPropertyValue(n).trim())||f;
+const vfresh=o=>o._t&&(performance.now()-o._t)<250;
+/* faint receding grid — denser near the bottom to read as perspective */
+function grid(ctx,W,H,cols,rows){ ctx.strokeStyle=vcol("--line","rgba(255,255,255,.05)"); ctx.lineWidth=1; ctx.beginPath();
+  for(let k=1;k<cols;k++){ const x=Math.round(W*k/cols)+.5; ctx.moveTo(x,0); ctx.lineTo(x,H); }
+  for(let k=1;k<rows;k++){ const y=Math.round(H*k/rows)+.5; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke(); }
+
+/* ---- OSCILLOSCOPE — thin accent line, translucent fill under curve ----- */
+function makeScope(host){
+  const ctx=dispCanvas(host); const c=ctx.canvas;
+  const N=320; let data=new Float32Array(N),ph=0; const api={push(a){data=a;api._t=performance.now();}}; host.viz=api;
+  (function loop(){ const W=c._w,H=c._h;
+    if(!vfresh(api)){ ph+=0.04; for(let k=0;k<N;k++){ const t=k/N*Math.PI*6+ph;
+      data[k]=(Math.sin(t)*0.6+Math.sin(t*2+ph*1.3)*0.22+Math.sin(t*3)*0.12)*(0.8+0.2*Math.sin(ph)); } }
+    ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
+    const ac=accOf(c);
+    ctx.beginPath();
+    for(let k=0;k<data.length;k++){ const x=k/(data.length-1)*W,y=H/2-data[k]*H*0.42; k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    // translucent fill under curve
+    ctx.save(); ctx.lineTo(W,H/2); ctx.lineTo(0,H/2); ctx.closePath();
+    ctx.fillStyle=ac; ctx.globalAlpha=0.10; ctx.fill(); ctx.restore();
+    ctx.strokeStyle=ac; ctx.lineWidth=1.5; ctx.shadowColor=ac; ctx.shadowBlur=4;
+    ctx.beginPath();
+    for(let k=0;k<data.length;k++){ const x=k/(data.length-1)*W,y=H/2-data[k]*H*0.42; k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke(); ctx.shadowBlur=0;
+    requestAnimationFrame(loop); })();
+}
+/* ---- SPECTRUM — bars recede BEHIND a smooth accent curve --------------- */
+function makeSpectrum(host){
+  const ctx=dispCanvas(host); const c=ctx.canvas;
+  const N=48; let mags=new Float32Array(N),peaks=new Float32Array(N),ph=0;
+  const api={push(a){mags=a;api._t=performance.now();}}; host.viz=api;
+  (function loop(){ const W=c._w,H=c._h;
+    if(!vfresh(api)){ ph+=0.03; for(let k=0;k<N;k++){ const f=k/N;
+      mags[k]=Math.max(0,Math.pow(1-f,0.7)*(0.45+0.45*Math.sin(ph*2+k*0.5))+0.02*Math.sin(k*12.9)); } }
+    ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
+    const ac=accOf(c), bw=W/N;
+    // receding bars (low-contrast, behind)
+    ctx.fillStyle=vcol("--panel-2","#33383e");
+    for(let k=0;k<N;k++){ const v=Math.min(1,mags[k]),bh=v*(H-4); ctx.fillRect(k*bw+1,H-bh,bw-1.8,bh);
+      peaks[k]=Math.max(peaks[k]-0.8,bh); }
+    // smooth accent curve over the spectrum envelope
+    ctx.beginPath();
+    for(let k=0;k<N;k++){ const x=(k+0.5)*bw, y=H-Math.min(1,mags[k])*(H-4); k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.strokeStyle=ac; ctx.lineWidth=1.5; ctx.shadowColor=ac; ctx.shadowBlur=4; ctx.stroke(); ctx.shadowBlur=0;
+    // peak caps
+    ctx.fillStyle=vcol("--ink-2","#9a9da3");
+    for(let k=0;k<N;k++) ctx.fillRect(k*bw+1,H-peaks[k]-1,bw-1.8,1);
+    requestAnimationFrame(loop); })();
+}
+/* ---- LEVEL METER — DOM, stereo, peak hold ------------------------------ */
+function makeMeter(host){
+  const stereo=host.dataset.stereo==="1", hz=host.classList.contains("hz"); host.classList.add("meter");
+  const chans=[]; for(let k=0;k<(stereo?2:1);k++){ const ch=document.createElement("div"); ch.className="ch";
+    const fl=document.createElement("div"); fl.className="fl"; const pk=document.createElement("div"); pk.className="pk";
+    ch.append(fl,pk); host.append(ch); chans.push({fl,pk,peak:0}); }
+  let lv=[0,0],ph=0; const api={setLevel(l,r){lv=[l,r==null?l:r];api._t=performance.now();}}; host.viz=api;
+  (function loop(){ if(!vfresh(api)){ ph+=0.05; lv=[0.4+0.5*Math.abs(Math.sin(ph)),0.4+0.5*Math.abs(Math.sin(ph*1.1+1))]; }
+    chans.forEach((c,k)=>{ const v=clamp(lv[k]||0,0,1); if(hz) c.fl.style.width=(v*100)+"%"; else c.fl.style.height=(v*100)+"%";
+      c.fl.style.background= v>0.92?vcol("--warn","#ff6b6b"):v>0.75?vcol("--accent","#aa88ff"):vcol("--ok","#1de9b6");
+      c.peak=Math.max(c.peak-0.012,v); if(hz) c.pk.style.left=(c.peak*100)+"%"; else c.pk.style.bottom=(c.peak*100)+"%"; });
+    requestAnimationFrame(loop); })();
+}
+
+/* ---- FILTER RESPONSE CURVE — live from cutoff/reso/type ---------------- */
+function makeFilterCurve(host){
+  const ci=+host.dataset.cutoff, ri=+host.dataset.reso, ti=+host.dataset.type;
+  const rd=host.querySelector(".rd"); const ctx=dispCanvas(host); const c=ctx.canvas;
+  let cut=0.45,res=0.2,type=0;
+  onParam((p,v)=>{ if(p===ci) cut=clamp((Math.log(+v/20)/Math.log(1000))*0.5+0.0,0,1); else if(p===ri) res=clamp(+v,0,1); else if(p===ti) type=Math.round(+v*3); });
+  function mag(f){ const fc=cut, q=0.5+res*8, d=(f-fc)*6;
+    let lp=1/Math.sqrt(1+Math.pow(Math.max(0,d)*2,4));
+    let hp=1/Math.sqrt(1+Math.pow(Math.max(0,-d)*2,4));
+    const peak=res*1.1/(1+Math.pow(d*q*0.7,2));
+    if(type===0) return clamp(lp+peak*0.6,0,1.3);
+    if(type===1) return clamp(hp+peak*0.6,0,1.3);
+    if(type===2) return clamp((1/(1+Math.pow(d*q,2)))+peak*0.3,0,1.3);
+    return clamp(1-1/(1+Math.pow(d*q,2))*0.95,0,1.3);
+  }
+  (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
+    const ac=accOf(c);
+    ctx.beginPath();
+    for(let x=0;x<=W;x++){ const m=mag(x/W),y=H-clamp(m/1.3,0,1)*(H-4)-2; x?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    // translucent fill under curve
+    ctx.save(); ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+    ctx.fillStyle=ac; ctx.globalAlpha=0.10; ctx.fill(); ctx.restore();
+    // stroke with restrained glow
+    ctx.beginPath();
+    for(let x=0;x<=W;x++){ const m=mag(x/W),y=H-clamp(m/1.3,0,1)*(H-4)-2; x?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.strokeStyle=ac; ctx.lineWidth=1.5; ctx.shadowColor=ac; ctx.shadowBlur=5; ctx.stroke(); ctx.shadowBlur=0;
+    if(rd){ const fHz=Math.round(20*Math.pow(1000,cut/0.5)); rd.textContent=(fHz>=1000?(fHz/1000).toFixed(1)+"k":fHz)+" Hz"; }
+    requestAnimationFrame(loop); })();
+}
+
+/* ---- LFO SHAPE DISPLAY — accent curve + teal modulation playhead ------- */
+function makeLFO(host){
+  const si=+host.dataset.shape; const ctx=dispCanvas(host); const c=ctx.canvas; let shape=0,ph=0;
+  onParam((p,v)=>{ if(p===si) shape=Math.round(+v*4); });
+  const wave=(t)=>{ t=(t%1+1)%1; switch(shape){
+    case 0:return Math.sin(t*Math.PI*2);
+    case 1:return t<0.5?(t*4-1):(3-t*4);
+    case 2:return t*2-1;
+    case 3:return t<0.5?1:-1;
+    default:return Math.sin(Math.floor(t*8)/8*Math.PI*2);
+  }};
+  (function loop(){ const W=c._w,H=c._h; ph+=0.01; ctx.clearRect(0,0,W,H); grid(ctx,W,H,4,2);
+    const ac=accOf(c), md=vcol("--mod","#1de9b6");
+    ctx.strokeStyle=ac; ctx.lineWidth=1.5; ctx.beginPath();
+    for(let x=0;x<=W;x++){ const y=H/2-wave(x/W*2)*H*0.4; x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
+    // teal modulation playhead (modulation = teal)
+    const px=((ph%1))*W, py=H/2-wave(ph*2)*H*0.4;
+    ctx.fillStyle=md; ctx.shadowColor=md; ctx.shadowBlur=6; ctx.beginPath(); ctx.arc(px,py,2.5,0,7); ctx.fill(); ctx.shadowBlur=0;
+    requestAnimationFrame(loop); })();
+}
+
+/* ---- OSCILLATOR WAVE PREVIEW — shows the selected waveform (data-wave = select index) ---- */
+function makeOscView(host){
+  const wi=+host.dataset.wave, shapes=host.dataset.shapes.split(","); const ctx=dispCanvas(host); const c=ctx.canvas; let sel=+host.dataset.def||0, pw=0.5;
+  onParam((p,v)=>{ if(p===wi) sel=Math.round(+v*(shapes.length-1)); });
+  const wave=(t)=>{ t=(t%1+1)%1; switch(shapes[sel]){
+    case "sine":return Math.sin(t*Math.PI*2);
+    case "tri":return t<0.5?(t*4-1):(3-t*4);
+    case "saw":return t*2-1;
+    case "square":return t<0.5?1:-1;
+    case "pulse":return t<0.25?1:-1;
+    default:return Math.sin(t*Math.PI*14)*0.6*Math.sin(t*Math.PI*5.3);
+  }};
+  (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,4,2);
+    const ac=accOf(c); ctx.strokeStyle=ac; ctx.lineWidth=1.4; ctx.beginPath();
+    for(let x=0;x<=W;x++){ const y=H/2-wave(x/W*2)*H*0.36; x?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
+    requestAnimationFrame(loop); })();
+}
+
+/* ---- WAVETABLE — pseudo-3D perspective stack, scrubbed by position ------ */
+function makeWavetable(host){
+  const pi=+host.dataset.index; const ctx=dispCanvas(host); const c=ctx.canvas; let pos=0.3;
+  onParam((p,v)=>{ if(p===pi) pos=clamp(+v,0,1); });
+  const frame=(z)=>{
+    return (x)=>{ const a=Math.sin(x*Math.PI*2), b=(x*2-1), s=Math.sign(Math.sin(x*Math.PI*2));
+      const seg=z*2; return seg<1?a*(1-seg)+b*seg : b*(2-seg)+s*(seg-1); }; };
+  (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H);
+    const ac=accOf(c);
+    // perspective stack: deeper frames pushed up-and-back, shorter, dimmer
+    const frames=16, dx=W*0.26/frames, dy=H*0.46/frames, x0=W*0.08, y0=H*0.80, span=W*0.66;
+    for(let f=frames-1;f>=0;f--){ const z=f/(frames-1), sel=Math.abs(z-pos)<0.045;
+      const persp=0.55+0.45*(1-z);   // far frames narrower
+      const fn=frame(z); ctx.beginPath();
+      for(let s=0;s<=72;s++){ const x=x0+f*dx+(s/72)*span*persp, y=y0-f*dy-fn(s/72)*H*0.15*persp;
+        s?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+      if(sel){ ctx.strokeStyle=ac; ctx.lineWidth=1.8; ctx.globalAlpha=1; ctx.shadowColor=ac; ctx.shadowBlur=5; }
+      else   { ctx.strokeStyle=vcol("--line-2","#4c4f52"); ctx.lineWidth=1; ctx.globalAlpha=0.22+0.5*z; ctx.shadowBlur=0; }
+      ctx.stroke(); ctx.shadowBlur=0; }
+    ctx.globalAlpha=1; requestAnimationFrame(loop); })();
+}
+
+/* ---- ADSR ENVELOPE EDITOR — draggable A/D/S/R breakpoints -------------- */
+function makeADSR(host){
+  const ai=+host.dataset.a, di=+host.dataset.d, si=+host.dataset.s, ri=+host.dataset.r;
+  const ctx=dispCanvas(host); const c=ctx.canvas;
+  let a=0.15,d=0.25,s=0.6,r=0.4;
+  onParam((p,v)=>{ if(p===ai)a=+v; else if(p===di)d=+v; else if(p===si)s=+v; else if(p===ri)r=+v; });
+  setParam(ai,a);setParam(di,d);setParam(si,s);setParam(ri,r);
+  const pad=10;
+  function pts(W,H){ const w=W-pad*2,h=H-pad*2, segA=0.25,segD=0.25,segS=0.18,segR=0.32;
+    const xA=pad+w*segA*a, xD=xA+w*segD*d, xS=xD+w*segS, xR=xS+w*segR*r;
+    return [[pad,H-pad],[xA,pad],[xD,H-pad-h*s],[xS,H-pad-h*s],[xR,H-pad]]; }
+  let drag=null;
+  function nearest(mx,my,W,H){ const P=pts(W,H); let best=-1,bd=1e9;
+    [1,2,4].forEach(idx=>{ const dx=P[idx][0]-mx,dy=P[idx][1]-my,dd=dx*dx+dy*dy; if(dd<bd){bd=dd;best=idx;} });
+    return bd<400?best:-1; }
+  host.style.cursor="pointer";
+  host.addEventListener("pointerdown",e=>{ const r0=c.getBoundingClientRect(),W=c._w,H=c._h;
+    drag=nearest(e.clientX-r0.left,e.clientY-r0.top,W,H); if(drag>=0) host.setPointerCapture(e.pointerId); });
+  host.addEventListener("pointermove",e=>{ if(drag<0||drag==null) return;
+    const r0=c.getBoundingClientRect(),W=c._w,H=c._h,w=W-pad*2,h=H-pad*2;
+    const mx=clamp(e.clientX-r0.left,pad,W-pad), my=clamp(e.clientY-r0.top,pad,H-pad);
+    if(drag===1){ a=clamp((mx-pad)/(w*0.25),0,1); setParam(ai,a); }
+    else if(drag===2){ const xA=pad+w*0.25*a; d=clamp((mx-xA)/(w*0.25),0,1); s=clamp((H-pad-my)/h,0,1); setParam(di,d); setParam(si,s); }
+    else if(drag===4){ const xS=pad+w*0.25*a+w*0.25*d+w*0.18; r=clamp((mx-xS)/(w*0.32),0,1); setParam(ri,r); } });
+  host.addEventListener("pointerup",()=>drag=null);
+  (function loop(){ const W=c._w,H=c._h; ctx.clearRect(0,0,W,H); grid(ctx,W,H,8,4);
+    const P=pts(W,H), ac=accOf(c);
+    // fill under envelope
+    ctx.beginPath(); P.forEach((p,k)=>k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.save(); ctx.lineTo(P[4][0],H-pad); ctx.lineTo(pad,H-pad); ctx.closePath();
+    ctx.fillStyle=ac; ctx.globalAlpha=0.10; ctx.fill(); ctx.restore();
+    // stroke
+    ctx.beginPath(); P.forEach((p,k)=>k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.strokeStyle=ac; ctx.lineWidth=1.5; ctx.shadowColor=ac; ctx.shadowBlur=4; ctx.stroke(); ctx.shadowBlur=0;
+    // breakpoints
+    [1,2,4].forEach(k=>{ ctx.beginPath(); ctx.arc(P[k][0],P[k][1],3.4,0,7);
+      ctx.fillStyle=vcol("--well","#1d2125"); ctx.fill();
+      ctx.lineWidth=1.6; ctx.strokeStyle=ac; ctx.stroke(); });
+    requestAnimationFrame(loop); })();
+}
+
+/* ===================================================================== *
+ *  MODULATION MATRIX — sources × destinations, drag a cell for depth.    *
+ *  Positive = teal, negative = warm amber.                              *
+ * ===================================================================== */
+function makeModMatrix(host){
+  const sources=host.dataset.sources.split(","), dests=host.dataset.dests.split(",");
+  const base=host.dataset.base?+host.dataset.base:50;
+  const tbl=document.createElement("table"); tbl.className="mtx";
+  const thead=document.createElement("tr"); thead.append(document.createElement("th"));
+  dests.forEach(d=>{ const th=document.createElement("th"); th.textContent=d; thead.append(th); });
+  tbl.append(thead);
+  sources.forEach((src,r)=>{ const tr=document.createElement("tr");
+    const th=document.createElement("th"); th.className="src"; th.textContent=src; tr.append(th);
+    dests.forEach((d,col)=>{ const td=document.createElement("td"); const fl=document.createElement("div"); fl.className="fl";
+      td.append(fl); let depth=0; const pi=base+r*dests.length+col;
+      const render=()=>{ const mag=Math.abs(depth); fl.style.height=(mag*100)+"%";
+        td.classList.toggle("neg",depth<0); setParam(pi,(depth+1)/2); };
+      let drag=null;
+      td.addEventListener("pointerdown",e=>{ drag={y:e.clientY,d:depth}; td.setPointerCapture(e.pointerId); });
+      td.addEventListener("pointermove",e=>{ if(!drag)return; depth=clamp(drag.d+(drag.y-e.clientY)/60,-1,1); render(); });
+      td.addEventListener("pointerup",()=>drag=null);
+      td.addEventListener("dblclick",()=>{ depth=0; render(); });
+      bindTip(td,()=>`${src} → ${d}: ${depth>=0?"+":""}${Math.round(depth*100)}%`);
+      render(); tr.append(td); });
+    tbl.append(tr); });
+  host.append(tbl);
+}
+
+/* ===================================================================== *
+ *  STEP SEQUENCER — drag a step for value; right-click mutes; teal       *
+ *  playhead sweeps across.                                              *
+ * ===================================================================== */
+function makeSequencer(host){
+  const base=+host.dataset.base, steps=+host.dataset.steps; host.classList.add("seq");
+  const cells=[];
+  for(let k=0;k<steps;k++){ const st=document.createElement("div"); st.className="st";
+    const fl=document.createElement("div"); fl.className="fl"; st.append(fl);
+    let v=0.2+0.6*Math.abs(Math.sin(k*1.3)), on=true; const pi=base+k;
+    const render=()=>{ fl.style.height=(on?v*100:6)+"%"; st.classList.toggle("off",!on); setParam(pi,on?v:0); };
+    let drag=null;
+    st.addEventListener("pointerdown",e=>{ if(e.button!==0)return; const r=st.getBoundingClientRect();
+      v=clamp(1-(e.clientY-r.top)/r.height,0,1); on=true; drag=true; st.setPointerCapture(e.pointerId); render(); });
+    st.addEventListener("pointermove",e=>{ if(!drag)return; const r=st.getBoundingClientRect();
+      v=clamp(1-(e.clientY-r.top)/r.height,0,1); render(); });
+    st.addEventListener("pointerup",()=>drag=false);
+    st.addEventListener("contextmenu",e=>{ e.preventDefault(); on=!on; render(); });
+    render(); host.append(st); cells.push(st); }
+  let cur=0; setInterval(()=>{ cells[cur].classList.remove("cur"); cur=(cur+1)%steps; cells[cur].classList.add("cur"); },220);
+}
+
+/* ===================================================================== *
+ *  PRESET BROWSER — search, categories, favorites, prev/next.            *
+ * ===================================================================== */
+function makePresetBrowser(){
+  const PRESETS=["Init","Warm Pad","Acid Bass","Glass Keys","Detuned Saw","Sub Boom","Vapor Pluck","Hoover","Soft Strings","FM Bell","Noise Riser","Wobble"];
+  const sel=document.getElementById("soundSel");
+  PRESETS.forEach((p,k)=>{ const o=document.createElement("option"); o.value=k; o.textContent=p; sel.append(o); });
+  const load=k=>{ sel.value=k; if(window.vstai&&window.vstai.loadPreset) window.vstai.loadPreset(PRESETS[k]); };
+  sel.onchange=()=>load(+sel.value);
+  document.querySelector(".preset-prev").onclick=()=>load((+sel.value-1+PRESETS.length)%PRESETS.length);
+  document.querySelector(".preset-next").onclick=()=>load((+sel.value+1)%PRESETS.length);
+  document.getElementById("saveBtn").onclick=()=>{ if(window.vstai&&window.vstai.savePreset) window.vstai.savePreset(PRESETS[+sel.value]); };
+}
+
+/* ===================================================================== *
+ *  PIANO — playable, calls noteOn/noteOff, highlights held keys.         *
+ * ===================================================================== */
+function makeKeyboard(host){
+  const base=48, octaves=3, pattern=[0,2,4,5,7,9,11], blacks={1:0,3:1,6:3,8:4,10:5};
+  const whites=[]; for(let o=0;o<octaves;o++) for(const s of pattern) whites.push(base+o*12+s);
+  whites.forEach(n=>{ const k=document.createElement("div"); k.className="wk"; k.dataset.note=n; host.append(k); });
+  const wpc=100/whites.length;
+  for(let o=0;o<octaves;o++) for(const semi in blacks){ const n=base+o*12+ +semi;
+    const k=document.createElement("div"); k.className="bk"; k.dataset.note=n;
+    k.style.left=((blacks[semi]+o*7+1)*wpc-2.5)+"%"; host.append(k); }
+  let down=null;
+  const press=n=>{ noteOn(n,100); host.querySelector(`[data-note="${n}"]`)?.classList.add("down"); };
+  const release=()=>{ if(down==null) return; noteOff(down); host.querySelector(`[data-note="${down}"]`)?.classList.remove("down"); down=null; };
+  host.addEventListener("pointerdown",e=>{ const n=e.target.dataset.note; if(n){ down=+n; press(down); host.setPointerCapture(e.pointerId);} });
+  host.addEventListener("pointerup",release);
+  host.addEventListener("pointerleave",release);
+  // WKWebView can drop the captured pointerup (notably when the plugin window itself has
+  // focus), leaving a key stuck "on". mouseup is a separate channel that still fires; also
+  // release on pointercancel/blur. Mirrors the makeMomentary workaround above.
+  addEventListener("pointerup",release,true); addEventListener("mouseup",release,true);
+  addEventListener("pointercancel",release,true); addEventListener("blur",release);
+  onParam(()=>{});
+}
+
+/* ===================================================================== *
+ *  CONTAINERS — tabs (pages) + collapsible panels.                       *
+ * ===================================================================== */
+function setupTabs(){
+  const tabs=[...document.querySelectorAll(".tab")];
+  tabs.forEach(t=>t.onclick=()=>{ tabs.forEach(x=>x.classList.remove("on")); t.classList.add("on");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));
+    document.getElementById("page-"+t.dataset.page).classList.add("on"); });
+}
+function setupCollapsibles(){
+  document.querySelectorAll(".panel .caret").forEach(car=>{
+    car.onclick=()=>car.closest(".panel").classList.toggle("collapsed");
+  });
+}
+
+/* ===================================================================== *
+ *  BOOT                                                                  *
+ * ===================================================================== */
+whenReady(()=>{
+  setupTabs(); setupCollapsibles();
+  document.querySelectorAll(".knob-host").forEach(makeKnob);
+  document.querySelectorAll(".fader-host").forEach(makeFader);
+  document.querySelectorAll(".toggle-host").forEach(makeToggle);
+  document.querySelectorAll(".momentary-host").forEach(makeMomentary);
+  document.querySelectorAll(".seg-host").forEach(makeSegmented);
+  document.querySelectorAll(".sel-host").forEach(makeSelect);
+  document.querySelectorAll(".step-host").forEach(makeStepper);
+  document.querySelectorAll(".xy-host").forEach(makeXY);
+  document.querySelectorAll(".scope-host").forEach(makeScope);
+  document.querySelectorAll(".spectrum-host").forEach(makeSpectrum);
+  document.querySelectorAll(".meter-host").forEach(makeMeter);
+  document.querySelectorAll(".curve-host").forEach(makeFilterCurve);
+  document.querySelectorAll(".lfo-host").forEach(makeLFO);
+  document.querySelectorAll(".wavetable-host").forEach(makeWavetable);
+  document.querySelectorAll(".osc-host").forEach(makeOscView);
+  document.querySelectorAll(".adsr-host").forEach(makeADSR);
+  document.querySelectorAll(".mtx-host").forEach(makeModMatrix);
+  document.querySelectorAll(".seq-host").forEach(makeSequencer);
+  makePresetBrowser();
+  makeKeyboard(document.getElementById("kbd"));
+
+  // numeric readouts are click-to-edit; their control wires up _apply
+  document.querySelectorAll(".num-host").forEach(num=>{ makeNumEditable(num); });
+
+});
+</script>
+</body></html>

@@ -322,7 +322,8 @@ src/                         C++ (shared by both plugins)
   Prompt.h                   system prompt + output schema  ← "the prompt"
   Config.example.h           copy to Config.h to bake in the API key
   Settings.h / AppSettings.h resolved config (compiled-in/env) + runtime keys/URLs/notary
-  Designs.h                  the 10 built-in design schools (house-style kits)
+  Designs.h                  the 18 built-in design schools (house-style kits)
+  UiLibs.h                   optional UI libraries a GUI can inline (ui/libs/*, marker <script data-vstai-lib=…>)
   LlmClient.* / CloudClient.* raw HTTPS to Claude (your key) or the hosted Cloud proxy (credits)
   AccountPanel.h             "Account…" dialog: cloud sign-in + credits balance
   ManualPanel.h              "bring your own chatbot" dialog (copy prompt / paste reply)

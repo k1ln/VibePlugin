@@ -45,9 +45,12 @@ namespace vstai::designs
     // The built-in schools, in display order. Each maps to ui/designs/<id>.html.
     inline juce::StringArray builtinIds()
     {
-        return { "minimal", "modern-flagship", "skeuomorphic", "vintage-analog",
+        return { "pro-tool", "minimal", "modern-flagship", "skeuomorphic", "vintage-analog",
                  "neon-cyberpunk", "glassmorphism", "brutalist", "terminal-phosphor",
-                 "color-pop", "bauhaus" };
+                 "color-pop", "bauhaus",
+                 // Studied from the best-selling synth plugins' real interfaces.
+                 "hybrid-indigo", "mono-flat", "header-bars", "silver-rack",
+                 "digital-fm", "wood-taupe", "hardware-faceplate" };
     }
 
     inline bool isBuiltin (const juce::String& id) { return builtinIds().contains (id); }

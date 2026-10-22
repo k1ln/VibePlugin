@@ -7,10 +7,11 @@ const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
 
 // Native function wrappers (each returns a Promise resolving with the C++ result).
 const N = {};
-for (const name of ["getState","setModel","setGenerationSource","setApplyDesignStyle","setEffort","setThinking","generate",
+for (const name of ["getState","setModel","setGenerationSource","setApplyDesignStyle","setEffort","setThinking","generate","planPrompt",
                     "buildManualPrompt","buildManualUpdatePrompt","applyManualReply","applyManualParts","manualFixPrompt","newDoc","compile","fixWithAI",
                     "save","load","galleryIndex","galleryLoad","applyPreset","publish","exportPlugin","exportWebClap","getStandardUi","saveStandardUi","resetStandardUi",
                     "getSettings","saveSettings","getDesigns","setDesign","removeDesign","exportDesign","importDesign",
+                    "getUiLibs","setUiLib","showUiLibExample",
                     "getDiagnostics","clearDiagnostics","getPreviewHtml",
                     "openAccount","getAccount","openKeys","getHistory","restoreRevision","ready"])
   N[name] = getNativeFunction(name);
@@ -352,15 +353,131 @@ function reseed(s){
 }
 
 /* ---------- actions -------------------------------------------------- */
+/* ---------- reference images ------------------------------------------ */
+// Screenshots of the GUI the user wants. Downscaled to <=1568px on the long edge and
+// re-encoded as JPEG so a request stays small; sent as base64 with the next Generate.
+const MAX_REF_IMAGES = 3;
+let refImages = [];   // base64 JPEG strings, no data: prefix
+function renderRefImages(){
+  const box = $("refImgs");
+  box.innerHTML = "";
+  refImages.forEach((b64, i) => {
+    const d = document.createElement("div"); d.className = "ri";
+    const im = document.createElement("img"); im.src = "data:image/jpeg;base64," + b64;
+    const x = document.createElement("button"); x.textContent = "×"; x.title = "Remove";
+    x.onclick = () => { refImages.splice(i, 1); renderRefImages(); };
+    d.append(im, x); box.append(d);
+  });
+  box.hidden = refImages.length === 0;
+  $("attachBtn").textContent = refImages.length ? "Attach image (" + refImages.length + ")" : "Attach image";
+}
+async function addRefImage(file){
+  if (!file || !file.type.startsWith("image/")) return;
+  if (refImages.length >= MAX_REF_IMAGES){ setStatus("At most " + MAX_REF_IMAGES + " reference images."); return; }
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 1568 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    refImages.push(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    renderRefImages();
+    setStatus("Reference image attached — it is sent with the next Generate.");
+  } catch (e) { setStatus("Could not read that image."); }
+}
+on("attachBtn","click", () => $("refImgInput").click());
+on("refImgInput","change", async (e) => {
+  for (const f of e.target.files) await addRefImage(f);
+  e.target.value = "";
+});
+on("promptBox","paste", (e) => {
+  const files = [...(e.clipboardData ? e.clipboardData.files : [])].filter(f => f.type.startsWith("image/"));
+  if (files.length){ e.preventDefault(); files.forEach(addRefImage); }
+});
+on("promptBox","dragover", (e) => { e.preventDefault(); $("promptBox").classList.add("dragover"); });
+on("promptBox","dragleave", () => $("promptBox").classList.remove("dragover"));
+on("promptBox","drop", (e) => {
+  e.preventDefault(); $("promptBox").classList.remove("dragover");
+  [...e.dataTransfer.files].forEach(addRefImage);
+});
+
+/* ---------- big requests: plan, then build step by step ----------------- */
+// One generation is capped by the model's output budget (reasoning included), so a huge
+// spec fails with truncated JSON. A cheap local check decides when to ask Opus (via the
+// planner) whether to split it; the steps then run in order - step 1 builds the plugin,
+// later steps are change requests on it.
+const PLAN_MIN_CHARS = 5000, PLAN_MIN_LINES = 40;
+function looksBig(prompt){
+  const items = prompt.split("\n").filter(l => /^\s*(?:[-*\u2022]|\d+[.)])\s+\S/.test(l)).length;
+  return prompt.length > PLAN_MIN_CHARS || items >= PLAN_MIN_LINES;
+}
+const planOn = () => { try { return localStorage.getItem("splitBig") !== "0"; } catch { return true; } };
+$("planChk").checked = planOn();
+on("planChk","change", () => { try { localStorage.setItem("splitBig", $("planChk").checked ? "1" : "0"); } catch {} });
+
+// Returns the steps to run: the planner's, or a single step with the original prompt.
+async function planSteps(prompt){
+  const single = [{ title: "", prompt }];
+  if (!planOn() || !looksBig(prompt)) return single;
+  setStatus("Large request - Opus is planning how to split it into steps…");
+  let p;
+  try { p = await N.planPrompt(prompt); } catch { p = null; }
+  if (!p || !p.ok || !p.split || !p.steps || p.steps.length < 2) return single;
+  $("notesView").textContent = "Plan: " + (p.reason || "split into " + p.steps.length + " steps") + "\n\n" +
+    p.steps.map((s, i) => (i + 1) + ". " + s.title).join("\n");
+  return p.steps;
+}
+
+// An error that means "this step did not fit the model's output budget" (as opposed to a
+// network or compile problem): the step itself is too big and must be split further.
+const budgetFail = (m) => /output tokens|no output|cut off|truncat|valid JSON/i.test(m || "");
+const MAX_SPLIT_DEPTH = 2;
+
 async function doGenerate(){
   const prompt = $("promptBox").value.trim();
   if (!prompt){ setStatus("Type a prompt first."); return; }
-  setBusy(true); setStatus("Generating with AI…");
-  const r = await N.generate(prompt);
+  setBusy(true);
+  // Work queue, like a todo list: each entry is built as a delta on the plugin so far. When an
+  // entry fails on the output budget it is re-planned into smaller entries in place.
+  const queue = (await planSteps(prompt)).map(s => ({ ...s, depth: 0 }));
+  const total0 = queue.length;
+  let r = null, done = 0;
+  while (queue.length){
+    const step = queue[0];
+    const multi = total0 > 1 || done > 0 || queue.length > 1;
+    setStatus(multi ? "Step " + (done + 1) + " (" + (queue.length - 1) + " more): " + (step.title || "build") + " - generating with AI…"
+                    : "Generating with AI…");
+    r = await N.generate(step.prompt, JSON.stringify(done === 0 ? refImages : []));
+    if (r && r.ok){ queue.shift(); done++; continue; }
+    if (r && budgetFail(r.message) && step.depth < MAX_SPLIT_DEPTH){
+      setStatus("Step too big for one generation - splitting it further…");
+      let p = null;
+      try { p = await N.planPrompt(step.prompt, "1"); } catch {}
+      if (p && p.ok && p.split && p.steps && p.steps.length > 1){
+        queue.splice(0, 1, ...p.steps.map(s => ({ ...s, depth: step.depth + 1 })));
+        $("notesView").textContent = "Split \"" + (step.title || "step") + "\" into " + p.steps.length + " smaller steps:\n\n" +
+          p.steps.map((s, i) => (i + 1) + ". " + s.title).join("\n");
+        r = null;
+        continue;
+      }
+    }
+    break;   // a real failure: stop and keep the rest
+  }
   setBusy(false);
-  if (r && r.ok){ $("promptBox").value = ""; setStatus(r.message ? "Done — notes in the Notes tab." : "Done."); if (r.message) $("notesView").textContent = r.message; }
-  else setStatus("Error: " + (r ? r.message : "unknown"));
-  refreshAccount();   // a cloud build just spent credits — update the header chip
+  if (!queue.length){
+    $("promptBox").value = ""; refImages = []; renderRefImages();
+    setStatus(r && r.message ? "Done - notes in the Notes tab." : "Done.");
+    if (r && r.message && total0 === 1) $("notesView").textContent = r.message;
+  } else {
+    setStatus("Error" + (done || total0 > 1 ? " at step " + (done + 1) : "") + ": " + (r ? r.message : "unknown"));
+    if (done || total0 > 1 || queue.length > 1){
+      // What is left goes back into the prompt box so the user can fix the problem and carry on.
+      $("promptBox").value = queue.map(s => s.prompt).join("\n\n---\n\n");
+      $("notesView").textContent = "Stopped after " + done + " finished step(s). The remaining " + queue.length +
+        " step(s) are back in the prompt box (separated by ---); run them one at a time.\n\n" + (r ? r.message : "");
+    }
+  }
+  refreshAccount();   // a cloud build just spent credits - update the header chip
 }
 async function doCompile(){
   setBusy(true); setStatus("Compiling edited code…");
@@ -583,6 +700,7 @@ async function renderSettings(){
     $("srcAnthropic").checked = src === "anthropic";
   }
   await renderDesigns();
+  await renderUiLibs();
   await renderDiagnostics();
 }
 for (const id of ["srcCloud","srcAnthropic"])
@@ -696,6 +814,45 @@ async function renderDesigns(){
       await renderDesigns(); reloadPreview();
       $("designStatus").textContent = r ? r.message : "";
     });
+    grid.append(card);
+  }
+}
+/* ---------- UI library (webaudio-controls / jQuery Knob / NexusUI) ----- */
+async function renderUiLibs(){
+  const rows = await N.getUiLibs();
+  const grid = $("uiLibGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  for (const l of (rows || [])){
+    const card = document.createElement("div");
+    card.className = "design-card" + (l.selected ? " on" : "");
+    card.setAttribute("role", "button"); card.tabIndex = 0;
+    const name = document.createElement("div"); name.className = "dc-name"; name.textContent = l.name;
+    const blurb = document.createElement("div"); blurb.className = "dc-blurb"; blurb.textContent = l.blurb || "";
+    card.append(name, blurb);
+    if (l.license){
+      const tag = document.createElement("span"); tag.className = "dc-tag"; tag.textContent = l.license;
+      card.append(tag);
+    }
+    if (l.hasExample){
+      const ex = document.createElement("button");
+      ex.type = "button"; ex.className = "btn dc-example"; ex.textContent = "Show example";
+      ex.title = "Preview a working example GUI built with " + l.name + " in the GUI tab";
+      ex.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const r = await N.showUiLibExample(l.id);
+        $("uiLibStatus").textContent = r ? r.message : "";
+        if (r && r.ok){ selectTab("preview"); reloadPreview(); }
+      });
+      card.append(ex);
+    }
+    const pick = async () => {
+      const r = await N.setUiLib(l.id);
+      $("uiLibStatus").textContent = r ? r.message : "";
+      await renderUiLibs();
+    };
+    card.addEventListener("click", pick);
+    card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(); } });
     grid.append(card);
   }
 }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!-- VibePlugin UI-library example: webaudio-controls (Apache-2.0).
+     The <script data-vstai-lib> tag below is replaced by the app with the inlined library. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>webaudio-controls example</title>
+<script data-vstai-lib="webaudio-controls"></script>
+<style>
+  :root{ --bg:#16181d; --panel:#1e2128; --line:rgba(255,255,255,.08); --ink:#e6e9ef; --muted:#7f8794; --acc:#ff7a1a; --acc2:#3ea6ff; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font:11px/1.4 -apple-system,"Segoe UI",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+  header{display:flex;align-items:baseline;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  header h1{margin:0;font-size:15px;font-weight:300;letter-spacing:6px}
+  header span{color:var(--muted);letter-spacing:.5px}
+  main{display:flex;flex-wrap:wrap;gap:12px;padding:16px 18px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 16px 14px}
+  section h2{margin:0 0 12px;font-size:9px;font-weight:400;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase}
+  .row{display:flex;gap:18px;align-items:flex-end}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .lbl{font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+  .val{font-variant-numeric:tabular-nums;color:var(--acc);font-size:10px;min-width:48px;text-align:center}
+  .waves{display:flex;gap:10px}
+  .waves .cell{gap:4px}
+  .kb{padding:0 18px 18px}
+  webaudio-keyboard{display:block}
+</style>
+</head>
+<body>
+<header><h1>WEBAUDIO&nbsp;CONTROLS</h1><span>library example &middot; knobs, sliders, switches, keyboard</span></header>
+<main>
+  <section><h2>Oscillator</h2>
+    <div class="row">
+      <div class="cell">
+        <div class="waves" id="waves" data-param="0">
+          <div class="cell"><webaudio-switch type="radio" group="wave" value="1" diameter="30" colors="#ff7a1a;#111;#ffd0a8" tooltip="Sine"></webaudio-switch><div class="lbl">Sin</div></div>
+          <div class="cell"><webaudio-switch type="radio" group="wave" value="0" diameter="30" colors="#ff7a1a;#111;#ffd0a8" tooltip="Saw"></webaudio-switch><div class="lbl">Saw</div></div>
+          <div class="cell"><webaudio-switch type="radio" group="wave" value="0" diameter="30" colors="#ff7a1a;#111;#ffd0a8" tooltip="Square"></webaudio-switch><div class="lbl">Squ</div></div>
+          <div class="cell"><webaudio-switch type="radio" group="wave" value="0" diameter="30" colors="#ff7a1a;#111;#ffd0a8" tooltip="Triangle"></webaudio-switch><div class="lbl">Tri</div></div>
+        </div><div class="lbl">Wave</div></div>
+      <div class="cell"><webaudio-switch id="sub" data-param="7" type="toggle" diameter="30" colors="#3ea6ff;#111;#bfe0ff" tooltip="Sub oscillator"></webaudio-switch><div class="lbl">Sub</div></div>
+    </div>
+  </section>
+  <section><h2>Filter</h2>
+    <div class="row">
+      <div class="cell"><webaudio-knob id="cutoff" data-param="1" min="20" max="20000" value="1200" step="0" log="1" diameter="64" colors="#ff7a1a;#23262e;#ffffff" midilearn="0"></webaudio-knob><div class="val" id="v_cutoff"></div><div class="lbl">Cutoff</div></div>
+      <div class="cell"><webaudio-knob id="reso" data-param="2" min="0" max="1" value="0.2" step="0" diameter="64" colors="#ff7a1a;#23262e;#ffffff" midilearn="0"></webaudio-knob><div class="val" id="v_reso"></div><div class="lbl">Resonance</div></div>
+      <div class="cell"><webaudio-knob id="drive" data-param="3" min="0" max="1" value="0.3" step="0" diameter="64" colors="#3ea6ff;#23262e;#ffffff" midilearn="0"></webaudio-knob><div class="val" id="v_drive"></div><div class="lbl">Drive</div></div>
+    </div>
+  </section>
+  <section><h2>Envelope</h2>
+    <div class="row">
+      <div class="cell"><webaudio-knob id="atk" data-param="4" min="0.001" max="2" value="0.01" step="0" log="1" diameter="56" colors="#ff7a1a;#23262e;#ffffff" midilearn="0"></webaudio-knob><div class="val" id="v_atk"></div><div class="lbl">Attack</div></div>
+      <div class="cell"><webaudio-knob id="rel" data-param="5" min="0.01" max="3" value="0.4" step="0" log="1" diameter="56" colors="#ff7a1a;#23262e;#ffffff" midilearn="0"></webaudio-knob><div class="val" id="v_rel"></div><div class="lbl">Release</div></div>
+    </div>
+  </section>
+  <section><h2>Output</h2>
+    <div class="row">
+      <div class="cell"><webaudio-slider id="mix" data-param="8" direction="vert" width="34" height="120" min="0" max="1" value="1" step="0" colors="#ff7a1a;#23262e;#ffd0a8" knobwidth="30" knobheight="14"></webaudio-slider><div class="val" id="v_mix"></div><div class="lbl">Mix</div></div>
+      <div class="cell"><webaudio-knob id="vol" data-param="6" min="0" max="1" value="0.7" step="0" diameter="64" colors="#ff7a1a;#23262e;#ffffff" midilearn="0"></webaudio-knob><div class="val" id="v_vol"></div><div class="lbl">Volume</div></div>
+    </div>
+  </section>
+</main>
+<div class="kb"><webaudio-keyboard id="kbd" min="48" keys="37" width="900" height="84" colors="#222;#f4f4f6;#cfd2d8;#2a2d35;#08080a;#ffb27a;#ff7a1a;#ff9a4a;#b84d00"></webaudio-keyboard></div>
+
+<script>
+"use strict";
+function whenReady(cb){
+  function go(){ (window.vstai.onReady ? window.vstai.onReady(cb) : cb()); }
+  if (window.vstai) return go();
+  const t = setInterval(() => { if (window.vstai) { clearInterval(t); go(); } }, 25);
+}
+const fmt = v => Math.abs(v) >= 100 ? Math.round(v) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+// A flag so a value pushed in by the host (automation / restore) is never echoed back as user input.
+let applying = false;
+
+whenReady(() => {
+  const vstai = window.vstai;
+  // --- knobs, slider and the Sub toggle: id -> host parameter index (also on data-param) -------------
+  document.querySelectorAll("webaudio-knob, webaudio-slider").forEach(el => {
+    const index = +el.dataset.param, out = document.getElementById("v_" + el.id);
+    const show = () => { if (out) out.textContent = fmt(+el.value) + (el.id === "cutoff" ? " Hz" : (el.id === "atk" || el.id === "rel") ? " s" : ""); };
+    el.addEventListener("input", () => { if (applying) return; show(); vstai.setParam(index, +el.value); });
+    vstai.onParam((i, v) => { if (i === index) { applying = true; el.value = +v; applying = false; show(); } });
+    customElements.whenDefined(el.localName).then(() => setTimeout(() => { show(); vstai.setParam(index, +el.value); }, 0));
+  });
+  const sub = document.getElementById("sub");
+  sub.addEventListener("change", () => { if (!applying) vstai.setParam(7, +sub.value); });
+  vstai.onParam((i, v) => { if (i === 7) { applying = true; sub.value = +v >= 0.5 ? 1 : 0; applying = false; } });
+  // --- waveform: four radio switches -> one param 0..3 -------------------------------------------------
+  const waves = [...document.querySelectorAll("#waves webaudio-switch")];   // the first one starts selected (value="1")
+  waves.forEach((w, k) => w.addEventListener("change", () => { if (!applying && +w.value === 1) vstai.setParam(0, k); }));
+  vstai.onParam((i, v) => { if (i === 0) { applying = true; waves.forEach((w, k) => { w.value = (k === Math.round(+v)) ? 1 : 0; }); applying = false; } });
+  // --- keyboard -> noteOn / noteOff -------------------------------------------------------------------
+  const kbd = document.getElementById("kbd");
+  kbd.addEventListener("change", e => { const [on, note] = e.note; on ? vstai.noteOn(note, 100) : vstai.noteOff(note); });
+});
+</script>
+</body>
+</html>

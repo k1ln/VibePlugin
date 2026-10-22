@@ -18,6 +18,7 @@
 #include "Settings.h"
 #include "StandardUi.h"
 #include "Designs.h"
+#include "UiLibs.h"
 
 namespace vstai::appsettings
 {
@@ -113,7 +114,7 @@ namespace vstai::appsettings
     inline juce::String selectedDesignId()
     {
         auto v = file().getValue ("designId");
-        return v.isNotEmpty() ? v : juce::String ("minimal");
+        return v.isNotEmpty() ? v : juce::String ("pro-tool");
     }
 
     inline juce::Array<juce::var> customDesignArray()
@@ -198,7 +199,7 @@ namespace vstai::appsettings
             if (auto* o = arr[i].getDynamicObject())
                 if (o->getProperty ("id").toString() == id) arr.remove (i);
         file().setValue ("customDesigns", juce::JSON::toString (juce::var (arr)));
-        if (selectedDesignId() == id) setSelectedDesignId ("minimal");
+        if (selectedDesignId() == id) setSelectedDesignId ("pro-tool");
         file().saveIfNeeded();
     }
 
@@ -211,12 +212,29 @@ namespace vstai::appsettings
         return v.isNotEmpty() ? v : selectedDesignKitHtml();
     }
 
+    // ===== UI library ======================================================
+    //  Optional third-party widget library (webaudio-controls / jQuery Knob /
+    //  NexusUI, see UiLibs.h) the model is told to build knobs and sliders with.
+    //  Empty = the model hand-draws its controls (the default).
+    inline juce::String selectedUiLibId()
+    {
+        const auto id = file().getValue ("uiLibId");
+        return vstai::uilibs::find (id) != nullptr ? id : juce::String();
+    }
+    inline void setSelectedUiLibId (const juce::String& id)
+    {
+        file().setValue ("uiLibId", vstai::uilibs::find (id) != nullptr ? id : juce::String());
+        file().saveIfNeeded();
+    }
+
     // ===== Build style ====================================================
-    //  The "Use Settings design" checkbox next to Generate. OFF by default:
-    //  generations get NO house style and NO design language, so the model
-    //  designs the GUI freely. ON: the design school chosen in Settings (its
-    //  component kit + design language) is injected into the build prompt.
-    inline bool applyDesignStyle()           { return file().getBoolValue ("applyDesignStyle", false); }
+    //  The "Use Settings design" checkbox next to Generate. ON by default: the
+    //  design school chosen in Settings (Pro Tool unless changed) - its component
+    //  kit + design language - is injected into the build prompt, so a prompt that
+    //  does not describe a look still gets a striking tabbed GUI. The prompt tells
+    //  the model to follow the user's own design description instead when there
+    //  is one. OFF: no house style, the model designs the GUI freely.
+    inline bool applyDesignStyle()           { return file().getBoolValue ("applyDesignStyle", true); }
     inline void setApplyDesignStyle (bool b) { file().setValue ("applyDesignStyle", b); file().saveIfNeeded(); }
 
     // The resolved design inputs for a generation. Empty when the checkbox is
@@ -224,9 +242,15 @@ namespace vstai::appsettings
     struct BuildStyle { juce::String kitHtml, designName, designPrinciples; };
     inline BuildStyle resolvedBuildStyle()
     {
+        // The UI library (Settings -> UI library) rides in the same string as the design
+        // principles, behind a marker Prompt.h splits on, so it works whether or not a
+        // design school is applied and no prompt-builder signature changes.
+        const auto libNotes = vstai::uilibs::promptNotes (selectedUiLibId());
+        const juce::String lib = libNotes.isNotEmpty() ? juce::String (vstai::uilibs::promptMarker()) + libNotes
+                                                       : juce::String();
         if (! applyDesignStyle())
-            return {};
-        return { standardUi(), selectedDesignName(), selectedDesignPrinciples() };
+            return { {}, {}, lib };
+        return { standardUi(), selectedDesignName(), selectedDesignPrinciples() + lib };
     }
 
     // Which editor chrome to use: the new WebView shell (default) or the legacy

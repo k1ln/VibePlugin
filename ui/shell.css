@@ -91,14 +91,25 @@ body.collapsed .actions,
 body.collapsed #headerBtns { display:none; }
 
 /* ---- prompt --------------------------------------------------------- */
-.prompt{display:flex;gap:10px;padding:14px 14px 8px;align-items:stretch}
-#promptBox{flex:1;resize:none;min-height:56px;background:var(--surface);color:var(--ink);
+.prompt{display:flex;gap:10px;padding:14px 14px 8px;align-items:flex-start}
+.prompt-main{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+/* A real text area: bigger by default, scrolls when the text outgrows it, and the user
+   drags the bottom-right handle to make it as tall as they like (the preview below
+   gives up the space). */
+#promptBox{flex:0 0 auto;display:block;width:100%;height:112px;min-height:72px;max-height:70vh;
+  resize:vertical;overflow-y:auto;background:var(--surface);color:var(--ink);
   border:1px solid var(--line-2);border-radius:var(--r-lg);padding:11px 13px;
   font:14.5px/1.45 inherit;transition:border-color .12s,box-shadow .12s}
 #promptBox::placeholder{color:var(--muted)}
 #promptBox:focus{outline:none;border-color:var(--accent)}
-.prompt-actions{display:flex;flex-direction:column;gap:8px;width:150px}
+.prompt-actions{display:flex;flex-direction:column;gap:8px;width:150px;align-self:stretch}
 .prompt-actions .btn{flex:1;justify-content:center}
+.refimgs{display:flex;gap:8px;flex-wrap:wrap}
+.refimgs .ri{position:relative;height:54px;border:1px solid var(--line-2);border-radius:var(--r-lg);overflow:hidden;background:var(--surface)}
+.refimgs .ri img{height:100%;display:block}
+.refimgs .ri button{position:absolute;top:2px;right:2px;width:18px;height:18px;line-height:16px;padding:0;border:0;border-radius:50%;
+  background:rgba(0,0,0,.65);color:#fff;font-size:12px;cursor:pointer}
+#promptBox.dragover{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft,rgba(255,255,255,.12))}
 
 /* ---- toolbar -------------------------------------------------------- */
 .toolbar{display:flex;align-items:center;gap:8px;padding:2px 14px 6px}
@@ -158,6 +169,7 @@ select:focus{outline:none;border-color:var(--accent)}
   text-transform:uppercase;color:var(--violet)}
 .design-card .dc-del{position:absolute;bottom:8px;right:9px;font-size:11px;color:var(--muted);
   width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.design-card .dc-example{align-self:flex-start;margin-top:6px;padding:3px 9px;font-size:11px}
 .design-card .dc-del:hover{color:var(--danger);background:rgba(255,255,255,.06)}
 .editor{width:100%;height:100%}
 .notes{margin:0;padding:16px;height:100%;overflow:auto;white-space:pre-wrap;

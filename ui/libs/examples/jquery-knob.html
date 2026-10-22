@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!-- VibePlugin UI-library example: jQuery Knob (MIT, requires jQuery 3 - both are inlined by the app).
+     The <script data-vstai-lib> tag below is replaced by the app with the inlined libraries. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>jQuery Knob example</title>
+<script data-vstai-lib="jquery-knob"></script>
+<style>
+  :root{ --bg:#101714; --panel:#17211d; --line:rgba(255,255,255,.08); --ink:#e3ece7; --muted:#7f9489; --acc:#6fd8bd; --acc2:#e9c46a; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font:11px/1.4 -apple-system,"Segoe UI",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+  header{display:flex;align-items:baseline;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  header h1{margin:0;font-size:15px;font-weight:300;letter-spacing:6px}
+  header span{color:var(--muted);letter-spacing:.5px}
+  main{display:flex;flex-wrap:wrap;gap:12px;padding:16px 18px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 16px 14px}
+  section h2{margin:0 0 12px;font-size:9px;font-weight:400;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase}
+  .row{display:flex;gap:18px;align-items:flex-end}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+  .lbl{font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+  .rd{font-variant-numeric:tabular-nums;color:#cfe9df;font-size:11px;margin-top:-4px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .seg button{appearance:none;border:0;border-left:1px solid var(--line);background:#1d2a25;color:var(--muted);font:inherit;font-size:10px;padding:7px 11px;cursor:pointer}
+  .seg button:first-child{border-left:0}
+  .seg button.on{background:var(--acc);color:#06201a}
+  .tgl{appearance:none;border:1px solid var(--line);background:#1d2a25;color:var(--muted);font:inherit;font-size:10px;padding:7px 14px;border-radius:3px;cursor:pointer}
+  .tgl.on{background:var(--acc2);color:#2a1d05;border-color:var(--acc2)}
+  /* the library draws the dial on a canvas and keeps the number in an <input>; style the number here */
+  .dial-wrap input{font-family:-apple-system,"Segoe UI",system-ui,sans-serif!important;font-weight:300!important}
+  .kb{display:flex;height:84px;margin:0 18px 18px;border:1px solid var(--line);border-radius:4px;overflow:hidden;position:relative;background:#000}
+  .wk{flex:1;background:linear-gradient(#f4f6f5,#cfd6d2);border-right:1px solid #222;cursor:pointer}.wk.down{background:var(--acc)}
+  .bk{position:absolute;top:0;width:2.3%;height:58%;background:#111c18;border:1px solid #000;border-top:0;cursor:pointer;z-index:2}.bk.down{background:var(--acc)}
+</style>
+</head>
+<body>
+<header><h1>JQUERY&nbsp;KNOB</h1><span>library example &middot; canvas dials with a typed-value field</span></header>
+<main>
+  <section><h2>Oscillator</h2>
+    <div class="row">
+      <div class="cell"><div class="seg" id="waves" data-param="0"><button>Sine</button><button>Saw</button><button>Square</button><button>Tri</button></div><div class="lbl">Wave</div></div>
+      <div class="cell"><button class="tgl" id="sub" data-param="7">Sub</button><div class="lbl">Octave -1</div></div>
+    </div>
+  </section>
+  <section><h2>Filter</h2>
+    <div class="row">
+      <div class="cell dial-wrap"><input class="dial" id="cutoff" data-param="1" value="0.592" data-min="0" data-max="1" data-step="0.001" data-width="76" data-height="76" data-thickness="0.26" data-angleOffset="-125" data-angleArc="250" data-fgColor="#6fd8bd" data-bgColor="#26332d" data-displayInput="false" data-lineCap="round"><div class="rd" id="rd_cutoff"></div><div class="lbl">Cutoff</div></div>
+      <div class="cell dial-wrap"><input class="dial" id="reso" data-param="2" value="0.2" data-min="0" data-max="1" data-step="0.001" data-width="76" data-height="76" data-thickness="0.26" data-angleOffset="-125" data-angleArc="250" data-fgColor="#6fd8bd" data-bgColor="#26332d" data-inputColor="#cfe9df" data-lineCap="round"><div class="lbl">Resonance</div></div>
+      <div class="cell dial-wrap"><input class="dial" id="drive" data-param="3" value="0.3" data-min="0" data-max="1" data-step="0.001" data-width="76" data-height="76" data-thickness="0.26" data-angleOffset="-125" data-angleArc="250" data-fgColor="#e9c46a" data-bgColor="#26332d" data-inputColor="#f2e3b6" data-lineCap="round"><div class="lbl">Drive</div></div>
+    </div>
+  </section>
+  <section><h2>Envelope</h2>
+    <div class="row">
+      <div class="cell dial-wrap"><input class="dial" id="atk" data-param="4" value="0.01" data-min="0.001" data-max="2" data-step="0.001" data-width="64" data-height="64" data-thickness="0.28" data-angleOffset="-125" data-angleArc="250" data-fgColor="#6fd8bd" data-bgColor="#26332d" data-inputColor="#cfe9df" data-lineCap="round"><div class="lbl">Attack</div></div>
+      <div class="cell dial-wrap"><input class="dial" id="rel" data-param="5" value="0.4" data-min="0.01" data-max="3" data-step="0.001" data-width="64" data-height="64" data-thickness="0.28" data-angleOffset="-125" data-angleArc="250" data-fgColor="#6fd8bd" data-bgColor="#26332d" data-inputColor="#cfe9df" data-lineCap="round"><div class="lbl">Release</div></div>
+    </div>
+  </section>
+  <section><h2>Output</h2>
+    <div class="row">
+      <div class="cell dial-wrap"><input class="dial" id="mix" data-param="8" value="1" data-min="0" data-max="1" data-step="0.001" data-width="64" data-height="64" data-thickness="0.28" data-angleOffset="-125" data-angleArc="250" data-fgColor="#e9c46a" data-bgColor="#26332d" data-inputColor="#f2e3b6" data-lineCap="round"><div class="lbl">Mix</div></div>
+      <div class="cell dial-wrap"><input class="dial" id="vol" data-param="6" value="0.7" data-min="0" data-max="1" data-step="0.001" data-width="76" data-height="76" data-thickness="0.26" data-angleOffset="-125" data-angleArc="250" data-fgColor="#6fd8bd" data-bgColor="#26332d" data-inputColor="#cfe9df" data-lineCap="round"><div class="lbl">Volume</div></div>
+    </div>
+  </section>
+</main>
+<div class="kb" id="kbd"></div>
+
+<script>
+"use strict";
+function whenReady(cb){
+  function go(){ (window.vstai.onReady ? window.vstai.onReady(cb) : cb()); }
+  if (window.vstai) return go();
+  const t = setInterval(() => { if (window.vstai) { clearInterval(t); go(); } }, 25);
+}
+// jQuery Knob has no log scale, so the Cutoff dial runs 0..1 and is mapped to 20 Hz..20 kHz here.
+const hz = n => 20 * Math.pow(1000, n), unHz = f => Math.log(f / 20) / Math.log(1000);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+let applying = false;   // true while a host value is being painted - never echo it back as user input
+
+whenReady(() => {
+  const vstai = window.vstai;
+  // --- every dial: host index in data-param; Cutoff alone converts through the log map ------------------
+  $(".dial").each(function () {
+    const $el = $(this), index = +this.dataset.param, isCutoff = this.id === "cutoff";
+    const toHost = v => isCutoff ? hz(+v) : +v;
+    // The Cutoff dial runs 0..1, so its built-in number is hidden (data-displayInput="false") and the Hz readout is our own
+    // element - never use format()/parse() for units, the knob re-parses its text and would read "1.2k" back as 1.2.
+    const rd = document.getElementById("rd_" + this.id);
+    const readout = n => { if (rd) rd.textContent = hz(n) >= 1000 ? (hz(n) / 1000).toFixed(1) + " kHz" : Math.round(hz(n)) + " Hz"; };
+    $el.knob({
+      change: v => { if (isCutoff) readout(+v); if (!applying) vstai.setParam(index, toHost(v)); }
+    });
+    vstai.onParam((i, v) => {
+      if (i !== index) return;
+      applying = true; $el.val(isCutoff ? clamp(unHz(+v), 0, 1) : +v).trigger("change"); applying = false;
+      if (isCutoff) readout(clamp(unHz(+v), 0, 1));
+    });
+    if (isCutoff) readout(+$el.val());
+    vstai.setParam(index, toHost($el.val()));
+  });
+  // --- waveform buttons -> param 0..3, Sub toggle -> param 7 ------------------------------------------------
+  const waves = [...document.querySelectorAll("#waves button")];
+  const paintWave = k => waves.forEach((b, j) => b.classList.toggle("on", j === k));
+  waves.forEach((b, k) => b.addEventListener("click", () => { paintWave(k); vstai.setParam(0, k); }));
+  vstai.onParam((i, v) => { if (i === 0) paintWave(Math.round(+v)); });
+  const sub = document.getElementById("sub");
+  sub.addEventListener("click", () => { sub.classList.toggle("on"); vstai.setParam(7, sub.classList.contains("on") ? 1 : 0); });
+  vstai.onParam((i, v) => { if (i === 7) sub.classList.toggle("on", +v >= 0.5); });
+  paintWave(0);
+  // --- a tiny three-octave keyboard -> noteOn / noteOff ---------------------------------------------------------
+  const kb = document.getElementById("kbd"), base = 48, whitePc = [0, 2, 4, 5, 7, 9, 11], blackAt = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
+  const whites = []; for (let o = 0; o < 3; o++) whitePc.forEach(s => whites.push(base + o * 12 + s));
+  whites.forEach(n => { const k = document.createElement("div"); k.className = "wk"; k.dataset.note = n; kb.append(k); });
+  for (let o = 0; o < 3; o++) for (const semi in blackAt) {
+    const k = document.createElement("div"); k.className = "bk"; k.dataset.note = base + o * 12 + +semi;
+    k.style.left = ((blackAt[semi] + o * 7 + 1) * (100 / whites.length) - 1.15) + "%"; kb.append(k);
+  }
+  let held = null;
+  const up = () => { if (held == null) return; vstai.noteOff(held); kb.querySelector(`[data-note="${held}"]`)?.classList.remove("down"); held = null; };
+  kb.addEventListener("pointerdown", e => { const n = e.target.dataset.note; if (!n) return; held = +n; vstai.noteOn(held, 100); e.target.classList.add("down"); });
+  addEventListener("pointerup", up, true); addEventListener("mouseup", up, true); addEventListener("blur", up);
+});
+</script>
+</body>
+</html>

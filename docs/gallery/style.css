@@ -13,6 +13,10 @@ a{color:inherit;text-decoration:none}
   backdrop-filter:blur(8px);position:sticky;top:0;z-index:5}
 .bar .title{font-weight:700;letter-spacing:.04em}
 .back{color:var(--muted);font-size:14px}
+.share{display:flex;gap:8px;margin-left:auto}
+.sharebtn{appearance:none;background:transparent;color:var(--muted);border:1px solid var(--line,rgba(255,255,255,.18));
+  border-radius:8px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+.sharebtn:hover{color:var(--fg,#fff);border-color:currentColor}
 .badge{font-size:10px;letter-spacing:.12em;padding:2px 7px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
 .badge.synth{color:var(--synth);border-color:#2c8c79}
 .badge.fx{color:var(--fx);border-color:#8c6a2c}

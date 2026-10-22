@@ -8,6 +8,7 @@
 #include "WebClapExport.h"
 #include "Prompt.h"
 #include "LlmClient.h"
+#include "Planner.h"
 #include "AccountPanel.h"
 #include "Utf8.h"
 
@@ -206,9 +207,67 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             const auto prompt = argStr (a, 0).trim();
             if (prompt.isEmpty()) { complete (result (false, "Type a prompt first.")); return; }
 
+            // Optional reference screenshots: a JSON array of base64 strings.
+            juce::StringArray images;
+            if (const auto* arr = juce::JSON::parse (argStr (a, 1)).getArray())
+                for (const auto& v : *arr)
+                    if (v.toString().isNotEmpty()) images.add (v.toString());
+
             safe->processor.requestBuild (prompt,
                 [safe] (const juce::String& stage) { if (safe) safe->emitEvent ("stage", stage); },
-                [safe, complete] (bool ok, juce::String message) { complete (result (ok, message)); });
+                [safe, complete] (bool ok, juce::String message) { complete (result (ok, message)); },
+                images);
+        })
+        // Pre-check for a big request: Opus splits it into ordered build steps (see
+        // Planner.h). Runs off the message thread; any failure resolves as
+        // { ok:false } and the editor then generates the request as a single prompt.
+        .withNativeFunction ("planPrompt", [safe] (const VarArray& a, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            const auto prompt  = argStr (a, 0).trim();
+            const bool isSynth = safe->processor.isInstrument();
+            const bool force   = argStr (a, 1) == "1";   // a step already failed on the output budget
+            const auto& doc    = safe->processor.getDocument();
+            const auto provider = doc.provider.isNotEmpty() ? LlmClient::providerFromString (doc.provider)
+                                                            : LlmClient::providerForModel (doc.model);
+            const auto cloudUrl   = vstai::appsettings::cloudBaseUrl();
+            const auto cloudToken = vstai::appsettings::cloudToken();
+            const auto anthropicKey = vstai::appsettings::anthropicKey();
+
+            const bool viaCloud     = provider == LlmClient::Provider::cloud && cloudToken.isNotEmpty();
+            const bool viaAnthropic = provider == LlmClient::Provider::anthropic && anthropicKey.isNotEmpty();
+            if (prompt.isEmpty() || (! viaCloud && ! viaAnthropic))
+            {
+                complete (result (false, "planning not available for this provider"));
+                return;
+            }
+
+            juce::Component::SafePointer<WebEditor> s2 (safe);
+            std::thread ([s2, complete, prompt, isSynth, force, viaCloud, cloudUrl, cloudToken, anthropicKey]() mutable
+            {
+                auto plan = viaCloud ? vstai::planner::planViaCloud (cloudUrl, cloudToken, prompt, isSynth, force)
+                                     : vstai::planner::planViaAnthropic (anthropicKey, prompt, isSynth, force);
+                juce::MessageManager::callAsync ([s2, complete, plan]() mutable
+                {
+                    if (s2 == nullptr) return;
+                    auto* o = new juce::DynamicObject();
+                    o->setProperty ("ok",      plan.ok);
+                    o->setProperty ("split",   plan.split);
+                    o->setProperty ("reason",  plan.reason);
+                    o->setProperty ("message", plan.error);
+                    o->setProperty ("credits", plan.credits);
+                    juce::Array<var> steps;
+                    for (int i = 0; i < plan.prompts.size(); ++i)
+                    {
+                        auto* st = new juce::DynamicObject();
+                        st->setProperty ("title",  plan.titles[i]);
+                        st->setProperty ("prompt", plan.prompts[i]);
+                        steps.add (var (st));
+                    }
+                    o->setProperty ("steps", var (steps));
+                    complete (var (o));
+                });
+            }).detach();
         })
         .withNativeFunction ("buildManualPrompt", [safe] (const VarArray& a, Completion complete)
         {
@@ -714,7 +773,8 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 vstai::appsettings::setApplyDesignStyle (true);   // picking a school means use it
             }
             // No plugin yet? The preview shows the standard kit — reseed it so the
-            // newly-selected design is visible immediately.
+            // newly-selected design is visible immediately (and drop any library example).
+            if (safe != nullptr) safe->processor.setPreviewOverrideHtml ({});
             if (safe != nullptr && ! safe->processor.getDocument().hasPlugin())
                 safe->emitEvent ("documentChanged", safe->currentState());
             complete (result (true, "Design: " + vstai::appsettings::selectedDesignName()));
@@ -726,6 +786,57 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
             if (safe != nullptr && ! safe->processor.getDocument().hasPlugin())
                 safe->emitEvent ("documentChanged", safe->currentState());
             complete (result (true, "Removed."));
+        })
+        .withNativeFunction ("getUiLibs", [] (const VarArray&, Completion complete)
+        {
+            // First card = no library (the model hand-draws its controls, the default).
+            const auto sel = vstai::appsettings::selectedUiLibId();
+            juce::Array<var> rows;
+            {
+                auto* o = new juce::DynamicObject();
+                o->setProperty ("id",         "");
+                o->setProperty ("name",       "Built-in controls");
+                o->setProperty ("license",    "");
+                o->setProperty ("blurb",      "No library. The model draws its own SVG / canvas knobs and sliders in the chosen design.");
+                o->setProperty ("selected",   sel.isEmpty());
+                o->setProperty ("hasExample", false);
+                rows.add (var (o));
+            }
+            for (auto& l : vstai::uilibs::all())
+            {
+                auto* o = new juce::DynamicObject();
+                o->setProperty ("id",         l.id);
+                o->setProperty ("name",       l.name);
+                o->setProperty ("license",    l.license);
+                o->setProperty ("blurb",      l.blurb);
+                o->setProperty ("selected",   l.id == sel);
+                o->setProperty ("hasExample", vstai::webassets::resolve ("libs/examples/" + l.example).existsAsFile());
+                rows.add (var (o));
+            }
+            complete (rows);
+        })
+        .withNativeFunction ("setUiLib", [] (const VarArray& a, Completion complete)
+        {
+            const auto id = argStr (a, 0);
+            vstai::appsettings::setSelectedUiLibId (id);
+            const auto* lib = vstai::uilibs::find (vstai::appsettings::selectedUiLibId());
+            complete (result (true, lib != nullptr ? "UI library: " + lib->name + " - new builds use it."
+                                                   : juce::String ("UI library: none - the model draws its own controls.")));
+        })
+        .withNativeFunction ("showUiLibExample", [safe] (const VarArray& a, Completion complete)
+        {
+            const auto* lib = vstai::uilibs::find (argStr (a, 0));
+            if (lib == nullptr || safe == nullptr) { complete (result (false, "Unknown UI library.")); return; }
+            if (safe->processor.getDocument().hasPlugin())
+            {
+                complete (result (false, "A plugin is loaded, so the GUI tab shows it. Start a new plugin to preview an example."));
+                return;
+            }
+            const auto html = vstai::webassets::readText ("libs/examples/" + lib->example);
+            if (html.isEmpty()) { complete (result (false, "Example file not found in Resources/ui/libs/examples.")); return; }
+            safe->processor.setPreviewOverrideHtml (html);
+            safe->emitEvent ("documentChanged", safe->currentState());
+            complete (result (true, "Showing the " + lib->name + " example in the GUI tab."));
         })
         .withNativeFunction ("exportDesign", [safe] (const VarArray& a, Completion complete)
         {

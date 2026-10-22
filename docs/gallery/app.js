@@ -7,6 +7,9 @@ const empty  = document.getElementById("empty");
 const search = document.getElementById("search");
 const frame  = document.getElementById("playerFrame");
 const hint   = document.getElementById("playerHint");
+const share  = document.getElementById("share");
+const copyBtn = document.getElementById("copyLink");
+const openFull = document.getElementById("openFull");
 
 let all = [];
 let currentId = null;
@@ -39,12 +42,41 @@ function row(p) {
   return el;
 }
 
-function select(id, autostart) {
+function select(id, autostart, updateUrl = true) {
   currentId = id;
   hint.hidden = true;
   frame.src = "play.html?id=" + encodeURIComponent(id) + "&embed=1" + (autostart ? "&autostart=1" : "");
   for (const b of grid.querySelectorAll(".row")) b.classList.toggle("active", b.dataset.id === id);
+  // Deep link: the address bar always names the loaded synth, so it can be copied or bookmarked.
+  if (updateUrl && location.hash.slice(1) !== id) history.replaceState(null, "", "#" + encodeURIComponent(id));
+  openFull.href = "play.html?id=" + encodeURIComponent(id);
+  share.hidden = false;
 }
+
+// The id a link points at: gallery/#<id> (also accepts ?id=<id> and ?synth=<id>).
+function linkedId() {
+  const q = new URLSearchParams(location.search);
+  const raw = location.hash.slice(1) || q.get("id") || q.get("synth") || "";
+  let id = raw;
+  try { id = decodeURIComponent(raw); } catch {}
+  return all.some((p) => p.id === id) ? id : null;
+}
+
+// Open a linked synth: clear any filter that would hide it, then select + scroll to it.
+function openLinked(id) {
+  search.value = ""; kind = "all"; cat = null;
+  render();
+  select(id, false);   // no autostart: browsers need a click before audio can play
+  grid.querySelector(".row.active")?.scrollIntoView({ block: "center" });
+}
+
+copyBtn.addEventListener("click", async () => {
+  const url = location.origin + location.pathname + "#" + encodeURIComponent(currentId);
+  try { await navigator.clipboard.writeText(url); copyBtn.textContent = "Copied ✓"; }
+  catch { prompt("Copy this link:", url); }
+  setTimeout(() => { copyBtn.textContent = "Copy link"; }, 1600);
+});
+window.addEventListener("hashchange", () => { const id = linkedId(); if (id && id !== currentId) openLinked(id); });
 
 // Kind tabs + one chip per category, with counts. Chips follow the kind tab and the
 // search box, so a chip never leads to an empty list.
@@ -125,7 +157,9 @@ window.addEventListener("keyup", forwardKey("keyup"));
     return;
   }
   render();
+  const linked = linkedId();
+  if (linked) { openLinked(linked); return; }
   // preload the first plugin so the player pane isn't empty (audio resumes on the
   // first click/keypress; selecting any item afterwards starts it immediately).
-  if (all.length) select(all[0].id, true);
+  if (all.length) select(all[0].id, true, false);   // default pick: leave the address bar alone
 })();

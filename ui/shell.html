@@ -46,13 +46,20 @@ window.addEventListener("unhandledrejection", function (e) {
 
   <!-- ===== Prompt ==================================================== -->
   <section class="prompt">
-    <textarea id="promptBox" rows="2"
-      placeholder="Describe the plugin you want, or a change to make  (Cmd/Ctrl+Enter to generate)"></textarea>
+    <div class="prompt-main">
+      <div id="refImgs" class="refimgs" hidden></div>
+      <textarea id="promptBox" rows="4"
+        placeholder="Describe the plugin you want, or a change to make  (Cmd/Ctrl+Enter to generate). Paste or drop a screenshot to use it as the GUI reference."></textarea>
+    </div>
+    <input type="file" id="refImgInput" accept="image/*" multiple hidden/>
     <div class="prompt-actions">
       <button class="btn primary"  id="generateBtn">Generate</button>
+      <button class="btn"          id="attachBtn" title="Attach a screenshot of the GUI you want (Claude models only). You can also paste or drop an image into the prompt box.">Attach image</button>
       <button class="btn accent2"  id="chatbotBtn" title="No API key needed — copy a prompt to paste into Claude (Opus recommended)">Copy to chatbot</button>
       <label class="lbl chk" id="styleWrap" title="On: the build prompt carries the design school from Settings (its kit + design language). Off: no design template is sent — the AI designs the GUI freely.">
         <input type="checkbox" id="styleChk"/> Use Settings design</label>
+      <label class="lbl chk" id="planWrap" title="On: a very large request is first split by Opus into a few build steps that run one after another, instead of one generation that can run out of output budget. Costs a small planning call.">
+        <input type="checkbox" id="planChk" checked/> Split big requests</label>
     </div>
   </section>
 
@@ -143,6 +150,16 @@ window.addEventListener("unhandledrejection", function (e) {
             <button class="btn" id="exportDesignBtn" title="Save the selected design to a file you can share or re-import">Export selected…</button>
             <span id="designStatus" class="muted"></span>
           </div>
+        </section>
+        <section class="set-block">
+          <h3>UI library</h3>
+          <p class="muted">Optionally have the AI build knobs, sliders and switches with a ready-made open-source widget
+            library instead of drawing its own. The app inlines the library into the plugin&rsquo;s GUI, so the plugin
+            stays a single self-contained file. All three allow commercial use (see THIRD_PARTY_NOTICES.md). Pick
+            <strong>Built-in controls</strong> to leave it to the AI. <strong>Show example</strong> previews a working GUI
+            built with that library in the GUI tab (while no plugin is loaded).</p>
+          <div class="design-grid" id="uiLibGrid"></div>
+          <div class="row"><span id="uiLibStatus" class="muted"></span></div>
         </section>
         <section class="set-block">
           <h3>Diagnostics</h3>

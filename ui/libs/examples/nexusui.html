@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!-- VibePlugin UI-library example: NexusUI (MIT).
+     The <script data-vstai-lib> tag below is replaced by the app with the inlined library. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NexusUI example</title>
+<script data-vstai-lib="nexusui"></script>
+<style>
+  :root{ --bg:#111216; --panel:#191b21; --line:rgba(255,255,255,.08); --ink:#e8e9ee; --muted:#80838e; --acc:#4dc3f5; --acc2:#ff8a65; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font:11px/1.4 -apple-system,"Segoe UI",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+  header{display:flex;align-items:baseline;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  header h1{margin:0;font-size:15px;font-weight:300;letter-spacing:6px}
+  header span{color:var(--muted);letter-spacing:.5px}
+  main{display:flex;flex-wrap:wrap;gap:12px;padding:16px 18px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 16px 14px}
+  section h2{margin:0 0 12px;font-size:9px;font-weight:400;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase}
+  .row{display:flex;gap:18px;align-items:flex-end}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .lbl{font-size:9px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+  .num{font-variant-numeric:tabular-nums;color:var(--acc);font-size:10px;min-width:56px;text-align:center}
+  .wcap{display:flex;width:150px;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .wcap span{flex:1;text-align:center}
+  .kb{padding:0 18px 18px}
+</style>
+</head>
+<body>
+<header><h1>NEXUSUI</h1><span>library example &middot; dial, slider, toggle, radio buttons, piano</span></header>
+<main>
+  <section><h2>Oscillator</h2>
+    <div class="row">
+      <div class="cell"><div id="wave" data-param="0"></div><div class="wcap"><span>Sin</span><span>Saw</span><span>Sqr</span><span>Tri</span></div><div class="lbl">Wave</div></div>
+      <div class="cell"><div id="sub" data-param="7"></div><div class="lbl">Sub</div></div>
+    </div>
+  </section>
+  <section><h2>Filter</h2>
+    <div class="row">
+      <div class="cell"><div id="cutoff" data-param="1"></div><div class="num" id="v_cutoff"></div><div class="lbl">Cutoff</div></div>
+      <div class="cell"><div id="reso" data-param="2"></div><div class="num" id="v_reso"></div><div class="lbl">Resonance</div></div>
+      <div class="cell"><div id="drive" data-param="3"></div><div class="num" id="v_drive"></div><div class="lbl">Drive</div></div>
+    </div>
+  </section>
+  <section><h2>Envelope</h2>
+    <div class="row">
+      <div class="cell"><div id="atk" data-param="4"></div><div class="num" id="v_atk"></div><div class="lbl">Attack</div></div>
+      <div class="cell"><div id="rel" data-param="5"></div><div class="num" id="v_rel"></div><div class="lbl">Release</div></div>
+    </div>
+  </section>
+  <section><h2>Output</h2>
+    <div class="row">
+      <div class="cell"><div id="mix" data-param="8"></div><div class="num" id="v_mix"></div><div class="lbl">Mix</div></div>
+      <div class="cell"><div id="vol" data-param="6"></div><div class="num" id="v_vol"></div><div class="lbl">Volume</div></div>
+    </div>
+  </section>
+</main>
+<div class="kb"><div id="kbd"></div></div>
+
+<script>
+"use strict";
+function whenReady(cb){
+  function go(){ (window.vstai.onReady ? window.vstai.onReady(cb) : cb()); }
+  if (window.vstai) return go();
+  const t = setInterval(() => { if (window.vstai) { clearInterval(t); go(); } }, 25);
+}
+const fmt = v => Math.abs(v) >= 100 ? Math.round(v) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+// NexusUI dials are linear; log controls are 0..1 here and mapped to the real range on the way to the host.
+const logMap = (lo, hi) => ({ to: n => lo * Math.pow(hi / lo, n), from: v => Math.log(v / lo) / Math.log(hi / lo) });
+const CUTOFF = logMap(20, 20000), ATK = logMap(0.001, 2), REL = logMap(0.01, 3);
+let applying = false;   // true while a host value is being painted - never echo it back as user input
+
+// Theme every NexusUI widget once, before creating them.
+Object.assign(Nexus.colors, { accent: "#4dc3f5", fill: "#242831", light: "#e8e9ee", dark: "#0c0d10", mediumLight: "#80838e", mediumDark: "#30343e" });
+
+whenReady(() => {
+  const vstai = window.vstai;
+  // dials & slider: [element id, host index, widget kind, size, range min/max or a log map, default]
+  const defs = [
+    ["cutoff", 1, "Dial",   [66, 66], CUTOFF, 1200,  v => Math.round(v) + " Hz"],
+    ["reso",   2, "Dial",   [66, 66], null,   0.2,   v => fmt(v), 0, 1],
+    ["drive",  3, "Dial",   [66, 66], null,   0.3,   v => fmt(v), 0, 1],
+    ["atk",    4, "Dial",   [58, 58], ATK,    0.01,  v => fmt(v) + " s"],
+    ["rel",    5, "Dial",   [58, 58], REL,    0.4,   v => fmt(v) + " s"],
+    ["vol",    6, "Dial",   [66, 66], null,   0.7,   v => fmt(v), 0, 1],
+    ["mix",    8, "Slider", [34, 110], null,  1,     v => fmt(v), 0, 1]
+  ];
+  defs.forEach(([id, index, kind, size, map, def, text, lo, hi]) => {
+    const w = new Nexus[kind]("#" + id, { size, min: 0, max: 1, step: 0, value: map ? map.from(def) : def });
+    const out = document.getElementById("v_" + id);
+    const host = n => map ? map.to(n) : n;
+    const show = n => { if (out) out.textContent = text(host(n)); };
+    w.on("change", n => { show(n); if (!applying) vstai.setParam(index, host(n)); });
+    vstai.onParam((i, v) => { if (i === index) { applying = true; w.value = map ? map.from(+v) : +v; applying = false; } });
+    show(w.value); vstai.setParam(index, host(w.value));
+  });
+  // --- waveform: a four-way radio -> param 0..3 ----------------------------------------------------------
+  const wave = new Nexus.RadioButton("#wave", { size: [150, 26], numberOfButtons: 4, active: 0 });
+  wave.on("change", k => { if (!applying && k >= 0) vstai.setParam(0, k); });
+  vstai.onParam((i, v) => { if (i === 0) { applying = true; wave.select(Math.round(+v)); applying = false; } });
+  // --- Sub toggle -> param 7 ---------------------------------------------------------------------------------
+  const sub = new Nexus.Toggle("#sub", { size: [40, 20], state: false });
+  sub.on("change", on => { if (!applying) vstai.setParam(7, on ? 1 : 0); });
+  vstai.onParam((i, v) => { if (i === 7) { applying = true; sub.state = +v >= 0.5; applying = false; } });
+  // --- piano -> noteOn / noteOff ---------------------------------------------------------------------------------
+  const piano = new Nexus.Piano("#kbd", { size: [900, 84], mode: "button", lowNote: 48, highNote: 84 });
+  piano.on("change", e => { e.state ? vstai.noteOn(e.note, 100) : vstai.noteOff(e.note); });
+});
+</script>
+</body>
+</html>

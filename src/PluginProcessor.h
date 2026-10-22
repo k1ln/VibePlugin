@@ -92,7 +92,11 @@ public:
     // stages (generating / compiling / installing) so the UI can reflect them.
     using BuildDone     = std::function<void (bool ok, juce::String message)>;
     using BuildProgress = std::function<void (const juce::String& stage)>;
-    void requestBuild (const juce::String& prompt, BuildProgress progress, BuildDone done);
+    // `images` are optional reference screenshots (base64 JPEG/PNG data, no data:
+    // prefix) sent along with the prompt to vision-capable models (Anthropic, or
+    // Cloud with a Claude model); other providers ignore them.
+    void requestBuild (const juce::String& prompt, BuildProgress progress, BuildDone done,
+                       const juce::StringArray& images = {});
 
     // Manual ("bring your own chatbot") path: the artifact was parsed from a
     // pasted chatbot reply rather than generated here. Compile it once (no AI
@@ -199,6 +203,10 @@ public:
     const VstaiDocument& getDocument() const { return document; }
     juce::String getDisplayHtml() const;     // current GUI, or the default starter GUI
 
+    // Show `html` (e.g. a Settings -> UI library example) in the preview while no plugin
+    // is loaded, instead of the standard kit. Not persisted; empty clears it.
+    void setPreviewOverrideHtml (const juce::String& html) { previewOverrideHtml = html; }
+
     // Editor subscribes to be notified when the plugin (html/wasm) changes.
     std::function<void()> onDocumentChanged;
 
@@ -255,6 +263,7 @@ private:
 
     WasmEngine    engine;
     VstaiDocument document;
+    juce::String  previewOverrideHtml;     // see setPreviewOverrideHtml()
     bool          lockedFromBundle = false;   // a baked creation / force-lock was found
     std::shared_ptr<AssemblyScriptCompiler> compiler; // shared so module JIT is reused
 

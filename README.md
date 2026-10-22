@@ -329,7 +329,7 @@ to know what a particular button does.
 |---|---|
 | **Generate** | Builds (or edits) the plugin using the selected model. `Cmd`/`Ctrl`+`Enter` does the same. |
 | **Copy to chatbot** | The free route. Builds a complete prompt, copies it, and opens the paste-back dialog. Despite the label, paste it into **Claude** — see [route 2](#route-2--claude-in-your-browser-free). |
-| **Use Settings design** | When ticked, the design school from Settings is described to the AI so new interfaces match that house style. Untick it for a one-off with a strong visual idea. |
+| **Use Settings design** | On by default. The design school from Settings (**Pro Tool** unless you change it: tabbed pages, live waveform / filter / envelope displays, meters, docked keyboard) is described to the AI so new interfaces match that house style. If your prompt describes its own look, the AI follows that instead. Untick it for a one-off with a strong visual idea. |
 
 ### The toolbar
 
@@ -513,6 +513,14 @@ one in **Settings**; it becomes the live look and is also described to the AI so
 new plugins match it. You can export a style and import your own.
 
 ![The ten built-in design styles](docs/screenshots/design-schools.png)
+
+**UI libraries.** Under **Settings → UI library** you can also have the AI build its
+knobs, sliders and switches with an open-source widget library instead of hand-drawing
+them: [webaudio-controls](https://github.com/g200kg/webaudio-controls) (Apache-2.0),
+[jQuery Knob](https://github.com/aterrien/jQuery-Knob) (MIT) or
+[NexusUI](https://github.com/nexus-js/ui) (MIT). The app inlines the chosen library into the
+plugin's GUI (it stays one self-contained file), and **Show example** previews a working GUI
+built with each. Licences and notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 
@@ -751,7 +759,8 @@ src/                         C++ (shared by both plugins)
   Prompt.h                   system prompt + output schema  ← "the prompt"
   Config.example.h           copy to Config.h to bake in the API key
   Settings.h / AppSettings.h resolved config + runtime keys/URLs/notary
-  Designs.h                  the 10 built-in design schools
+  Designs.h                  the 18 built-in design schools
+  UiLibs.h                   optional UI libraries (webaudio-controls / jQuery Knob / NexusUI): inline + prompt notes
   LlmClient.* / CloudClient.* raw HTTPS to Claude (your key) or the hosted Cloud proxy
   AccountPanel.h             "Account…" dialog: cloud sign-in + credits balance
   ManualPanel.h              the copy-prompt / paste-reply dialog

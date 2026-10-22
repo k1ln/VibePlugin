@@ -1,5 +1,6 @@
 // VstaiDocument.cpp
 #include "VstaiDocument.h"
+#include "UiLibs.h"
 
 namespace
 {
@@ -264,7 +265,7 @@ void VstaiDocument::applyBuildResult (const juce::var& r,
         // otherwise keep the current ones so partial replies don't blank the editor.
         const juce::String newHtml = obj->getProperty ("html").toString();
         if (newHtml.isNotEmpty())
-            html = newHtml;
+            html = vstai::uilibs::expand (newHtml);   // <script data-vstai-lib> -> inline library
 
         const juce::String newExplanation = obj->getProperty ("explanation").toString();
         if (newExplanation.isNotEmpty())
