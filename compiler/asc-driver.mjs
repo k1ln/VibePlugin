@@ -9,13 +9,19 @@
 // =====================================================================
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import asc from "assemblyscript/asc";
 
-const [, , inPath, outPath] = process.argv;
+const [, , inPath, outPath, mode] = process.argv;
 if (!inPath || !outPath) {
-  console.error("usage: vstai-asc <in.ts> <out.wasm>");
+  console.error("usage: vstai-asc <in.ts> <out.wasm> [--clap]");
   process.exit(2);
 }
+// --clap: <in.ts> is the CLAP adapter and imports its siblings ./plugin and ./meta
+// from the same folder. The module keeps its function table (exported as
+// __indirect_function_table, growable) because a WebCLAP host calls the plugin
+// through function pointers and installs its own callbacks into that table.
+const clap = mode === "--clap";
 
 const ARGS = [
   "input.ts",
@@ -33,6 +39,7 @@ const ARGS = [
   // module that declared the sample buffer.
   "--maximumMemory", "4096",
   "--use", "abort=",
+  ...(clap ? ["--exportTable"] : []),
 ];
 
 let source;
@@ -47,7 +54,14 @@ let wasm = null;
 let diag = "";
 
 asc.main(ARGS, {
-  readFile: (n) => (n === "input.ts" ? source : null),
+  readFile: (n) => {
+    if (n === "input.ts") return source;
+    // sibling files of the adapter, plain names only
+    if (clap && /^[a-z]+\.ts$/.test(n)) {
+      try { return readFileSync(join(dirname(inPath), n), "utf8"); } catch (e) { return null; }
+    }
+    return null;
+  },
   writeFile: (n, c) => { if (n === "output.wasm" && c instanceof Uint8Array) wasm = c; },
   listFiles: () => [],
   stdout: { write: (s) => (diag += s) },
@@ -59,7 +73,7 @@ asc.main(ARGS, {
       process.exit(1);
     }
     try {
-      writeFileSync(outPath, Buffer.from(wasm));
+      writeFileSync(outPath, Buffer.from(clap ? patchClap(wasm) : wasm));
       process.exit(0);
     } catch (e) {
       console.error("cannot write " + outPath + ": " + e.message);
@@ -70,3 +84,55 @@ asc.main(ARGS, {
     console.error(String((e && e.stack) || e));
     process.exit(1);
   });
+
+// ---- WebCLAP module patching ---------------------------------------------
+// asc exports the table as "table" with a fixed size. A WebCLAP host looks for
+// "__indirect_function_table" and grows it to install host callbacks, so rename
+// the export and drop the table's maximum.
+function leb(n) { const o = []; do { let b = n & 0x7f; n >>>= 7; if (n) b |= 0x80; o.push(b); } while (n); return o; }
+function readLeb(b, p) { let r = 0, s = 0, x; do { x = b[p.i++]; r |= (x & 0x7f) << s; s += 7; } while (x & 0x80); return r >>> 0; }
+
+function patchClap(wasm) {
+  const b = Buffer.from(wasm);
+  const out = [b.subarray(0, 8)];
+  let i = 8, sawTable = false, sawExport = false;
+  while (i < b.length) {
+    const id = b[i];
+    const p = { i: i + 1 };
+    const size = readLeb(b, p);
+    const body = b.subarray(p.i, p.i + size);
+    let nb = body;
+    if (id === 4) {                                  // table section: [count, (reftype, limits)...]
+      const q = { i: 0 };
+      const count = readLeb(body, q);
+      const o = [...leb(count)];
+      for (let t = 0; t < count; t++) {
+        o.push(body[q.i++]);                          // element type
+        const flag = body[q.i++];
+        const min = readLeb(body, q);
+        if (flag & 1) readLeb(body, q);               // max (dropped)
+        o.push(0, ...leb(min));
+      }
+      nb = Buffer.from(o); sawTable = true;
+    } else if (id === 7) {                           // export section: rename table
+      const q = { i: 0 };
+      const count = readLeb(body, q);
+      const o = [...leb(count)];
+      for (let e = 0; e < count; e++) {
+        const len = readLeb(body, q);
+        let name = body.subarray(q.i, q.i + len).toString("utf8");
+        q.i += len;
+        const kind = body[q.i++];
+        const idx = readLeb(body, q);
+        if (kind === 1 && name === "table") name = "__indirect_function_table";
+        const nameBytes = Buffer.from(name, "utf8");
+        o.push(...leb(nameBytes.length), ...nameBytes, kind, ...leb(idx));
+      }
+      nb = Buffer.from(o); sawExport = true;
+    }
+    out.push(Buffer.from([id, ...leb(nb.length)]), nb);   // big sections (data) are copied, never spread
+    i = p.i + size;
+  }
+  if (!sawTable || !sawExport) throw new Error("clap module has no function table export");
+  return Uint8Array.from(Buffer.concat(out));
+}

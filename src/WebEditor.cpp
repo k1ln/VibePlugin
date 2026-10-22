@@ -5,6 +5,7 @@
 #include "BridgeShim.h"
 #include "AppSettings.h"
 #include "WebAssets.h"
+#include "WebClapExport.h"
 #include "Prompt.h"
 #include "LlmClient.h"
 #include "AccountPanel.h"
@@ -527,6 +528,40 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                         const bool ok = proc->exportToBundle (file, productName, progress, message);
                         const juce::String msg = ok ? message : ("Export failed: " + message);
                         juce::MessageManager::callAsync ([complete, ok, msg] { complete (result (ok, msg)); });
+                    }).detach();
+                });
+        })
+        // ---- export as a WebCLAP bundle (browser-hosted CLAP, e.g. openDAW) ----
+        .withNativeFunction ("exportWebClap", [safe] (const VarArray&, Completion complete)
+        {
+            if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+            if (! safe->processor.getDocument().hasPlugin())
+            {
+                complete (result (false, "Generate a plugin first, then export it."));
+                return;
+            }
+            const auto suggested = safe->processor.getDocument().name;
+            safe->chooser = std::make_unique<juce::FileChooser> (
+                "Export as a WebCLAP bundle (.wclap.tar.gz)",
+                juce::File::getSpecialLocation (juce::File::userDesktopDirectory)
+                    .getChildFile (vstai::webclap::slugOf (suggested.isNotEmpty() ? suggested : juce::String ("plugin")) + ".wclap.tar.gz"),
+                "*.tar.gz");
+            safe->chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+                [safe, complete] (const juce::FileChooser& fc)
+                {
+                    auto file = fc.getResult();
+                    if (file == juce::File() || safe == nullptr) { complete (result (false, "Cancelled.")); return; }
+                    if (! file.getFileName().endsWithIgnoreCase (".tar.gz"))
+                        file = file.getSiblingFile (file.getFileName().upToFirstOccurrenceOf (".wclap", false, true) + ".wclap.tar.gz");
+
+                    // Compiling takes a few seconds — off the message thread. The processor
+                    // outlives the editor, so capture it rather than the editor.
+                    auto* proc = &safe->processor;
+                    std::thread ([proc, file, complete]
+                    {
+                        juce::String message;
+                        const bool ok = proc->exportWebClap (file, message);
+                        juce::MessageManager::callAsync ([complete, ok, message] { complete (result (ok, message)); });
                     }).detach();
                 });
         })

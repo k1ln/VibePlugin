@@ -150,6 +150,22 @@ it edits in place.
   (≈170 MB → ≈30 MB), and re-signs. With a **notarytool profile** in
   **Settings** it also notarizes + staples. See
   [`src/PluginExport.h`](../src/PluginExport.h).
+- **Export WebCLAP…** — a **`.wclap.tar.gz`** bundle for browser-hosted CLAP hosts
+  such as openDAW (*Load Plugin → Import WebCLAP…*). `module.wasm` is the plugin's
+  AssemblyScript compiled together with
+  [`ui/webclap/clap-adapter.ts`](../ui/webclap/clap-adapter.ts) (CLAP entry,
+  parameters, notes/MIDI/sustain, state, `clap.webview`) and a generated `meta.ts`
+  (name + parameter table), by the bundled compiler in `--clap` mode
+  ([`compiler/asc-driver.mjs`](../compiler/asc-driver.mjs): exports the function
+  table as `__indirect_function_table`, growable). `ui/index.html` is the plugin's
+  GUI with [`ui/webclap/shim.js`](../ui/webclap/shim.js) in place of the desktop
+  bridge. See [`src/WebClapExport.h`](../src/WebClapExport.h). It needs a compiler
+  built from the current driver (`compiler/build.sh`). Not supported yet: sample
+  loading. Test a module with `node tests/webclap-smoke.mjs <module.wasm>`, or load
+  the bundle in open-webclap's `modules/juce_webclap/test-host`.
+  Two AssemblyScript traps the adapter works around (comments in the file): function
+  values are `{index, env}` objects, not table indices, and binaryen's gufa pass
+  treats the table as closed, so host callbacks need opaque stand-ins in the table.
 
 ---
 

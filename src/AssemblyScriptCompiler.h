@@ -30,5 +30,20 @@ public:
                   std::vector<uint8_t>& wasmOut,
                   juce::String& diagnosticsOut);
 
+    // The WebCLAP flavour: compiles `adapter` (ui/webclap/clap-adapter.ts) as the entry
+    // point, with the plugin's own source and the generated parameter table importable
+    // as ./plugin and ./meta. The module comes back with its function table exported
+    // (see compiler/asc-driver.mjs --clap). Needs a compiler built from this driver.
+    bool compileWebClap (const juce::String& adapter,
+                         const juce::String& pluginSource,
+                         const juce::String& meta,
+                         std::vector<uint8_t>& wasmOut,
+                         juce::String& diagnosticsOut);
+
+private:
+    bool run (const juce::String& entry, const juce::StringPairArray& siblings, bool clap,
+              std::vector<uint8_t>& wasmOut, juce::String& diagnosticsOut);
+
+public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AssemblyScriptCompiler)
 };

@@ -12,6 +12,26 @@ bool AssemblyScriptCompiler::compile (const juce::String& assembly,
                                       std::vector<uint8_t>& wasmOut,
                                       juce::String& diagnosticsOut)
 {
+    return run (assembly, {}, false, wasmOut, diagnosticsOut);
+}
+
+bool AssemblyScriptCompiler::compileWebClap (const juce::String& adapter,
+                                             const juce::String& pluginSource,
+                                             const juce::String& meta,
+                                             std::vector<uint8_t>& wasmOut,
+                                             juce::String& diagnosticsOut)
+{
+    juce::StringPairArray siblings;
+    siblings.set ("plugin.ts", pluginSource);
+    siblings.set ("meta.ts", meta);
+    return run (adapter, siblings, true, wasmOut, diagnosticsOut);
+}
+
+bool AssemblyScriptCompiler::run (const juce::String& assembly,
+                                  const juce::StringPairArray& siblings, bool clap,
+                                  std::vector<uint8_t>& wasmOut,
+                                  juce::String& diagnosticsOut)
+{
     auto cmd = vstai::settings::compilerCommand();
     if (cmd.isEmpty())
     {
@@ -29,10 +49,13 @@ bool AssemblyScriptCompiler::compile (const juce::String& assembly,
     auto inFile  = dir.getChildFile ("in.ts");
     auto outFile = dir.getChildFile ("out.wasm");
     inFile.replaceWithText (assembly);
+    for (const auto& name : siblings.getAllKeys())
+        dir.getChildFile (name).replaceWithText (siblings[name]);
 
     // Direct exec of the bundled binary — no shell is involved.
     cmd.add (inFile.getFullPathName());
     cmd.add (outFile.getFullPathName());
+    if (clap) cmd.add ("--clap");
     VSTAI_LOG ("running compiler: " + cmd.joinIntoString (" "));
     juce::ChildProcess cp;
 

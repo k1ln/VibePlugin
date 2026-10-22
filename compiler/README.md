@@ -54,3 +54,12 @@ node asc-bundle.mjs ../wasm-template/assembly/synth.ts /tmp/synth.wasm # instrum
 
 (Both produce a ~2 KB module exposing the ABI exports — `getInputPtr`, `process`,
 … and `noteOn`/`noteOff` for the synth.)
+
+## WebCLAP mode
+
+`vstai-asc <adapter.ts> <out.wasm> --clap` compiles the CLAP adapter
+(`ui/webclap/clap-adapter.ts`), which imports `./plugin` and `./meta` from the
+adapter's folder, with `--exportTable`, then patches the module so the table is
+exported as `__indirect_function_table` and has no maximum (a WebCLAP host grows it
+to install its callbacks). Used by *Export WebCLAP…*; rebuild with `./build.sh` after
+pulling a driver change, or the export fails with a missing `plugin.ts`.

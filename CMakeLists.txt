@@ -251,6 +251,21 @@ if(VSTAI_BUILD_TESTS)
         juce::juce_core
         juce::juce_recommended_config_flags
         juce::juce_recommended_warning_flags)
+    # Headless WebCLAP export (tests/webclap_export_test.cpp): the exporter against the
+    # bundled compiler, no editor involved.
+    juce_add_console_app(vstai_webclap_export PRODUCT_NAME "vstai_webclap_export")
+    target_sources(vstai_webclap_export PRIVATE
+        tests/webclap_export_test.cpp
+        src/AssemblyScriptCompiler.cpp
+        src/VstaiDocument.cpp)
+    target_include_directories(vstai_webclap_export PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_compile_definitions(vstai_webclap_export PRIVATE JUCE_STANDALONE_APPLICATION=1)
+    target_compile_options(vstai_webclap_export PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+    target_link_libraries(vstai_webclap_export PRIVATE
+        juce::juce_core
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_warning_flags)
+
     if(APPLE)
         target_link_libraries(vstai_tests PRIVATE "-framework Security" "-framework CoreFoundation")
     elseif(UNIX)

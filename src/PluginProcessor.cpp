@@ -4,6 +4,7 @@
 #include "WebEditor.h"
 #include "LockedEditor.h"
 #include "PluginExport.h"
+#include "WebClapExport.h"
 #include "LlmClient.h"
 #include "AssemblyScriptCompiler.h"
 #include "Prompt.h"
@@ -138,6 +139,17 @@ bool VstaiAudioProcessor::exportToBundle (const juce::File& destBundle,
         messageOut += vstai::u8 ("\n\nWarning: this plugin's GUI never calls window.vstai.onParam, so its "
                                  "knobs won't follow DAW automation or a reopened project (the sound will). "
                                  "Ask the AI to \"make every control follow onParam\", then export again.");
+    return ok;
+}
+
+bool VstaiAudioProcessor::exportWebClap (const juce::File& dest, juce::String& messageOut)
+{
+    const bool ok = vstai::webclap::exportBundle (*compiler, document,
+                                                  [this] (int i) { return (double) engine.getParam (i); },
+                                                  dest, messageOut);
+    if (ok && ! document.params.empty() && ! vstai::guiFollowsHost (document.html))
+        messageOut += vstai::u8 ("\n\nWarning: this plugin's GUI never calls window.vstai.onParam, so its "
+                                 "knobs won't follow host automation (the sound will).");
     return ok;
 }
 

@@ -166,6 +166,10 @@ public:
     bool exportToBundle (const juce::File& destBundle, const juce::String& productName,
                          std::function<void(const juce::String&)> progress, juce::String& messageOut);
 
+    // Export the loaded creation as a WebCLAP bundle (.wclap.tar.gz, see WebClapExport.h).
+    // Compiles, so call it off the message thread.
+    bool exportWebClap (const juce::File& dest, juce::String& messageOut);
+
     // Reset to the blank starter plugin (keeps the model/effort choice).
     void newPlugin();
     void keepGenerationSettings (VstaiDocument& incoming) const;

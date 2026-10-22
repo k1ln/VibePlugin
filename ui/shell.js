@@ -9,7 +9,7 @@ const on = (id, ev, fn) => $(id).addEventListener(ev, fn);
 const N = {};
 for (const name of ["getState","setModel","setGenerationSource","setApplyDesignStyle","setEffort","setThinking","generate",
                     "buildManualPrompt","buildManualUpdatePrompt","applyManualReply","applyManualParts","manualFixPrompt","newDoc","compile","fixWithAI",
-                    "save","load","galleryIndex","galleryLoad","applyPreset","publish","exportPlugin","getStandardUi","saveStandardUi","resetStandardUi",
+                    "save","load","galleryIndex","galleryLoad","applyPreset","publish","exportPlugin","exportWebClap","getStandardUi","saveStandardUi","resetStandardUi",
                     "getSettings","saveSettings","getDesigns","setDesign","removeDesign","exportDesign","importDesign",
                     "getDiagnostics","clearDiagnostics","getPreviewHtml",
                     "openAccount","getAccount","openKeys","getHistory","restoreRevision","ready"])
@@ -53,7 +53,7 @@ function applyTheme(theme){
 function setStatus(text){ $("statusText").textContent = text; }
 function setBusy(busy){
   $("spinner").hidden = !busy;
-  for (const id of ["generateBtn","chatbotBtn","styleChk","newBtn","saveBtn","loadBtn","galleryBtn","publishBtn","exportBtn","compileBtn","fixBtn","revertBtn"])
+  for (const id of ["generateBtn","chatbotBtn","styleChk","newBtn","saveBtn","loadBtn","galleryBtn","publishBtn","exportBtn","exportWebClapBtn","compileBtn","fixBtn","revertBtn"])
     $(id).disabled = busy;
 }
 
@@ -391,6 +391,7 @@ on("saveBtn","click", async () => { const r = await N.save(); setStatus(r ? r.me
 on("loadBtn","click", async () => { const r = await N.load(); if (r && r.ok){ state = await N.getState(); reseed(state); rebuildPresetSelect(state); reloadPreview(); } setStatus(r ? r.message : ""); });
 on("publishBtn","click", async () => { setBusy(true); setStatus("Publishing to the web catalogue…"); const r = await N.publish(); setBusy(false); setStatus(r ? r.message : "Publish failed."); });
 on("exportBtn","click", async () => { setBusy(true); setStatus("Exporting a standalone, locked plugin…"); const r = await N.exportPlugin(); setBusy(false); setStatus(r ? r.message : "Export failed."); });
+on("exportWebClapBtn","click", async () => { setBusy(true); setStatus("Building a WebCLAP bundle…"); const r = await N.exportWebClap(); setBusy(false); setStatus(r ? r.message : "WebCLAP export failed."); });
 
 /* ---------- gallery browser ------------------------------------------ */
 // Browse the online GitHub gallery and load an example plugin on the fly. The
