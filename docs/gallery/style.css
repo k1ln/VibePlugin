@@ -76,6 +76,8 @@ html,body{height:100%}
 .row-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .row-dl{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:2px 7px}
 .row-dl:hover{color:var(--text);border-color:#33415a}
+.bar .dls{display:flex;gap:8px;align-items:center}
+.row-dls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
 .player-pane{position:relative;overflow:hidden;background:#0d1016}
 .player-pane iframe{display:block;width:100%;height:100%;border:0}
 .player-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -113,7 +115,7 @@ body.embed .bar .back{display:none}
    click a gallery item. Sit it left of the title so it clears the top-right "Start
    audio" overlay (.start, below), and slim it to fit the compact bar. */
 body.embed .bar{justify-content:flex-start;gap:12px}
-body.embed #download{order:-1;padding:5px 11px;font-size:12px}
+body.embed .dls .btn{padding:5px 11px;font-size:12px}
 /* full width: the base .player has margin:0 auto, whose auto cross-axis margins
    suppress flex stretch and shrink it to content — reset them so the rack gets
    the whole frame width (more knob columns, shorter rack, nothing clipped). */
@@ -160,3 +162,14 @@ body.embed .deck[hidden], body.embed .inputbar[hidden]{display:none}
   display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;cursor:pointer}
 .key.black{background:linear-gradient(180deg,#1b2230,#0b0e14);color:#7e8aa0;height:62px;width:24px;margin:0 -13px;z-index:2}
 .key.down{background:linear-gradient(180deg,#5b8cff,#2b4fb0);color:#fff}
+
+/* per-OS VST3 download menu (dl.js) */
+.dl-pop{position:relative;display:inline-block}
+.dl-pop button{cursor:pointer;font-family:inherit}
+button.row-dl{background:transparent;line-height:inherit;font-family:inherit}
+button.row-dl:hover{background:transparent}
+.dl-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:30;min-width:150px;display:flex;flex-direction:column;
+  background:#101827;border:1px solid var(--line);border-radius:9px;padding:4px;box-shadow:0 8px 24px #0008}
+.dl-menu[hidden]{display:none}
+.dl-menu a{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text);white-space:nowrap}
+.dl-menu a:hover{background:#1b2740}

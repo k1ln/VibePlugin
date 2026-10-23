@@ -36,6 +36,10 @@ docs/gallery/
   data/*.vstai              the published synths/effects (committed)
   data/index.json           generated catalogue — DO NOT edit by hand
                             (each row has `category` + `categoryOrder`)
+  webclap/*.wclap.tar.gz    one WebCLAP bundle per plugin (committed; rendered locally)
+  webclap/index.json        generated: id -> { file, bytes, hash, params } — DO NOT edit by hand
+  vst3/index.json           generated: id -> { macos|windows|linux: { file, bytes, sha256, cid, signed } }
+                            plus `base`, the bucket URL the zips are downloaded from
   samples/*.wav             120 synthesised, copyright-free test loops
   samples/index.json        generated sample list
 ```
@@ -47,6 +51,53 @@ docs/gallery/
 node scripts/build-gallery.mjs     # rebuild data/index.json
 node scripts/gen-samples.mjs       # (re)generate the royalty-free samples
 ```
+
+### WebCLAP downloads
+
+Every listed plugin also offers a **↓ WebCLAP** download (gallery row + player header): a
+`.wclap.tar.gz` that browser hosts such as openDAW import via *Load Plugin → Import WebCLAP…*.
+The bundles are rendered by the real "Export WebCLAP…" code path and each `module.wasm` is
+smoke-tested (no imports, params in range, finite audio, state round trip) before it is kept:
+
+```sh
+cmake --build build-test --target vstai_webclap_export   # once: the headless exporter
+node scripts/build-webclap-gallery.mjs                   # new/changed plugins only (content hash)
+node scripts/build-webclap-gallery.mjs --force           # re-render everything
+node scripts/build-webclap-gallery.mjs --only doob,acid-bass
+```
+
+Needs the bundled compiler (`compiler/build.sh`); rebuild it if the driver changed. Re-run after
+adding a plugin or editing `ui/webclap/*`, then commit `webclap/`. CI doesn't render them (no
+compiler/C++ toolchain there). Plugins that load samples are skipped — WebCLAP can't carry them yet.
+
+### VST3 downloads (macOS / Windows / Linux, hosted in a Scaleway bucket)
+
+Each plugin can also be downloaded as a **locked, signed, whitelabel `.vst3`** — the same thing the
+editor's *Export plugin…* makes (its own VST3 id + name, GUI only, no authoring chrome). They are
+~11 MB each, ~2.2 GB per OS for the catalogue, so the zips live in a Scaleway Object Storage bucket
+(`<id>-<os>.zip`, public-read) and only the small manifest `vst3/index.json` is in the repo. The
+**↓ VST3 ▾** menu appears once the manifest has a `base` URL and entries.
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=Release …                       # as for a release build
+cmake --build build --target VibePlugin_Synth_VST3 VibePlugin_FX_VST3 vstai_export_vst3
+node scripts/build-vst3-gallery.mjs --notary vibeplugin           # THIS OS: export, sign, (notarize), zip
+node scripts/build-vst3-gallery.mjs --only doob --force           # one plugin
+SCW_BUCKET=… AWS_ACCESS_KEY_ID=… AWS_SECRET_ACCESS_KEY=… \
+  node scripts/build-vst3-gallery.mjs --upload                    # sync this OS's zips to the bucket
+```
+
+* **macOS** is rendered locally (needs the Developer ID cert; `--notary <profile>` notarizes and
+  staples each — ~30 s each, an Accepted ticket is required or the plugin is rejected).
+* **Windows + Linux** are rendered by `.github/workflows/gallery-vst3.yml` (manual run), which also
+  uploads and merges its columns into `vst3/index.json`. Windows zips are Authenticode-signed only
+  if the `WIN_SIGN_PFX_BASE64` secret is set; Linux VST3s have no signing convention.
+* Every export is checked before it is kept: valid signature (macOS), and a **unique VST3 id across
+  the whole set** (a copy that kept VibePlugin's shared id is rejected). Re-runs are cached by a hash
+  of the `.vstai` + the source plugin binary.
+* Bucket setup: create a bucket (e.g. `vibeplugin-gallery`, region `fr-par`), enable public read for
+  objects, and create an API key pair with write access. The public URL is
+  `https://<bucket>.s3.<region>.scw.cloud/vst3/` (pass `--base` or set `SCW_BUCKET` to record it).
 
 ### Categories
 

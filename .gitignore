@@ -38,3 +38,6 @@ package-lock.json
 
 # third-party wavetable pack used by factory/kheverest (BVKER Custom Wavetables) - 128 MB, keep local
 /BVKER-Custom-Wavetables.zip
+
+# Scaleway bucket credentials for scripts/build-vst3-gallery.mjs --upload (never commit)
+/.env.scaleway

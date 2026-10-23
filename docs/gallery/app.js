@@ -1,6 +1,7 @@
 // app.js — the gallery: a searchable list (left) + a live player (right).
 // Clicking an item loads it into the player pane and starts audio. Reads a
 // prebuilt catalogue (data/index.json) — no server.
+import { loadDownloads, webclapLink, vst3Menu } from "./dl.js";
 
 const grid   = document.getElementById("grid");
 const empty  = document.getElementById("empty");
@@ -12,6 +13,7 @@ const copyBtn = document.getElementById("copyLink");
 const openFull = document.getElementById("openFull");
 
 let all = [];
+let dl = { webclap: {}, vst3: { base: "", items: {} } };   // optional WebCLAP / VST3 downloads (dl.js)
 let currentId = null;
 let kind = "all";      // all | synth | effect
 let cat = null;        // one category name, or null for every category
@@ -33,11 +35,16 @@ function row(p) {
      <p class="row-desc"></p>
      <div class="row-foot">
        <span class="muted small">${p.params} param${p.params === 1 ? "" : "s"}</span>
-       <a class="row-dl" href="data/${encodeURIComponent(p.id)}.vstai" download="${p.id}.vstai" title="Download .vstai">↓ .vstai</a>
+       <span class="row-dls">
+         <a class="row-dl" href="data/${encodeURIComponent(p.id)}.vstai" download="${p.id}.vstai" title="Download .vstai">↓ .vstai</a>
+       </span>
      </div>`;
   el.querySelector(".row-name").textContent = p.name;
   el.querySelector(".row-desc").textContent = p.explanation || "";
-  el.querySelector(".row-dl").addEventListener("click", (e) => e.stopPropagation());
+  const dls = el.querySelector(".row-dls");
+  const extras = [vst3Menu(dl, p.id, "row-dl"), webclapLink(dl, p.id, "row-dl")].filter(Boolean);
+  dls.prepend(...extras);
+  for (const a of dls.querySelectorAll("a.row-dl")) a.addEventListener("click", (e) => e.stopPropagation());
   el.addEventListener("click", () => select(p.id, true));
   return el;
 }
@@ -156,6 +163,7 @@ window.addEventListener("keyup", forwardKey("keyup"));
     empty.textContent = "Could not load the catalogue (data/index.json).";
     return;
   }
+  dl = await loadDownloads();
   render();
   const linked = linkedId();
   if (linked) { openLinked(linked); return; }

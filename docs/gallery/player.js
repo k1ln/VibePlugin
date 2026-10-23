@@ -4,6 +4,8 @@
 // lives in data/<id>.vstai. We fetch it, decode the WASM in the browser, and run it
 // in an AudioWorklet (worklet.js) with the SAME ABI as the desktop host.
 
+import { loadDownloads, webclapLink, vst3Menu } from "./dl.js";
+
 const $ = (id) => document.getElementById(id);
 const qs = new URLSearchParams(location.search);
 const id = qs.get("id") || "";
@@ -63,6 +65,12 @@ async function boot() {
   $("badge").classList.add(meta.isInstrument ? "synth" : "fx");
   $("download").href = "data/" + encodeURIComponent(id) + ".vstai";
   $("download").setAttribute("download", id + ".vstai");
+  // WebCLAP bundle / signed VST3 zips, when published (dl.js; both manifests are optional).
+  loadDownloads().then((dl) => {
+    const slot = $("dls");
+    const extras = [vst3Menu(dl, id, "btn"), webclapLink(dl, id, "btn")].filter(Boolean);
+    slot.prepend(...extras);
+  });
   document.title = "VibePlugin · " + meta.name;
   setStatus("Loaded. Press Start audio.");
 
