@@ -18,6 +18,7 @@
 #include "VstaiDocument.h"
 #include "BridgeProtocol.h"
 #include "PluginExport.h"
+#include "SilenceProbe.h"
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <iostream>
@@ -134,6 +135,29 @@ namespace
 
         auto bad = parseParam ("/something/else");
         check (! bad.valid, "non-matching path rejected");
+    }
+
+    // The post-build "dead at its defaults" probe: a working effect/synth is audible, and a
+    // synth run as an effect (no notes) is silent, a gain param at 0 silences the effect.
+    void runSilenceProbeTests (const juce::String& effectWasm, const juce::String& synthWasm)
+    {
+        std::cout << "[silence probe]\n";
+        auto mkParams = [] (std::initializer_list<std::pair<int, double>> kv)
+        {
+            juce::Array<juce::var> arr;
+            for (auto& e : kv)
+            {
+                auto* p = new juce::DynamicObject();
+                p->setProperty ("index", e.first); p->setProperty ("default", e.second);
+                arr.add (juce::var (p));
+            }
+            return juce::var (arr);
+        };
+        const auto fx = readBytes (effectWasm), sy = readBytes (synthWasm);
+        check (! vstai::probeSilentAtDefaults (fx, mkParams ({ { 0, 1.0 }, { 1, 1.0 } }), false), "effect at gain 1 is audible");
+        check (  vstai::probeSilentAtDefaults (fx, mkParams ({ { 0, 0.0 }, { 1, 1.0 } }), false), "effect at gain 0 is reported silent");
+        check (! vstai::probeSilentAtDefaults (sy, mkParams ({ { 0, 0.5 } }), true),     "synth with a held note is audible");
+        check (  vstai::probeSilentAtDefaults (sy, mkParams ({ { 0, 0.5 } }), false),    "synth with no note is reported silent");
     }
 
     void runReferenceTests (const juce::String& effectWasm, const juce::String& synthWasm)
@@ -466,7 +490,10 @@ int main (int argc, char** argv)
     runExportLayoutTests();
 
     if (argc >= 3)
+    {
         runReferenceTests (argv[1], argv[2]);
+        runSilenceProbeTests (argv[1], argv[2]);
+    }
     else
         std::cout << "(skipping engine tests — pass <effect.wasm> <synth.wasm> to run them)\n";
 

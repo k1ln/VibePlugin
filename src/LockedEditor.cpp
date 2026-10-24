@@ -52,26 +52,28 @@ LockedEditor::LockedEditor (VstaiAudioProcessor& p)
     web = std::move (browser);
     addAndMakeVisible (*web);
 
-    if (! processor.getDocument().presets.empty())
+    // Sound bar: ‹ name › — the name opens the browser drawer. Product surface (like a
+    // hardware synth's preset knob), not an authoring escape hatch.
+    auto styleButton = [] (juce::TextButton& b)
     {
-        presetBox = std::make_unique<juce::ComboBox> ("presets");
-        presetBox->setTextWhenNothingSelected ("Presets");
-        presetBox->setColour (juce::ComboBox::backgroundColourId, juce::Colour (0xff141a24));
-        presetBox->setColour (juce::ComboBox::textColourId,       juce::Colour (0xffe7ecf4));
-        presetBox->setColour (juce::ComboBox::outlineColourId,    juce::Colour (0xff243049));
-        presetBox->setColour (juce::ComboBox::arrowColourId,      juce::Colour (0xff8aa0c8));
-        int itemId = 1;
-        for (const auto& preset : processor.getDocument().presets)
-            presetBox->addItem (preset.name.isNotEmpty() ? preset.name
-                                                           : ("Preset " + juce::String (itemId)), itemId++);
-        presetBox->onChange = [safe]
-        {
-            if (safe == nullptr || safe->presetBox == nullptr) return;
-            const int idx = safe->presetBox->getSelectedItemIndex();
-            if (idx >= 0) safe->processor.applyPreset (idx);
-        };
-        addAndMakeVisible (*presetBox);
-    }
+        b.setColour (juce::TextButton::buttonColourId,  juce::Colour (0xff141a24));
+        b.setColour (juce::TextButton::buttonOnColourId, juce::Colour (0xff1d2a3a));
+        b.setColour (juce::TextButton::textColourOffId, juce::Colour (0xffe7ecf4));
+        b.setColour (juce::TextButton::textColourOnId,  juce::Colour (0xffe7ecf4));
+    };
+    prevButton.setButtonText (juce::CharPointer_UTF8 ("\xE2\x80\xB9"));
+    nextButton.setButtonText (juce::CharPointer_UTF8 ("\xE2\x80\xBA"));
+    nameButton.setButtonText ("Sounds");
+    saveButton.setButtonText ("Save");
+    for (auto* b : { &prevButton, &nameButton, &nextButton, &saveButton }) { styleButton (*b); addAndMakeVisible (*b); }
+    saveButton.setTooltip ("Save the current knob positions as a sound (kept on disk)");
+    saveButton.onClick = [safe] { if (safe != nullptr) safe->sendBrowserAction ("save"); };
+    prevButton.setTooltip ("Previous sound");
+    nextButton.setTooltip ("Next sound");
+    nameButton.setTooltip ("Browse sounds: types, tags, favorites");
+    prevButton.onClick = [safe] { if (safe != nullptr) safe->sendBrowserAction ("prev"); };
+    nextButton.onClick = [safe] { if (safe != nullptr) safe->sendBrowserAction ("next"); };
+    nameButton.onClick = [safe] { if (safe != nullptr) safe->sendBrowserAction ("toggle"); };
 
 #if JUCE_MAC
     // Keyups the WKWebView swallows: re-inject into the page (GUI key handlers)
@@ -121,8 +123,13 @@ LockedEditor::~LockedEditor()
 void LockedEditor::resized()
 {
     auto bounds = getLocalBounds();
-    if (presetBox != nullptr)
-        presetBox->setBounds (bounds.removeFromTop (kPresetBarHeight).reduced (4, 2));
+    {
+        auto bar = bounds.removeFromTop (kPresetBarHeight).reduced (4, 2);
+        prevButton.setBounds (bar.removeFromLeft (30));
+        saveButton.setBounds (bar.removeFromRight (56));
+        nextButton.setBounds (bar.removeFromRight (30));
+        nameButton.setBounds (bar.reduced (4, 0));
+    }
     if (web != nullptr) web->setBounds (bounds);
 }
 
@@ -170,10 +177,33 @@ LockedEditor::provideResource (const juce::String& rawUrl)
     return std::nullopt;
 }
 
+void LockedEditor::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colour (0xff0e1319));
+}
+
+void LockedEditor::sendBrowserAction (const char* action)
+{
+    if (web != nullptr && pageReady)
+        web->evaluateJavascript ("window.postMessage({type:'vstai:browser',action:'" + juce::String (action) + "'},'*');");
+}
+
 void LockedEditor::timerCallback()
 {
     reflectParamsToGui();
     reflectDisplayToGui();
+
+    // The sound name only changes when a sound is loaded: poll a few times a second.
+    if (++nameTick >= 8)
+    {
+        nameTick = 0;
+        const auto n = processor.presetController().currentName();
+        if (n != shownPresetName)
+        {
+            shownPresetName = n;
+            nameButton.setButtonText (n.isNotEmpty() ? n : juce::String ("Sounds"));
+        }
+    }
 }
 
 void LockedEditor::reflectDisplayToGui()

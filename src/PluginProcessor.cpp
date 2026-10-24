@@ -1,5 +1,6 @@
 // PluginProcessor.cpp
 #include "PluginProcessor.h"
+#include "SilenceProbe.h"
 #include "PluginEditor.h"
 #include "WebEditor.h"
 #include "LockedEditor.h"
@@ -61,11 +62,22 @@ auto VstaiAudioProcessor::makeBuses() -> BusesProperties
         .withOutput ("Output", juce::AudioChannelSet::stereo(), true);
 }
 
+const char* vstaiIdentityVendor();   // defined at the end of this file
+
 VstaiAudioProcessor::VstaiAudioProcessor()
     : AudioProcessor (makeBuses())
 {
     vstai::dev::initLog (getName());
     setupHostParameters();   // fixed pool of host-automatable params (stable VST3 interface)
+    // The sound browser: factory + the user's own sounds. The vendor names the per-user folder.
+    presets_ = std::make_unique<vstai::presets::Controller> (vstai::presets::Controller::Hooks {
+        [this]() -> const VstaiDocument& { return document; },
+        [] { return juce::String::fromUTF8 (vstaiIdentityVendor()); },
+        [this] (int i) { return getParamValue (i); },
+        [this] (int i, float v) { setParamFromGui (i, v); },
+        vstai::kMaxParams,
+        [] (const juce::File& dir) { juce::MessageManager::callAsync ([dir] { dir.revealToUser(); }); } });
+    gestureTimer.onIdleCheck = [this] { closeIdleGestures (false); };
     // Default generation target. When a model is explicitly pinned (Config.h /
     // $VSTAI_MODEL) honour it and infer its provider; otherwise default to the
     // metered VibePlugin Cloud path — no key, pay with the signed-in account.
@@ -134,8 +146,12 @@ bool VstaiAudioProcessor::exportToBundle (const juce::File& destBundle,
     const juce::String oldName = kIsSynth ? "VibePlugin Synth" : "VibePlugin FX";
     const juce::String oldCode = kIsSynth ? "Vssy" : "Vsfx";
     const juce::String profile = vstai::appsettings::notaryProfile();
-    const bool ok = vstai::pluginexport::exportPlugin (src, destBundle, document, productName,
-                                                       oldName, oldCode, profile, progress, messageOut);
+    // The sounds the user saved in the browser become the product's own factory sounds.
+    VstaiDocument toExport = document;
+    for (auto& p : presets_->userForExport()) toExport.presets.push_back (std::move (p));
+    const bool ok = vstai::pluginexport::exportPlugin (src, destBundle, toExport, productName,
+                                                       oldName, oldCode, profile, progress, messageOut,
+                                                       vstai::appsettings::exportVendor());
     if (ok && ! document.params.empty() && ! vstai::guiFollowsHost (document.html))
         messageOut += vstai::u8 ("\n\nWarning: this plugin's GUI never calls window.vstai.onParam, so its "
                                  "knobs won't follow DAW automation or a reopened project (the sound will). "
@@ -158,6 +174,39 @@ VstaiAudioProcessor::~VstaiAudioProcessor()
 {
     // Tell any in-flight build thread that `this` is gone.
     alive->store (false);
+    gestureTimer.stopTimer();
+    closeIdleGestures (true);
+}
+
+void VstaiAudioProcessor::notifyHostFromGui (int index, float norm)
+{
+    auto guard = alive;
+    juce::MessageManager::callAsync ([this, guard, index, norm]
+    {
+        if (! guard->load()) return;
+        auto* hp = hostParams[(size_t) index];
+        if (! gestureOpen[index]) { hp->beginChangeGesture(); gestureOpen[index] = true; }
+        hp->sendValueChangedMessageToListeners (norm);
+        gestureLastMs[index] = juce::Time::getMillisecondCounter();
+        if (! gestureTimer.isTimerRunning()) gestureTimer.startTimer (100);
+    });
+}
+
+void VstaiAudioProcessor::closeIdleGestures (bool all)
+{
+    const auto now = juce::Time::getMillisecondCounter();
+    bool anyOpen = false;
+    for (int i = 0; i < (int) hostParams.size(); ++i)
+    {
+        if (! gestureOpen[i]) continue;
+        if (all || now - gestureLastMs[i] > 250)
+        {
+            hostParams[(size_t) i]->endChangeGesture();
+            gestureOpen[i] = false;
+        }
+        else anyOpen = true;
+    }
+    if (! anyOpen) gestureTimer.stopTimer();
 }
 
 void VstaiAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
@@ -600,7 +649,7 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
 
         std::vector<uint8_t> wasm;
         juce::String diag;
-        bool guiChecked = false;
+        bool guiChecked = false, silenceChecked = false;
         for (int attempt = 1; ; ++attempt)
         {
             const juce::String asmSrc = artifact.getProperty ("assembly", {}).toString();
@@ -652,6 +701,41 @@ void VstaiAudioProcessor::requestBuild (const juce::String& prompt, BuildProgres
                     VSTAI_LOG ("GUI repair failed - keeping the GUI as generated");
                     streamThinking ("[build] couldn't wire onParam - keeping the GUI as generated\n");
                     artifact = backup; fullAsm = bAsm; fullHtml = bHtml;
+                }
+
+                // Dead at its own defaults (cutoff at 0, level at 0, ...)? Render a second
+                // through a private engine and, if it is silent, ask once for audible defaults.
+                if (! silenceChecked)
+                {
+                    silenceChecked = true;
+                    auto* art2 = artifact.getDynamicObject();
+                    const juce::var paramsVar = art2 != nullptr ? art2->getProperty ("params") : juce::var();
+                    if (paramsVar.getArray() != nullptr && ! paramsVar.getArray()->isEmpty()
+                        && vstai::probeSilentAtDefaults (wasm, paramsVar, kIsSynth))
+                    {
+                        VSTAI_LOG ("plugin is silent at its defaults - asking the model to fix them");
+                        reportProgress ("Fixing silent defaults...");
+                        streamThinking ("[build] the plugin outputs silence at its default settings - "
+                                        "asking the model for audible defaults...\n");
+                        const juce::var    backup = artifact.clone();
+                        const juce::String bAsm = fullAsm, bHtml = fullHtml;
+                        addMsg ("assistant", juce::JSON::toString (artifact, true));
+                        addMsg ("user", vstai::buildSilenceFixMessage (kIsSynth));
+                        if (llm.callMessages (messages, artifact, error) && resolvePatch())
+                        {
+                            auto* nao = artifact.getDynamicObject();
+                            auto* bao = backup.getDynamicObject();
+                            if (nao != nullptr && bao != nullptr)
+                                for (const char* k : { "params", "presets", "name", "explanation" })
+                                    if (! nao->hasProperty (k)) nao->setProperty (k, bao->getProperty (k));
+                            guiChecked = false;     // the rewrite may have dropped onParam again
+                            --attempt;
+                            continue;
+                        }
+                        VSTAI_LOG ("silence repair failed - keeping the plugin as generated");
+                        streamThinking ("[build] couldn't fix the silent defaults - keeping the plugin as generated\n");
+                        artifact = backup; fullAsm = bAsm; fullHtml = bHtml;
+                    }
                 }
 
                 VSTAI_LOG ("compiled OK -> " + juce::String ((int) wasm.size()) + " bytes of wasm");
@@ -903,7 +987,15 @@ void VstaiAudioProcessor::setParamFromGui (int index, float value)
     // (and is recordable as automation). Only for params with real metadata, so
     // we never mis-normalise a control whose range we don't know.
     if (index >= 0 && index < (int) hostParams.size() && hostActive[index])
-        hostParams[index]->setValueNotifyingHost (actualToNorm (index, value));
+    {
+        const float norm = actualToNorm (index, value);
+        auto* hp = hostParams[(size_t) index];
+        // An unchanged value (a GUI re-pushing what it was just given at boot) is not
+        // an edit: don't open a gesture or dirty the host's project for it.
+        if (std::abs (hp->get() - norm) < 1.0e-6f) return;
+        static_cast<juce::AudioProcessorParameter*> (hp)->setValue (norm);   // the audio thread sees it at once
+        notifyHostFromGui (index, norm);      // the host hears it as a gesture, on the message thread
+    }
 }
 
 void VstaiAudioProcessor::applyPreset (int presetIndex)
@@ -1096,3 +1188,38 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new VstaiAudioProcessor();
 }
+
+// ---------------------------------------------------------------------------
+// VST3 factory hooks (see cmake/PatchJuce.cmake, RuntimeIdentity.h): the vendor and
+// plugin name a DAW lists this bundle under. An exported plugin carries them in
+// Resources/identity.json; a normal install has no such file and reports the
+// compiled-in VibePlugin values. Read once, on the first factory call.
+// ---------------------------------------------------------------------------
+namespace
+{
+    struct FactoryIdentity { std::string vendor, name; };
+
+    const FactoryIdentity& factoryIdentity()
+    {
+        static const FactoryIdentity id = []
+        {
+            FactoryIdentity out { JucePlugin_Manufacturer, JucePlugin_Name };
+            const auto bundle = vstai::pluginexport::findOwnBundle();
+            if (bundle != juce::File())
+            {
+                auto f = vstai::identity::fileIn (bundle);
+                if (f.existsAsFile())
+                {
+                    const auto parsed = vstai::identity::parse (f.loadFileAsString());
+                    if (parsed.vendor.isNotEmpty()) out.vendor = parsed.vendor.toStdString();
+                    if (parsed.name.isNotEmpty())   out.name   = parsed.name.toStdString();
+                }
+            }
+            return out;
+        }();
+        return id;
+    }
+}
+
+const char* vstaiIdentityVendor() { return factoryIdentity().vendor.c_str(); }
+const char* vstaiIdentityName()   { return factoryIdentity().name.c_str(); }

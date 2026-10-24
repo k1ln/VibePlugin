@@ -30,6 +30,8 @@ struct VstaiParam
 struct VstaiPreset
 {
     juce::String           name;
+    juce::String           category;   // instrument type for the sound browser ("Bass", "Pad", ...); empty = inferred from the name
+    juce::StringArray      tags;       // free-form tags ("warm", "analog", ...)
     std::map<int, double>  values;
 };
 

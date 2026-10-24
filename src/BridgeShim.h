@@ -25,6 +25,8 @@
 #include <cstring>
 #include "BridgeProtocol.h"
 #include "PluginProcessor.h"
+#include "PresetBrowserUi.h"
+#include "Utf8.h"
 
 namespace vstai::shim
 {
@@ -238,7 +240,9 @@ namespace vstai::shim
     onDisplay: function(cb){ if (typeof cb === 'function') displayCbs.push(cb); },
     noteOn: function(n, v){ n = n|0; held[n] = 1; send('/__vstai/note/' + n + '/' + (v == null ? 1 : v) + '/1'); },
     noteOff: function(n){ n = n|0; delete held[n]; send('/__vstai/note/' + n + '/0/0'); },
-    loadSample: function(file, onProgress){ return loadSample(file, onProgress); }
+    loadSample: function(file, onProgress){ return loadSample(file, onProgress); },
+    // Host transport for the sound browser script that is injected right after this shim.
+    _call: call
   };
   // Safety net for stuck notes: some WebViews (notably WKWebView) don't reliably
   // deliver pointerup/pointerleave to the element that captured the pointer, so an
@@ -333,7 +337,8 @@ namespace vstai::shim
     inline juce::String withBridge (const juce::String& html, const juce::String& initialValuesJson = "{}")
     {
         const juce::String initScript = "<script>window.__vstaiRestored=" + initialValuesJson + ";</script>";
-        const juce::String inject = juce::String (kCharsetMeta) + initScript + kBridgeShim;
+        const juce::String inject = juce::String (kCharsetMeta) + initScript + kBridgeShim
+                                   + vstai::u8 (kPresetBrowserUi);   // the browser's strings are UTF-8 (arrows, star, ellipsis): never let JUCE read them as Latin-1
         int head = html.indexOfIgnoreCase ("<head>");
         if (head >= 0)
             return html.substring (0, head + 6) + inject + html.substring (head + 6);
@@ -345,15 +350,40 @@ namespace vstai::shim
 
     // Show the DAW's native per-parameter menu (Create automation clip, ...) at the
     // mouse. Runs on the message thread. VST3 hosts that implement IComponentHandler3
-    // provide it; if this host does not, there is simply nothing to show.
+    // provide it. Some do not (Bitwig), and for those we show our own small menu so
+    // a right-click still does something useful: it says where this knob lives in the
+    // DAW (every control is already a host parameter) and can reset it.
     inline void showHostParamMenu (juce::AudioProcessorEditor& editor,
                                    VstaiAudioProcessor& processor, int index)
     {
         auto* param = processor.getHostParameterFor (index);
         auto* ctx   = editor.getHostContext();
-        if (param == nullptr || ctx == nullptr) return;
-        if (auto menu = ctx->getContextMenuForParameter (param))
-            menu->showNativeMenu (editor.getMouseXYRelative());
+        if (param == nullptr) return;
+        if (ctx != nullptr)
+            if (auto menu = ctx->getContextMenuForParameter (param))
+            {
+                menu->showNativeMenu (editor.getMouseXYRelative());
+                return;
+            }
+
+        juce::String name = param->getName (64);
+        double def = 0.0;
+        for (const auto& p : processor.getDocument().params)
+            if (p.index == index) { def = p.defVal; break; }
+
+        juce::PopupMenu m;
+        m.addSectionHeader (name);
+        m.addItem (1, "Reset to default");
+        m.addSeparator();
+        m.addItem (-1, "To automate: find \"" + name + "\" in your DAW's", false, false);
+        m.addItem (-2, "parameter list for this plugin", false, false);
+        juce::Component::SafePointer<juce::AudioProcessorEditor> safe (&editor);
+        m.showMenuAsync (juce::PopupMenu::Options().withTargetScreenArea (
+                             juce::Rectangle<int> (juce::Desktop::getMousePosition(), juce::Desktop::getMousePosition()).expanded (1)),
+                         [safe, &processor, index, def] (int r)
+                         {
+                             if (r == 1 && safe != nullptr) processor.setParamFromGui (index, (float) def);
+                         });
     }
 
     // Resolve a GUI->host fetch call (/__vstai/param|note|sample/*) into the matching
@@ -373,6 +403,9 @@ namespace vstai::shim
             if (m.valid) processor.setParamFromGui (m.index, m.value);
             return Resource { toBytes (juce::String ("ok")), "text/plain;charset=UTF-8" };
         }
+        // Sound browser (ui/preset-browser.js): the protocol lives in PresetController.h.
+        if (auto body = processor.presetController().handle (url))
+            return Resource { toBytes (*body), "application/json;charset=UTF-8" };
         if (url.startsWith ("/__vstai/ctxmenu/"))
         {
             const int index = url.fromLastOccurrenceOf ("/", false, false).getIntValue();

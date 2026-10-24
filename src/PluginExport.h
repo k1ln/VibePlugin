@@ -23,6 +23,7 @@
 #include <cstring>
 #include <functional>
 #include "VstaiDocument.h"
+#include "RuntimeIdentity.h"
 #include "Utf8.h"
 
 namespace vstai::pluginexport
@@ -110,6 +111,18 @@ namespace vstai::pluginexport
                     return quoted (l);
         }
         return "-";
+    }
+
+    // ditto / cp -a carry the source's creation + modification times over, so a fresh
+    // export would show the date VibePlugin itself was built (Finder, DAW scanners).
+    // Stamp the bundle folder "now". Directory times are not part of the code seal, so
+    // this is safe after signing; the files inside were already rewritten and are fresh.
+    // (setCreationTime is a no-op on Linux — there is no settable birth time there.)
+    inline void stampBundleNow (const juce::File& bundle)
+    {
+        const auto now = juce::Time::getCurrentTime();
+        bundle.setCreationTime (now);
+        bundle.setLastModificationTime (now);
     }
 
     // Copy a bundle faithfully — modes, symlinks, nested signatures intact.
@@ -339,19 +352,39 @@ namespace vstai::pluginexport
         return "Xpt1";
     }
 
-    // Product name reduced to a safe, <= maxBytes label for the binary/moduleinfo.
-    inline juce::String sanitizeName (const juce::String& name, int maxBytes)
+    // ASCII spelling of common accented Latin letters (Latin-1 Supplement + OE), so a
+    // vendor like "Liberté" becomes "Liberte" rather than losing the letter. JUCE fills
+    // the VST3 *wide* class info by widening each byte, so a UTF-8 name would show up as
+    // mojibake in DAWs that read it; names therefore stay ASCII, and this keeps them readable.
+    inline const char* asciiFold (juce::juce_wchar c)
+    {
+        static const char* const latin1[64] =   // U+00C0 .. U+00FF
+        {
+            "A","A","A","A","A","A","AE","C","E","E","E","E","I","I","I","I",
+            "D","N","O","O","O","O","O","","O","U","U","U","U","Y","Th","ss",
+            "a","a","a","a","a","a","ae","c","e","e","e","e","i","i","i","i",
+            "d","n","o","o","o","o","o","","o","u","u","u","u","y","th","y"
+        };
+        if (c >= 0xC0 && c <= 0xFF) return latin1[c - 0xC0];
+        if (c == 0x152) return "OE";
+        if (c == 0x153) return "oe";
+        return "";
+    }
+
+    // Product name reduced to a safe, ASCII, <= maxBytes label for the binary/moduleinfo.
+    inline juce::String sanitizeName (const juce::String& name, int maxBytes, const juce::String& fallback = "Plugin")
     {
         juce::String out;
         for (int i = 0; i < name.length(); ++i)
         {
-            auto c = name[i];
-            if (juce::CharacterFunctions::isLetterOrDigit (c)
-                || c == ' ' || c == '-' || c == '_' || c == '.' || c == '+' || c == '&')
+            const auto c = name[i];
+            if (c >= 0x80)                         out += asciiFold (c);
+            else if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+                     || c == ' ' || c == '-' || c == '_' || c == '.' || c == '+' || c == '&')
                 out += juce::String::charToString (c);
         }
         out = out.trim();
-        if (out.isEmpty()) out = "Plugin";
+        if (out.isEmpty()) out = fallback;
         while ((int) out.getNumBytesAsUTF8() > maxBytes && out.isNotEmpty())
             out = out.dropLastCharacters (1);
         return out;
@@ -521,6 +554,39 @@ namespace vstai::pluginexport
         mi.replaceWithText (text);
     }
 
+    // --- vendor / company name --------------------------------------------------
+    //
+    // The vendor (what many DAWs group or label a plugin by, e.g. a "Liberty" folder in
+    // the browser) and the list name are NOT patched into the binary: the plugin's VST3
+    // factory reads them from Resources/identity.json (RuntimeIdentity.h), so they can be
+    // any length up to identity::kMaxBytes. Only moduleinfo.json, which some DAWs read
+    // without loading the plugin, is rewritten here to match.
+
+    inline const char* kOriginalVendor = "VibePlugin";
+
+    inline juce::String sanitizeVendor (const juce::String& vendor)
+    {
+        return sanitizeName (vendor.trim(), identity::kMaxBytes, {});   // blank stays blank = keep VibePlugin
+    }
+
+    // Write identity.json + the matching moduleinfo.json vendor. Returns false (+ `warnOut`)
+    // if the files couldn't be written (the export still works, it keeps "VibePlugin").
+    inline bool writeVendor (const juce::File& bundle, const juce::String& vendorIn,
+                             const juce::String& name, juce::String& warnOut)
+    {
+        const juce::String vendor = sanitizeVendor (vendorIn);
+        auto idFile = identity::fileIn (bundle);
+        idFile.getParentDirectory().createDirectory();
+        if (! idFile.replaceWithText (identity::serialise ({ vendor == kOriginalVendor ? juce::String() : vendor, name }), false, false, "\n"))
+        { warnOut = "could not write " + juce::String (identity::kFileName); return false; }
+
+        auto mi = bundle.getChildFile ("Contents").getChildFile ("Resources").getChildFile ("moduleinfo.json");
+        if (vendor.isNotEmpty() && mi.existsAsFile())
+            mi.replaceWithText (mi.loadFileAsString().replace ("\"Vendor\": \"" + juce::String (kOriginalVendor) + "\"",
+                                                              "\"Vendor\": \"" + vendor + "\"", false));
+        return true;
+    }
+
     // Re-identify the copied bundle: unique CID + product list-name. Returns true if
     // the CID was rewritten (a real new plugin); false (+ `warnOut`) means the markers
     // weren't found and the copy keeps VibePlugin's shared id. `newCodeOut` is the id.
@@ -530,7 +596,8 @@ namespace vstai::pluginexport
     {
         const juce::String manuf   = "Vsai";
         const juce::String newCode = derivePluginCode (productName, oldCode);
-        const juce::String newName = sanitizeName (productName, (int) oldName.getNumBytesAsUTF8());
+        const juce::String newName = sanitizeName (productName, (int) oldName.getNumBytesAsUTF8());   // in-binary: same length
+        const juce::String listName = sanitizeName (productName, identity::kMaxBytes);                 // moduleinfo + identity.json
         newCodeOut = newCode;
 
         auto bin = findMainBinary (bundle);
@@ -550,7 +617,7 @@ namespace vstai::pluginexport
         if (! writeInPlace (bin, mb))   { warnOut = "could not write the re-identified binary";    return false; }
         bin.setExecutePermission (true);
 
-        patchModuleInfo (bundle, fourCharHex (manuf + oldCode), fourCharHex (manuf + newCode), oldName, newName);
+        patchModuleInfo (bundle, fourCharHex (manuf + oldCode), fourCharHex (manuf + newCode), oldName, listName);
         return true;
     }
 
@@ -567,7 +634,8 @@ namespace vstai::pluginexport
                               const juce::String& oldCode,
                               const juce::String& notaryProfile,
                               const std::function<void(const juce::String&)>& progress,
-                              juce::String& messageOut)
+                              juce::String& messageOut,
+                              const juce::String& vendor = {})
     {
         auto note = [&progress] (const juce::String& s) { if (progress) progress (s); };
 
@@ -637,6 +705,10 @@ namespace vstai::pluginexport
         juce::String newCode, idWarn;
         const bool uniqueId = patchIdentity (destBundle, oldName, oldCode, baked.name, newCode, idWarn);
 
+        // Optional vendor ("Liberty"): what the DAW browser groups the plugin under.
+        juce::String vendorWarn;
+        const bool vendorOk = writeVendor (destBundle, vendor, sanitizeName (baked.name, identity::kMaxBytes), vendorWarn);
+
         // Sign last so the seal covers the baked doc, the slimmed Resources, and the
         // patched binary + moduleinfo. Hardened runtime => notarizable.
         const bool willNotarize = notaryProfile.isNotEmpty();
@@ -654,6 +726,7 @@ namespace vstai::pluginexport
 
         juce::String notaryOut;
         const bool notarized = ! adHoc && willNotarize && notarize (destBundle, notaryProfile, progress, notaryOut);
+        stampBundleNow (destBundle);
 
         const juce::String idPart = uniqueId
             ? ("its own identity (id " + newCode + ")")
@@ -677,7 +750,11 @@ namespace vstai::pluginexport
             trust = "Signed, but notarization did not complete: " + notaryOut;
        #endif
 
-        messageOut = vstai::u8 ("Exported \xE2\x80\x9C") + baked.name + vstai::u8 ("\xE2\x80\x9D with ") + idPart
+        const auto vendorShown = sanitizeVendor (vendor);
+        const juce::String vendorPart = vendorShown.isEmpty() || vendorShown == kOriginalVendor ? juce::String()
+            : ! vendorOk ? (" (vendor not changed: " + vendorWarn + ")")
+                         : (", vendor \"" + vendorShown + "\"");
+        messageOut = vstai::u8 ("Exported \xE2\x80\x9C") + baked.name + vstai::u8 ("\xE2\x80\x9D with ") + idPart + vendorPart
                    + ", locked to just the GUI. " + trust;
         return true;
     }

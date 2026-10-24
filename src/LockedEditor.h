@@ -28,6 +28,7 @@ public:
     ~LockedEditor() override;
 
     void resized() override;
+    void paint (juce::Graphics&) override;
     void visibilityChanged() override;
 
     // Native stuck-note backstop: flush GUI-held notes whenever the product UI loses
@@ -50,8 +51,14 @@ private:
     // to" editor allows — it's product surface (like a hardware synth's preset
     // knob), not an authoring escape hatch. Only created when the baked document
     // actually carries presets, so a plugin without any looks exactly as before.
+    // Always shown: ‹ sound name › + the browser drawer (ui/preset-browser.js, injected
+    // into the GUI). The buttons just post a message into the page; the name follows
+    // whatever the browser (or a prev/next press) last loaded.
     static constexpr int kPresetBarHeight = 28;
-    std::unique_ptr<juce::ComboBox> presetBox;
+    juce::TextButton prevButton, nameButton, nextButton, saveButton;
+    juce::String shownPresetName;
+    int nameTick = 0;
+    void sendBrowserAction (const char* action);
 
 #if JUCE_MAC
     // FL Studio (macOS) receives keyUp NSEvents but doesn't forward them to the

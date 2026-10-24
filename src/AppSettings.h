@@ -56,6 +56,11 @@ namespace vstai::appsettings
     inline juce::String notaryProfile()                  { return file().getValue ("notaryProfile"); }
     inline void setNotaryProfile (const juce::String& v) { file().setValue ("notaryProfile", v); file().saveIfNeeded(); }
 
+    // Vendor / company written into an exported .vst3 (what DAW browsers group it under,
+    // e.g. "Liberty"). Remembered between exports; blank = keep "VibePlugin".
+    inline juce::String exportVendor()                   { return file().getValue ("exportVendor"); }
+    inline void setExportVendor (const juce::String& v)  { file().setValue ("exportVendor", v); file().saveIfNeeded(); }
+
     inline void setPublishUrl   (const juce::String& v) { file().setValue ("publishUrl", v); file().saveIfNeeded(); }
     inline void setOllamaUrl    (const juce::String& v) { file().setValue ("ollamaBaseUrl",   v); file().saveIfNeeded(); }
     inline void setGlmUrl       (const juce::String& v) { file().setValue ("glmBaseUrl",       v); file().saveIfNeeded(); }

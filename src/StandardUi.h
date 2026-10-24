@@ -204,8 +204,8 @@ namespace vstai
   .pbrow input:focus{outline:none;border-color:var(--accent)}
   .plist{margin-top:6px;max-height:128px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--track)}
   .plist .it{display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;border-bottom:1px solid var(--line)}
-  .plist .it:hover{)HTML"
-        R"HTML(background:var(--panel)}
+  .plist .it:ho)HTML"
+        R"HTML(ver{background:var(--panel)}
   .plist .it.on{background:var(--panel-2);color:#fff}
   .plist .it .fav{color:var(--muted);width:12px;text-align:center}
   .plist .it .fav.y{color:var(--accent)}
@@ -417,9 +417,9 @@ const svgEl=(t,a)=>{ const e=document.createElementNS(ns,t); for(const k in a) e
  *  A real plugin's perceived quality leans heavily on these — right-     *
  *  click any continuous control for reset / fine / MIDI-learn / assign.  *
  * ===================================================================== */
-const tip=document.createElement("div"); tip.className="tip"; document.body.append(tip);
-functi)HTML"
-        R"HTML(on showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
+const tip=document.createElement("div"); tip.className="tip"; document)HTML"
+        R"HTML(.body.append(tip);
+function showTip(t,x,y){ tip.textContent=t; tip.style.left=(x+12)+"px"; tip.style.top=(y+14)+"px"; tip.classList.add("show"); }
 function hideTip(){ tip.classList.remove("show"); }
 function bindTip(el,text){
   el.addEventListener("pointerenter",e=>showTip(typeof text==="function"?text():text,e.clientX,e.clientY));
@@ -633,11 +633,11 @@ function makeNumEditable(num){
 }
 
 /* ===================================================================== *
- *  XY PAD — two params, crosshair, draggable point.                      *
+ *  XY PAD — two params, crosshair, draggable point.         )HTML"
+        R"HTML(             *
  * ===================================================================== */
 function makeXY(host){
-  const ix=+host.dataset.x, iy=+host.datase)HTML"
-        R"HTML(t.y;
+  const ix=+host.dataset.x, iy=+host.dataset.y;
   host.classList.add("xy");
   const vline=document.createElement("div"); vline.className="ch"; vline.style.cssText+="top:0;bottom:0;width:1px";
   const hline=document.createElement("div"); hline.className="ch"; hline.style.cssText+="left:0;right:0;height:1px";
@@ -820,11 +820,11 @@ function makeADSR(host){
 /* ===================================================================== *
  *  MODULATION MATRIX — sources × destinations grid, drag a cell up/down  *
  *  to set bipolar depth. Param index = base + row*nDest + col.           *
- * ===================================================================== */
+ * ==================================================================)HTML"
+        R"HTML(=== */
 function makeModMatrix(host){
   const sources=host.dataset.sources.split(","), dests=host.dataset.dests.split(",");
-  const base=host.dataset.base?+host.dataset.base:5)HTML"
-        R"HTML(0;
+  const base=host.dataset.base?+host.dataset.base:50;
   const tbl=document.createElement("table"); tbl.className="mtx";
   const thead=document.createElement("tr"); thead.append(document.createElement("th"));
   dests.forEach(d=>{ const th=document.createElement("th"); th.textContent=d; thead.append(th); });
@@ -873,6 +873,35 @@ function makeSequencer(host){
  *  PRESET BROWSER — search, categories, favorites, prev/next.            *
  * ===================================================================== */
 function makePresetBrowser(){
+  /* Host sound browser: inside a plugin host (window.vstai.presets) this bar is only the front door to it - prev/next
+     step through the host's sounds, the name opens the browser and shows whatever is loaded. The hard-coded demo list
+     below is the fallback outside a host (e.g. the web player). */
+  if(window.vstai&&window.vstai.presets&&window.vstai.openBrowser){
+    const prev=document.querySelector(".preset-prev"), next=document.querySelector(".preset-next");
+    const field=document.getElementById("presetSearch")||document.getElementById("soundSel");
+    const popup=document.getElementById("presetList"); if(popup) popup.style.display="none";
+    let name=null;
+    if(field&&field.tagName==="SELECT"){ name=document.createElement("button"); name.type="button"; name.className="btn";
+      name.style.cssText="flex:1;min-width:120px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"; field.replaceWith(name); }
+    else if(field){ name=field; name.readOnly=true; name.style.cursor="pointer"; name.placeholder="Sounds\u2026"; }
+    if(name){
+      name.setAttribute("data-vstai-sound","");
+      const show=d=>{ let n=""; d.entries.forEach(e=>{ if(e.id===d.current) n=e.name; });
+        if(name.tagName==="INPUT") name.value=n; else name.textContent=n||"Sounds\u2026"; };
+      name.addEventListener("click",()=>vstai.openBrowser());
+      if(name.tagName==="INPUT") name.addEventListener("focus",()=>{ name.blur(); vstai.openBrowser(); });
+      vstai.presets.onChange(show); vstai.presets.list().catch(()=>{});
+    }
+    if(prev) prev.onclick=()=>vstai.prevPreset();
+    if(next) next.onclick=()=>vstai.nextPreset();
+    // Saving a sound is always one click away: use the kit's Save button, or add one next to the arrows.
+    let save=document.getElementById("saveBtn");
+    if(!save&&next){ save=document.createElement("button"); save.type="button"; save.id="saveBtn";
+      save.className=next.className.replace(/\bpreset-next\b/,"").trim(); save.textContent="Save";
+      save.style.cssText="min-width:0;width:auto;padding-left:10px;padding-right:10px"; next.after(save); }
+    if(save){ save.title="Save the current knob positions as a sound (kept on disk)"; save.onclick=()=>vstai.saveSound(); }
+    return;
+  }
   const PRESETS=[
     {n:"Init",c:"Basic",f:false},{n:"Warm Pad",c:"Pad",f:true},{n:"Acid Bass",c:"Bass",f:false},
     {n:"Glass Keys",c:"Keys",f:true},{n:"Detuned Saw",c:"Lead",f:false},{n:"Sub Boom",c:"Bass",f:false},
@@ -903,6 +932,22 @@ function makePresetBrowser(){
  *  PIANO — playable, calls noteOn/noteOff, highlights held keys.         *
  * ===================================================================== */
 function makeKeyboard(host){
+  /* Collapsible keyboard: a "KEYS" toggle on the panel/dock hides the keys so the rest of the GUI
+     can use the height. Typing-piano and MIDI keep working while collapsed; the state is remembered. */
+  (function(){
+    const box=host.closest(".panel,.dock")||host.parentElement, body=host.closest(".body,.pb")||host, shown=body.style.display;
+    if(getComputedStyle(box).position==="static") box.style.position="relative";
+    if(box.classList.contains("dock")) box.style.paddingTop="26px";   // strip for the toggle, above the keys
+    const b=document.createElement("button"); b.type="button"; b.className="kbd-toggle";
+    b.style.cssText="position:absolute;top:4px;right:8px;z-index:3;border:0;border-radius:3px;background:rgba(18,18,22,.82);color:#e6e6ea;font:inherit;font-size:10px;line-height:14px;letter-spacing:.07em;cursor:pointer;padding:0 7px";
+    box.append(b);
+    const set=c=>{ body.style.display=c?"none":shown; b.textContent=(c?"\u25B8":"\u25BE")+" KEYS";
+      b.title=c?"Show keyboard":"Hide keyboard"; b.setAttribute("aria-expanded",String(!c));
+      try{localStorage.setItem("vstai.kbdCollapsed",c?"1":"0");}catch(e){} dispatchEvent(new Event("resize")); };
+    b.addEventListener("click",()=>set(body.style.display!=="none"));
+    let c0=false; try{c0=localStorage.getItem("vstai.kbdCollapsed")==="1";}catch(e){}
+    set(c0);
+  })();
   const base=48, octaves=3, pattern=[0,2,4,5,7,9,11], blacks={1:0,3:1,6:3,8:4,10:5};
   const whites=[]; for(let o=0;o<octaves;o++) for(const s of pattern) whites.push(base+o*12+s);
   whites.forEach(n=>{ const k=document.createElement("div"); k.className="wk"; k.dataset.note=n; host.append(k); });
@@ -943,7 +988,8 @@ function makeKeyboard(host){
     noteOn(n,100); host.querySelector(`[data-note="${n}"]`)?.classList.add("down");
   });
   document.addEventListener("keyup",e=>kbdRelease(e.code));
-  addEventListener("blur",()=>Object.keys(kbdHeld).forEach(kbdRelease));
+  addEventListene)HTML"
+        R"HTML(r("blur",()=>Object.keys(kbdHeld).forEach(kbdRelease));
 
   onParam(()=>{});  // (real builds may light keys from engine note events)
 }

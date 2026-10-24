@@ -448,6 +448,11 @@ To automate *Drive*, look for a parameter actually called *Drive*. The quickest
 route in most DAWs is to touch the knob and use *add automation for last touched
 parameter*.
 
+- **Right-click on a knob.** If your DAW offers a per-parameter menu to plugins
+  (*Create automation clip…*), right-clicking a knob opens it. Some hosts, Bitwig
+  among them, don't, so you get a small VibePlugin menu instead (*Reset to default*,
+  plus a reminder of the parameter's name). In Bitwig, automate from the device's
+  parameter list / modulator mapping.
 - **Renaming needs a refresh in some DAWs.** Names change the moment you
   generate, and a few hosts cache the old list until you reopen the plugin window
   or the project. The automation itself still points at the right control.
@@ -542,8 +547,10 @@ repair; **Revert** restores the last compiled source.
 - **Publish to the gallery** — uploads your creation to the
   [web gallery](https://k1ln.github.io/VibePlugin/gallery/), where it plays live
   in the browser and others can download it.
-- **Export as a standalone plugin** — **Export plugin…** turns the loaded
-  creation into its own locked `.vst3` with its own name. It opens straight to
+- **Export as a standalone plugin** — **Export plugin…** asks for a vendor /
+  company name (e.g. “Liberty”, so your DAW lists the plugin under that instead of
+  “VibePlugin”) and turns the loaded creation into its own locked `.vst3` with its
+  own name. It opens straight to
   the finished interface with no prompt bar and no editor, so you can give a
   finished instrument to someone who doesn’t care how it was made. On macOS, add
   a notarization profile in **Settings** and it’ll run on any Mac with no
@@ -695,8 +702,9 @@ it edits in place.
 
 **Export plugin… (whitelabel)** turns the loaded creation into a standalone,
 locked `.vst3`. It **copies the running bundle** (no rebuild), bakes the creation
-in, gives the copy its **own VST3 id + product name** (in-place binary patch, so
-it coexists with VibePlugin and other exports), **strips** the bundled compiler
+in, gives the copy its **own VST3 id** (in-place binary patch, so it coexists with
+VibePlugin and other exports) and its **own vendor + product name** (read at load
+time from `Contents/Resources/identity.json`, so they can be up to 63 bytes long), **strips** the bundled compiler
 and editor shell (≈170 MB → ≈30 MB), and re-signs. With a notarytool profile in
 **Settings** it also notarizes and staples. See
 [`src/PluginExport.h`](src/PluginExport.h).

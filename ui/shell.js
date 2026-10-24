@@ -257,6 +257,13 @@ function rebuildPresetSelect(s){
     sel.appendChild(o);
   });
 }
+// Sound browser: the drawer lives inside the GUI frame (injected by the bridge), so we just ask it.
+on("soundsBtn","click", () => {
+  try { $("preview").contentWindow.postMessage({ type: "vstai:browser", action: "toggle" }, "*"); } catch (_) {}
+});
+on("saveSoundBtn","click", () => {
+  try { $("preview").contentWindow.postMessage({ type: "vstai:browser", action: "save" }, "*"); } catch (_) {}
+});
 on("presetSel","change", () => {
   const i = $("presetSel").value;
   if (i === "") return;
@@ -350,6 +357,7 @@ function reseed(s){
   edSet("dsp", s.assembly);
   edSet("html", s.html);
   $("styleChk").checked = !!s.applyDesignStyle;
+  $("guiBanner").hidden = !(s.hasPlugin && s.guiFollowsHost === false);
 }
 
 /* ---------- actions -------------------------------------------------- */
@@ -496,6 +504,34 @@ async function doFix(){
 }
 
 on("generateBtn","click", doGenerate);
+// Prompt box: grows with the text (up to 60% of the window) until the user sizes it
+// themselves; the arrow button toggles between the normal and a tall box.
+{
+  const box = $("promptBox");
+  let manual = false;
+  const fit = () => {
+    if (manual) return;
+    box.style.height = "auto";
+    box.style.height = Math.min(Math.max(box.scrollHeight + 2, 112), window.innerHeight * 0.6) + "px";
+  };
+  box.addEventListener("input", fit);
+  box.addEventListener("mousedown", (e) => { if (e.offsetX > box.clientWidth || e.offsetY > box.clientHeight) manual = true; });
+  on("promptExpand","click", () => {
+    manual = true;
+    const tall = box.offsetHeight > 200;
+    box.style.height = tall ? "112px" : Math.round(window.innerHeight * 0.5) + "px";
+  });
+}
+// A GUI that never registers onParam: ask the model to wire it and nothing else.
+on("guiFixBtn","click", async () => {
+  setBusy(true); setStatus("Making the GUI follow saved and automated values…");
+  const r = await N.generate("Fix ONLY the html GUI: make EVERY control register window.vstai.onParam((index, value) => ...) " +
+    "and repaint itself from `value` when `index` is its own, WITHOUT calling setParam back (no echo). Split any paint() that " +
+    "also pushes into a visuals-only draw(). Keep the layout, look, assembly and parameter indices exactly as they are.", "[]");
+  setBusy(false);
+  state = await N.getState(); reseed(state);
+  setStatus(r && r.ok ? "GUI now follows the host." : "Error: " + (r ? r.message : "unknown"));
+});
 on("styleChk","change", async () => {
   state = await N.setApplyDesignStyle($("styleChk").checked);
   renderDesigns();   // keep the "AI's choice" card in step with the checkbox

@@ -48,8 +48,11 @@ window.addEventListener("unhandledrejection", function (e) {
   <section class="prompt">
     <div class="prompt-main">
       <div id="refImgs" class="refimgs" hidden></div>
+      <div class="promptwrap">
+      <button class="expand" id="promptExpand" type="button" title="Make the prompt box taller / shorter (you can also drag its bottom edge)">&#x2195;</button>
       <textarea id="promptBox" rows="4"
         placeholder="Describe the plugin you want, or a change to make  (Cmd/Ctrl+Enter to generate). Paste or drop a screenshot to use it as the GUI reference."></textarea>
+      </div>
     </div>
     <input type="file" id="refImgInput" accept="image/*" multiple hidden/>
     <div class="prompt-actions">
@@ -72,6 +75,8 @@ window.addEventListener("unhandledrejection", function (e) {
       <button class="btn" id="galleryBtn" title="Browse the online gallery and load an example plugin on the fly">Gallery</button>
       <label class="lbl" id="presetWrap" for="presetSel" hidden>Preset</label>
       <select id="presetSel" hidden></select>
+      <button class="btn" id="soundsBtn" title="Sound browser: search by type and tag, favorites, save your own sounds">Sounds</button>
+      <button class="btn" id="saveSoundBtn" title="Save the current knob positions as a sound (kept on disk, per user)">Save sound</button>
       <button class="btn accent2" id="publishBtn" title="Publish to the web catalogue — play it live in a browser">Publish</button>
       <button class="btn accent2" id="exportBtn" title="Export this creation as a standalone, locked plugin you can hand to others">Export plugin…</button>
       <button class="btn accent2" id="exportWebClapBtn" title="Export this creation as a WebCLAP bundle (.wclap.tar.gz) that runs in the browser, e.g. in openDAW">Export WebCLAP…</button>
@@ -98,6 +103,10 @@ window.addEventListener("unhandledrejection", function (e) {
     <div class="spacer"></div>
     <button class="link" id="thinkToggle" hidden>▸ See reasoning</button>
   </section>
+  <div class="banner" id="guiBanner" hidden>
+    <span>This plugin's GUI can't show saved or automated values - after reopening it, the knobs draw their defaults even though the sound is right.</span>
+    <button class="btn" id="guiFixBtn">Fix GUI</button>
+  </div>
   <pre class="thinking" id="thinkingView" hidden></pre>
 
   <!-- ===== Tabs ===================================================== -->

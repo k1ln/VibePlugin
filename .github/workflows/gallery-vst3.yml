@@ -1,0 +1,182 @@
+# =====================================================================
+#  Render every gallery plugin to a locked whitelabel VST3 for Windows and Linux
+#  (the macOS column is rendered + notarized locally: scripts/build-vst3-gallery.mjs
+#  --notary), zip them, upload the zips to the Scaleway bucket and merge this run's
+#  columns into docs/gallery/vst3/index.json.
+#
+#  Manual: Actions → "gallery vst3" → Run workflow.
+#
+#  Secrets (repo settings):
+#    SCW_BUCKET, SCW_REGION (default fr-par), SCW_PREFIX (default "vst3/")
+#    SCW_ACCESS_KEY, SCW_SECRET_KEY            Scaleway API key pair with write access to the bucket
+#    WIN_SIGN_PFX_BASE64, WIN_SIGN_PFX_PASS    optional Authenticode certificate; without it the
+#                                              Windows zips are unsigned (SmartScreen warns)
+#
+#  NOTE: like release.yml, the Windows/Linux rows are a best-effort starting point — the
+#  identity patch (patchIdentity in src/PluginExport.h) has only been proven on macOS Mach-O.
+#  build-vst3-gallery.mjs fails a plugin whose export kept VibePlugin's shared id or whose
+#  VST3 id collides, so a bad run is loud rather than publishing duplicates.
+# =====================================================================
+name: gallery vst3
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated plugin ids (empty = the whole catalogue)"
+        required: false
+      upload:
+        description: "Upload the zips to the bucket"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # commit the merged manifest
+
+env:
+  WASMTIME_VERSION: "v27.0.0"
+
+jobs:
+  render:
+    name: render (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: linux,   runner: ubuntu-22.04, wasmtime_asset: x86_64-linux-c-api.tar.xz,  wasmtime_lib: lib/libwasmtime.a }
+          - { os: windows, runner: windows-2022, wasmtime_asset: x86_64-windows-c-api.zip,   wasmtime_lib: lib/wasmtime.lib }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+
+      - name: Install Linux deps
+        if: matrix.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libasound2-dev libgtk-3-dev \
+            libwebkit2gtk-4.1-dev libfreetype6-dev libfontconfig1-dev ninja-build zip
+
+      - name: Fetch wasmtime c-api
+        shell: bash
+        run: |
+          set -e
+          base="https://github.com/bytecodealliance/wasmtime/releases/download/${WASMTIME_VERSION}"
+          asset="wasmtime-${WASMTIME_VERSION}-${{ matrix.wasmtime_asset }}"
+          mkdir -p "$RUNNER_TEMP/wasmtime"
+          curl -fSL "$base/$asset" -o "$RUNNER_TEMP/$asset"
+          case "$asset" in
+            *.zip)    unzip -q "$RUNNER_TEMP/$asset" -d "$RUNNER_TEMP/wasmtime" ;;
+            *.tar.xz) tar -xf "$RUNNER_TEMP/$asset" -C "$RUNNER_TEMP/wasmtime" --strip-components=1 ;;
+          esac
+          inner=$(find "$RUNNER_TEMP/wasmtime" -maxdepth 1 -type d -name 'wasmtime-*-c-api' | head -1)
+          if [ -n "$inner" ]; then cp -R "$inner"/. "$RUNNER_TEMP/wasmtime"/; fi
+          echo "WASMTIME_DIR=$RUNNER_TEMP/wasmtime" >> "$GITHUB_ENV"
+
+      - name: Fetch WebView2 SDK (Windows)
+        if: matrix.os == 'windows'
+        shell: bash
+        run: |
+          set -e
+          ver="1.0.1901.177"
+          dest="$RUNNER_TEMP/nuget/Microsoft.Web.WebView2.$ver"
+          mkdir -p "$dest"
+          curl -fSL --retry 3 "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/$ver/microsoft.web.webview2.$ver.nupkg" -o "$RUNNER_TEMP/webview2.nupkg"
+          unzip -q "$RUNNER_TEMP/webview2.nupkg" -d "$dest"
+          echo "JUCE_WEBVIEW2_PACKAGE_LOCATION=$RUNNER_TEMP/nuget" >> "$GITHUB_ENV"
+
+      # The locked export strips the compiler, so none is needed here — only the plugin
+      # binaries the exports are copied from, and the headless exporter.
+      - name: Configure
+        shell: bash
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release \
+            -DWASMTIME_DIR="$WASMTIME_DIR" \
+            -DWASMTIME_LIB="$WASMTIME_DIR/${{ matrix.wasmtime_lib }}" \
+            ${JUCE_WEBVIEW2_PACKAGE_LOCATION:+-DJUCE_WEBVIEW2_PACKAGE_LOCATION="$JUCE_WEBVIEW2_PACKAGE_LOCATION"}
+
+      - name: Build plugins + exporter
+        shell: bash
+        run: |
+          # Linux serializes (-j 1): parallel JUCE builds race on BinaryData (see release.yml).
+          cmake --build build --config Release ${{ matrix.os == 'linux' && '-j 1' || '-j' }} \
+            --target VibePlugin_Synth_VST3 VibePlugin_FX_VST3 vstai_export_vst3
+
+      - name: Windows signing certificate
+        if: matrix.os == 'windows'
+        shell: bash
+        env:
+          PFX: ${{ secrets.WIN_SIGN_PFX_BASE64 }}
+          PFX_PASS: ${{ secrets.WIN_SIGN_PFX_PASS }}
+        run: |
+          if [ -n "$PFX" ]; then
+            echo "$PFX" | base64 -d > "$RUNNER_TEMP/sign.pfx"
+            echo "VSTAI_WIN_SIGN_PFX=$RUNNER_TEMP/sign.pfx" >> "$GITHUB_ENV"
+            echo "VSTAI_WIN_SIGN_PASS=$PFX_PASS" >> "$GITHUB_ENV"
+          else
+            echo "no WIN_SIGN_PFX_BASE64 secret — Windows zips will be unsigned"
+          fi
+
+      - name: Render + zip
+        id: render
+        continue-on-error: true      # one bad plugin must not block the rest; failed again at the end
+        shell: bash
+        run: |
+          node scripts/build-vst3-gallery.mjs --jobs 4 \
+            ${{ inputs.only && format('--only {0}', inputs.only) || '' }}
+
+      - name: Upload to Scaleway
+        if: ${{ !cancelled() && inputs.upload }}
+        shell: bash
+        env:
+          SCW_BUCKET: ${{ secrets.SCW_BUCKET }}
+          SCW_REGION: ${{ secrets.SCW_REGION }}
+          SCW_PREFIX: ${{ secrets.SCW_PREFIX }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SCW_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SCW_SECRET_KEY }}
+        run: |
+          # Re-run in cache-only mode: nothing is re-rendered, just synced to the bucket.
+          node scripts/build-vst3-gallery.mjs --upload \
+            ${{ inputs.only && format('--only {0}', inputs.only) || '' }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: vst3-${{ matrix.os }}
+          path: docs/gallery/vst3/index.json
+
+      - name: Fail if any plugin failed to render
+        if: steps.render.outcome == 'failure'
+        run: echo "some plugins failed to render — see the Render step" && exit 1
+
+  manifest:
+    name: merge manifest
+    needs: render
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/download-artifact@v4
+        with:
+          path: parts
+          pattern: vst3-*
+      # Each job rendered its own OS column into its copy of index.json; take each OS's column
+      # from the job that owns it and keep every other column (e.g. macOS) from main.
+      - name: Merge
+        run: |
+          args=""
+          for os in linux windows; do [ -f "parts/vst3-$os/index.json" ] && args="$args $os=parts/vst3-$os/index.json"; done
+          node scripts/merge-vst3-manifest.mjs $args
+      - name: Commit
+        run: |
+          if ! git diff --quiet -- docs/gallery/vst3/index.json; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/gallery/vst3/index.json
+            git commit -m "gallery: VST3 downloads for windows/linux"
+            git push
+          fi

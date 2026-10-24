@@ -9,6 +9,7 @@
 #include "WasmEngine.h"
 #include "MidiRouter.h"
 #include "VstaiDocument.h"
+#include "PresetController.h"
 
 class AssemblyScriptCompiler;
 
@@ -130,6 +131,12 @@ public:
     // listening GUI all pick it up through the existing param-change paths — no
     // separate propagation needed). No-op if index is out of range.
     void applyPreset (int presetIndex);
+
+    // --- Sound browser ("Pro browser", see PresetController.h) -------------------------
+    // Factory sounds (document.presets) and the user's own, with instrument type, tags and
+    // favourites. The WebView bridge, the locked editor's sound bar and Export all go
+    // through this; it is safe to call from any thread.
+    vstai::presets::Controller& presetController() { return *presets_; }
     bool  hasDisplay() const               { return engine.hasDisplay(); }
     float getDisplayValue (int i) const    { return engine.getDisplay (i); }
 
@@ -256,6 +263,22 @@ private:
         return r != 0.0f ? juce::jlimit (0.0f, 1.0f, (value - hostMin[i]) / r) : 0.0f;
     }
 
+    // GUI drags reach the host as proper begin/perform/end edits. A host that gets a
+    // value change with no gesture (Bitwig, notably) may ignore it and later push its
+    // own stored value back - the "settings revert when I reopen the editor" bug - and
+    // cannot record the move as automation either. A gesture opens on the first GUI
+    // write to a param and closes once it has been quiet for a moment.
+    struct GestureIdleTimer : juce::Timer
+    {
+        std::function<void()> onIdleCheck;
+        void timerCallback() override { if (onIdleCheck) onIdleCheck(); }
+    };
+    void notifyHostFromGui (int index, float norm);
+    void closeIdleGestures (bool all);
+    GestureIdleTimer gestureTimer;
+    bool             gestureOpen[vstai::kMaxParams] = { false };
+    juce::uint32     gestureLastMs[vstai::kMaxParams] = { 0 };
+
     std::vector<VstaiHostParameter*> hostParams;       // pool; owned by the AudioProcessor base
     float hostMin[vstai::kMaxParams] = { 0 };
     float hostMax[vstai::kMaxParams];                  // initialised to 1 in setupHostParameters
@@ -263,6 +286,8 @@ private:
 
     WasmEngine    engine;
     VstaiDocument document;
+
+    std::unique_ptr<vstai::presets::Controller> presets_;   // the sound browser (created in the constructor)
     juce::String  previewOverrideHtml;     // see setPreviewOverrideHtml()
     bool          lockedFromBundle = false;   // a baked creation / force-lock was found
     std::shared_ptr<AssemblyScriptCompiler> compiler; // shared so module JIT is reused

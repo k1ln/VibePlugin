@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(VibePlugin VERSION 0.5.4 LANGUAGES C CXX)
+project(VibePlugin VERSION 0.5.5 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,6 +22,8 @@ FetchContent_Declare(
     GIT_TAG        8.0.15
     GIT_SHALLOW    TRUE)
 FetchContent_MakeAvailable(JUCE)
+option(VSTAI_COPY_AFTER_BUILD "Install the built plugin into the user's VST3 folder after each build (macOS/Linux)" ON)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PatchJuce.cmake)   # vendor/name read from identity.json at load time
 
 # wasmtime C API. Download a prebuilt "c-api" release for your platform from
 #   https://github.com/bytecodealliance/wasmtime/releases
@@ -103,7 +105,7 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
     if(WIN32)
         set(COPY_AFTER_BUILD FALSE)
     else()
-        set(COPY_AFTER_BUILD TRUE)
+        set(COPY_AFTER_BUILD ${VSTAI_COPY_AFTER_BUILD})
     endif()
 
     juce_add_plugin(${TARGET}
@@ -132,6 +134,7 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         JUCE_VST3_CAN_REPLACE_VST2=0
         JUCE_DISPLAY_SPLASH_SCREEN=0
         VSTAI_IS_SYNTH=${SYNTH_DEF}
+        VSTAI_RUNTIME_IDENTITY=1
         VSTAI_DEV_MODE=$<BOOL:${VSTAI_DEV_MODE}>
         VSTAI_BUILD_ID="${VSTAI_BUILD_ID}"
         # Windows: defining this flips JUCE_USE_WIN_WEBVIEW2 on in juce_gui_extra,
@@ -207,7 +210,9 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
     # folder *before* the embed step above runs, so the installed copy would be
     # missing the compiler. Re-embed it into the installed bundle's Resources.
     # (macOS user VST3 folder; this is the path the plugin loads from in a DAW.)
-    if(APPLE AND TARGET ${TARGET}_VST3)
+    # Only when installing: with -DVSTAI_COPY_AFTER_BUILD=OFF a build must not touch the
+    # installed bundle (editing its Resources invalidates the code signature seal).
+    if(APPLE AND TARGET ${TARGET}_VST3 AND VSTAI_COPY_AFTER_BUILD)
         add_custom_command(TARGET ${TARGET}_VST3 POST_BUILD
             COMMAND ${CMAKE_COMMAND}
                     -DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}/compiler
@@ -274,6 +279,49 @@ if(VSTAI_BUILD_TESTS)
         target_link_libraries(vstai_tests PRIVATE ws2_32 advapi32 userenv ntdll shell32 ole32 bcrypt)
     endif()
 endif()
+
+# The real preset Controller behind a stdin/stdout protocol: drives the in-plugin sound browser
+# end to end from a web page (scripts/preset-browser-demo.mjs). juce_core only.
+juce_add_console_app(vstai_preset_bridge PRODUCT_NAME "vstai_preset_bridge")
+target_sources(vstai_preset_bridge PRIVATE
+    tests/preset_bridge_cli.cpp
+    src/VstaiDocument.cpp)
+target_include_directories(vstai_preset_bridge PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_definitions(vstai_preset_bridge PRIVATE JUCE_STANDALONE_APPLICATION=1)
+target_compile_options(vstai_preset_bridge PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+target_link_libraries(vstai_preset_bridge PRIVATE
+    juce::juce_core
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags)
+
+# Headless sound-browser data layer (tests/preset_store_test.cpp): juce_core only.
+juce_add_console_app(vstai_preset_test PRODUCT_NAME "vstai_preset_test")
+target_sources(vstai_preset_test PRIVATE
+    tests/preset_store_test.cpp
+    src/VstaiDocument.cpp)
+target_include_directories(vstai_preset_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_definitions(vstai_preset_test PRIVATE JUCE_STANDALONE_APPLICATION=1)
+target_compile_options(vstai_preset_test PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+target_link_libraries(vstai_preset_test PRIVATE
+    juce::juce_core
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags)
+
+# Headless locked-VST3 export (tests/vst3_export_test.cpp): the editor's "Export plugin…"
+# without the editor, so scripts/build-vst3-gallery.mjs can render the whole gallery. Not behind
+# VSTAI_BUILD_TESTS: it needs only juce_core, so CI builds it on every OS next to the plugins.
+juce_add_console_app(vstai_export_vst3 PRODUCT_NAME "vstai_export_vst3")
+target_sources(vstai_export_vst3 PRIVATE
+    tests/vst3_export_test.cpp
+    src/VstaiDocument.cpp)
+target_include_directories(vstai_export_vst3 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_definitions(vstai_export_vst3 PRIVATE JUCE_STANDALONE_APPLICATION=1)
+target_compile_options(vstai_export_vst3 PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+target_link_libraries(vstai_export_vst3 PRIVATE
+    juce::juce_core
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_warning_flags)
+
 
 # The bundled compiler (vstai-asc, or vstai-node + asc-bundle.mjs) is copied next
 # to each plugin binary automatically at build time (see add_vstai_plugin above).

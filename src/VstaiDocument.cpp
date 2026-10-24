@@ -50,6 +50,13 @@ namespace
     {
         auto* po = new juce::DynamicObject();
         po->setProperty ("name", p.name);
+        if (p.category.isNotEmpty()) po->setProperty ("category", p.category);
+        if (! p.tags.isEmpty())
+        {
+            juce::Array<juce::var> tv;
+            for (const auto& t : p.tags) tv.add (t);
+            po->setProperty ("tags", tv);
+        }
         auto* vo = new juce::DynamicObject();
         for (const auto& kv : p.values)
             vo->setProperty (juce::String (kv.first), kv.second);
@@ -63,6 +70,9 @@ namespace
         if (auto* po = pv.getDynamicObject())
         {
             p.name = po->getProperty ("name").toString();
+            p.category = po->getProperty ("category").toString();
+            if (auto* tv = po->getProperty ("tags").getArray())
+                for (const auto& t : *tv) p.tags.add (t.toString());
             if (auto* vo = po->getProperty ("values").getDynamicObject())
                 for (const auto& prop : vo->getProperties())
                     p.values[prop.name.toString().getIntValue()] = (double) prop.value;

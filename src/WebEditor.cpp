@@ -4,6 +4,7 @@
 #include "BridgeProtocol.h"
 #include "BridgeShim.h"
 #include "AppSettings.h"
+#include "PluginExport.h"
 #include "WebAssets.h"
 #include "WebClapExport.h"
 #include "Prompt.h"
@@ -554,41 +555,61 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 complete (result (false, "Generate a plugin first, then export it."));
                 return;
             }
-            const auto suggested = safe->processor.getDocument().name;
-            safe->chooser = std::make_unique<juce::FileChooser> (
-                "Export as a standalone, locked plugin (.vst3)",
-                juce::File::getSpecialLocation (juce::File::userDesktopDirectory)
-                    .getChildFile ((suggested.isNotEmpty() && suggested != "Untitled" ? suggested
-                                                                                      : juce::String ("My Plugin")) + ".vst3"),
-                "*.vst3");
-            safe->chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
-                [safe, complete] (const juce::FileChooser& fc)
-                {
-                    auto file = fc.getResult();
-                    if (file == juce::File() || safe == nullptr) { complete (result (false, "Cancelled.")); return; }
-                    if (! file.getFileName().endsWithIgnoreCase (".vst3"))
-                        file = file.getSiblingFile (file.getFileName() + ".vst3");
-                    const auto productName = file.getFileNameWithoutExtension();
-
-                    // Copy + bake + re-sign shells out to ditto/codesign and can take a
-                    // few seconds — run it off the message thread. Capture the processor
-                    // (it outlives the editor) rather than dereferencing the editor there.
-                    auto* proc = &safe->processor;
-                    std::thread ([proc, safe, file, productName, complete]
+            // Ask for the vendor first: it is what DAW browsers group the plugin under
+            // (e.g. a "Liberty" folder instead of "VibePlugin"). Remembered between exports.
+            auto proceed = [safe, complete]
+            {
+                if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
+                const auto suggested = safe->processor.getDocument().name;
+                safe->chooser = std::make_unique<juce::FileChooser> (
+                    "Export as a standalone, locked plugin (.vst3)",
+                    juce::File::getSpecialLocation (juce::File::userDesktopDirectory)
+                        .getChildFile ((suggested.isNotEmpty() && suggested != "Untitled" ? suggested
+                                                                                          : juce::String ("My Plugin")) + ".vst3"),
+                    "*.vst3");
+                safe->chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
+                    [safe, complete] (const juce::FileChooser& fc)
                     {
-                        // Surface each stage (copy / sign / notarize / staple) in the
-                        // status line — notarization alone can take a few minutes.
-                        auto progress = [safe] (const juce::String& s)
+                        auto file = fc.getResult();
+                        if (file == juce::File() || safe == nullptr) { complete (result (false, "Cancelled.")); return; }
+                        if (! file.getFileName().endsWithIgnoreCase (".vst3"))
+                            file = file.getSiblingFile (file.getFileName() + ".vst3");
+                        const auto productName = file.getFileNameWithoutExtension();
+
+                        // Copy + bake + re-sign shells out to ditto/codesign and can take a
+                        // few seconds — run it off the message thread. Capture the processor
+                        // (it outlives the editor) rather than dereferencing the editor there.
+                        auto* proc = &safe->processor;
+                        std::thread ([proc, safe, file, productName, complete]
                         {
-                            juce::MessageManager::callAsync ([safe, s]
-                                { if (safe != nullptr) safe->emitEvent ("stage", s); });
-                        };
-                        juce::String message;
-                        const bool ok = proc->exportToBundle (file, productName, progress, message);
-                        const juce::String msg = ok ? message : ("Export failed: " + message);
-                        juce::MessageManager::callAsync ([complete, ok, msg] { complete (result (ok, msg)); });
-                    }).detach();
-                });
+                            // Surface each stage (copy / sign / notarize / staple) in the
+                            // status line — notarization alone can take a few minutes.
+                            auto progress = [safe] (const juce::String& s)
+                            {
+                                juce::MessageManager::callAsync ([safe, s]
+                                    { if (safe != nullptr) safe->emitEvent ("stage", s); });
+                            };
+                            juce::String message;
+                            const bool ok = proc->exportToBundle (file, productName, progress, message);
+                            const juce::String msg = ok ? message : ("Export failed: " + message);
+                            juce::MessageManager::callAsync ([complete, ok, msg] { complete (result (ok, msg)); });
+                        }).detach();
+                    });
+            };
+            auto* aw = new juce::AlertWindow ("Export plugin",
+                "Vendor / company name your DAW's plugin browser lists the plugin under, "
+                "e.g. \"Liberty\". Blank keeps \"VibePlugin\".", juce::MessageBoxIconType::NoIcon);
+            aw->addTextEditor ("vendor", vstai::appsettings::exportVendor(), "Vendor / company");
+            aw->addButton ("Continue", 1, juce::KeyPress (juce::KeyPress::returnKey));
+            aw->addButton ("Cancel",   0, juce::KeyPress (juce::KeyPress::escapeKey));
+            aw->enterModalState (true, juce::ModalCallbackFunction::create ([safe, aw, complete, proceed] (int r)
+            {
+                if (safe == nullptr) return;   // editor gone: `complete`'s bridge is dead too
+                if (r != 1) { complete (result (false, "Cancelled.")); return; }
+                vstai::appsettings::setExportVendor (vstai::pluginexport::sanitizeVendor (aw->getTextEditorContents ("vendor")));
+                proceed();
+            }), true);
+            safe->trackDialog (aw);
         })
         // ---- export as a WebCLAP bundle (browser-hosted CLAP, e.g. openDAW) ----
         .withNativeFunction ("exportWebClap", [safe] (const VarArray&, Completion complete)
@@ -1207,6 +1228,10 @@ juce::var WebEditor::currentState() const
     o->setProperty ("models",    modelCatalog (ollamaModels));
     o->setProperty ("isInstrument", processor.isInstrument());
     o->setProperty ("hasPlugin", d.hasPlugin());
+    // False when the saved GUI never registers onParam: its knobs then draw their
+    // built-in defaults after a reopen / automation although the sound is right.
+    o->setProperty ("guiFollowsHost", d.html.isEmpty() || d.params.empty()
+                                          || vstai::guiFollowsHost (d.html));
     o->setProperty ("name",      d.name);
     o->setProperty ("assembly",  d.assembly);
     o->setProperty ("html",      d.html.isNotEmpty() ? d.html : processor.getDisplayHtml());

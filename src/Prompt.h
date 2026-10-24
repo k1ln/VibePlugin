@@ -134,6 +134,13 @@ DSP RULES
   but simple phase-ramp oscillators (saw/square/tri) need no transcendentals and
   the host already passes frequency in Hz.
 - Clamp params to sane ranges; guard divides; keep output roughly in [-1, 1].
+- AUDIBLE OUT OF THE BOX. The plugin must make sound at its DEFAULT parameter values.
+  Never default a level/gain/mix/amount to 0, and never let a filter cutoff at its
+  default or at its minimum silence the signal: map a cutoff exponentially from a
+  sane floor (>= 20 Hz) to the top of the band, default it around the middle or wide
+  open, and clamp the derived frequency/coefficient so the filter stays stable and
+  open at the bottom of the knob. Do not multiply the output by a raw parameter
+  that can be 0 unless 0 is meant as "off".
 
 ============================================================
 REFERENCE MODULES (copy this structure)
@@ -310,6 +317,27 @@ THE GUI  (single self-contained HTML document)
   Document them in the params list you return.
 - For an instrument, include a playable on-screen keyboard that calls
   window.vstai.noteOn/noteOff so the user can play it without external MIDI.
+  The keyboard MUST ALWAYS be collapsible: put a visible toggle on its panel or dock
+  (a small "▾ KEYS" / "▸ KEYS" button, as in the component kit) that hides the keys so
+  the rest of the GUI can use the height, and shows them again. Start expanded, remember
+  the state with localStorage (inside try/catch), and keep the toggle visible while the
+  keys are hidden. The computer-keyboard typing piano and MIDI input must keep working
+  while it is collapsed.
+- SOUNDS (REQUIRED in every GUI, instrument or effect): the user must always be able to
+  save the current sound and load it back later. The host provides this - a sound browser
+  with instrument types, tags, favorites, and the user's own saved sounds, stored on the
+  user's disk - so NEVER hard-code a preset list, build your own preset popup, or keep
+  presets in the page. Every GUI MUST include a sound bar, normally in the header, with:
+    * a button (or read-only field) showing the current sound's name that calls
+      window.vstai.openBrowser() when clicked;
+    * prev/next buttons calling window.vstai.prevPreset() and window.vstai.nextPreset();
+    * a clearly visible SAVE button calling window.vstai.saveSound(), which opens the
+      host's save dialog (name, type, tags) and writes the sound to disk.
+  Keep the name current with window.vstai.presets.onChange(function(d){ /* d.current is
+  the id of the loaded sound, d.entries is [{id,name,category,tags,favorite}] */ }) and call
+  window.vstai.presets.list() once at start. Guard it with
+  if (window.vstai && window.vstai.presets) so the GUI still works outside a plugin host.
+  The component kit's header sound bar already does exactly this - keep it as it is.
 - Initialise controls to defaults and call setParam once on load.
 
 ------------------------------------------------------------
@@ -359,7 +387,7 @@ Within the no-external-resources rule:
   PERFORMANCE), as a numbered tab bar under the header with an accent underline on
   the active tab. Keep each page fully visible without scrolling, and keep the
   header (title, preset / sound selector, output meter, master) and - for
-  instruments - the playable keyboard visible on every tab. Small plugins (a
+  instruments - the playable keyboard (collapsible, see above) on every tab. Small plugins (a
   handful of controls) stay on one page with no tabs.
   SHOW THE SOUND. Where it fits the plugin, give each oscillator a live waveform
   preview, the filter a live response curve, each envelope a draggable ADSR graph
@@ -556,7 +584,10 @@ the compiler to complain:
             ? juce::String ("TARGET: INSTRUMENT / SYNTH. Ignore the input buffer; synthesize "
                             "into the output buffer. Export noteOn(noteId, freq, velocity) and "
                             "noteOff(noteId) - the host converts MIDI notes to Hz and calls them. "
-                            "Include a playable on-screen keyboard in the GUI. Also wire the "
+                            "Include a playable on-screen keyboard in the GUI, and ALWAYS make it "
+                            "collapsible: a visible 'KEYS' toggle on its panel/dock hides and shows "
+                            "the keys (start expanded, remember the state, keep the toggle visible "
+                            "when collapsed, and let the other panels reclaim the height). Also wire the "
                             "computer keyboard to it like a hardware 'typing piano': on keydown, "
                             "map code KeyA..Semicolon to one chromatic octave+ (KeyA=C, KeyW=C#, "
                             "KeyS=D, KeyE=D#, KeyD=E, KeyF=F, KeyT=F#, KeyG=G, KeyY=G#, KeyH=A, "
@@ -722,7 +753,20 @@ the compiler to complain:
     // value. (A string test, not a proof - persist-check.mjs is the real gate.)
     inline bool guiFollowsHost (const juce::String& html)
     {
-        return html.contains ("onParam");
+        // A real call: "onParam" followed by "(" - not a bare mention, and not one that
+        // sits behind a // comment on its line.
+        int from = 0;
+        for (;;)
+        {
+            const int at = html.indexOf (from, "onParam");
+            if (at < 0) return false;
+            from = at + 7;
+            const auto after = html.substring (from).trimStart();
+            if (! after.startsWithChar ('(')) continue;
+            const int lineStart = html.substring (0, at).lastIndexOfChar ('\n') + 1;
+            if (html.substring (lineStart, at).contains ("//")) continue;
+            return true;
+        }
     }
 
     inline juce::String buildGuiFollowMessage()
