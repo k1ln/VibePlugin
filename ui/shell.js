@@ -455,6 +455,7 @@ async function doGenerate(){
     const multi = total0 > 1 || done > 0 || queue.length > 1;
     setStatus(multi ? "Step " + (done + 1) + " (" + (queue.length - 1) + " more): " + (step.title || "build") + " - generating with AI…"
                     : "Generating with AI…");
+    if (done === 0 && refImages.length) setStatus($("statusText").textContent + " (" + refImages.length + " reference image" + (refImages.length > 1 ? "s" : "") + ")");
     r = await N.generate(step.prompt, JSON.stringify(done === 0 ? refImages : []));
     if (r && r.ok){ queue.shift(); done++; continue; }
     if (r && budgetFail(r.message) && step.depth < MAX_SPLIT_DEPTH){

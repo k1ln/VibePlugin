@@ -210,9 +210,15 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
 
             // Optional reference screenshots: a JSON array of base64 strings.
             juce::StringArray images;
-            if (const auto* arr = juce::JSON::parse (argStr (a, 1)).getArray())
+            // Keep the parsed var alive: it owns the array, so a pointer taken from a
+            // temporary dangles before the loop runs and the images silently vanish.
+            const juce::var imagesJson = juce::JSON::parse (argStr (a, 1));
+            if (const auto* arr = imagesJson.getArray())
                 for (const auto& v : *arr)
                     if (v.toString().isNotEmpty()) images.add (v.toString());
+            if (argStr (a, 1).length() > 2)
+                VSTAI_LOG ("generate: " + juce::String (images.size()) + " reference image(s) received from the editor ("
+                           + juce::String (argStr (a, 1).length() / 1024) + " KB)");
 
             safe->processor.requestBuild (prompt,
                 [safe] (const juce::String& stage) { if (safe) safe->emitEvent ("stage", stage); },
@@ -346,7 +352,8 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
 
                     const bool ok = (status >= 200 && status < 300);
                     juce::String link, serverError;
-                    if (auto* o = juce::JSON::parse (resp).getDynamicObject())
+                    const juce::var respJson = juce::JSON::parse (resp);
+                    if (auto* o = respJson.getDynamicObject())
                     {
                         link = o->getProperty ("url").toString();
                         serverError = o->getProperty ("error").toString();

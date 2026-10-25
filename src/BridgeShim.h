@@ -334,9 +334,13 @@ namespace vstai::shim
         return s;
     }
 
-    inline juce::String withBridge (const juce::String& html, const juce::String& initialValuesJson = "{}")
+    // nativeSoundBar: the host draws its own sound bar (LockedEditor), so a GUI's floating bar
+    // (ui/sound-bar.js, baked into the .vstai) must stay away.
+    inline juce::String withBridge (const juce::String& html, const juce::String& initialValuesJson = "{}",
+                                    bool nativeSoundBar = false)
     {
-        const juce::String initScript = "<script>window.__vstaiRestored=" + initialValuesJson + ";</script>";
+        const juce::String initScript = "<script>window.__vstaiRestored=" + initialValuesJson + ";"
+                                      + (nativeSoundBar ? "window.__vstaiNativeSoundBar=true;" : "") + "</script>";
         const juce::String inject = juce::String (kCharsetMeta) + initScript + kBridgeShim
                                    + vstai::u8 (kPresetBrowserUi);   // the browser's strings are UTF-8 (arrows, star, ellipsis): never let JUCE read them as Latin-1
         int head = html.indexOfIgnoreCase ("<head>");

@@ -171,7 +171,8 @@ LockedEditor::provideResource (const juce::String& rawUrl)
         || url == "/preview" || url.endsWithIgnoreCase ("/preview"))
         return juce::WebBrowserComponent::Resource {
             vstai::shim::toBytes (vstai::shim::withBridge (processor.getDisplayHtml(),
-                                                           vstai::shim::restoredValuesJson (processor))),
+                                                           vstai::shim::restoredValuesJson (processor),
+                                                           true)),   // the native sound bar is already there
             "text/html;charset=UTF-8" };
 
     return std::nullopt;

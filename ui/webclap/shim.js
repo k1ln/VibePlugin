@@ -93,6 +93,16 @@
     noteOff: function (n) { n = n | 0; delete held[n]; sendNote(n, false, 0); },
     loadSample: function () {
       return Promise.reject(new Error('Loading samples is not supported in the WebCLAP version.'));
+    },
+    // The sound browser (presets.js) loading a sound: send the value to the plugin AND tell the
+    // GUI's own controls, which only follow values that arrive from outside (onParam).
+    _setFromHost: function (i, v) {
+      i = i | 0; v = +v;
+      endBoot();
+      vals[i] = v;
+      sendParam(i, v);
+      touch(i);
+      fire(i, v);
     }
   };
 

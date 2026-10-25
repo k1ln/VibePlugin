@@ -337,6 +337,8 @@ THE GUI  (single self-contained HTML document)
   the id of the loaded sound, d.entries is [{id,name,category,tags,favorite}] */ }) and call
   window.vstai.presets.list() once at start. Guard it with
   if (window.vstai && window.vstai.presets) so the GUI still works outside a plugin host.
+  Put the attribute data-vstai-sound on the name button: without it the host adds its own
+  small floating sound bar on top of your GUI.
   The component kit's header sound bar already does exactly this - keep it as it is.
 - Initialise controls to defaults and call setParam once on load.
 

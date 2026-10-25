@@ -13,7 +13,7 @@
 //      docs/gallery/webclap/<id>.wclap.tar.gz
 //      docs/gallery/webclap/index.json      { id: { file, bytes, hash, params } | { skipped } }
 //
-//  Bundles are only re-rendered when the .vstai, the adapter/shim or the compiler
+//  Bundles are only re-rendered when the .vstai, the adapter/shim/sound browser or the compiler
 //  driver changed (content hash), so reruns are cheap.
 //
 //      cmake --build build-test --target vstai_webclap_export     # once
@@ -64,7 +64,7 @@ process.on("exit", () => { try { rmSync(stage, { recursive: true, force: true })
 
 const read = (...p) => fs.readFile(path.join(ROOT, ...p));
 const toolHash = createHash("sha256");
-for (const f of [["ui", "webclap", "clap-adapter.ts"], ["ui", "webclap", "shim.js"], ["compiler", "asc-driver.mjs"], ["src", "WebClapExport.h"]])
+for (const f of [["ui", "webclap", "clap-adapter.ts"], ["ui", "webclap", "shim.js"], ["ui", "webclap", "presets.js"], ["src", "PresetBrowserUi.h"], ["compiler", "asc-driver.mjs"], ["src", "WebClapExport.h"]])
   toolHash.update(await read(...f));
 const TOOL = toolHash.digest("hex");
 

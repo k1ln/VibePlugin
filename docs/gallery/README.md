@@ -70,6 +70,30 @@ Needs the bundled compiler (`compiler/build.sh`); rebuild it if the driver chang
 adding a plugin or editing `ui/webclap/*`, then commit `webclap/`. CI doesn't render them (no
 compiler/C++ toolchain there). Plugins that load samples are skipped — WebCLAP can't carry them yet.
 
+### Sound browser in every plugin
+
+Every `.vstai` here carries a small floating **sound bar** (`‹ name › Save –`, baked into its GUI as
+`<script data-vstai-sound-bar>` from `ui/sound-bar.js`) that opens the in-plugin sound browser: factory
+sounds, types, tags, favorites and the user's own saved sounds. It parks itself in the emptiest corner and
+can be dragged elsewhere (remembered). It only appears where the host has the browser, so it is invisible
+in the web player.
+
+* **Desktop / VST3** — sounds are a file on disk (`presets.json`, per user). Exported VST3s show the native
+  sound bar instead (the in-page one switches itself off).
+* **WebCLAP** — the page ships its own host side (`ui/webclap/presets.js`): sounds are kept in the browser's
+  local storage under the plugin's id, and load by sending parameter edits to the module.
+
+```sh
+node scripts/add-sound-bar.mjs            # (re)bake the bar into every factory/plugins + docs/gallery/data .vstai
+node scripts/add-sound-bar.mjs --check    # CI-style: exit 1 if one is missing or stale
+node scripts/qa-sound-bar.mjs             # headless Chrome: every GUI gets a working bar (Save / name / prev)
+node scripts/qa-sound-bar.mjs --wclap docs/gallery/webclap   # ...and the real exported WebCLAP pages
+```
+
+`factory/tools/pack-vstai.mjs` adds the bar to every plugin it packs, so a rebuilt plugin keeps it. After
+editing `ui/sound-bar.js` re-run `add-sound-bar.mjs`, `embed-preset-ui.mjs` and rebuild the WebCLAP bundles
+(`build-webclap-gallery.mjs` notices: the script is part of its cache key).
+
 ### VST3 downloads (macOS / Windows / Linux, hosted in a Scaleway bucket)
 
 Each plugin can also be downloaded as a **locked, signed, whitelabel `.vst3`** — the same thing the

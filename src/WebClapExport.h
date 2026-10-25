@@ -28,6 +28,7 @@
 #include "VstaiDocument.h"
 #include "WebAssets.h"
 #include "Utf8.h"
+#include "PresetBrowserUi.h"
 
 namespace vstai::webclap
 {
@@ -87,11 +88,57 @@ namespace vstai::webclap
         return s;
     }
 
-    // The plugin's GUI with the WebCLAP shim spliced in where the desktop bridge would go.
-    inline juce::String pageWithShim (const juce::String& html, const juce::String& shimJs)
+    // What the page-side sound browser (ui/webclap/presets.js) needs: the product, its parameter
+    // table (to snapshot / apply a sound) and the factory sounds baked into the document.
+    inline juce::String presetConfigJson (const VstaiDocument& doc)
     {
-        const juce::String inject = "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-                                    "<script>" + shimJs + "</script>";
+        auto* root = new juce::DynamicObject();
+        root->setProperty ("id", "de.1ln.vibeplugin." + slugOf (doc.name));
+        root->setProperty ("product", doc.name);
+        root->setProperty ("instrument", doc.isInstrument);
+
+        juce::Array<juce::var> params;
+        std::set<int> seen;
+        for (const auto& p : doc.params)
+            if (p.index >= 0 && p.index < 63 && seen.insert (p.index).second)
+            {
+                auto* o = new juce::DynamicObject();
+                o->setProperty ("index", p.index);
+                o->setProperty ("def", p.defVal);
+                params.add (juce::var (o));
+            }
+        root->setProperty ("params", params);
+
+        juce::Array<juce::var> presets;
+        for (const auto& pr : doc.presets)
+        {
+            auto* o = new juce::DynamicObject();
+            o->setProperty ("name", pr.name);
+            o->setProperty ("category", pr.category);
+            juce::Array<juce::var> tags;
+            for (const auto& t : pr.tags) tags.add (t);
+            o->setProperty ("tags", tags);
+            auto* vals = new juce::DynamicObject();
+            for (const auto& kv : pr.values)
+                if (seen.count (kv.first)) vals->setProperty (juce::String (kv.first), kv.second);
+            o->setProperty ("values", juce::var (vals));
+            presets.add (juce::var (o));
+        }
+        root->setProperty ("presets", presets);
+        return juce::JSON::toString (juce::var (root), true).replace ("</", "<\\/");   // never close the <script> early
+    }
+
+    // The plugin's GUI with the WebCLAP shim spliced in where the desktop bridge would go, followed by
+    // the sound browser: its host side (presets.js) and the same drawer the desktop plugin uses.
+    inline juce::String pageWithShim (const juce::String& html, const juce::String& shimJs,
+                                      const juce::String& presetCfgJson = {}, const juce::String& presetsJs = {})
+    {
+        juce::String inject = "<meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+                              "<script>" + shimJs + "</script>";
+        if (presetCfgJson.isNotEmpty() && presetsJs.isNotEmpty())
+            inject << "<script>window.__vstaiPresetCfg=" << presetCfgJson << ";</script>"
+                   << "<script>" << presetsJs << "</script>"
+                   << vstai::u8 (vstai::shim::kPresetBrowserUi);   // UTF-8 strings (arrows, star): not Latin-1
         int head = html.indexOfIgnoreCase ("<head>");
         if (head >= 0) return html.substring (0, head + 6) + inject + html.substring (head + 6);
         int body = html.indexOfIgnoreCase ("<body>");
@@ -159,7 +206,8 @@ namespace vstai::webclap
         }
         const auto adapter = vstai::webassets::readText ("webclap/clap-adapter.ts");
         const auto shim    = vstai::webassets::readText ("webclap/shim.js");
-        if (adapter.isEmpty() || shim.isEmpty())
+        const auto presets = vstai::webassets::readText ("webclap/presets.js");
+        if (adapter.isEmpty() || shim.isEmpty() || presets.isEmpty())
         {
             message = "The WebCLAP adapter files (ui/webclap) were not found next to the plugin.";
             return false;
@@ -177,7 +225,7 @@ namespace vstai::webclap
         const auto root = slugOf (doc.name) + ".wclap";
         std::vector<Entry> entries;
         entries.push_back ({ root + "/module.wasm", juce::MemoryBlock (wasm.data(), wasm.size()) });
-        const auto page = pageWithShim (doc.html, shim).toStdString();
+        const auto page = pageWithShim (doc.html, shim, presetConfigJson (doc), presets).toStdString();
         entries.push_back ({ root + "/ui/index.html", juce::MemoryBlock (page.data(), page.size()) });
 
         if (! writeTarGz (dest, std::move (entries)))

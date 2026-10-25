@@ -8,6 +8,7 @@
 // =====================================================================
 
 import { readFileSync, writeFileSync, mkdtempSync, existsSync } from "node:fs";
+import { withSoundBar } from "./sound-bar.mjs";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
@@ -363,6 +364,8 @@ if (spec.guiFile) {
 }
 if (!guiHtml && spec.html) guiHtml = spec.html;
 if (!guiHtml) guiHtml = genHtml(spec.name, spec.params, guiOpts);
+// Every plugin gets the floating sound bar (ui/sound-bar.js): prev / browse / Save, where the host has the browser.
+guiHtml = withSoundBar(guiHtml);
 
 // --- assemble the .vstai (format 1) ----------------------------------
 const doc = {
