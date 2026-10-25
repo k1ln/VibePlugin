@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # =====================================================================
 #  Build, Developer ID sign, notarize, staple and package the macOS VST3
-#  bundles for a GitHub Release.
+#  and Audio Unit (Logic Pro / GarageBand) bundles for a GitHub Release.
+#  Produces two assets:  VibePlugin-vX.Y.Z-macos.zip     (2 x .vst3)
+#                        VibePlugin-vX.Y.Z-macos-au.zip  (2 x .component)
 #
 #  Why this exists: .github/workflows/release.yml ad-hoc signs macOS, and
 #  its upload step overwrites a manually-uploaded notarized zip of the same
@@ -10,7 +12,7 @@
 #  "cannot be checked" wall on every download, which is the whole point of
 #  doing this locally.
 #
-#  Each .vst3 carries TWO Mach-Os that both JIT and so both need hardened
+#  Each .vst3 / .component carries TWO Mach-Os that both JIT and so both need hardened
 #  runtime + JIT entitlements:
 #    Contents/MacOS/<name>        the plugin (wasmtime)
 #    Contents/Resources/vstai-node  the bundled compiler (~119 MB V8)
@@ -49,11 +51,14 @@ echo "==> VibePlugin $TAG  (identity: $IDENTITY, notary profile: $PROFILE)"
 
 # ---- 1. build ---------------------------------------------------------
 cmake -B "$BUILD_DIR" -DWASMTIME_DIR="$WASMTIME_DIR" >/dev/null
-cmake --build "$BUILD_DIR" --target VibePlugin_FX_VST3 VibePlugin_Synth_VST3
+cmake --build "$BUILD_DIR" --target VibePlugin_FX_VST3 VibePlugin_Synth_VST3 \
+                                   VibePlugin_FX_AU VibePlugin_Synth_AU
 
 BUNDLES=(
   "$BUILD_DIR/VibePlugin_FX_artefacts/Release/VST3/VibePlugin FX.vst3"
   "$BUILD_DIR/VibePlugin_Synth_artefacts/Release/VST3/VibePlugin Synth.vst3"
+  "$BUILD_DIR/VibePlugin_FX_artefacts/Release/AU/VibePlugin FX.component"
+  "$BUILD_DIR/VibePlugin_Synth_artefacts/Release/AU/VibePlugin Synth.component"
 )
 
 # ---- 2. entitlements --------------------------------------------------
@@ -87,36 +92,43 @@ sign() {  # sign <entitlements> <path>
 
 # ---- 3. sign inside-out, then notarize --------------------------------
 rm -rf "$OUT" "$STAGE"
-mkdir -p "$OUT" "$STAGE"
+mkdir -p "$OUT" "$STAGE/vst3" "$STAGE/au" "$STAGE/zips"
 
 for B in "${BUNDLES[@]}"; do
   NAME="$(basename "$B")"
   echo "==> signing $NAME"
   # Deepest first. Anything else and the outer signature is invalidated.
   sign "$ENT_DIR/node.plist" "$B/Contents/Resources/vstai-node"
-  sign "$ENT_DIR/jit.plist"  "$B/Contents/MacOS/${NAME%.vst3}"
+  sign "$ENT_DIR/jit.plist"  "$B/Contents/MacOS/${NAME%.*}"
   sign "$ENT_DIR/jit.plist"  "$B"
   codesign --verify --deep --strict --verbose=1 "$B"
 
   echo "==> notarizing $NAME  (the ~119 MB vstai-node makes this the slow step)"
-  ZIP="$STAGE/${NAME%.vst3}.zip"
+  ZIP="$STAGE/zips/${NAME%.*}.${NAME##*.}.zip"
   ditto -c -k --sequesterRsrc --keepParent "$B" "$ZIP"
   xcrun notarytool submit "$ZIP" --keychain-profile "$PROFILE" --wait
   xcrun stapler staple "$B"
   xcrun stapler validate "$B"
 
-  cp -R "$B" "$STAGE/$NAME"
+  case "$NAME" in
+    *.component) cp -R "$B" "$STAGE/au/$NAME" ;;
+    *)           cp -R "$B" "$STAGE/vst3/$NAME" ;;
+  esac
 done
 
 # ---- 4. package -------------------------------------------------------
-# Both bundles at the archive root, so unzipping gives you two .vst3s to drop
-# straight into the VST3 folder (that is what docs/releases.html tells people).
-rm -f "$STAGE"/*.zip
+# Both bundles of a format at the archive root, so unzipping gives you two .vst3s to drop
+# straight into the VST3 folder (that is what docs/releases.html tells people), or two
+# .component files for ~/Library/Audio/Plug-Ins/Components (Logic Pro, GarageBand).
 ASSET="$OUT/VibePlugin-$TAG-macos.zip"
-( cd "$STAGE" && ditto -c -k --sequesterRsrc . "$ASSET" )
+ASSET_AU="$OUT/VibePlugin-$TAG-macos-au.zip"
+( cd "$STAGE/vst3" && ditto -c -k --sequesterRsrc . "$ASSET" )
+( cd "$STAGE/au"   && ditto -c -k --sequesterRsrc . "$ASSET_AU" )
 rm -rf "$STAGE"
 
 echo
-echo "==> $ASSET"
-ls -lh "$ASSET" | awk '{print "    " $5}'
-echo "    next: git tag $TAG && git push origin $TAG, cancel the CI run, then gh release create"
+for A in "$ASSET" "$ASSET_AU"; do
+  echo "==> $A"
+  ls -lh "$A" | awk '{print "    " $5}'
+done
+echo "    next: git tag $TAG && git push origin $TAG, cancel the CI run, then gh release create (attach both zips)"

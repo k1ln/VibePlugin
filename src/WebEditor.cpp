@@ -569,7 +569,7 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                 if (safe == nullptr) { complete (result (false, "Editor closed.")); return; }
                 const auto suggested = safe->processor.getDocument().name;
                 safe->chooser = std::make_unique<juce::FileChooser> (
-                    "Export as a standalone, locked plugin (.vst3)",
+                    "Export as a standalone, locked plugin (.vst3 + Audio Unit .component on macOS)",
                     juce::File::getSpecialLocation (juce::File::userDesktopDirectory)
                         .getChildFile ((suggested.isNotEmpty() && suggested != "Untitled" ? suggested
                                                                                           : juce::String ("My Plugin")) + ".vst3"),
@@ -579,7 +579,9 @@ WebEditor::WebEditor (VstaiAudioProcessor& p)
                     {
                         auto file = fc.getResult();
                         if (file == juce::File() || safe == nullptr) { complete (result (false, "Cancelled.")); return; }
-                        if (! file.getFileName().endsWithIgnoreCase (".vst3"))
+                        if (file.getFileName().endsWithIgnoreCase (".component"))
+                            file = file.withFileExtension (".vst3");   // the AU is written beside it
+                        else if (! file.getFileName().endsWithIgnoreCase (".vst3"))
                             file = file.getSiblingFile (file.getFileName() + ".vst3");
                         const auto productName = file.getFileNameWithoutExtension();
 

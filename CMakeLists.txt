@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(VibePlugin VERSION 0.5.6 LANGUAGES C CXX)
+project(VibePlugin VERSION 0.5.7 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,6 +23,7 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE)
 FetchContent_MakeAvailable(JUCE)
 option(VSTAI_COPY_AFTER_BUILD "Install the built plugin into the user's VST3 folder after each build (macOS/Linux)" ON)
+option(VSTAI_BUILD_AU "Also build the Audio Unit (.component) on macOS" ON)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/PatchJuce.cmake)   # vendor/name read from identity.json at load time
 
 # wasmtime C API. Download a prebuilt "c-api" release for your platform from
@@ -108,13 +109,21 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
         set(COPY_AFTER_BUILD ${VSTAI_COPY_AFTER_BUILD})
     endif()
 
+    # Audio Unit (macOS only) - Logic Pro / GarageBand load AU and nothing else.
+    # JUCE derives the AU type from IS_SYNTH: aumu (instrument) / aufx (effect);
+    # the four-char codes are Vsai + ${CODE} (each has an uppercase letter, as AU requires).
+    set(FORMATS VST3 Standalone)
+    if(APPLE AND VSTAI_BUILD_AU)
+        list(APPEND FORMATS AU)
+    endif()
+
     juce_add_plugin(${TARGET}
         PRODUCT_NAME             "${PRODUCT}"
         COMPANY_NAME             "VibePlugin"
         BUNDLE_ID                "de.1ln.${TARGET}"
         PLUGIN_MANUFACTURER_CODE Vsai
         PLUGIN_CODE              ${CODE}
-        FORMATS                  VST3 Standalone
+        FORMATS                  ${FORMATS}
         IS_SYNTH                 ${IS_SYNTH}
         NEEDS_MIDI_INPUT         ${IS_SYNTH}
         NEEDS_WEB_BROWSER        TRUE
@@ -228,6 +237,20 @@ function(add_vstai_plugin TARGET PRODUCT CODE SYNTH)
                     $ENV{HOME}/Library/Audio/Plug-Ins/VST3/${PRODUCT}.vst3/Contents/Resources/ui
             VERBATIM)
         add_dependencies(${TARGET}_ui_sync ${TARGET}_VST3)
+    endif()
+
+    # Same for the AU: JUCE installs <name>.component into ~/Library/Audio/Plug-Ins/Components
+    # before the embed steps above run, so re-embed compiler + UI into the installed copy.
+    if(APPLE AND TARGET ${TARGET}_AU AND VSTAI_COPY_AFTER_BUILD)
+        set(AU_INSTALLED $ENV{HOME}/Library/Audio/Plug-Ins/Components/${PRODUCT}.component/Contents/Resources)
+        add_custom_command(TARGET ${TARGET}_AU POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+                    -DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}/compiler
+                    -DDEST=${AU_INSTALLED}
+                    -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/copy_compiler.cmake
+            COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+                    ${CMAKE_CURRENT_SOURCE_DIR}/ui ${AU_INSTALLED}/ui
+            VERBATIM)
     endif()
 endfunction()
 

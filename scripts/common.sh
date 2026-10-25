@@ -7,6 +7,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WASMTIME_DIR="${WASMTIME_DIR:-$HOME/wasmtime-c-api}"
 VST3_INSTALL_DIR="$HOME/Library/Audio/Plug-Ins/VST3"
+AU_INSTALL_DIR="$HOME/Library/Audio/Plug-Ins/Components"   # Audio Units (Logic Pro, GarageBand)
 PRODUCTS=("VibePlugin FX" "VibePlugin Synth")
 
 # Build the bundled AssemblyScript compiler once (downloads a portable runtime).
@@ -71,7 +72,7 @@ configure_and_build() {
   cmake --build "$REPO/$dir" --config "$type" -j
 }
 
-# (Re)sign the installed VST3 bundles. Identity from $VSTAI_SIGN_ID, else a
+# (Re)sign the installed VST3 + AU bundles. Identity from $VSTAI_SIGN_ID, else a
 # "Developer ID Application" cert if the keychain has one (preferred — it's the
 # distribution cert), else the first codesigning identity, else ad-hoc (local
 # only). The DSP (wasmtime) and the compiler (V8) both JIT, so we sign WITHOUT
@@ -94,17 +95,18 @@ sign_installed() {
   fi
   local b
   for p in "${PRODUCTS[@]}"; do
-    b="$VST3_INSTALL_DIR/$p.vst3"
-    [ -d "$b" ] || { echo "  (skip: $p not installed)"; continue; }
-    # nested helper executable first, then the bundle (inside-out)
-    if [ -f "$b/Contents/Resources/vstai-node" ]; then
-      codesign --force --timestamp=none -s "$id" "$b/Contents/Resources/vstai-node" >/dev/null 2>&1
-    fi
-    codesign --force --timestamp=none -s "$id" "$b" >/dev/null 2>&1
-    if codesign --verify --deep --strict "$b" >/dev/null 2>&1; then
-      echo "  ✓ $p  signed & valid"
-    else
-      echo "  ✗ $p  signature verify FAILED:"; codesign --verify --deep --strict "$b" || true
-    fi
+    for b in "$VST3_INSTALL_DIR/$p.vst3" "$AU_INSTALL_DIR/$p.component"; do
+      [ -d "$b" ] || { echo "  (skip: $b not installed)"; continue; }
+      # nested helper executable first, then the bundle (inside-out)
+      if [ -f "$b/Contents/Resources/vstai-node" ]; then
+        codesign --force --timestamp=none -s "$id" "$b/Contents/Resources/vstai-node" >/dev/null 2>&1
+      fi
+      codesign --force --timestamp=none -s "$id" "$b" >/dev/null 2>&1
+      if codesign --verify --deep --strict "$b" >/dev/null 2>&1; then
+        echo "  ✓ $(basename "$b")  signed & valid"
+      else
+        echo "  ✗ $(basename "$b")  signature verify FAILED:"; codesign --verify --deep --strict "$b" || true
+      fi
+    done
   done
 }

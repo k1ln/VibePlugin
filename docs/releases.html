@@ -59,7 +59,7 @@
         <div class="dl-card" data-os="macos">
           <svg class="os-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 1.6c.1 1-.3 2-.9 2.7-.7.8-1.7 1.4-2.7 1.3-.1-1 .4-2 .9-2.6.7-.8 1.8-1.4 2.7-1.4zM19 17.3c-.5 1.2-.8 1.7-1.4 2.7-.9 1.4-2.2 3.1-3.7 3.1-1.4 0-1.7-.9-3.6-.9s-2.3.9-3.6.9c-1.6 0-2.8-1.6-3.7-3C-.8 16.5-1 11.4 1.2 8.8 2.4 7.3 4 6.4 5.6 6.4c1.5 0 2.5.9 3.7.9 1.2 0 1.9-.9 3.7-.9 1.3 0 2.7.7 3.7 2-3.2 1.8-2.7 6.4 1.6 7.9z"/></svg>
           <h3>macOS</h3>
-          <div class="sub">Apple Silicon &amp; Intel · VST3</div>
+          <div class="sub">Apple Silicon &amp; Intel · VST3 + Audio Unit</div>
           <div class="assets"><div class="loading"><span class="spin"></span> loading…</div></div>
         </div>
         <div class="dl-card" data-os="windows">
@@ -81,6 +81,8 @@
         (<code>~/Library/Audio/Plug-Ins/VST3</code> on macOS, <code>%CommonProgramFiles%\VST3</code> on Windows,
         <code>~/.vst3</code> on Linux), then rescan plugins in your DAW.
         <span id="gatekeeperNote"></span>
+        <br><b>Logic Pro &amp; GarageBand</b> (macOS) load Audio Units only: take the <b>Audio Unit</b> download and drop the
+        <code>.component</code> files into <code>~/Library/Audio/Plug-Ins/Components</code>, then restart the app.
       </div>
 
       <div class="notice tip" style="margin-top:14px">

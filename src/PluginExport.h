@@ -1,7 +1,7 @@
 // PluginExport.h
 // =====================================================================
 //  "Export as Plugin" — turn the currently loaded creation into a standalone,
-//  locked whitelabel .vst3 the user can hand to others.
+//  locked whitelabel .vst3 (and, on macOS, Audio Unit .component) the user can hand to others.
 //
 //  The mechanism is deliberately a *copy*, not a rebuild (see the plan): the
 //  running plugin bundle is duplicated faithfully (binary byte-identical), the
@@ -32,17 +32,39 @@ namespace vstai::pluginexport
 
     // --- locating the running bundle / its baked creation --------------------
 
-    // The .vst3 bundle this binary lives in (the nearest ancestor dir named
-    // "*.vst3"), or an invalid File if not found (e.g. the Standalone build).
+    // The .vst3 (or macOS Audio Unit .component) bundle this binary lives in (the
+    // nearest ancestor dir with that extension), or an invalid File if not found
+    // (e.g. the Standalone build).
     inline juce::File findOwnBundle()
     {
         auto f = juce::File::getSpecialLocation (juce::File::currentExecutableFile);
         for (int i = 0; i < 6 && f.exists(); ++i)
         {
-            if (f.isDirectory() && f.getFileName().endsWithIgnoreCase (".vst3"))
+            if (f.isDirectory() && (f.getFileName().endsWithIgnoreCase (".vst3")
+                                    || f.getFileName().endsWithIgnoreCase (".component")))
                 return f;
             f = f.getParentDirectory();
         }
+        return {};
+    }
+
+    // The same product in the other macOS plugin format ("VibePlugin FX.vst3" <->
+    // "VibePlugin FX.component"): beside `own`, or in the standard install folders.
+    // `wantExt` is ".vst3" or ".component". Invalid File if it isn't installed.
+    inline juce::File findSiblingFormat (const juce::File& own, const juce::String& wantExt)
+    {
+       #if JUCE_MAC
+        const auto name = own.getFileNameWithoutExtension() + wantExt;
+        const bool wantAu = wantExt.equalsIgnoreCase (".component");
+        const char* sub = wantAu ? "Library/Audio/Plug-Ins/Components" : "Library/Audio/Plug-Ins/VST3";
+        const juce::File dirs[] = { own.getParentDirectory(),
+                                    juce::File::getSpecialLocation (juce::File::userHomeDirectory).getChildFile (sub),
+                                    juce::File ("/").getChildFile (sub) };
+        for (auto& d : dirs)
+            if (d.getChildFile (name).isDirectory()) return d.getChildFile (name);
+       #else
+        juce::ignoreUnused (own, wantExt);
+       #endif
         return {};
     }
 
@@ -587,18 +609,50 @@ namespace vstai::pluginexport
         return true;
     }
 
+    // An Audio Unit's identity (type / subtype / manufacturer / name) lives ONLY in
+    // Contents/Info.plist's AudioComponents entry - JUCE's AU wrapper keeps none of it in
+    // the binary - so re-identifying an AU is a plist edit and the Mach-O stays untouched.
+    // Logic lists the AU as "<vendor>: <name>"; a unique bundle id keeps two exports from
+    // being treated as one bundle by the system.
+    inline bool patchAudioUnitIdentity (const juce::File& bundle, const juce::String& newCode,
+                                        const juce::String& vendor, const juce::String& listName,
+                                        juce::String& warnOut)
+    {
+       #if JUCE_MAC
+        auto plist = bundle.getChildFile ("Contents").getChildFile ("Info.plist");
+        if (! plist.existsAsFile()) { warnOut = "Info.plist not found"; return false; }
+        const auto label = vendor.isNotEmpty() ? vendor : juce::String (kOriginalVendor);
+        juce::String out;
+        for (auto& cmd : { juce::String ("Set :AudioComponents:0:subtype ") + newCode,
+                           juce::String ("Set :AudioComponents:0:name ") + label + ": " + listName,
+                           juce::String ("Set :AudioComponents:0:description ") + listName,
+                           juce::String ("Set :CFBundleIdentifier de.1ln.export.") + newCode })
+            if (! runProcess ({ "/usr/libexec/PlistBuddy", "-c", cmd, plist.getFullPathName() }, out))
+            { warnOut = "could not edit Info.plist (" + cmd.upToFirstOccurrenceOf (" ", false, false) + "): " + out; return false; }
+        return true;
+       #else
+        juce::ignoreUnused (bundle, newCode, vendor, listName);
+        warnOut = "Audio Units exist on macOS only";
+        return false;
+       #endif
+    }
+
     // Re-identify the copied bundle: unique CID + product list-name. Returns true if
     // the CID was rewritten (a real new plugin); false (+ `warnOut`) means the markers
     // weren't found and the copy keeps VibePlugin's shared id. `newCodeOut` is the id.
     inline bool patchIdentity (const juce::File& bundle, const juce::String& oldName,
                                const juce::String& oldCode, const juce::String& productName,
-                               juce::String& newCodeOut, juce::String& warnOut)
+                               juce::String& newCodeOut, juce::String& warnOut,
+                               const juce::String& vendor = {})
     {
         const juce::String manuf   = "Vsai";
         const juce::String newCode = derivePluginCode (productName, oldCode);
         const juce::String newName = sanitizeName (productName, (int) oldName.getNumBytesAsUTF8());   // in-binary: same length
         const juce::String listName = sanitizeName (productName, identity::kMaxBytes);                 // moduleinfo + identity.json
         newCodeOut = newCode;
+
+        if (bundle.getFileExtension().equalsIgnoreCase (".component"))
+            return patchAudioUnitIdentity (bundle, newCode, vendor, listName, warnOut);
 
         auto bin = findMainBinary (bundle);
         if (! bin.existsAsFile()) { warnOut = "plugin binary not found"; return false; }
@@ -623,7 +677,7 @@ namespace vstai::pluginexport
 
     // --- the export itself ---------------------------------------------------
 
-    // Produce `destBundle` (a *.vst3) from `srcBundle`, baking `doc` in as a
+    // Produce `destBundle` (a *.vst3, or a *.component Audio Unit on macOS) from `srcBundle`, baking `doc` in as a
     // locked creation named `productName`. Returns false with a human-readable
     // `errOut` on failure. Pure file/process work — safe off the message thread.
     inline bool exportPlugin (const juce::File& srcBundle,
@@ -703,7 +757,8 @@ namespace vstai::pluginexport
         // (coexists with VibePlugin and other exports). Non-fatal: if the markers
         // aren't found we ship a working copy that shares VibePlugin's id.
         juce::String newCode, idWarn;
-        const bool uniqueId = patchIdentity (destBundle, oldName, oldCode, baked.name, newCode, idWarn);
+        const bool uniqueId = patchIdentity (destBundle, oldName, oldCode, baked.name, newCode, idWarn,
+                                             sanitizeVendor (vendor));
 
         // Optional vendor ("Liberty"): what the DAW browser groups the plugin under.
         juce::String vendorWarn;

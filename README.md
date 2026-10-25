@@ -103,8 +103,12 @@ A DAW only looks for new plugins when you tell it to:
 | Studio One | *Preferences ▸ Locations ▸ VST Plug-ins*, then rescan |
 | Cubase | *Studio ▸ VST Plug-in Manager ▸ Update* |
 
-> **Logic Pro can’t load it.** Logic is AU-only and VibePlugin is VST3. There is
-> no AU build.
+> **Logic Pro / GarageBand (macOS) need the Audio Unit.** Build it with the rest
+> (`scripts/build.sh` installs `VibePlugin FX.component` and `VibePlugin Synth.component`
+> into `~/Library/Audio/Plug-Ins/Components`), or take the `-macos-au.zip` from a release.
+> In Logic: *Settings ▸ Plug-In Manager ▸ Reset & Rescan Selection*. Check an install
+> with `auval -v aufx Vsfx Vsai` (FX) / `auval -v aumu Vssy Vsai` (Synth).
+> *Export plugin…* writes a locked `.vst3` **and** `.component` side by side.
 
 ### If it still doesn’t appear
 

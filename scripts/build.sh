@@ -19,5 +19,5 @@ echo "▶ building Release…"
 configure_and_build build Release
 sign_installed
 echo
-echo "✅ Done — installed & signed in: $VST3_INSTALL_DIR"
+echo "✅ Done — installed & signed in: $VST3_INSTALL_DIR  (+ AU in $AU_INSTALL_DIR)"
 echo "   In FL Studio: Options ▸ Manage plugins ▸ Find plugins (rescan)."

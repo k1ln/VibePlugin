@@ -141,22 +141,70 @@ bool VstaiAudioProcessor::exportToBundle (const juce::File& destBundle,
                                           std::function<void(const juce::String&)> progress,
                                           juce::String& messageOut)
 {
-    const auto src = vstai::pluginexport::findOwnBundle();
-    // The compiled-in identity this build ships with — what patchIdentity rewrites.
+    const auto own = vstai::pluginexport::findOwnBundle();
+    if (own == juce::File())
+    {
+        // Standalone has no plugin bundle to copy.
+        messageOut = "Export works from the plugin (VST3 / Audio Unit), not the Standalone app.";
+        return false;
+    }
+    // The compiled-in identity this build ships with - what patchIdentity rewrites.
     const juce::String oldName = kIsSynth ? "VibePlugin Synth" : "VibePlugin FX";
     const juce::String oldCode = kIsSynth ? "Vssy" : "Vsfx";
     const juce::String profile = vstai::appsettings::notaryProfile();
     // The sounds the user saved in the browser become the product's own factory sounds.
     VstaiDocument toExport = document;
     for (auto& p : presets_->userForExport()) toExport.presets.push_back (std::move (p));
-    const bool ok = vstai::pluginexport::exportPlugin (src, destBundle, toExport, productName,
-                                                       oldName, oldCode, profile, progress, messageOut,
-                                                       vstai::appsettings::exportVendor());
-    if (ok && ! document.params.empty() && ! vstai::guiFollowsHost (document.html))
+
+    // macOS exports BOTH formats next to each other (<name>.vst3 + <name>.component, Logic
+    // needs the AU) from the running bundle and its sibling in the other format; elsewhere
+    // just the VST3. `destBundle` only chooses folder + name.
+    struct Job { const char* label; juce::File src, dest; };
+    std::vector<Job> jobs;
+    const bool ownIsAu = own.getFileExtension().equalsIgnoreCase (".component");
+    const auto stem = destBundle.getFileNameWithoutExtension();
+    const auto dir  = destBundle.getParentDirectory();
+    auto vst3Src = ownIsAu ? vstai::pluginexport::findSiblingFormat (own, ".vst3") : own;
+   #if JUCE_MAC
+    auto auSrc   = ownIsAu ? own : vstai::pluginexport::findSiblingFormat (own, ".component");
+   #else
+    juce::File auSrc;
+   #endif
+    if (vst3Src != juce::File()) jobs.push_back ({ "VST3", vst3Src, dir.getChildFile (stem + ".vst3") });
+    if (auSrc   != juce::File()) jobs.push_back ({ "AU",   auSrc,   dir.getChildFile (stem + ".component") });
+
+    juce::StringArray notes;
+    bool anyOk = false;
+    for (auto& j : jobs)
+    {
+        auto tagged = [&progress, &j, multi = jobs.size() > 1] (const juce::String& s)
+        { if (progress) progress (multi ? juce::String (j.label) + ": " + s : s); };
+        juce::String msg;
+        const bool ok = vstai::pluginexport::exportPlugin (j.src, j.dest, toExport, productName,
+                                                           oldName, oldCode, profile, tagged, msg,
+                                                           vstai::appsettings::exportVendor());
+        anyOk = anyOk || ok;
+        notes.add (jobs.size() > 1 ? juce::String (j.label) + (ok ? ": " : " failed: ") + msg : msg);
+    }
+    if (jobs.empty())
+        notes.add ("could not locate the plugin bundle to copy.");
+   #if JUCE_MAC
+    else if (auSrc == juce::File())
+        notes.add ("No Audio Unit exported: the VibePlugin AU isn't installed "
+                   "(~/Library/Audio/Plug-Ins/Components). Install it to get a .component for Logic.");
+    else if (vst3Src == juce::File())
+        notes.add ("No VST3 exported: the VibePlugin VST3 isn't installed (~/Library/Audio/Plug-Ins/VST3).");
+    if (anyOk && auSrc != juce::File())
+        notes.add ("Audio Unit: copy the .component to ~/Library/Audio/Plug-Ins/Components, then in Logic open "
+                   "Settings > Plug-in Manager and Reset & Rescan.");
+   #endif
+    messageOut = notes.joinIntoString ("\n\n");
+
+    if (anyOk && ! document.params.empty() && ! vstai::guiFollowsHost (document.html))
         messageOut += vstai::u8 ("\n\nWarning: this plugin's GUI never calls window.vstai.onParam, so its "
                                  "knobs won't follow DAW automation or a reopened project (the sound will). "
                                  "Ask the AI to \"make every control follow onParam\", then export again.");
-    return ok;
+    return anyOk;
 }
 
 bool VstaiAudioProcessor::exportWebClap (const juce::File& dest, juce::String& messageOut)

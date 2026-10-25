@@ -45,6 +45,7 @@ function assetRow(a) {
 }
 
 function prettyName(name) {
+  if (/-au\.zip$/i.test(name)) return "Audio Unit (.zip) · Logic Pro, GarageBand";
   if (/synth/i.test(name)) return "Synth + FX bundle";
   if (/\.zip$/i.test(name)) return "VST3 bundle (.zip)";
   return name;
@@ -74,7 +75,7 @@ function highlightCurrentOS() {
 
   if (os === "macos") {
     const gk = document.getElementById("gatekeeperNote");
-    if (gk) gk.innerHTML = ` On macOS, if Gatekeeper blocks an unsigned build, right-click the <code>.vst3</code> ▸ Open, or run <code>xattr -dr com.apple.quarantine "VibePlugin FX.vst3"</code>.`;
+    if (gk) gk.innerHTML = ` On macOS, if Gatekeeper blocks an unsigned build, right-click the <code>.vst3</code> ▸ Open, or run <code>xattr -dr com.apple.quarantine "VibePlugin FX.vst3"</code> (or the <code>.component</code>).`;
   }
 }
 
